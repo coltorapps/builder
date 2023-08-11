@@ -2,16 +2,22 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "dev": "turbo dev --parallel",
+    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md,json}\" --ignore-path .gitignore",
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
+    "type-check": "turbo type-check"
   },
   "devDependencies": {
+    "@builder/eslint-config": "workspace:*",
+    "@ianvs/prettier-plugin-sort-imports": "^4.0.2",
     "@turbo/gen": "^1.9.7",
-    "eslint": "^7.32.0",
-    "eslint-config-custom": "workspace:*",
-    "prettier": "^2.5.1",
-    "turbo": "latest"
+    "@types/node": "^17.0.12",
+    "@types/prettier": "^2.7.3",
+    "eslint": "^8.42.0",
+    "prettier": "^2.8.8",
+    "turbo": "latest",
+    "typescript": "^5.1.6"
   },
   "packageManager": "pnpm@8.6.10",
   "name": "builder-phoenix"

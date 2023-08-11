@@ -1,10 +1,9 @@
-import { Button, Header } from "ui";
+import { Test } from "builder";
 
 export default function Page() {
   return (
     <>
-      <Header text="Docs" />
-      <Button />
+      <Test />
     </>
   );
 }
