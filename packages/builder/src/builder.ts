@@ -25,7 +25,7 @@ export interface Builder<
   parentRequired: TParentRequired;
 }
 
-type OptionalBuilderArgs = "entityId" | "childrenAllowed" | "parentRequired";
+type OptionalBuilderArgs = "childrenAllowed" | "parentRequired";
 
 export function createBuilder<
   const TEntities extends BuilderEntities,
@@ -37,28 +37,41 @@ export function createBuilder<
 >(
   options: Omit<
     Builder<TEntities, TChildrenAllowed, TParentRequired>,
-    OptionalBuilderArgs
+    OptionalBuilderArgs | "entityId"
   > &
     Partial<
       Pick<
         Builder<TEntities, TChildrenAllowed, TParentRequired>,
         OptionalBuilderArgs
       >
-    >,
+    > & {
+      entityId?: Partial<
+        Builder<TEntities, TChildrenAllowed, TParentRequired>["entityId"]
+      >;
+    },
 ): Builder<TEntities, TChildrenAllowed, TParentRequired> {
   return {
     ...options,
-    entityId: options.entityId ?? {
-      generate() {
-        return Math.floor(Math.random() * Date.now()).toString(16);
-      },
-      validate(id) {
-        if (typeof id !== "string") {
-          throw new Error(`The entity id '${id}' is invalid.`);
-        }
+    entityId: {
+      generate:
+        options.entityId?.generate ??
+        (() => {
+          return crypto.randomUUID();
+        }),
+      validate:
+        options.entityId?.validate ??
+        ((id) => {
+          if (
+            typeof id !== "string" ||
+            !/^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i.test(
+              id,
+            )
+          ) {
+            throw new Error(`The entity id '${id}' is invalid.`);
+          }
 
-        return id;
-      },
+          return id;
+        }),
     },
     childrenAllowed: options.childrenAllowed ?? ({} as TChildrenAllowed),
     parentRequired:

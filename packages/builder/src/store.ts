@@ -11,6 +11,9 @@ type BaseStoreEntity<TEntities extends BuilderEntities> = {
       InputsValues<Extract<TEntities[number], { name: K }>["inputs"]>
     >;
     parentId?: string;
+    value?: Awaited<
+      ReturnType<Extract<TEntities[number], { name: K }>["validate"]>
+    >;
   };
 }[TEntities[number]["name"]];
 
@@ -132,7 +135,19 @@ export function validateStoreEntity<TBuilder extends BaseBuilder>(
     }
   }
 
-  return { ...storeEntity, id };
+  const value =
+    storeEntity.value ??
+    (entityDefinition.defaultValue({
+      inputs: storeEntity.inputs,
+    }) as typeof storeEntity.value);
+
+  return {
+    id,
+    type: storeEntity.type,
+    parentId: storeEntity.parentId,
+    inputs: storeEntity.inputs,
+    value,
+  };
 }
 
 export function createStore<TBuilder extends BaseBuilder>(
