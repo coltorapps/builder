@@ -23,12 +23,16 @@ describe("entity", () => {
       },
     });
 
+    type Context = { inputs: Record<string, never> };
+
     expectTypeOf(entity).toMatchTypeOf<{
       name: "text";
-      validate: (
-        value: unknown,
-        context: { inputs: Record<string, never> },
-      ) => string | Promise<string>;
+      validate: (value: unknown, context: Context) => string;
+      inputs: ReadonlyArray<{
+        name: string;
+        validate: (value: unknown) => unknown;
+      }>;
+      defaultValue: (context: Context) => string | undefined;
     }>();
   });
 
@@ -57,29 +61,24 @@ describe("entity", () => {
       },
     });
 
-    type ValidationContext = {
+    type Context = {
       inputs: { label: string; defaultValue: string | undefined };
     };
 
     expectTypeOf(entity).toMatchTypeOf<{
       name: "text";
-      validate: (
-        value: unknown,
-        context: ValidationContext,
-      ) => string | Promise<string>;
+      validate: (value: unknown, context: Context) => string;
       inputs: readonly [
         {
           name: "label";
-          validate: (value: unknown) => string | Promise<string>;
+          validate: (value: unknown) => string;
         },
         {
           name: "defaultValue";
-          validate: (
-            value: unknown,
-          ) => string | undefined | Promise<string | undefined>;
+          validate: (value: unknown) => string | undefined;
         },
       ];
-      defaultValue: (context: ValidationContext) => string | undefined;
+      defaultValue: (context: Context) => string | undefined;
     }>();
   });
 });

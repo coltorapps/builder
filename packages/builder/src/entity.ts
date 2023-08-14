@@ -10,11 +10,10 @@ export interface Entity<
   TValue,
 > {
   name: TName;
-  validate: (
-    value: unknown,
+  validate: (value: unknown, context: EntityContext<TInputs>) => TValue;
+  defaultValue: (
     context: EntityContext<TInputs>,
-  ) => Promise<TValue> | TValue;
-  defaultValue: (context: EntityContext<TInputs>) => TValue | undefined;
+  ) => Awaited<TValue> | undefined;
   inputs: TInputs;
 }
 
