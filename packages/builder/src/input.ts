@@ -1,6 +1,6 @@
 export interface Input<TName extends string, TValue = unknown> {
   name: TName;
-  validate?: (value: unknown) => Promise<TValue> | TValue;
+  validate: (value: unknown) => Promise<TValue> | TValue;
 }
 
 export function createInput<const TName extends string, TValue>(

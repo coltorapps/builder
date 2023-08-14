@@ -2,7 +2,7 @@ import { type Entity } from "./entity";
 import { type Input } from "./input";
 
 export type BuilderEntities = ReadonlyArray<
-  Entity<string, Array<Input<string>>, unknown>
+  Entity<string, ReadonlyArray<Input<string>>, unknown>
 >;
 
 type ChildrenAllowed<TEntities extends BuilderEntities> = {
@@ -13,28 +13,56 @@ type ChildrenAllowed<TEntities extends BuilderEntities> = {
 
 export interface Builder<
   TEntities extends BuilderEntities,
-  TChildrenAllowed extends ChildrenAllowed<TEntities> | undefined,
-  TParentRequired extends ReadonlyArray<TEntities[number]["name"]>,
-  TId extends string | number,
+  TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<string, never>,
+  TParentRequired extends ReadonlyArray<TEntities[number]["name"]> = [],
 > {
   entities: TEntities;
-  entityId?: {
-    generate: () => TId;
-    validate: (id: TId) => TId;
+  entityId: {
+    generate: () => string;
+    validate: (id: string) => string;
   };
-  childrenAllowed?: TChildrenAllowed;
-  parentRequired?: TParentRequired;
+  childrenAllowed: TChildrenAllowed;
+  parentRequired: TParentRequired;
 }
+
+type OptionalBuilderArgs = "entityId" | "childrenAllowed" | "parentRequired";
 
 export function createBuilder<
   const TEntities extends BuilderEntities,
-  const TParentRequired extends ReadonlyArray<TEntities[number]["name"]>,
-  const TId extends string | number,
-  const TChildrenAllowed extends
-    | ChildrenAllowed<TEntities>
-    | undefined = undefined,
+  const TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<
+    string,
+    never
+  >,
+  const TParentRequired extends ReadonlyArray<TEntities[number]["name"]> = [],
 >(
-  options: Builder<TEntities, TChildrenAllowed, TParentRequired, TId>,
-): Builder<TEntities, TChildrenAllowed, TParentRequired, TId> {
-  return options;
+  options: Omit<
+    Builder<TEntities, TChildrenAllowed, TParentRequired>,
+    OptionalBuilderArgs
+  > &
+    Partial<
+      Pick<
+        Builder<TEntities, TChildrenAllowed, TParentRequired>,
+        OptionalBuilderArgs
+      >
+    >,
+): Builder<TEntities, TChildrenAllowed, TParentRequired> {
+  return {
+    ...options,
+    entityId: options.entityId ?? {
+      generate() {
+        return Math.floor(Math.random() * Date.now()).toString(16);
+      },
+      validate(id) {
+        if (typeof id !== "string") {
+          throw new Error(`The entity id '${id}' is invalid.`);
+        }
+
+        return id;
+      },
+    },
+    childrenAllowed: options.childrenAllowed ?? ({} as TChildrenAllowed),
+    parentRequired:
+      options.parentRequired ??
+      ([] as ReadonlyArray<unknown> as TParentRequired),
+  };
 }

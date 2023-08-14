@@ -1,8 +1,8 @@
 import { type Input } from "./input";
 
-interface EntityContext<TInput extends Array<Input<string>>> {
+export interface EntityContext<TInputs extends ReadonlyArray<Input<string>>> {
   inputs: {
-    [K in TInput[number]["name"]]: TInput[number] extends {
+    [K in TInputs[number]["name"]]: TInputs[number] extends {
       name: K;
       validate?: infer RValidator;
     }
@@ -15,22 +15,30 @@ interface EntityContext<TInput extends Array<Input<string>>> {
 
 export interface Entity<
   TName extends string,
-  TInput extends Array<Input<string>>,
+  TInputs extends ReadonlyArray<Input<string>>,
   TValue,
 > {
   name: TName;
   validate?: (
     value: unknown,
-    context: EntityContext<TInput>,
+    context: EntityContext<TInputs>,
   ) => Promise<TValue> | TValue;
-  defaultValue?: (context: EntityContext<TInput>) => TValue | undefined;
-  inputs?: TInput;
+  defaultValue?: (context: EntityContext<TInputs>) => TValue | undefined;
+  inputs: TInputs;
 }
+
+type OptionalEntityArgs = "inputs";
 
 export function createEntity<
   const TName extends string,
-  TInput extends Array<Input<string>>,
+  const TInputs extends ReadonlyArray<Input<string>>,
   TValue,
->(options: Entity<TName, TInput, TValue>): Entity<TName, TInput, TValue> {
-  return options;
+>(
+  options: Omit<Entity<TName, TInputs, TValue>, OptionalEntityArgs> &
+    Partial<Pick<Entity<TName, TInputs, TValue>, OptionalEntityArgs>>,
+): Entity<TName, TInputs, TValue> {
+  return {
+    ...options,
+    inputs: options.inputs ?? ([] as ReadonlyArray<unknown> as TInputs),
+  };
 }
