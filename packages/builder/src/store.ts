@@ -1,7 +1,6 @@
-import { createBuilder, type Builder, type BuilderEntities } from "./builder";
+import { type Builder, type BuilderEntities } from "./builder";
 import { createDataManager } from "./data";
-import { createEntity } from "./entity";
-import { createInput, type Input } from "./input";
+import { type Input } from "./input";
 import { type Subscribe } from "./subscription";
 
 type UndefinedKeys<T> = {
@@ -29,24 +28,29 @@ type BaseStoreEntity<TEntities extends BuilderEntities> = {
   [K in TEntities[number]["name"]]: {
     type: K;
     inputs: InputsValues<Extract<TEntities[number], { name: K }>["inputs"]>;
+    parentId?: string;
   };
 }[TEntities[number]["name"]];
 
-type StoreEntity<TBuilder extends BaseBuilder> = {
+export type StoreEntity<TBuilder extends BaseBuilder> = {
   id: string;
 } & BaseStoreEntity<TBuilder["entities"]>;
 
-interface StoreData<TBuilder extends BaseBuilder> {
+type NewEntity<TBuilder extends BaseBuilder> = BaseStoreEntity<
+  TBuilder["entities"]
+> & {
+  index?: number;
+};
+
+export interface StoreData<TBuilder extends BaseBuilder> {
   entities: Map<string, StoreEntity<TBuilder>>;
 }
 
-interface Store<TBuilder extends BaseBuilder> {
+export interface Store<TBuilder extends BaseBuilder> {
   builder: TBuilder;
   getData(): StoreData<TBuilder>;
   subscribe: Subscribe<StoreData<TBuilder>>;
-  addEntity(
-    entity: BaseStoreEntity<TBuilder["entities"]>,
-  ): StoreEntity<TBuilder>;
+  addEntity(entity: NewEntity<TBuilder>): StoreEntity<TBuilder>;
 }
 
 type BaseBuilder = Builder<
@@ -55,21 +59,87 @@ type BaseBuilder = Builder<
   ReadonlyArray<string>
 >;
 
+type StoreValidationErrorCause =
+  | "NoEntityType"
+  | "InvalidEntityType"
+  | "InvalidParentId"
+  | "EntityInputsRequired"
+  | "InvalidEntityInputs"
+  | "InvalidEntityInput";
+
+export class StoreValidationError extends Error {
+  public cause: StoreValidationErrorCause;
+
+  constructor(message: string, cause: StoreValidationErrorCause) {
+    super(message);
+
+    this.cause = cause;
+  }
+}
+
 function validateEntity<TBuilder extends BaseBuilder>(
   builder: TBuilder,
+  data: StoreData<TBuilder>,
   entity: StoreEntity<TBuilder>,
 ): StoreEntity<TBuilder> {
-  const hasEntityWithName = builder.entities.some(
-    (builderEntity) => builderEntity.name === entity.type,
-  );
+  const id = builder.entityId.validate(entity.id);
 
-  if (!hasEntityWithName) {
-    throw new Error(
-      `The entity '${entity.type}' is not defined in the builder.`,
+  if (typeof entity.type !== "string") {
+    throw new StoreValidationError(
+      "Entity type was not specified.",
+      "NoEntityType",
     );
   }
 
-  return { ...entity, id: builder.entityId.validate(entity.id) };
+  const entityDefinition = builder.entities.find(
+    (builderEntity) => builderEntity.name === entity.type,
+  );
+
+  if (!entityDefinition) {
+    throw new StoreValidationError(
+      `The entity '${entity.type}' is not defined in the builder.`,
+      "InvalidEntityType",
+    );
+  }
+
+  if (
+    entity.parentId &&
+    !data.entities.has(builder.entityId.validate(entity.parentId))
+  ) {
+    throw new StoreValidationError(
+      `The entity with ID '${entity.id}' references a parent entity ID '${entity.parentId}' that does not exist.`,
+      "InvalidParentId",
+    );
+  }
+
+  if (!entity.inputs) {
+    throw new StoreValidationError(
+      "Entity inputs were not provided.",
+      "EntityInputsRequired",
+    );
+  }
+
+  if (typeof entity.inputs !== "object") {
+    throw new StoreValidationError(
+      "Entity inputs must be an object.",
+      "InvalidEntityInputs",
+    );
+  }
+
+  const entityDefinitionInputNames = entityDefinition.inputs.map(
+    (input) => input.name,
+  );
+
+  for (const inputName in entity.inputs) {
+    if (!entityDefinitionInputNames.includes(inputName)) {
+      throw new StoreValidationError(
+        `The entity with type '${entity.type}' doesn't have an input named '${inputName}'.`,
+        "InvalidEntityInput",
+      );
+    }
+  }
+
+  return { ...entity, id };
 }
 
 export function createStore<TBuilder extends BaseBuilder>(
@@ -79,20 +149,22 @@ export function createStore<TBuilder extends BaseBuilder>(
   const { getData, setData, subscribe } = createDataManager<
     StoreData<TBuilder>
   >({
-    entities: new Map(
-      entities.map((entity) => [entity.id, validateEntity(builder, entity)]),
-    ),
+    entities: new Map(entities.map((entity) => [entity.id, entity])),
   });
+
+  const data = getData();
+
+  data.entities.forEach((entity) => validateEntity(builder, data, entity));
 
   return {
     builder,
     getData,
     subscribe,
     addEntity(newEntity) {
-      const validatedEntity = validateEntity(builder, {
+      const validatedEntity = validateEntity(builder, getData(), {
         ...newEntity,
         id: builder.entityId.generate(),
-      } as StoreEntity<TBuilder>);
+      });
 
       setData((data) => ({
         ...data,
@@ -103,44 +175,3 @@ export function createStore<TBuilder extends BaseBuilder>(
     },
   };
 }
-
-const textEntity = createEntity({
-  name: "text",
-  inputs: [
-    createInput({
-      name: "label",
-      validate: (val) => val as string | undefined,
-    }),
-  ],
-});
-
-const selectEntity = createEntity({
-  name: "select",
-  inputs: [
-    createInput({
-      name: "title",
-      validate: (val) => val as string,
-    }),
-    createInput({
-      name: "foo",
-      validate: (val) => val as number,
-    }),
-  ],
-});
-
-const builder = createBuilder({
-  entities: [textEntity, selectEntity],
-});
-
-const store = createStore(builder, []);
-
-const dat = store.getData().entities.get("");
-
-if (dat?.type === "text") {
-  dat.inputs?.label;
-}
-
-store.addEntity({
-  type: "text",
-  inputs: {},
-});
