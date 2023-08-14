@@ -8,4 +8,11 @@ export { createInput } from "./input";
 export type { Input } from "./input";
 
 export { StoreValidationError, createStore } from "./store";
-export type { Store, StoreData, StoreEntity } from "./store";
+export type {
+  Store,
+  StoreData,
+  StoreEntity,
+  StoreValidationErrorCause,
+} from "./store";
+
+export { getEntitiesNamesExcept } from "./utils";
