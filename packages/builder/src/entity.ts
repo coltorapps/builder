@@ -1,16 +1,7 @@
-import { type Input } from "./input";
+import { type Input, type InputsValues } from "./input";
 
 export interface EntityContext<TInputs extends ReadonlyArray<Input<string>>> {
-  inputs: {
-    [K in TInputs[number]["name"]]: TInputs[number] extends {
-      name: K;
-      validate?: infer RValidator;
-    }
-      ? RValidator extends (...args: Array<unknown>) => unknown
-        ? Awaited<ReturnType<RValidator>>
-        : never
-      : never;
-  };
+  inputs: InputsValues<TInputs>;
 }
 
 export interface Entity<
@@ -19,15 +10,15 @@ export interface Entity<
   TValue,
 > {
   name: TName;
-  validate?: (
+  validate: (
     value: unknown,
     context: EntityContext<TInputs>,
   ) => Promise<TValue> | TValue;
-  defaultValue?: (context: EntityContext<TInputs>) => TValue | undefined;
+  defaultValue: (context: EntityContext<TInputs>) => TValue | undefined;
   inputs: TInputs;
 }
 
-type OptionalEntityArgs = "inputs";
+type OptionalEntityArgs = "inputs" | "validate" | "defaultValue";
 
 export function createEntity<
   const TName extends string,
@@ -39,6 +30,16 @@ export function createEntity<
 ): Entity<TName, TInputs, TValue> {
   return {
     ...options,
+    validate:
+      options.validate ??
+      ((value) => {
+        if (value) {
+          throw new Error("No value allowed");
+        }
+
+        return undefined as TValue;
+      }),
     inputs: options.inputs ?? ([] as ReadonlyArray<unknown> as TInputs),
+    defaultValue: options.defaultValue ?? (() => undefined),
   };
 }

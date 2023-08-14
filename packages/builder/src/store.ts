@@ -1,20 +1,15 @@
 import { type Builder, type BuilderEntities } from "./builder";
 import { createDataManager } from "./data";
-import { type Input } from "./input";
+import { type InputsValues } from "./input";
 import { type Subscribe } from "./subscription";
 import { type OptionalPropsIfUndefined } from "./utils";
-
-type InputsValues<TInputs extends ReadonlyArray<Input<string, unknown>>> =
-  OptionalPropsIfUndefined<{
-    [K in TInputs[number]["name"]]: Awaited<
-      ReturnType<Extract<TInputs[number], { name: K }>["validate"]>
-    >;
-  }>;
 
 type BaseStoreEntity<TEntities extends BuilderEntities> = {
   [K in TEntities[number]["name"]]: {
     type: K;
-    inputs: InputsValues<Extract<TEntities[number], { name: K }>["inputs"]>;
+    inputs: OptionalPropsIfUndefined<
+      InputsValues<Extract<TEntities[number], { name: K }>["inputs"]>
+    >;
     parentId?: string;
   };
 }[TEntities[number]["name"]];
@@ -72,7 +67,7 @@ export class StoreValidationError extends Error {
   }
 }
 
-function validateStoreEntity<TBuilder extends BaseBuilder>(
+export function validateStoreEntity<TBuilder extends BaseBuilder>(
   builder: TBuilder,
   data: StoreData<TBuilder>,
   storeEntity: StoreEntity<TBuilder>,

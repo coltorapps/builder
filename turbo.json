@@ -8,6 +8,9 @@
     },
     "lint": {},
     "lint:fix": {},
+    "test": {
+      "cache": false
+    },
     "type-check": {
       "cache": false
     },

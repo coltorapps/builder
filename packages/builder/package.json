@@ -18,14 +18,17 @@
     "dev": "tsup --watch",
     "lint": "eslint .",
     "lint:fix": "pnpm lint --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit & vitest typecheck",
+    "test": "vitest"
   },
   "devDependencies": {
     "@builder/eslint-config": "workspace:*",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "eslint": "^8.42.0",
     "react": "^18.0.2",
     "tsup": "^7.2.0",
-    "eslint": "^8.42.0"
+    "vitest": "^0.34.1",
+    "zod": "^3.21.4"
   }
 }

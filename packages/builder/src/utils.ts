@@ -10,6 +10,8 @@ export function getEntitiesNamesExcept<
   const filteredEntities = entities.filter(function (entity): entity is {
     name: Exclude<TEntities[number]["name"], TExcludeName[number]>;
     inputs: [];
+    validate: () => unknown;
+    defaultValue: () => unknown;
   } {
     return !excludeName.includes(entity.name);
   });
