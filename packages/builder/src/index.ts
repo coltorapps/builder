@@ -7,12 +7,12 @@ export type { Entity } from "./entity";
 export { createInput } from "./input";
 export type { Input } from "./input";
 
-export { StoreValidationError, createStore } from "./store";
+export { EntityValidationError, createStore } from "./store";
 export type {
   Store,
   StoreData,
   StoreEntity,
-  StoreValidationErrorCause,
+  EntityValidationErrorCause,
 } from "./store";
 
 export { getEntitiesNamesExcept } from "./utils";
