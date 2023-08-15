@@ -1,0 +1,56 @@
+name: Run Tests and Type Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+  test:
+    runs-on: ${{ matrix.os }}
+
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node_version: [16, 18]
+        include:
+          - os: macos-latest
+            node_version: 18
+          - os: windows-latest
+            node_version: 18
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup-and-cache
+        with:
+          node-version: ${{ matrix.node_version }}
+
+      - name: Install
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Test
+        run: pnpm run test:ci

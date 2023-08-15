@@ -6,6 +6,8 @@
     "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md,json}\" --ignore-path .gitignore",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
+    "test": "turbo test",
+    "test:ci": "CI=true turbo test",
     "type-check": "turbo type-check"
   },
   "devDependencies": {

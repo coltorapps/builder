@@ -36,7 +36,7 @@ describe("entity", () => {
     }>();
   });
 
-  it("can be created with inputs and default value", () => {
+  it("can be created with inputs", () => {
     const entity = createEntity({
       name: "text",
       validate(value) {

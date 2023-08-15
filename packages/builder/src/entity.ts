@@ -27,18 +27,26 @@ export function createEntity<
   options: Omit<Entity<TName, TInputs, TValue>, OptionalEntityArgs> &
     Partial<Pick<Entity<TName, TInputs, TValue>, OptionalEntityArgs>>,
 ): Entity<TName, TInputs, TValue> {
+  const fallbackInputs = [] as ReadonlyArray<unknown> as TInputs;
+
+  function fallbackValidator(value: unknown): TValue {
+    if (typeof value !== "undefined") {
+      throw new Error(
+        `Values for entities of type '${options.name}' are not allowed.`,
+      );
+    }
+
+    return undefined as TValue;
+  }
+
+  function fallbackDefaultValue() {
+    return undefined;
+  }
+
   return {
     ...options,
-    validate:
-      options.validate ??
-      ((value) => {
-        if (value) {
-          throw new Error("No value allowed");
-        }
-
-        return undefined as TValue;
-      }),
-    inputs: options.inputs ?? ([] as ReadonlyArray<unknown> as TInputs),
-    defaultValue: options.defaultValue ?? (() => undefined),
+    inputs: options.inputs ?? fallbackInputs,
+    validate: options.validate ?? fallbackValidator,
+    defaultValue: options.defaultValue ?? fallbackDefaultValue,
   };
 }

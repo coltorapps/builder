@@ -12,11 +12,16 @@ describe("entity", () => {
 
     expect(entity).toMatchInlineSnapshot(`
       {
+        "defaultValue": [Function],
         "inputs": [],
         "name": "text",
         "validate": [Function],
       }
     `);
+
+    expect(entity.defaultValue({ inputs: {} })).toMatchInlineSnapshot(
+      "undefined",
+    );
   });
 
   it("can validate values", () => {
@@ -52,7 +57,9 @@ describe("entity", () => {
 
     expect(() =>
       entity.validate("value", { inputs: {} }),
-    ).toThrowErrorMatchingInlineSnapshot('"No value allowed"');
+    ).toThrowErrorMatchingInlineSnapshot(
+      "\"Values for entities of type 'text' are not allowed.\"",
+    );
 
     expect(entity.validate(undefined, { inputs: {} })).toMatchInlineSnapshot(
       "undefined",
@@ -77,6 +84,7 @@ describe("entity", () => {
 
     expect(entity).toMatchInlineSnapshot(`
       {
+        "defaultValue": [Function],
         "inputs": [
           {
             "name": "required",
@@ -87,6 +95,48 @@ describe("entity", () => {
         "validate": [Function],
       }
     `);
+  });
+
+  it("uses inputs for default value", () => {
+    const entity = createEntity({
+      name: "text",
+      inputs: [
+        createInput({
+          name: "defaultValue",
+          validate(value) {
+            return z.string().optional().parse(value);
+          },
+        }),
+      ],
+      validate(value) {
+        return z.string().parse(value);
+      },
+      defaultValue({ inputs }) {
+        return inputs.defaultValue;
+      },
+    });
+
+    expect(entity).toMatchInlineSnapshot(`
+      {
+        "defaultValue": [Function],
+        "inputs": [
+          {
+            "name": "defaultValue",
+            "validate": [Function],
+          },
+        ],
+        "name": "text",
+        "validate": [Function],
+      }
+    `);
+
+    expect(
+      entity.defaultValue({ inputs: { defaultValue: undefined } }),
+    ).toMatchInlineSnapshot("undefined");
+
+    expect(
+      entity.defaultValue({ inputs: { defaultValue: "default" } }),
+    ).toMatchInlineSnapshot('"default"');
   });
 
   it("uses inputs for validation", () => {
