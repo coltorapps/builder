@@ -11,9 +11,6 @@
     "test": {
       "cache": false
     },
-    "test:ci": {
-      "cache": false
-    },
     "type-check": {
       "cache": false
     },

@@ -1,5 +1,8 @@
 name: Run Tests and Type Check
 
+env:
+  CI: true
+
 on:
   push:
     branches:
@@ -53,4 +56,4 @@ jobs:
         run: pnpm run build
 
       - name: Test
-        run: pnpm run test:ci
+        run: pnpm run test

@@ -7,7 +7,6 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "test": "turbo test",
-    "test:ci": "CI=true turbo test",
     "type-check": "turbo type-check"
   },
   "devDependencies": {
