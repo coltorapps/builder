@@ -15,10 +15,5 @@
     "jsx": "react-jsx",
     "noUncheckedIndexedAccess": true,
     "noEmit": true
-  },
-  "include": [
-    ".eslintrc.js",
-    "prettier.config.cjs",
-    "packages/eslint-config/index.js"
-  ]
+  }
 }

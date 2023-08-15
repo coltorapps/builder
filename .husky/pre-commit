@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+export CI=true
+
+pnpm run lint
+pnpm run test
+pnpm run typecheck

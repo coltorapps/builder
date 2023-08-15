@@ -23,7 +23,14 @@ const config = {
       { prefer: "type-imports", fixStyle: "inline-type-imports" },
     ],
   },
-  ignorePatterns: ["**/*.config.js", "**/*.config.cjs", "packages/config/**", "dist"],
+  ignorePatterns: [
+    "**/*.config.js",
+    "**/*.config.cjs",
+    "packages/eslint-config/**",
+    "dist",
+    ".eslintrc.js",
+    "prettier.config.cjs",
+  ],
   reportUnusedDisableDirectives: true,
 };
 
