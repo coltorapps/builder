@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: ./.github/actions/setup-and-cache
+      - uses: ./.github/actions/setup
 
       - name: Install
         run: pnpm install
@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: ./.github/actions/setup-and-cache
+      - uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node_version }}
 
