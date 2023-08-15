@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createInput } from "./input";
+import { createInput } from "../src/input";
 
 describe("input", () => {
   it("can be created", () => {
@@ -12,9 +12,9 @@ describe("input", () => {
       },
     });
 
-    expectTypeOf(input).toMatchTypeOf<{
+    expectTypeOf(input).toEqualTypeOf<{
       name: "label";
-      validate: (value: unknown) => string | Promise<string>;
+      validate: (value: unknown) => string;
     }>();
   });
 });

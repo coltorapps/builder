@@ -1,8 +1,8 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createEntity } from "./entity";
-import { createInput } from "./input";
+import { createEntity } from "../src/entity";
+import { createInput } from "../src/input";
 
 describe("entity", () => {
   it("can be created", () => {
@@ -23,16 +23,20 @@ describe("entity", () => {
       },
     });
 
-    type Context = { inputs: Record<string, never> };
+    type Context = {
+      inputs: {
+        [x: string]: unknown;
+      };
+    };
 
-    expectTypeOf(entity).toMatchTypeOf<{
+    expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
       validate: (value: unknown, context: Context) => string;
-      inputs: ReadonlyArray<{
+      defaultValue: (context: Context) => string | undefined;
+      inputs: readonly {
         name: string;
         validate: (value: unknown) => unknown;
-      }>;
-      defaultValue: (context: Context) => string | undefined;
+      }[];
     }>();
   });
 
@@ -65,9 +69,10 @@ describe("entity", () => {
       inputs: { label: string; defaultValue: string | undefined };
     };
 
-    expectTypeOf(entity).toMatchTypeOf<{
+    expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
       validate: (value: unknown, context: Context) => string;
+      defaultValue: (context: Context) => string | undefined;
       inputs: readonly [
         {
           name: "label";
@@ -78,7 +83,6 @@ describe("entity", () => {
           validate: (value: unknown) => string | undefined;
         },
       ];
-      defaultValue: (context: Context) => string | undefined;
     }>();
   });
 });

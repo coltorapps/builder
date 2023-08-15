@@ -7,7 +7,7 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "test": "turbo test",
-    "type-check": "turbo type-check"
+    "typecheck": "turbo typecheck"
   },
   "devDependencies": {
     "@builder/eslint-config": "workspace:*",

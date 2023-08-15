@@ -12,7 +12,7 @@ on:
       - main
 
 jobs:
-  type-check:
+  typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,7 +26,7 @@ jobs:
         run: pnpm run build
 
       - name: Type check
-        run: pnpm run type-check
+        run: pnpm run typecheck
 
   test:
     runs-on: ${{ matrix.os }}

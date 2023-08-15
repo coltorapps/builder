@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createEntity } from "./entity";
-import { createInput } from "./input";
+import { createEntity } from "../src/entity";
+import { createInput } from "../src/input";
 
 describe("entity", () => {
   it("can be created", () => {

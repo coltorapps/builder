@@ -11,7 +11,7 @@
     "test": {
       "cache": false
     },
-    "type-check": {
+    "typecheck": {
       "cache": false
     },
     "dev": {

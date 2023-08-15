@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createInput } from "./input";
+import { createInput } from "../src/input";
 
 describe("input", () => {
   it("can be created", () => {
