@@ -1,4 +1,4 @@
-import { createSubscriptionManager, type Subscribe } from "./subscription";
+import { createSubscriptionManager, type Subscribe } from "./subscription-manager";
 
 export function createDataManager<TData>(data: TData): {
   getData: () => TData;

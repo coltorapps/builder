@@ -1,7 +1,7 @@
 import { type Builder, type BuilderEntities } from "./builder";
-import { createDataManager } from "./data";
+import { createDataManager } from "./data-manager";
 import { type InputsValues } from "./input";
-import { type Subscribe } from "./subscription";
+import { type Subscribe } from "./subscription-manager";
 import { type OptionalPropsIfUndefined } from "./utils";
 
 type BaseStoreEntity<TEntities extends BuilderEntities> = {

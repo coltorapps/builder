@@ -33,10 +33,10 @@ describe("entity", () => {
       name: "text";
       validate: (value: unknown, context: Context) => string;
       defaultValue: (context: Context) => string | undefined;
-      inputs: readonly {
+      inputs: ReadonlyArray<{
         name: string;
         validate: (value: unknown) => unknown;
-      }[];
+      }>;
     }>();
   });
 
