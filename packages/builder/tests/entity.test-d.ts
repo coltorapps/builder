@@ -23,20 +23,23 @@ describe("entity", () => {
       },
     });
 
-    type Context = {
+    type EntityContext = {
       inputs: {
         [x: string]: unknown;
       };
+      meta: unknown;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
-      validate: (value: unknown, context: Context) => string;
-      defaultValue: (context: Context) => string | undefined;
+      validate: (value: unknown, context: EntityContext) => string;
+      defaultValue: (context: EntityContext) => string | undefined;
       inputs: ReadonlyArray<{
         name: string;
-        validate: (value: unknown) => unknown;
+        validate: (value: unknown, context: { meta: unknown }) => unknown;
+        meta: unknown;
       }>;
+      meta: unknown;
     }>();
   });
 
@@ -65,24 +68,35 @@ describe("entity", () => {
       },
     });
 
-    type Context = {
+    type EntityContext = {
       inputs: { label: string; defaultValue: string | undefined };
+      meta: unknown;
+    };
+
+    type InputContext = {
+      meta: unknown;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
-      validate: (value: unknown, context: Context) => string;
-      defaultValue: (context: Context) => string | undefined;
+      validate: (value: unknown, context: EntityContext) => string;
+      defaultValue: (context: EntityContext) => string | undefined;
       inputs: readonly [
         {
           name: "label";
-          validate: (value: unknown) => string;
+          validate: (value: unknown, context: InputContext) => string;
+          meta: unknown;
         },
         {
           name: "defaultValue";
-          validate: (value: unknown) => string | undefined;
+          validate: (
+            value: unknown,
+            context: InputContext,
+          ) => string | undefined;
+          meta: unknown;
         },
       ];
+      meta: unknown;
     }>();
   });
 });

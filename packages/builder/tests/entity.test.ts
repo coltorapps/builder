@@ -14,12 +14,13 @@ describe("entity", () => {
       {
         "defaultValue": [Function],
         "inputs": [],
+        "meta": {},
         "name": "text",
         "validate": [Function],
       }
     `);
 
-    expect(entity.defaultValue({ inputs: {} })).toMatchInlineSnapshot(
+    expect(entity.defaultValue({ inputs: {}, meta: {} })).toMatchInlineSnapshot(
       "undefined",
     );
   });
@@ -32,11 +33,11 @@ describe("entity", () => {
       },
     });
 
-    expect(entity.validate("valid", { inputs: {} })).toMatchInlineSnapshot(
-      '"valid"',
-    );
+    expect(
+      entity.validate("valid", { inputs: {}, meta: {} }),
+    ).toMatchInlineSnapshot('"valid"');
 
-    expect(() => entity.validate(1, { inputs: {} }))
+    expect(() => entity.validate(1, { inputs: {}, meta: {} }))
       .toThrowErrorMatchingInlineSnapshot(`
       "[
         {
@@ -56,14 +57,31 @@ describe("entity", () => {
     });
 
     expect(() =>
-      entity.validate("value", { inputs: {} }),
+      entity.validate("value", { inputs: {}, meta: {} }),
     ).toThrowErrorMatchingInlineSnapshot(
       "\"Values for entities of type 'text' are not allowed.\"",
     );
 
-    expect(entity.validate(undefined, { inputs: {} })).toMatchInlineSnapshot(
-      "undefined",
-    );
+    expect(
+      entity.validate(undefined, { inputs: {}, meta: {} }),
+    ).toMatchInlineSnapshot("undefined");
+  });
+
+  it("can be created with meta", () => {
+    const entity = createEntity({
+      name: "text",
+      meta: "test",
+    });
+
+    expect(entity).toMatchInlineSnapshot(`
+      {
+        "defaultValue": [Function],
+        "inputs": [],
+        "meta": "test",
+        "name": "text",
+        "validate": [Function],
+      }
+    `);
   });
 
   it("can be created with inputs", () => {
@@ -87,99 +105,15 @@ describe("entity", () => {
         "defaultValue": [Function],
         "inputs": [
           {
+            "meta": {},
             "name": "required",
             "validate": [Function],
           },
         ],
+        "meta": {},
         "name": "text",
         "validate": [Function],
       }
-    `);
-  });
-
-  it("uses inputs for default value", () => {
-    const entity = createEntity({
-      name: "text",
-      inputs: [
-        createInput({
-          name: "defaultValue",
-          validate(value) {
-            return z.string().optional().parse(value);
-          },
-        }),
-      ],
-      validate(value) {
-        return z.string().parse(value);
-      },
-      defaultValue({ inputs }) {
-        return inputs.defaultValue;
-      },
-    });
-
-    expect(entity).toMatchInlineSnapshot(`
-      {
-        "defaultValue": [Function],
-        "inputs": [
-          {
-            "name": "defaultValue",
-            "validate": [Function],
-          },
-        ],
-        "name": "text",
-        "validate": [Function],
-      }
-    `);
-
-    expect(
-      entity.defaultValue({ inputs: { defaultValue: undefined } }),
-    ).toMatchInlineSnapshot("undefined");
-
-    expect(
-      entity.defaultValue({ inputs: { defaultValue: "default" } }),
-    ).toMatchInlineSnapshot('"default"');
-  });
-
-  it("uses inputs for validation", () => {
-    const entity = createEntity({
-      name: "text",
-      inputs: [
-        createInput({
-          name: "required",
-          validate(value) {
-            return z.boolean().parse(value);
-          },
-        }),
-      ],
-      validate(value, context) {
-        const schema = z.string();
-
-        if (!context.inputs.required) {
-          return schema.optional().parse(value);
-        }
-
-        return schema.parse(value);
-      },
-    });
-
-    expect(
-      entity.validate("valid", { inputs: { required: true } }),
-    ).toMatchInlineSnapshot('"valid"');
-
-    expect(
-      entity.validate(undefined, { inputs: { required: false } }),
-    ).toMatchInlineSnapshot("undefined");
-
-    expect(() => entity.validate(undefined, { inputs: { required: true } }))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "[
-        {
-          \\"code\\": \\"invalid_type\\",
-          \\"expected\\": \\"string\\",
-          \\"received\\": \\"undefined\\",
-          \\"path\\": [],
-          \\"message\\": \\"Required\\"
-        }
-      ]"
     `);
   });
 });

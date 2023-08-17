@@ -14,6 +14,25 @@ describe("input", () => {
 
     expect(input).toMatchInlineSnapshot(`
       {
+        "meta": {},
+        "name": "label",
+        "validate": [Function],
+      }
+    `);
+  });
+
+  it("can be created with meta", () => {
+    const input = createInput({
+      name: "label",
+      validate(value) {
+        return value;
+      },
+      meta: "test",
+    });
+
+    expect(input).toMatchInlineSnapshot(`
+      {
+        "meta": "test",
         "name": "label",
         "validate": [Function],
       }
@@ -28,9 +47,12 @@ describe("input", () => {
       },
     });
 
-    expect(input.validate("valid")).toMatchInlineSnapshot('"valid"');
+    expect(input.validate("valid", { meta: {} })).toMatchInlineSnapshot(
+      '"valid"',
+    );
 
-    expect(() => input.validate(1)).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => input.validate(1, { meta: {} }))
+      .toThrowErrorMatchingInlineSnapshot(`
       "[
         {
           \\"code\\": \\"invalid_type\\",

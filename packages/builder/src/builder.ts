@@ -2,7 +2,12 @@ import { type Entity } from "./entity";
 import { type Input } from "./input";
 
 export type BuilderEntities = ReadonlyArray<
-  Entity<string, ReadonlyArray<Input<string>>, unknown>
+  Entity<
+    string,
+    ReadonlyArray<Input<string, unknown, unknown>>,
+    unknown,
+    unknown
+  >
 >;
 
 type ChildrenAllowed<TEntities extends BuilderEntities> = {
@@ -50,28 +55,28 @@ export function createBuilder<
       >;
     },
 ): Builder<TEntities, TChildrenAllowed, TParentRequired> {
+  function fallbackEntityIdGenerator() {
+    return crypto.randomUUID();
+  }
+
+  function fallbackEntityIdValidator(id: string) {
+    if (
+      typeof id !== "string" ||
+      !/^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i.test(
+        id,
+      )
+    ) {
+      throw new Error(`The entity id '${id}' is invalid.`);
+    }
+
+    return id;
+  }
+
   return {
     ...options,
     entityId: {
-      generate:
-        options.entityId?.generate ??
-        (() => {
-          return crypto.randomUUID();
-        }),
-      validate:
-        options.entityId?.validate ??
-        ((id) => {
-          if (
-            typeof id !== "string" ||
-            !/^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i.test(
-              id,
-            )
-          ) {
-            throw new Error(`The entity id '${id}' is invalid.`);
-          }
-
-          return id;
-        }),
+      generate: options.entityId?.generate ?? fallbackEntityIdGenerator,
+      validate: options.entityId?.validate ?? fallbackEntityIdValidator,
     },
     childrenAllowed: options.childrenAllowed ?? ({} as TChildrenAllowed),
     parentRequired:

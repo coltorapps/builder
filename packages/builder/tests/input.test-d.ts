@@ -14,7 +14,8 @@ describe("input", () => {
 
     expectTypeOf(input).toEqualTypeOf<{
       name: "label";
-      validate: (value: unknown) => string;
+      validate: (value: unknown, context: { meta: unknown }) => string;
+      meta: unknown;
     }>();
   });
 });

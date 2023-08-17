@@ -150,7 +150,7 @@ export function validateStoreEntity<TBuilder extends BaseBuilder>(
     parentId: storeEntity.parentId,
     inputs: storeEntity.inputs,
     value: storeEntity.value,
-  };
+  } satisfies Record<keyof StoreEntity<BaseBuilder>, unknown>;
 }
 
 export function createStore<TBuilder extends BaseBuilder>(
@@ -174,12 +174,17 @@ export function createStore<TBuilder extends BaseBuilder>(
     getData,
     subscribe,
     addEntity(newEntity) {
+      const entityDefinition = getEntityDefinition(builder, newEntity.type);
+
       const validatedEntity = validateStoreEntity(builder, getData(), {
         ...newEntity,
         id: builder.entityId.generate(),
         value:
           newEntity.value ??
-          getEntityDefinition(builder, newEntity.type).defaultValue(newEntity),
+          entityDefinition.defaultValue({
+            inputs: newEntity.inputs,
+            meta: entityDefinition.meta,
+          }),
       });
 
       setData((data) => ({
