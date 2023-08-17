@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createInput } from "../src/input";
 
 describe("input", () => {
-  it("can be created", () => {
+  it("can be created with minimal options", () => {
     const input = createInput({
       name: "label",
       validate(value) {
@@ -14,11 +14,14 @@ describe("input", () => {
 
     expect(input).toMatchInlineSnapshot(`
       {
+        "defaultValue": [Function],
         "meta": {},
         "name": "label",
         "validate": [Function],
       }
     `);
+
+    expect(input.defaultValue({ meta: {} })).toMatchInlineSnapshot('undefined');
   });
 
   it("can be created with meta", () => {
@@ -32,6 +35,7 @@ describe("input", () => {
 
     expect(input).toMatchInlineSnapshot(`
       {
+        "defaultValue": [Function],
         "meta": "test",
         "name": "label",
         "validate": [Function],
@@ -63,5 +67,19 @@ describe("input", () => {
         }
       ]"
     `);
+  });
+
+  it("can be created with default value", () => {
+    const input = createInput({
+      name: "label",
+      validate(value) {
+        return z.string().parse(value);
+      },
+      defaultValue() {
+        return "test";
+      },
+    });
+
+    expect(input.defaultValue({ meta: {} })).toMatchInlineSnapshot('"test"');
   });
 });

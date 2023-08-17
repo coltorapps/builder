@@ -37,6 +37,7 @@ describe("entity", () => {
       inputs: ReadonlyArray<{
         name: string;
         validate: (value: unknown, context: { meta: unknown }) => unknown;
+        defaultValue: (context: { meta: unknown }) => unknown;
         meta: unknown;
       }>;
       meta: unknown;
@@ -85,6 +86,7 @@ describe("entity", () => {
         {
           name: "label";
           validate: (value: unknown, context: InputContext) => string;
+          defaultValue: (context: InputContext) => string | undefined;
           meta: unknown;
         },
         {
@@ -93,6 +95,7 @@ describe("entity", () => {
             value: unknown,
             context: InputContext,
           ) => string | undefined;
+          defaultValue: (context: InputContext) => string | undefined;
           meta: unknown;
         },
       ];

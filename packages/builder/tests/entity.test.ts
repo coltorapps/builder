@@ -5,7 +5,7 @@ import { createEntity } from "../src/entity";
 import { createInput } from "../src/input";
 
 describe("entity", () => {
-  it("can be created", () => {
+  it("can be created with minimal options", () => {
     const entity = createEntity({
       name: "text",
     });
@@ -84,6 +84,19 @@ describe("entity", () => {
     `);
   });
 
+  it("can be created with default value", () => {
+    const entity = createEntity({
+      name: "text",
+      defaultValue() {
+        return "test";
+      },
+    });
+
+    expect(
+      entity.defaultValue({ inputs: {}, meta: {} }),
+    ).toMatchInlineSnapshot('"test"');
+  });
+
   it("can be created with inputs", () => {
     const entity = createEntity({
       name: "text",
@@ -105,6 +118,7 @@ describe("entity", () => {
         "defaultValue": [Function],
         "inputs": [
           {
+            "defaultValue": [Function],
             "meta": {},
             "name": "required",
             "validate": [Function],
