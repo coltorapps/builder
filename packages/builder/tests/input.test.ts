@@ -21,7 +21,11 @@ describe("input", () => {
       }
     `);
 
-    expect(input.defaultValue({ meta: {} })).toMatchInlineSnapshot('undefined');
+    expect(input.defaultValue({ meta: {} })).toMatchInlineSnapshot("undefined");
+
+    expect(input.validate("test", { meta: {} })).toMatchInlineSnapshot(
+      '"test"',
+    );
   });
 
   it("can be created with meta", () => {

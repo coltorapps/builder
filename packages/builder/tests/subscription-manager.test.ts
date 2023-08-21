@@ -14,7 +14,7 @@ describe("subscription manager", () => {
     `);
   });
 
-  it("allows subscribing and notifications", () => {
+  it("allows subscribing to notifications", () => {
     const subscriptionManager = createSubscriptionManager();
 
     const listener = vi.fn();

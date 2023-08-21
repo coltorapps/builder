@@ -27,7 +27,7 @@ describe("entity", () => {
       inputs: {
         [x: string]: unknown;
       };
-      meta: unknown;
+      meta: NonNullable<unknown>;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
@@ -40,7 +40,37 @@ describe("entity", () => {
         defaultValue: (context: { meta: unknown }) => unknown;
         meta: unknown;
       }>;
-      meta: unknown;
+      meta: NonNullable<unknown>;
+    }>();
+  });
+
+  it("can be created with meta", () => {
+    const entity = createEntity({
+      name: "text",
+      validate(value) {
+        return z.string().parse(value);
+      },
+      meta: "test",
+    });
+
+    type EntityContext = {
+      inputs: {
+        [x: string]: unknown;
+      };
+      meta: "test";
+    };
+
+    expectTypeOf(entity).toEqualTypeOf<{
+      name: "text";
+      validate: (value: unknown, context: EntityContext) => string;
+      defaultValue: (context: EntityContext) => string | undefined;
+      inputs: ReadonlyArray<{
+        name: string;
+        validate: (value: unknown, context: { meta: unknown }) => unknown;
+        defaultValue: (context: { meta: unknown }) => unknown;
+        meta: unknown;
+      }>;
+      meta: "test";
     }>();
   });
 
@@ -71,7 +101,7 @@ describe("entity", () => {
 
     type EntityContext = {
       inputs: { label: string; defaultValue: string | undefined };
-      meta: unknown;
+      meta: NonNullable<unknown>;
     };
 
     type InputContext = {
@@ -99,7 +129,7 @@ describe("entity", () => {
           meta: unknown;
         },
       ];
-      meta: unknown;
+      meta: NonNullable<unknown>;
     }>();
   });
 });

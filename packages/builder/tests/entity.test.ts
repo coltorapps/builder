@@ -92,9 +92,9 @@ describe("entity", () => {
       },
     });
 
-    expect(
-      entity.defaultValue({ inputs: {}, meta: {} }),
-    ).toMatchInlineSnapshot('"test"');
+    expect(entity.defaultValue({ inputs: {}, meta: {} })).toMatchInlineSnapshot(
+      '"test"',
+    );
   });
 
   it("can be created with inputs", () => {

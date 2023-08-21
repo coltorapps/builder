@@ -12,7 +12,7 @@ export function getEntitiesNamesExcept<
     inputs: [];
     validate: () => unknown;
     defaultValue: () => unknown;
-    meta: unknown;
+    meta: NonNullable<unknown>;
   } {
     return !excludeName.includes(entity.name);
   });

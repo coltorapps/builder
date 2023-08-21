@@ -12,7 +12,7 @@ export interface Entity<
   TName extends string,
   TInputs extends ReadonlyArray<Input<string, unknown, unknown>>,
   TValue,
-  TMeta,
+  TMeta = NonNullable<unknown>,
 > {
   name: TName;
   validate: (value: unknown, context: EntityContext<TInputs, TMeta>) => TValue;
@@ -29,7 +29,7 @@ export function createEntity<
   const TName extends string,
   const TInputs extends ReadonlyArray<Input<string, unknown, unknown>>,
   TValue,
-  TMeta,
+  const TMeta = NonNullable<unknown>,
 >(
   options: Omit<Entity<TName, TInputs, TValue, TMeta>, OptionalEntityArgs> &
     Partial<Pick<Entity<TName, TInputs, TValue, TMeta>, OptionalEntityArgs>>,

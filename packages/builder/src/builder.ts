@@ -2,12 +2,7 @@ import { type Entity } from "./entity";
 import { type Input } from "./input";
 
 export type BuilderEntities = ReadonlyArray<
-  Entity<
-    string,
-    ReadonlyArray<Input<string, unknown, unknown>>,
-    unknown,
-    unknown
-  >
+  Entity<string, ReadonlyArray<Input<string, unknown, unknown>>, unknown>
 >;
 
 type ChildrenAllowed<TEntities extends BuilderEntities> = {
