@@ -6,6 +6,7 @@ interface EntityContext<
 > {
   inputs: InputsValues<TInputs>;
   meta: TMeta;
+  values: Record<string, unknown>;
 }
 
 export interface Entity<
@@ -15,15 +16,23 @@ export interface Entity<
   TMeta = NonNullable<unknown>,
 > {
   name: TName;
+  inputs: TInputs;
+  meta: TMeta;
+  isValueAllowed: boolean;
   validate: (value: unknown, context: EntityContext<TInputs, TMeta>) => TValue;
   defaultValue: (
     context: EntityContext<TInputs, TMeta>,
   ) => Awaited<TValue> | undefined;
-  inputs: TInputs;
-  meta: TMeta;
+  shouldBeProcessed: (context: EntityContext<TInputs, TMeta>) => boolean;
 }
 
-type OptionalEntityArgs = "inputs" | "validate" | "defaultValue" | "meta";
+type OptionalEntityArgs =
+  | "inputs"
+  | "validate"
+  | "defaultValue"
+  | "meta"
+  | "shouldBeProcessed"
+  | "isValueAllowed";
 
 export function createEntity<
   const TName extends string,
@@ -48,15 +57,21 @@ export function createEntity<
     return undefined as TValue;
   }
 
-  function fallbackDefaultValue() {
+  function fallbackDefaultValue(): undefined {
     return undefined;
+  }
+
+  function fallbackShouldBeProcessed(): boolean {
+    return true;
   }
 
   return {
     ...options,
     inputs: options.inputs ?? fallbackInputs,
+    meta: options.meta ?? fallbackMeta,
+    isValueAllowed: typeof options.validate === "function",
     validate: options.validate ?? fallbackValidator,
     defaultValue: options.defaultValue ?? fallbackDefaultValue,
-    meta: options.meta ?? fallbackMeta,
+    shouldBeProcessed: options.shouldBeProcessed ?? fallbackShouldBeProcessed,
   };
 }

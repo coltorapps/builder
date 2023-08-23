@@ -19,7 +19,7 @@ export interface Builder<
   entities: TEntities;
   entityId: {
     generate: () => string;
-    validate: (id: string) => string;
+    validate: (id: string) => void;
   };
   childrenAllowed: TChildrenAllowed;
   parentRequired: TParentRequired;

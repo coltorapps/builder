@@ -11,9 +11,6 @@ type BaseStoreEntity<TEntities extends BuilderEntities> = {
       InputsValues<Extract<TEntities[number], { name: K }>["inputs"]>
     >;
     parentId?: string;
-    value?: Awaited<
-      ReturnType<Extract<TEntities[number], { name: K }>["validate"]>
-    >;
   };
 }[TEntities[number]["name"]];
 
@@ -48,109 +45,180 @@ type BaseBuilder = Builder<
   ReadonlyArray<string>
 >;
 
-const entityValidationErrorCauses = {
+const entityValidationErrorCodes = {
   NoEntityType: "NoEntityType",
   InvalidEntityType: "InvalidEntityType",
   InvalidParentId: "InvalidParentId",
+  NonExistentParent: "NonExistentParent",
   EntityInputsRequired: "EntityInputsRequired",
   InvalidEntityInputs: "InvalidEntityInputs",
-  InvalidEntityInput: "InvalidEntityInput",
+  UndefinedEntityInput: "UndefinedEntityInput",
 } as const;
 
-export type EntityValidationErrorCause =
-  (typeof entityValidationErrorCauses)[keyof typeof entityValidationErrorCauses];
+export type EntityValidationErrorCode =
+  (typeof entityValidationErrorCodes)[keyof typeof entityValidationErrorCodes];
+
+const entityValidationErrorMessages: Record<EntityValidationErrorCode, string> =
+  {
+    NoEntityType: "No entity type provided.",
+    InvalidEntityType: "Unknown entity type provided.",
+    InvalidParentId: "Invalid parent ID provided.",
+    NonExistentParent:
+      "The provided parent ID references a non-existent entity.",
+    EntityInputsRequired: "No entity inputs provided.",
+    InvalidEntityInputs: "Invalid entity inputs provided.",
+    UndefinedEntityInput: "Unknown entity input type provided.",
+  };
+
+type EntityValidationErrorCause = {
+  entityId: string;
+} & (
+  | {
+      code: typeof entityValidationErrorCodes.NoEntityType;
+    }
+  | {
+      code: typeof entityValidationErrorCodes.InvalidEntityType;
+      entityType: string;
+    }
+  | {
+      code: typeof entityValidationErrorCodes.InvalidParentId;
+      entityParentId?: string;
+    }
+  | {
+      code: typeof entityValidationErrorCodes.NonExistentParent;
+      entityParentId?: string;
+    }
+  | {
+      code: typeof entityValidationErrorCodes.EntityInputsRequired;
+    }
+  | {
+      code: typeof entityValidationErrorCodes.InvalidEntityInputs;
+      entityInputs?: unknown;
+    }
+  | {
+      code: typeof entityValidationErrorCodes.UndefinedEntityInput;
+      inputName: string;
+    }
+);
 
 export class EntityValidationError extends Error {
-  public cause: EntityValidationErrorCause;
-
-  constructor(message: string, cause: EntityValidationErrorCause) {
-    super(message);
-
-    this.cause = cause;
+  constructor(public cause: EntityValidationErrorCause) {
+    super(entityValidationErrorMessages[cause.code] ?? "Unkown error");
   }
 }
 
 function getEntityDefinition<TBuilder extends BaseBuilder>(
+  entity: StoreEntity<TBuilder>,
   builder: TBuilder,
-  entityName: TBuilder["entities"][number]["name"],
 ): TBuilder["entities"][number] {
   const entityDefinition = builder.entities.find(
-    (builderEntity) => builderEntity.name === entityName,
+    (builderEntity) => builderEntity.name === entity.type,
   );
 
   if (!entityDefinition) {
-    throw new EntityValidationError(
-      `The entity '${entityName}' is not defined in the builder.`,
-      entityValidationErrorCauses.InvalidEntityType,
-    );
+    throw new EntityValidationError({
+      code: entityValidationErrorCodes.InvalidEntityType,
+      entityId: entity.id,
+      entityType: entity.type,
+    });
   }
 
   return entityDefinition;
 }
 
-export function validateStoreEntity<TBuilder extends BaseBuilder>(
+function ensureEntityInputIsDefined<TBuilder extends BaseBuilder>(
+  entity: StoreEntity<TBuilder>,
+  inputName: string,
   builder: TBuilder,
-  data: StoreData<TBuilder>,
-  storeEntity: StoreEntity<TBuilder>,
-): StoreEntity<TBuilder> {
-  const id = builder.entityId.validate(storeEntity.id);
-
-  if (typeof storeEntity.type !== "string") {
-    throw new EntityValidationError(
-      "Entity type is not specified.",
-      entityValidationErrorCauses.NoEntityType,
-    );
-  }
-
-  const entityDefinition = getEntityDefinition(builder, storeEntity.type);
+) {
+  const entityDefinition = getEntityDefinition(entity, builder);
 
   if (
-    storeEntity.parentId &&
-    !data.entities.has(builder.entityId.validate(storeEntity.parentId))
+    entity.inputs.hasOwnProperty(inputName) &&
+    !entityDefinition.inputs.some((input) => input.name === inputName)
   ) {
-    throw new EntityValidationError(
-      `The entity with ID '${storeEntity.id}' references a parent entity ID '${storeEntity.parentId}' that does not exist.`,
-      entityValidationErrorCauses.InvalidParentId,
-    );
+    throw new EntityValidationError({
+      code: entityValidationErrorCodes.UndefinedEntityInput,
+      entityId: entity.id,
+      inputName: inputName,
+    });
+  }
+}
+
+export function validateEntity<TBuilder extends BaseBuilder>(
+  entity: StoreEntity<TBuilder>,
+  {
+    builder,
+    storeData,
+  }: {
+    builder: TBuilder;
+    storeData: StoreData<TBuilder>;
+  },
+): StoreEntity<TBuilder> {
+  builder.entityId.validate(entity.id);
+
+  if (typeof entity.type !== "string" || entity.type.length === 0) {
+    throw new EntityValidationError({
+      code: entityValidationErrorCodes.NoEntityType,
+      entityId: entity.id,
+    });
   }
 
-  if (!storeEntity.inputs) {
-    throw new EntityValidationError(
-      "Entity inputs are not provided.",
-      entityValidationErrorCauses.EntityInputsRequired,
-    );
+  if (
+    typeof entity.parentId !== "undefined" &&
+    (typeof entity.parentId !== "string" || entity.parentId.length === 0)
+  ) {
+    throw new EntityValidationError({
+      code: entityValidationErrorCodes.InvalidParentId,
+      entityId: entity.id,
+      entityParentId: entity.parentId,
+    });
   }
 
-  if (typeof storeEntity.inputs !== "object") {
-    throw new EntityValidationError(
-      "Entity inputs must be an object.",
-      entityValidationErrorCauses.InvalidEntityInputs,
-    );
+  if (entity.parentId && !storeData.entities.has(entity.parentId)) {
+    builder.entityId.validate(entity.parentId);
+
+    throw new EntityValidationError({
+      code: entityValidationErrorCodes.NonExistentParent,
+      entityId: entity.id,
+      entityParentId: entity.parentId,
+    });
   }
 
-  const entityDefinitionInputNames = new Set(
-    entityDefinition.inputs.map((input) => input.name),
-  );
+  if (!entity.inputs) {
+    throw new EntityValidationError({
+      code: entityValidationErrorCodes.EntityInputsRequired,
+      entityId: entity.id,
+    });
+  }
 
-  for (const inputName in storeEntity.inputs) {
-    if (
-      storeEntity.inputs.hasOwnProperty(inputName) &&
-      !entityDefinitionInputNames.has(inputName)
-    ) {
-      throw new EntityValidationError(
-        `The entity with type '${storeEntity.type}' doesn't have an input named '${inputName}'.`,
-        entityValidationErrorCauses.InvalidEntityInput,
-      );
-    }
+  if (typeof entity.inputs !== "object") {
+    throw new EntityValidationError({
+      code: entityValidationErrorCodes.InvalidEntityInputs,
+      entityId: entity.id,
+      entityInputs: entity.inputs,
+    });
+  }
+
+  for (const inputName in entity.inputs) {
+    ensureEntityInputIsDefined(entity, inputName, builder);
   }
 
   return {
-    id,
-    type: storeEntity.type,
-    parentId: storeEntity.parentId,
-    inputs: storeEntity.inputs,
-    value: storeEntity.value,
+    id: entity.id,
+    type: entity.type,
+    parentId: entity.parentId,
+    inputs: entity.inputs,
   } satisfies Record<keyof StoreEntity<BaseBuilder>, unknown>;
+}
+
+function validateSchema<TBuilder extends BaseBuilder>(
+  builder: TBuilder,
+  data: StoreData<TBuilder>,
+) {
+  return data.entities.forEach((entity) =>
+    validateEntity(entity, { builder, storeData: data }),
+  );
 }
 
 export function createStore<TBuilder extends BaseBuilder>(
@@ -165,27 +233,23 @@ export function createStore<TBuilder extends BaseBuilder>(
 
   const data = getData();
 
-  data.entities.forEach((storeEntity) =>
-    validateStoreEntity(builder, data, storeEntity),
-  );
+  validateSchema(builder, data);
 
   return {
     builder,
     getData,
     subscribe,
     addEntity(newEntity) {
-      const entityDefinition = getEntityDefinition(builder, newEntity.type);
-
-      const validatedEntity = validateStoreEntity(builder, getData(), {
-        ...newEntity,
-        id: builder.entityId.generate(),
-        value:
-          newEntity.value ??
-          entityDefinition.defaultValue({
-            inputs: newEntity.inputs,
-            meta: entityDefinition.meta,
-          }),
-      });
+      const validatedEntity = validateEntity(
+        {
+          ...newEntity,
+          id: builder.entityId.generate(),
+        },
+        {
+          builder,
+          storeData: getData(),
+        },
+      );
 
       setData((data) => ({
         ...data,

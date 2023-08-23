@@ -12,7 +12,7 @@ export type {
   Store,
   StoreData,
   StoreEntity,
-  EntityValidationErrorCause,
+  EntityValidationErrorCode as EntityValidationErrorCause,
 } from "./store";
 
 export { getEntitiesNamesExcept } from "./utils";

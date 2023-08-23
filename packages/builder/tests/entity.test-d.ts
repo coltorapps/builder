@@ -28,12 +28,11 @@ describe("entity", () => {
         [x: string]: unknown;
       };
       meta: NonNullable<unknown>;
+      values: Record<string, unknown>;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
-      validate: (value: unknown, context: EntityContext) => string;
-      defaultValue: (context: EntityContext) => string | undefined;
       inputs: ReadonlyArray<{
         name: string;
         validate: (value: unknown, context: { meta: unknown }) => unknown;
@@ -41,6 +40,10 @@ describe("entity", () => {
         meta: unknown;
       }>;
       meta: NonNullable<unknown>;
+      isValueAllowed: boolean;
+      validate: (value: unknown, context: EntityContext) => string;
+      defaultValue: (context: EntityContext) => string | undefined;
+      shouldBeProcessed: (context: EntityContext) => boolean;
     }>();
   });
 
@@ -58,12 +61,11 @@ describe("entity", () => {
         [x: string]: unknown;
       };
       meta: "test";
+      values: Record<string, unknown>;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
-      validate: (value: unknown, context: EntityContext) => string;
-      defaultValue: (context: EntityContext) => string | undefined;
       inputs: ReadonlyArray<{
         name: string;
         validate: (value: unknown, context: { meta: unknown }) => unknown;
@@ -71,6 +73,10 @@ describe("entity", () => {
         meta: unknown;
       }>;
       meta: "test";
+      isValueAllowed: boolean;
+      validate: (value: unknown, context: EntityContext) => string;
+      defaultValue: (context: EntityContext) => string | undefined;
+      shouldBeProcessed: (context: EntityContext) => boolean;
     }>();
   });
 
@@ -102,6 +108,7 @@ describe("entity", () => {
     type EntityContext = {
       inputs: { label: string; defaultValue: string | undefined };
       meta: NonNullable<unknown>;
+      values: Record<string, unknown>;
     };
 
     type InputContext = {
@@ -110,8 +117,6 @@ describe("entity", () => {
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
-      validate: (value: unknown, context: EntityContext) => string;
-      defaultValue: (context: EntityContext) => string | undefined;
       inputs: readonly [
         {
           name: "label";
@@ -130,6 +135,10 @@ describe("entity", () => {
         },
       ];
       meta: NonNullable<unknown>;
+      isValueAllowed: boolean;
+      validate: (value: unknown, context: EntityContext) => string;
+      defaultValue: (context: EntityContext) => string | undefined;
+      shouldBeProcessed: (context: EntityContext) => boolean;
     }>();
   });
 });

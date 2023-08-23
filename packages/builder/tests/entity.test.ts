@@ -14,15 +14,17 @@ describe("entity", () => {
       {
         "defaultValue": [Function],
         "inputs": [],
+        "isValueAllowed": false,
         "meta": {},
         "name": "text",
+        "shouldBeProcessed": [Function],
         "validate": [Function],
       }
     `);
 
-    expect(entity.defaultValue({ inputs: {}, meta: {} })).toMatchInlineSnapshot(
-      "undefined",
-    );
+    expect(
+      entity.defaultValue({ inputs: {}, meta: {}, values: {} }),
+    ).toMatchInlineSnapshot("undefined");
   });
 
   it("can validate values", () => {
@@ -34,10 +36,10 @@ describe("entity", () => {
     });
 
     expect(
-      entity.validate("valid", { inputs: {}, meta: {} }),
+      entity.validate("valid", { inputs: {}, meta: {}, values: {} }),
     ).toMatchInlineSnapshot('"valid"');
 
-    expect(() => entity.validate(1, { inputs: {}, meta: {} }))
+    expect(() => entity.validate(1, { inputs: {}, meta: {}, values: {} }))
       .toThrowErrorMatchingInlineSnapshot(`
       "[
         {
@@ -57,13 +59,13 @@ describe("entity", () => {
     });
 
     expect(() =>
-      entity.validate("value", { inputs: {}, meta: {} }),
+      entity.validate("value", { inputs: {}, meta: {}, values: {} }),
     ).toThrowErrorMatchingInlineSnapshot(
       "\"Values for entities of type 'text' are not allowed.\"",
     );
 
     expect(
-      entity.validate(undefined, { inputs: {}, meta: {} }),
+      entity.validate(undefined, { inputs: {}, meta: {}, values: {} }),
     ).toMatchInlineSnapshot("undefined");
   });
 
@@ -77,8 +79,10 @@ describe("entity", () => {
       {
         "defaultValue": [Function],
         "inputs": [],
+        "isValueAllowed": false,
         "meta": "test",
         "name": "text",
+        "shouldBeProcessed": [Function],
         "validate": [Function],
       }
     `);
@@ -92,9 +96,9 @@ describe("entity", () => {
       },
     });
 
-    expect(entity.defaultValue({ inputs: {}, meta: {} })).toMatchInlineSnapshot(
-      '"test"',
-    );
+    expect(
+      entity.defaultValue({ inputs: {}, meta: {}, values: {} }),
+    ).toMatchInlineSnapshot('"test"');
   });
 
   it("can be created with inputs", () => {
@@ -124,8 +128,10 @@ describe("entity", () => {
             "validate": [Function],
           },
         ],
+        "isValueAllowed": true,
         "meta": {},
         "name": "text",
+        "shouldBeProcessed": [Function],
         "validate": [Function],
       }
     `);
