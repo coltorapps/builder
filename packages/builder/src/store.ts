@@ -48,6 +48,10 @@ type BaseBuilder = Builder<
 
 const schemaValidationErrorCodes = {
   InvalidRoot: "InvalidRoot",
+  DuplicateRootIds: "DuplicateRootIds",
+  NonExistentRootId: "NonExistentRootId",
+  NonExistentEntityId: "NonExistentEntityId",
+  DuplicateEntitiesIds: "DuplicateEntitiesIds",
   InvalidEntities: "InvalidEntities",
   NoEntityType: "NoEntityType",
   InvalidEntityType: "InvalidEntityType",
@@ -64,7 +68,11 @@ export type SchemaValidationErrorCode =
 const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
   {
     InvalidRoot: "Root must be an array of strings.",
-    InvalidEntities: "Entities must be an object.",
+    DuplicateRootIds: "Duplicate IDs were provided in root.",
+    NonExistentRootId: "Non-existent entity id was provided in root.",
+    NonExistentEntityId: "Non-existent entity id was provided.",
+    InvalidEntities: "Entities must be an object of valid entities.",
+    DuplicateEntitiesIds: "Duplicate entities IDs were provided.",
     NoEntityType: "No entity type provided.",
     InvalidEntityType: "Unknown entity type provided.",
     InvalidParentId: "Invalid parent ID provided.",
@@ -77,12 +85,28 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
 
 type SchemaValidationErrorCause =
   | {
+      code: typeof schemaValidationErrorCodes.InvalidRoot;
+      root?: unknown;
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.DuplicateRootIds;
+      root: StoreSchema<BaseBuilder>["root"];
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.NonExistentRootId;
+      entityId: string;
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.NonExistentEntityId;
+      entityId: string;
+    }
+  | {
       code: typeof schemaValidationErrorCodes.InvalidEntities;
       entities?: unknown;
     }
   | {
-      code: typeof schemaValidationErrorCodes.InvalidRoot;
-      root?: unknown;
+      code: typeof schemaValidationErrorCodes.DuplicateEntitiesIds;
+      entities: StoreSchema<BaseBuilder>["entities"];
     }
   | {
       code: typeof schemaValidationErrorCodes.NoEntityType;
@@ -150,10 +174,7 @@ function ensureEntityInputIsDefined<TBuilder extends BaseBuilder>(
 ) {
   const entityDefinition = getEntityDefinition(entity, builder);
 
-  if (
-    entity.inputs.hasOwnProperty(inputName) &&
-    !entityDefinition.inputs.some((input) => input.name === inputName)
-  ) {
+  if (!entityDefinition.inputs.some((input) => input.name === inputName)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.UndefinedEntityInput,
       entityId: entity.id,
@@ -192,10 +213,7 @@ export function validateEntity<TBuilder extends BaseBuilder>(
     });
   }
 
-  if (
-    entity.parentId &&
-    !schema.entities.some((entitySchema) => entitySchema.id === entity.parentId)
-  ) {
+  if (entity.parentId && !schema.entities[entity.parentId]) {
     builder.entityId.validate(entity.parentId);
 
     throw new SchemaValidationError({
@@ -220,14 +238,46 @@ export function validateEntity<TBuilder extends BaseBuilder>(
     });
   }
 
-  for (const inputName in entity.inputs) {
-    ensureEntityInputIsDefined(entity, inputName, builder);
-  }
+  Object.keys(entity.inputs).forEach((inputName) =>
+    ensureEntityInputIsDefined(entity, inputName, builder),
+  );
 }
 
 export interface StoreSchema<TBuilder extends BaseBuilder> {
-  entities: Array<StoreEntity<TBuilder>>;
+  entities: Record<string, StoreEntity<TBuilder>>;
   root: StoreData<TBuilder>["root"];
+}
+
+function ensureEntityIdExists(
+  entityId: string,
+  entities: StoreSchema<BaseBuilder>["entities"],
+) {
+  const entitiesIds = Object.keys(entities);
+
+  if (!entitiesIds.includes(entityId)) {
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.NonExistentEntityId,
+      entityId,
+    });
+  }
+}
+
+function ensureRootIdExists(...args: Parameters<typeof ensureEntityIdExists>) {
+  try {
+    ensureEntityIdExists(...args);
+  } catch (e) {
+    if (
+      e instanceof SchemaValidationError &&
+      e.cause.code === schemaValidationErrorCodes.NonExistentEntityId
+    ) {
+      throw new SchemaValidationError({
+        code: schemaValidationErrorCodes.NonExistentRootId,
+        entityId: e.cause.entityId,
+      });
+    }
+
+    throw e;
+  }
 }
 
 function validateSchema<TBuilder extends BaseBuilder>(
@@ -251,8 +301,28 @@ function validateSchema<TBuilder extends BaseBuilder>(
     });
   }
 
-  schema.entities.forEach((entity) =>
+  Object.values(schema.entities).forEach((entity) =>
     validateEntity(entity, { builder, schema }),
+  );
+
+  const entitiesIds = Object.keys(schema.entities);
+
+  if (new Set(entitiesIds).size !== entitiesIds.length) {
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.DuplicateEntitiesIds,
+      entities: schema.entities,
+    });
+  }
+
+  if (new Set(schema.root).size !== schema.root.length) {
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.DuplicateRootIds,
+      root: schema.root,
+    });
+  }
+
+  schema.root.forEach((entityId) =>
+    ensureRootIdExists(entityId, schema.entities),
   );
 }
 
@@ -276,7 +346,7 @@ export function createStore<TBuilder extends BaseBuilder>(
   const { getData, setData, subscribe } = createDataManager<
     StoreData<TBuilder>
   >({
-    entities: new Map(schema.entities.map((entity) => [entity.id, entity])),
+    entities: new Map(Object.entries(schema.entities)),
     root: schema.root,
   });
 
