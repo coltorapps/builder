@@ -30,6 +30,7 @@ type NewEntity<TBuilder extends BaseBuilder> = BaseStoreEntity<
 
 export interface StoreData<TBuilder extends BaseBuilder> {
   entities: Map<string, StoreEntity<TBuilder>>;
+  root: string[];
 }
 
 export interface Store<TBuilder extends BaseBuilder> {
@@ -45,65 +46,81 @@ type BaseBuilder = Builder<
   ReadonlyArray<string>
 >;
 
-const entityValidationErrorCodes = {
+const schemaValidationErrorCodes = {
+  InvalidRoot: "InvalidRoot",
+  InvalidEntities: "InvalidEntities",
   NoEntityType: "NoEntityType",
   InvalidEntityType: "InvalidEntityType",
   InvalidParentId: "InvalidParentId",
-  NonExistentParent: "NonExistentParent",
+  NonExistentEntityParent: "NonExistentEntityParent",
   EntityInputsRequired: "EntityInputsRequired",
   InvalidEntityInputs: "InvalidEntityInputs",
   UndefinedEntityInput: "UndefinedEntityInput",
 } as const;
 
-export type EntityValidationErrorCode =
-  (typeof entityValidationErrorCodes)[keyof typeof entityValidationErrorCodes];
+export type SchemaValidationErrorCode =
+  (typeof schemaValidationErrorCodes)[keyof typeof schemaValidationErrorCodes];
 
-const entityValidationErrorMessages: Record<EntityValidationErrorCode, string> =
+const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
   {
+    InvalidRoot: "Root must be an array of strings.",
+    InvalidEntities: "Entities must be an object.",
     NoEntityType: "No entity type provided.",
     InvalidEntityType: "Unknown entity type provided.",
     InvalidParentId: "Invalid parent ID provided.",
-    NonExistentParent:
+    NonExistentEntityParent:
       "The provided parent ID references a non-existent entity.",
     EntityInputsRequired: "No entity inputs provided.",
     InvalidEntityInputs: "Invalid entity inputs provided.",
     UndefinedEntityInput: "Unknown entity input type provided.",
   };
 
-type EntityValidationErrorCause = {
-  entityId: string;
-} & (
+type SchemaValidationErrorCause =
   | {
-      code: typeof entityValidationErrorCodes.NoEntityType;
+      code: typeof schemaValidationErrorCodes.InvalidEntities;
+      entities?: unknown;
     }
   | {
-      code: typeof entityValidationErrorCodes.InvalidEntityType;
+      code: typeof schemaValidationErrorCodes.InvalidRoot;
+      root?: unknown;
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.NoEntityType;
+      entityId: string;
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.InvalidEntityType;
+      entityId: string;
       entityType: string;
     }
   | {
-      code: typeof entityValidationErrorCodes.InvalidParentId;
+      code: typeof schemaValidationErrorCodes.InvalidParentId;
+      entityId: string;
       entityParentId?: string;
     }
   | {
-      code: typeof entityValidationErrorCodes.NonExistentParent;
+      code: typeof schemaValidationErrorCodes.NonExistentEntityParent;
+      entityId: string;
       entityParentId?: string;
     }
   | {
-      code: typeof entityValidationErrorCodes.EntityInputsRequired;
+      code: typeof schemaValidationErrorCodes.EntityInputsRequired;
+      entityId: string;
     }
   | {
-      code: typeof entityValidationErrorCodes.InvalidEntityInputs;
+      code: typeof schemaValidationErrorCodes.InvalidEntityInputs;
+      entityId: string;
       entityInputs?: unknown;
     }
   | {
-      code: typeof entityValidationErrorCodes.UndefinedEntityInput;
+      code: typeof schemaValidationErrorCodes.UndefinedEntityInput;
+      entityId: string;
       inputName: string;
-    }
-);
+    };
 
-export class EntityValidationError extends Error {
-  constructor(public cause: EntityValidationErrorCause) {
-    super(entityValidationErrorMessages[cause.code] ?? "Unkown error");
+export class SchemaValidationError extends Error {
+  constructor(public cause: SchemaValidationErrorCause) {
+    super(schemaValidationErrorMessages[cause.code] ?? "Unkown error");
   }
 }
 
@@ -116,8 +133,8 @@ function getEntityDefinition<TBuilder extends BaseBuilder>(
   );
 
   if (!entityDefinition) {
-    throw new EntityValidationError({
-      code: entityValidationErrorCodes.InvalidEntityType,
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.InvalidEntityType,
       entityId: entity.id,
       entityType: entity.type,
     });
@@ -137,8 +154,8 @@ function ensureEntityInputIsDefined<TBuilder extends BaseBuilder>(
     entity.inputs.hasOwnProperty(inputName) &&
     !entityDefinition.inputs.some((input) => input.name === inputName)
   ) {
-    throw new EntityValidationError({
-      code: entityValidationErrorCodes.UndefinedEntityInput,
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.UndefinedEntityInput,
       entityId: entity.id,
       inputName: inputName,
     });
@@ -149,17 +166,17 @@ export function validateEntity<TBuilder extends BaseBuilder>(
   entity: StoreEntity<TBuilder>,
   {
     builder,
-    storeData,
+    schema,
   }: {
     builder: TBuilder;
-    storeData: StoreData<TBuilder>;
+    schema: StoreSchema<TBuilder>;
   },
-): StoreEntity<TBuilder> {
+): void {
   builder.entityId.validate(entity.id);
 
   if (typeof entity.type !== "string" || entity.type.length === 0) {
-    throw new EntityValidationError({
-      code: entityValidationErrorCodes.NoEntityType,
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.NoEntityType,
       entityId: entity.id,
     });
   }
@@ -168,33 +185,36 @@ export function validateEntity<TBuilder extends BaseBuilder>(
     typeof entity.parentId !== "undefined" &&
     (typeof entity.parentId !== "string" || entity.parentId.length === 0)
   ) {
-    throw new EntityValidationError({
-      code: entityValidationErrorCodes.InvalidParentId,
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.InvalidParentId,
       entityId: entity.id,
       entityParentId: entity.parentId,
     });
   }
 
-  if (entity.parentId && !storeData.entities.has(entity.parentId)) {
+  if (
+    entity.parentId &&
+    !schema.entities.some((entitySchema) => entitySchema.id === entity.parentId)
+  ) {
     builder.entityId.validate(entity.parentId);
 
-    throw new EntityValidationError({
-      code: entityValidationErrorCodes.NonExistentParent,
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.NonExistentEntityParent,
       entityId: entity.id,
       entityParentId: entity.parentId,
     });
   }
 
   if (!entity.inputs) {
-    throw new EntityValidationError({
-      code: entityValidationErrorCodes.EntityInputsRequired,
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.EntityInputsRequired,
       entityId: entity.id,
     });
   }
 
   if (typeof entity.inputs !== "object") {
-    throw new EntityValidationError({
-      code: entityValidationErrorCodes.InvalidEntityInputs,
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.InvalidEntityInputs,
       entityId: entity.id,
       entityInputs: entity.inputs,
     });
@@ -203,60 +223,84 @@ export function validateEntity<TBuilder extends BaseBuilder>(
   for (const inputName in entity.inputs) {
     ensureEntityInputIsDefined(entity, inputName, builder);
   }
+}
 
-  return {
-    id: entity.id,
-    type: entity.type,
-    parentId: entity.parentId,
-    inputs: entity.inputs,
-  } satisfies Record<keyof StoreEntity<BaseBuilder>, unknown>;
+export interface StoreSchema<TBuilder extends BaseBuilder> {
+  entities: Array<StoreEntity<TBuilder>>;
+  root: StoreData<TBuilder>["root"];
 }
 
 function validateSchema<TBuilder extends BaseBuilder>(
   builder: TBuilder,
-  data: StoreData<TBuilder>,
-) {
-  return data.entities.forEach((entity) =>
-    validateEntity(entity, { builder, storeData: data }),
+  schema: StoreSchema<TBuilder>,
+): void {
+  if (typeof schema.entities !== "object") {
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.InvalidEntities,
+      entities: schema.entities,
+    });
+  }
+
+  if (
+    !Array.isArray(schema.root) ||
+    schema.root.some((item) => typeof item !== "string")
+  ) {
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.InvalidRoot,
+      root: schema.root,
+    });
+  }
+
+  schema.entities.forEach((entity) =>
+    validateEntity(entity, { builder, schema }),
   );
+}
+
+function transformStoreDataToSchema<TBuilder extends BaseBuilder>(
+  storeData: StoreData<TBuilder>,
+): StoreSchema<TBuilder> {
+  return {
+    entities: Object.fromEntries(
+      storeData.entities,
+    ) as unknown as StoreSchema<TBuilder>["entities"],
+    root: storeData.root,
+  };
 }
 
 export function createStore<TBuilder extends BaseBuilder>(
   builder: TBuilder,
-  entities: Array<StoreEntity<TBuilder>>,
+  schema: StoreSchema<TBuilder>,
 ): Store<TBuilder> {
+  validateSchema(builder, schema);
+
   const { getData, setData, subscribe } = createDataManager<
     StoreData<TBuilder>
   >({
-    entities: new Map(entities.map((entity) => [entity.id, entity])),
+    entities: new Map(schema.entities.map((entity) => [entity.id, entity])),
+    root: schema.root,
   });
-
-  const data = getData();
-
-  validateSchema(builder, data);
 
   return {
     builder,
     getData,
     subscribe,
     addEntity(newEntity) {
-      const validatedEntity = validateEntity(
-        {
-          ...newEntity,
-          id: builder.entityId.generate(),
-        },
-        {
-          builder,
-          storeData: getData(),
-        },
-      );
+      const computedEntity = {
+        ...newEntity,
+        id: builder.entityId.generate(),
+      };
+
+      validateEntity(computedEntity, {
+        builder,
+        schema: transformStoreDataToSchema<TBuilder>(getData()),
+      });
 
       setData((data) => ({
         ...data,
-        entities: data.entities.set(validatedEntity.id, validatedEntity),
+        entities: data.entities.set(computedEntity.id, computedEntity),
       }));
 
-      return validatedEntity;
+      return computedEntity;
     },
   };
 }
