@@ -12,15 +12,10 @@ describe("input", () => {
       },
     });
 
-    type InputContext = {
-      meta: unknown;
-    };
-
     expectTypeOf(input).toEqualTypeOf<{
       name: "label";
-      validate: (value: unknown, context: InputContext) => string;
-      defaultValue: (context: InputContext) => string | undefined;
-      meta: unknown;
+      validate: (value: unknown) => string;
+      defaultValue: () => string | undefined;
     }>();
   });
 });

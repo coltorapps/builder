@@ -1,51 +1,41 @@
 import { type Input, type InputsValues } from "./input";
 
-interface EntityContext<
-  TInputs extends ReadonlyArray<Input<string, unknown, unknown>>,
-  TMeta,
-> {
+interface EntityContext<TInputs extends ReadonlyArray<Input<string, unknown>>> {
   inputs: InputsValues<TInputs>;
-  meta: TMeta;
   values: Record<string, unknown>;
 }
 
 export interface Entity<
   TName extends string,
-  TInputs extends ReadonlyArray<Input<string, unknown, unknown>>,
+  TInputs extends ReadonlyArray<Input<string, unknown>>,
   TValue,
-  TMeta = NonNullable<unknown>,
 > {
   name: TName;
   inputs: TInputs;
-  meta: TMeta;
   isValueAllowed: boolean;
-  validate: (value: unknown, context: EntityContext<TInputs, TMeta>) => TValue;
+  validate: (value: unknown, context: EntityContext<TInputs>) => TValue;
   defaultValue: (
-    context: EntityContext<TInputs, TMeta>,
+    context: EntityContext<TInputs>,
   ) => Awaited<TValue> | undefined;
-  shouldBeProcessed: (context: EntityContext<TInputs, TMeta>) => boolean;
+  shouldBeProcessed: (context: EntityContext<TInputs>) => boolean;
 }
 
 type OptionalEntityArgs =
   | "inputs"
   | "validate"
   | "defaultValue"
-  | "meta"
   | "shouldBeProcessed"
   | "isValueAllowed";
 
 export function createEntity<
   const TName extends string,
-  const TInputs extends ReadonlyArray<Input<string, unknown, unknown>>,
+  const TInputs extends ReadonlyArray<Input<string, unknown>>,
   TValue,
-  const TMeta = NonNullable<unknown>,
 >(
-  options: Omit<Entity<TName, TInputs, TValue, TMeta>, OptionalEntityArgs> &
-    Partial<Pick<Entity<TName, TInputs, TValue, TMeta>, OptionalEntityArgs>>,
-): Entity<TName, TInputs, TValue, TMeta> {
+  options: Omit<Entity<TName, TInputs, TValue>, OptionalEntityArgs> &
+    Partial<Pick<Entity<TName, TInputs, TValue>, OptionalEntityArgs>>,
+): Entity<TName, TInputs, TValue> {
   const fallbackInputs = [] as ReadonlyArray<unknown> as TInputs;
-
-  const fallbackMeta = {} as TMeta;
 
   function fallbackValidator(value: unknown): TValue {
     if (typeof value !== "undefined") {
@@ -68,7 +58,6 @@ export function createEntity<
   return {
     ...options,
     inputs: options.inputs ?? fallbackInputs,
-    meta: options.meta ?? fallbackMeta,
     isValueAllowed: typeof options.validate === "function",
     validate: options.validate ?? fallbackValidator,
     defaultValue: options.defaultValue ?? fallbackDefaultValue,

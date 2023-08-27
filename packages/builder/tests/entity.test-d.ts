@@ -27,7 +27,6 @@ describe("entity", () => {
       inputs: {
         [x: string]: unknown;
       };
-      meta: NonNullable<unknown>;
       values: Record<string, unknown>;
     };
 
@@ -35,11 +34,9 @@ describe("entity", () => {
       name: "text";
       inputs: ReadonlyArray<{
         name: string;
-        validate: (value: unknown, context: { meta: unknown }) => unknown;
-        defaultValue: (context: { meta: unknown }) => unknown;
-        meta: unknown;
+        validate: (value: unknown) => unknown;
+        defaultValue: () => unknown;
       }>;
-      meta: NonNullable<unknown>;
       isValueAllowed: boolean;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
@@ -53,14 +50,12 @@ describe("entity", () => {
       validate(value) {
         return z.string().parse(value);
       },
-      meta: "test",
     });
 
     type EntityContext = {
       inputs: {
         [x: string]: unknown;
       };
-      meta: "test";
       values: Record<string, unknown>;
     };
 
@@ -68,11 +63,9 @@ describe("entity", () => {
       name: "text";
       inputs: ReadonlyArray<{
         name: string;
-        validate: (value: unknown, context: { meta: unknown }) => unknown;
-        defaultValue: (context: { meta: unknown }) => unknown;
-        meta: unknown;
+        validate: (value: unknown) => unknown;
+        defaultValue: () => unknown;
       }>;
-      meta: "test";
       isValueAllowed: boolean;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
@@ -107,12 +100,7 @@ describe("entity", () => {
 
     type EntityContext = {
       inputs: { label: string; defaultValue: string | undefined };
-      meta: NonNullable<unknown>;
       values: Record<string, unknown>;
-    };
-
-    type InputContext = {
-      meta: unknown;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
@@ -120,21 +108,15 @@ describe("entity", () => {
       inputs: readonly [
         {
           name: "label";
-          validate: (value: unknown, context: InputContext) => string;
-          defaultValue: (context: InputContext) => string | undefined;
-          meta: unknown;
+          validate: (value: unknown) => string;
+          defaultValue: () => string | undefined;
         },
         {
           name: "defaultValue";
-          validate: (
-            value: unknown,
-            context: InputContext,
-          ) => string | undefined;
-          defaultValue: (context: InputContext) => string | undefined;
-          meta: unknown;
+          validate: (value: unknown) => string | undefined;
+          defaultValue: () => string | undefined;
         },
       ];
-      meta: NonNullable<unknown>;
       isValueAllowed: boolean;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;

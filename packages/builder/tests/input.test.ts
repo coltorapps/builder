@@ -15,36 +15,14 @@ describe("input", () => {
     expect(input).toMatchInlineSnapshot(`
       {
         "defaultValue": [Function],
-        "meta": {},
         "name": "label",
         "validate": [Function],
       }
     `);
 
-    expect(input.defaultValue({ meta: {} })).toMatchInlineSnapshot("undefined");
+    expect(input.defaultValue()).toMatchInlineSnapshot("undefined");
 
-    expect(input.validate("test", { meta: {} })).toMatchInlineSnapshot(
-      '"test"',
-    );
-  });
-
-  it("can be created with meta", () => {
-    const input = createInput({
-      name: "label",
-      validate(value) {
-        return value;
-      },
-      meta: "test",
-    });
-
-    expect(input).toMatchInlineSnapshot(`
-      {
-        "defaultValue": [Function],
-        "meta": "test",
-        "name": "label",
-        "validate": [Function],
-      }
-    `);
+    expect(input.validate("test")).toMatchInlineSnapshot('"test"');
   });
 
   it("can validate values", () => {
@@ -55,12 +33,9 @@ describe("input", () => {
       },
     });
 
-    expect(input.validate("valid", { meta: {} })).toMatchInlineSnapshot(
-      '"valid"',
-    );
+    expect(input.validate("valid")).toMatchInlineSnapshot('"valid"');
 
-    expect(() => input.validate(1, { meta: {} }))
-      .toThrowErrorMatchingInlineSnapshot(`
+    expect(() => input.validate(1)).toThrowErrorMatchingInlineSnapshot(`
       "[
         {
           \\"code\\": \\"invalid_type\\",
@@ -84,6 +59,6 @@ describe("input", () => {
       },
     });
 
-    expect(input.defaultValue({ meta: {} })).toMatchInlineSnapshot('"test"');
+    expect(input.defaultValue()).toMatchInlineSnapshot('"test"');
   });
 });

@@ -1,37 +1,29 @@
-interface InputContext<TMeta> {
-  meta: TMeta;
-}
-
-export interface Input<TName extends string, TValue, TMeta> {
+export interface Input<TName extends string, TValue> {
   name: TName;
-  validate: (value: unknown, context: InputContext<TMeta>) => TValue;
-  defaultValue: (context: InputContext<TMeta>) => Awaited<TValue> | undefined;
-  meta: TMeta;
+  validate: (value: unknown) => TValue;
+  defaultValue: () => Awaited<TValue> | undefined;
 }
 
 export type InputsValues<
-  TInputs extends ReadonlyArray<Input<string, unknown, unknown>>,
+  TInputs extends ReadonlyArray<Input<string, unknown>>,
 > = {
   [K in TInputs[number]["name"]]: Awaited<
     ReturnType<Extract<TInputs[number], { name: K }>["validate"]>
   >;
 };
 
-type OptionalInputArgs = "defaultValue" | "meta";
+type OptionalInputArgs = "defaultValue";
 
-export function createInput<const TName extends string, TValue, TMeta>(
-  options: Omit<Input<TName, TValue, TMeta>, OptionalInputArgs> &
-    Partial<Pick<Input<TName, TValue, TMeta>, OptionalInputArgs>>,
-): Input<TName, TValue, TMeta> {
+export function createInput<const TName extends string, TValue>(
+  options: Omit<Input<TName, TValue>, OptionalInputArgs> &
+    Partial<Pick<Input<TName, TValue>, OptionalInputArgs>>,
+): Input<TName, TValue> {
   function fallbackDefaultValue() {
     return undefined;
   }
 
-  const fallbackMeta = {} as TMeta;
-
   return {
     ...options,
     defaultValue: options.defaultValue ?? fallbackDefaultValue,
-    meta: options.meta ?? fallbackMeta,
   };
 }

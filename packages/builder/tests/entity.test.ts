@@ -15,7 +15,6 @@ describe("entity", () => {
         "defaultValue": [Function],
         "inputs": [],
         "isValueAllowed": false,
-        "meta": {},
         "name": "text",
         "shouldBeProcessed": [Function],
         "validate": [Function],
@@ -23,7 +22,7 @@ describe("entity", () => {
     `);
 
     expect(
-      entity.defaultValue({ inputs: {}, meta: {}, values: {} }),
+      entity.defaultValue({ inputs: {}, values: {} }),
     ).toMatchInlineSnapshot("undefined");
   });
 
@@ -36,10 +35,10 @@ describe("entity", () => {
     });
 
     expect(
-      entity.validate("valid", { inputs: {}, meta: {}, values: {} }),
+      entity.validate("valid", { inputs: {}, values: {} }),
     ).toMatchInlineSnapshot('"valid"');
 
-    expect(() => entity.validate(1, { inputs: {}, meta: {}, values: {} }))
+    expect(() => entity.validate(1, { inputs: {}, values: {} }))
       .toThrowErrorMatchingInlineSnapshot(`
       "[
         {
@@ -59,33 +58,14 @@ describe("entity", () => {
     });
 
     expect(() =>
-      entity.validate("value", { inputs: {}, meta: {}, values: {} }),
+      entity.validate("value", { inputs: {}, values: {} }),
     ).toThrowErrorMatchingInlineSnapshot(
       "\"Values for entities of type 'text' are not allowed.\"",
     );
 
     expect(
-      entity.validate(undefined, { inputs: {}, meta: {}, values: {} }),
+      entity.validate(undefined, { inputs: {}, values: {} }),
     ).toMatchInlineSnapshot("undefined");
-  });
-
-  it("can be created with meta", () => {
-    const entity = createEntity({
-      name: "text",
-      meta: "test",
-    });
-
-    expect(entity).toMatchInlineSnapshot(`
-      {
-        "defaultValue": [Function],
-        "inputs": [],
-        "isValueAllowed": false,
-        "meta": "test",
-        "name": "text",
-        "shouldBeProcessed": [Function],
-        "validate": [Function],
-      }
-    `);
   });
 
   it("can be created with default value", () => {
@@ -97,7 +77,7 @@ describe("entity", () => {
     });
 
     expect(
-      entity.defaultValue({ inputs: {}, meta: {}, values: {} }),
+      entity.defaultValue({ inputs: {}, values: {} }),
     ).toMatchInlineSnapshot('"test"');
   });
 
@@ -123,13 +103,11 @@ describe("entity", () => {
         "inputs": [
           {
             "defaultValue": [Function],
-            "meta": {},
             "name": "required",
             "validate": [Function],
           },
         ],
         "isValueAllowed": true,
-        "meta": {},
         "name": "text",
         "shouldBeProcessed": [Function],
         "validate": [Function],
