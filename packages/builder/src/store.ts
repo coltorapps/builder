@@ -1,30 +1,29 @@
 import { type Builder, type BuilderEntities } from "./builder";
 import { createDataManager } from "./data-manager";
 import { type InputsValues } from "./input";
-import { validateSchema } from "./schema-validation";
+import { validateSchema } from "./store-validation";
 import { type Subscribe } from "./subscription-manager";
 import { type OptionalPropsIfUndefined } from "./utils";
 
-export type StoreEntity<TBuilder extends BaseBuilder> = {
+export type StoreEntity<TBuilder extends BaseBuilder = BaseBuilder> = {
   [K in TBuilder["entities"][number]["name"]]: {
     type: K;
     inputs: OptionalPropsIfUndefined<
       InputsValues<Extract<TBuilder["entities"][number], { name: K }>["inputs"]>
     >;
-    parentId?: string;
   };
 }[TBuilder["entities"][number]["name"]];
 
 type EntityMutationFields = {
   index?: number;
-  parentId?: StoreEntity<BaseBuilder>["parentId"];
+  parentId?: string;
 };
 
 type NewEntity<TBuilder extends BaseBuilder> = StoreEntity<TBuilder> &
   EntityMutationFields;
 
 export type ComputedStoreEntity<TBuilder extends BaseBuilder> =
-  StoreEntity<TBuilder> & { id: string };
+  StoreEntity<TBuilder> & { id: string; parentId?: string };
 
 export interface StoreData<TBuilder extends BaseBuilder> {
   entities: Map<string, StoreEntity<TBuilder>>;
@@ -35,7 +34,8 @@ export interface Store<TBuilder extends BaseBuilder> {
   builder: TBuilder;
   getData(): StoreData<TBuilder>;
   subscribe: Subscribe<StoreData<TBuilder>>;
-  addEntity(entity: NewEntity<TBuilder>): ComputedStoreEntity<TBuilder>;
+  addEntity(entity: NewEntity<TBuilder>): void;
+  getSchema(): Schema<TBuilder>;
 }
 
 export type BaseBuilder = Builder<
@@ -44,20 +44,15 @@ export type BaseBuilder = Builder<
   ReadonlyArray<string>
 >;
 
-export interface Schema<TBuilder extends BaseBuilder> {
+export interface Schema<TBuilder extends BaseBuilder = BaseBuilder> {
   entities: Record<string, StoreEntity<TBuilder>>;
   root: StoreData<TBuilder>["root"];
 }
 
 function transformStoreDataToSchema<TBuilder extends BaseBuilder>(
-  storeData: StoreData<TBuilder>,
+  data: StoreData<TBuilder>,
 ): Schema<TBuilder> {
-  return {
-    entities: Object.fromEntries(
-      storeData.entities,
-    ) as unknown as Schema<TBuilder>["entities"],
-    root: storeData.root,
-  };
+  return { root: data.root, entities: Object.fromEntries(data.entities) };
 }
 
 export function createStore<TBuilder extends BaseBuilder>(
@@ -77,24 +72,23 @@ export function createStore<TBuilder extends BaseBuilder>(
     builder,
     getData,
     subscribe,
+    getSchema() {
+      return validateSchema(transformStoreDataToSchema(getData()), builder);
+    },
     addEntity(newEntity) {
-      const computedEntity = {
-        ...newEntity,
-        id: builder.entityId.generate(),
-      };
-
       setData((data) => {
         const newData = {
           ...data,
-          entities: data.entities.set(computedEntity.id, computedEntity),
+          entities: new Map(data.entities).set(
+            builder.entityId.generate(),
+            newEntity,
+          ),
         };
 
         validateSchema(transformStoreDataToSchema(newData), builder);
 
         return newData;
       });
-
-      return computedEntity;
     },
   };
 }

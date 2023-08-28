@@ -6,8 +6,6 @@ export const schemaValidationErrorCodes = {
   InvalidEntitiesFormat: "InvalidEntitiesFormat",
   MissingEntityType: "MissingEntityType",
   UnknownEntityType: "UnknownEntityType",
-  InvalidParentId: "InvalidParentId",
-  MissingEntityParent: "MissingEntityParent",
   MissingEntityInputs: "MissingEntityInputs",
   InvalidEntityInputsFormat: "InvalidEntityInputsFormat",
   UnknownEntityInputType: "UnknownEntityInputType",
@@ -27,8 +25,6 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
       "Entities should be an object containing valid entities.",
     MissingEntityType: "Entity type is missing.",
     UnknownEntityType: "The provided entity type is unknown.",
-    InvalidParentId: "The provided parent ID is invalid.",
-    MissingEntityParent: "The parent ID references a non-existent entity.",
     MissingEntityInputs: "Entity inputs are missing.",
     InvalidEntityInputsFormat: "The provided entity inputs are invalid.",
     UnknownEntityInputType: "The provided entity input type is unknown.",
@@ -63,16 +59,6 @@ export type SchemaValidationErrorCause =
       code: typeof schemaValidationErrorCodes.UnknownEntityType;
       entityId: string;
       entityType: string;
-    }
-  | {
-      code: typeof schemaValidationErrorCodes.InvalidParentId;
-      entityId: string;
-      entityParentId: unknown;
-    }
-  | {
-      code: typeof schemaValidationErrorCodes.MissingEntityParent;
-      entityId: string;
-      entityParentId: string;
     }
   | {
       code: typeof schemaValidationErrorCodes.MissingEntityInputs;

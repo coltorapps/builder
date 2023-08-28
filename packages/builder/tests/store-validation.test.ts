@@ -7,8 +7,8 @@ import {
   schemaValidationErrorCodes,
   type SchemaValidationErrorCause,
 } from "../src/errors";
-import { validateSchema } from "../src/schema-validation";
-import { type BaseBuilder, type Schema } from "../src/store";
+import { type Schema } from "../src/store";
+import { validateSchema } from "../src/store-validation";
 
 const textEntity = createEntity({
   name: "text",
@@ -80,7 +80,14 @@ describe("schema validation", () => {
       },
       {
         schema: {
-          entities: {},
+          entities: {
+            entities: {
+              "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+                type: "text",
+                inputs: {},
+              },
+            },
+          },
           root: [],
         },
         errorCause: {
@@ -152,40 +159,6 @@ describe("schema validation", () => {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
               type: "text",
-              inputs: {},
-              parentId: null,
-            },
-          },
-          root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-        },
-        errorCause: {
-          code: schemaValidationErrorCodes.InvalidParentId,
-          entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-          entityParentId: null,
-        },
-      },
-      {
-        schema: {
-          entities: {
-            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-              type: "text",
-              inputs: {},
-              parentId: "0885af6f-5033-414d-ac95-38ea78a9438c",
-            },
-          },
-          root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-        },
-        errorCause: {
-          code: schemaValidationErrorCodes.MissingEntityParent,
-          entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-          entityParentId: "0885af6f-5033-414d-ac95-38ea78a9438c",
-        },
-      },
-      {
-        schema: {
-          entities: {
-            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-              type: "text",
             },
           },
           root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
@@ -229,27 +202,12 @@ describe("schema validation", () => {
           inputName: "invalid",
         },
       },
-      {
-        schema: {
-          entities: {
-            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-              type: "text",
-              inputs: {},
-              parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-            },
-          },
-          root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-        },
-        errorCause: {
-          code: schemaValidationErrorCodes.CircularEntityReference,
-          entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-        },
-      },
+      // handle circular reference
     ];
 
     for (const item of schemas) {
       try {
-        validateSchema(item.schema as Schema<BaseBuilder>, builder);
+        validateSchema(item.schema as Schema, builder);
 
         throw new Error("Unhandled case. Fix the implementation.");
       } catch (e) {
@@ -268,24 +226,27 @@ describe("schema validation", () => {
       },
     };
 
+    const id = "c1ab14a4-41db-4531-9a58-4825a9ef6d26";
+
     const result = validateSchema(
       {
         entities: {
-          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+          [id]: {
             ...cleanEntity,
-            dirty: "should be removed",
+            // @ts-expect-error Intentionally redundant property.
+            dirty: "should be removed after validation",
           },
         },
-        root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-      } as Schema<BaseBuilder>,
+        root: [id],
+      },
       builder,
     );
 
     expect(result).toEqual({
       entities: {
-        "c1ab14a4-41db-4531-9a58-4825a9ef6d26": cleanEntity,
+        [id]: cleanEntity,
       },
-      root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-    } as Schema<BaseBuilder>);
+      root: [id],
+    });
   });
 });
