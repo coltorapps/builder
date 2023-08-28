@@ -171,6 +171,27 @@ function ensureRootNotEmptyWhenThereAreEntities(schema: Schema): void {
   }
 }
 
+function validateEntitiesSchema<TBuilder extends BaseBuilder>(
+  entities: Schema<TBuilder>["entities"],
+  builder: TBuilder,
+): Schema<TBuilder>["entities"] {
+  return Object.entries(entities).reduce(
+    (result, [key, entity]) => ({
+      ...result,
+      [key]: validateEntitySchema({ ...entity, id: key }, builder),
+    }),
+    entities,
+  );
+}
+
+function ensureRootIdsAreValid(schema: Schema<BaseBuilder>): void {
+  schema.root.forEach((entityId) => {
+    ensureEntityIdExists(entityId, schema.entities);
+
+    ensureRootEntityIdUnique(entityId, schema.root);
+  });
+}
+
 export function validateSchema<TBuilder extends BaseBuilder>(
   schema: Schema<TBuilder>,
   builder: TBuilder,
@@ -181,22 +202,14 @@ export function validateSchema<TBuilder extends BaseBuilder>(
 
   ensureRootNotEmptyWhenThereAreEntities(schema);
 
-  const validatedEntities = Object.entries(schema.entities).reduce(
-    (result, [key, entity]) => ({
-      ...result,
-      [key]: validateEntitySchema({ ...entity, id: key }, builder),
-    }),
-    schema.entities,
-  );
+  const validatedEntities = validateEntitiesSchema(schema.entities, builder);
 
-  schema.root.forEach((entityId) => {
-    ensureEntityIdExists(entityId, validatedEntities);
-
-    ensureRootEntityIdUnique(entityId, schema.root);
-  });
-
-  return {
+  const computedSchema = {
     entities: validatedEntities,
     root: schema.root,
   };
+
+  ensureRootIdsAreValid(computedSchema);
+
+  return computedSchema;
 }

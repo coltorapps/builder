@@ -27,7 +27,7 @@ export type ComputedStoreEntity<TBuilder extends BaseBuilder> =
 
 export interface StoreData<TBuilder extends BaseBuilder> {
   entities: Map<string, StoreEntity<TBuilder>>;
-  root: string[];
+  root: Set<string>;
 }
 
 export interface Store<TBuilder extends BaseBuilder> {
@@ -46,13 +46,16 @@ export type BaseBuilder = Builder<
 
 export interface Schema<TBuilder extends BaseBuilder = BaseBuilder> {
   entities: Record<string, StoreEntity<TBuilder>>;
-  root: StoreData<TBuilder>["root"];
+  root: string[];
 }
 
 function transformStoreDataToSchema<TBuilder extends BaseBuilder>(
   data: StoreData<TBuilder>,
 ): Schema<TBuilder> {
-  return { root: data.root, entities: Object.fromEntries(data.entities) };
+  return {
+    root: Array.from(data.root),
+    entities: Object.fromEntries(data.entities),
+  };
 }
 
 export function createStore<TBuilder extends BaseBuilder>(
@@ -65,7 +68,7 @@ export function createStore<TBuilder extends BaseBuilder>(
     StoreData<TBuilder>
   >({
     entities: new Map(Object.entries(validatedSchema.entities)),
-    root: validatedSchema.root,
+    root: new Set(validatedSchema.root),
   });
 
   return {
