@@ -16,4 +16,6 @@ export type {
   SchemaValidationErrorCause,
 } from "./errors";
 
+export { validateSchema } from "./schema-validation";
+
 export { getEntitiesNamesExcept } from "./utils";
