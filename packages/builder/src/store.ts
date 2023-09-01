@@ -3,6 +3,7 @@ import { createDataManager } from "./data-manager";
 import {
   ensureEntityCanLackParent,
   ensureEntityChildAllowed,
+  ensureEntityExists,
   ensureEntityParentIdHasValidReference,
   getEmptySchema,
   type Schema,
@@ -28,6 +29,7 @@ export interface Store<TBuilder extends Builder> {
   getData(): StoreData<TBuilder>;
   subscribe: Subscribe<StoreData<TBuilder>>;
   addEntity(entity: NewEntity<TBuilder>): void;
+  deleteEntity(id: string): void;
   getSchema(): Schema<TBuilder>;
 }
 
@@ -80,6 +82,32 @@ export function createStore<TBuilder extends Builder>(
         return {
           root: newEntity.parentId ? data.root : new Set(data.root).add(id),
           entities: new Map(data.entities).set(id, newEntity),
+        };
+      });
+    },
+    deleteEntity(id) {
+      setData((data) => {
+        const newRoot = new Set(data.root);
+
+        newRoot.delete(id);
+
+        const newEntities = new Map(data.entities);
+
+        const entitiesSchema = Object.fromEntries(newEntities);
+
+        function deleteEntity(id: string) {
+          const entity = ensureEntityExists(id, entitiesSchema);
+
+          entity.children?.forEach((childId) => deleteEntity(childId));
+
+          newEntities.delete(entity.id);
+        }
+
+        deleteEntity(id);
+
+        return {
+          root: newRoot,
+          entities: newEntities,
         };
       });
     },

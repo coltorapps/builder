@@ -28,6 +28,7 @@ describe("store", () => {
           },
           "parentRequired": [],
         },
+        "deleteEntity": [Function],
         "getData": [Function],
         "getSchema": [Function],
         "subscribe": [Function],
@@ -91,6 +92,7 @@ describe("store", () => {
           },
           "parentRequired": [],
         },
+        "deleteEntity": [Function],
         "getData": [Function],
         "getSchema": [Function],
         "subscribe": [Function],
@@ -117,6 +119,7 @@ describe("store", () => {
           },
           "parentRequired": [],
         },
+        "deleteEntity": [Function],
         "getData": [Function],
         "getSchema": [Function],
         "subscribe": [Function],
@@ -385,6 +388,85 @@ describe("store", () => {
         type: "test",
       },
       builder,
+    );
+  });
+
+  it("can delete entities and cascade deleting their children", () => {
+    const ensureEntityExistsMock = vi.spyOn(
+      schemaExports,
+      "ensureEntityExists",
+    );
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+      childrenAllowed: {
+        test: true,
+      },
+    });
+
+    const entitiesSchema = {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        type: "test" as const,
+        inputs: {},
+        parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
+      "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+        type: "test" as const,
+        inputs: {},
+        children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+        parentId: "3dc165dd-88d4-4884-ac8a-5d107d023e54",
+      },
+      "3dc165dd-88d4-4884-ac8a-5d107d023e54": {
+        type: "test" as const,
+        inputs: {},
+        children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+      },
+      //fix
+      "49e91328-02bc-4daa-ab56-619554e85cff": {
+        type: "test" as const,
+        inputs: {},
+        children: [],
+      },
+    };
+
+    const store = createStore(builder, {
+      entities: entitiesSchema,
+      root: ["3dc165dd-88d4-4884-ac8a-5d107d023e54"],
+    });
+
+    store.deleteEntity("3dc165dd-88d4-4884-ac8a-5d107d023e54");
+
+    expect(store.getSchema()).toEqual({
+      entities: {
+        "49e91328-02bc-4daa-ab56-619554e85cff": {
+          type: "test",
+          inputs: {},
+          children: [],
+        },
+      },
+      root: [],
+    });
+
+    expect(ensureEntityExistsMock).toHaveBeenNthCalledWith(
+      1,
+      "3dc165dd-88d4-4884-ac8a-5d107d023e54",
+      entitiesSchema,
+    );
+
+    expect(ensureEntityExistsMock).toHaveBeenNthCalledWith(
+      2,
+      "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      entitiesSchema,
+    );
+
+    expect(ensureEntityExistsMock).toHaveBeenNthCalledWith(
+      3,
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      entitiesSchema,
     );
   });
 });

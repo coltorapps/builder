@@ -290,7 +290,10 @@ describe("schema validation", () => {
               children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
             },
           },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+          root: [
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "a1109529-46c6-4290-885b-bb0aca7a92a1",
+          ],
         },
         errorCause: {
           code: schemaValidationErrorCodes.RootEntityWithParent,
@@ -310,7 +313,10 @@ describe("schema validation", () => {
               children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
             },
           },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+          root: [
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+          ],
         },
         errorCause: {
           code: schemaValidationErrorCodes.EntityChildrenMismatch,
@@ -467,7 +473,7 @@ describe("schema validation", () => {
           },
         },
         // @ts-expect-error Intentional wrong data type.
-        root: [1],
+        root: [1, "c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
       }),
     ).toThrowErrorMatchingInlineSnapshot("\"The entity id '1' is invalid.\"");
   });
