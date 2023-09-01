@@ -13,9 +13,14 @@ type ChildrenAllowed<TEntities extends BuilderEntities> = {
 };
 
 export interface Builder<
-  TEntities extends BuilderEntities,
-  TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<string, never>,
-  TParentRequired extends ReadonlyArray<TEntities[number]["name"]> = [],
+  TEntities extends BuilderEntities = BuilderEntities,
+  TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<
+    string,
+    true | ReadonlyArray<string> | undefined
+  >,
+  TParentRequired extends ReadonlyArray<
+    TEntities[number]["name"]
+  > = ReadonlyArray<string>,
 > {
   entities: TEntities;
   entityId: {

@@ -4,10 +4,10 @@ import { createBuilder, createEntity, createInput } from "../src";
 import {
   SchemaValidationError,
   schemaValidationErrorCodes,
+  validateSchema,
+  type Schema,
   type SchemaValidationErrorCause,
-} from "../src/errors";
-import { validateSchema } from "../src/schema-validation";
-import { type Schema } from "../src/store";
+} from "../src/schema";
 
 describe("schema validation", () => {
   it("throws for invalid schemas", () => {
@@ -276,7 +276,6 @@ describe("schema validation", () => {
           entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         },
       },
-
       {
         schema: {
           entities: {
@@ -317,6 +316,30 @@ describe("schema validation", () => {
           code: schemaValidationErrorCodes.EntityChildrenMismatch,
           entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
           childId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        },
+      },
+      {
+        schema: {
+          entities: {
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+              type: "text",
+              inputs: {},
+              parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            },
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "section",
+              inputs: {},
+              children: [
+                "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+                "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              ],
+            },
+          },
+          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+        },
+        errorCause: {
+          code: schemaValidationErrorCodes.DuplicateChildId,
+          entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
         },
       },
       {
@@ -375,7 +398,7 @@ describe("schema validation", () => {
     }
   });
 
-  it("throws for invalid parent id format", () => {
+  it("throws for invalid parent id", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -395,6 +418,56 @@ describe("schema validation", () => {
           },
         },
         root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+      }),
+    ).toThrowErrorMatchingInlineSnapshot("\"The entity id '1' is invalid.\"");
+  });
+
+  it("throws for invalid children ids", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+        }),
+      ],
+      childrenAllowed: {
+        text: true,
+      },
+    });
+
+    expect(() =>
+      validateSchema(builder, {
+        entities: {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            type: "text",
+            inputs: {},
+            // @ts-expect-error Intentional wrong data type.
+            children: [1],
+          },
+        },
+        root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+      }),
+    ).toThrowErrorMatchingInlineSnapshot("\"The entity id '1' is invalid.\"");
+  });
+
+  it("throws for invalid root ids", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+        }),
+      ],
+    });
+
+    expect(() =>
+      validateSchema(builder, {
+        entities: {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            type: "text",
+            inputs: {},
+          },
+        },
+        // @ts-expect-error Intentional wrong data type.
+        root: [1],
       }),
     ).toThrowErrorMatchingInlineSnapshot("\"The entity id '1' is invalid.\"");
   });

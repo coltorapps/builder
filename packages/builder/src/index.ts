@@ -8,14 +8,14 @@ export { createInput } from "./input";
 export type { Input } from "./input";
 
 export { createStore } from "./store";
-export type { Store, StoreData, StoreEntity } from "./store";
+export type { Store, StoreData } from "./store";
 
-export { SchemaValidationError } from "./errors";
+export { validateSchema, SchemaValidationError } from "./schema";
 export type {
   SchemaValidationErrorCode,
   SchemaValidationErrorCause,
-} from "./errors";
-
-export { validateSchema } from "./schema-validation";
+  SchemaEntity,
+  Schema,
+} from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";

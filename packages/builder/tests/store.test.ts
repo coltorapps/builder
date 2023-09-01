@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createBuilder, createEntity, createInput, createStore } from "../src";
-import * as schemaValidationExports from "../src/schema-validation";
+import * as schemaExports from "../src/schema";
 import * as uuidExports from "../src/uuid";
 
 describe("store", () => {
@@ -29,7 +29,6 @@ describe("store", () => {
           "parentRequired": [],
         },
         "getData": [Function],
-        "getEntity": [Function],
         "getSchema": [Function],
         "subscribe": [Function],
       }
@@ -93,7 +92,6 @@ describe("store", () => {
           "parentRequired": [],
         },
         "getData": [Function],
-        "getEntity": [Function],
         "getSchema": [Function],
         "subscribe": [Function],
       }
@@ -120,33 +118,10 @@ describe("store", () => {
           "parentRequired": [],
         },
         "getData": [Function],
-        "getEntity": [Function],
         "getSchema": [Function],
         "subscribe": [Function],
       }
     `);
-  });
-
-  it("validates the schema during creation", () => {
-    const builder = createBuilder({
-      entities: [],
-    });
-
-    const validateSchemaMock = vi.spyOn(
-      schemaValidationExports,
-      "validateSchema",
-    );
-
-    createStore(builder, { entities: {}, root: [] });
-
-    expect(validateSchemaMock).toHaveBeenLastCalledWith(builder, {
-      entities: {},
-      root: [],
-    });
-
-    createStore(builder);
-
-    expect(validateSchemaMock).toHaveBeenLastCalledWith(builder, undefined);
   });
 
   it("can retrieve the data", () => {
@@ -195,7 +170,7 @@ describe("store", () => {
     `);
   });
 
-  it("can retrieve the schema", () => {
+  it("can return the schema", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -239,50 +214,6 @@ describe("store", () => {
         ],
       }
     `);
-  });
-
-  it("can retrieve an entity", () => {
-    const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          inputs: [
-            createInput({
-              name: "label",
-              validate(value) {
-                return value;
-              },
-            }),
-          ],
-        }),
-      ],
-    });
-
-    const store = createStore(builder, {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "text",
-          inputs: {
-            label: "test",
-          },
-        },
-      },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-    });
-
-    expect(store.getEntity("6e0035c3-0d4c-445f-a42b-2d971225447c"))
-      .toMatchInlineSnapshot(`
-      {
-        "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "inputs": {
-          "label": "test",
-        },
-        "parentId": "",
-        "type": "text",
-      }
-    `);
-
-    expect(store.getEntity("non-existent")).toMatchInlineSnapshot("undefined");
   });
 
   it("can add entities and notify listeners", () => {
@@ -337,5 +268,123 @@ describe("store", () => {
       ]),
       root: new Set(["6e0035c3-0d4c-445f-a42b-2d971225447c"]),
     });
+  });
+
+  it("validates the parent when adding entities", () => {
+    const ensureEntityParentIdHasValidReferenceMock = vi.spyOn(
+      schemaExports,
+      "ensureEntityParentIdHasValidReference",
+    );
+
+    const ensureEntityChildAllowedMock = vi.spyOn(
+      schemaExports,
+      "ensureEntityChildAllowed",
+    );
+
+    const ensureEntityCanLackParentMock = vi.spyOn(
+      schemaExports,
+      "ensureEntityCanLackParent",
+    );
+
+    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
+      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    );
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+      childrenAllowed: {
+        test: true,
+      },
+    });
+
+    const store = createStore(builder, {
+      entities: {
+        "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+          type: "test",
+          inputs: {},
+        },
+      },
+      root: [],
+    });
+
+    store.addEntity({
+      type: "test",
+      inputs: {},
+      parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+    });
+
+    expect(ensureEntityParentIdHasValidReferenceMock).toHaveBeenCalledWith(
+      {
+        id: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        inputs: {},
+        parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        type: "test",
+      },
+      {
+        "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+          type: "test",
+          inputs: {},
+        },
+      },
+    );
+
+    expect(ensureEntityChildAllowedMock).toHaveBeenCalledWith(
+      {
+        id: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        type: "test",
+        inputs: {},
+      },
+      {
+        id: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        inputs: {},
+        parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        type: "test",
+      },
+      builder,
+    );
+
+    expect(ensureEntityCanLackParentMock).not.toHaveBeenCalled();
+  });
+
+  it("ensures an entity can lack a parent ID when added", () => {
+    const ensureEntityCanLackParentMock = vi.spyOn(
+      schemaExports,
+      "ensureEntityCanLackParent",
+    );
+
+    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
+      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    );
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      entities: {},
+      root: [],
+    });
+
+    store.addEntity({
+      type: "test",
+      inputs: {},
+    });
+
+    expect(ensureEntityCanLackParentMock).toHaveBeenCalledWith(
+      {
+        id: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        inputs: {},
+        type: "test",
+      },
+      builder,
+    );
   });
 });
