@@ -19,7 +19,7 @@ type EntityMutationFields = {
 type NewEntity<TBuilder extends Builder> = SchemaEntity<TBuilder> &
   EntityMutationFields;
 
-export interface StoreData<TBuilder extends Builder> {
+export interface StoreData<TBuilder extends Builder = Builder> {
   entities: Map<string, SchemaEntity<TBuilder>>;
   root: Set<string>;
 }
@@ -40,6 +40,28 @@ function transformStoreDataToSchema<TBuilder extends Builder>(
     root: Array.from(data.root),
     entities: Object.fromEntries(data.entities),
   };
+}
+
+function deleteEntityAndChildren<TBuilder extends Builder>(
+  id: string,
+  entities: StoreData<TBuilder>["entities"],
+): StoreData<TBuilder>["entities"] {
+  const entitiesSchema = Object.fromEntries(entities);
+
+  const entity = ensureEntityExists(id, entitiesSchema);
+
+  const newEntities = new Map(entities);
+
+  newEntities.delete(entity.id);
+
+  if (!entity.children || !entity.children.length) {
+    return newEntities;
+  }
+
+  return entity.children.reduce(
+    (result, childId) => deleteEntityAndChildren(childId, result),
+    newEntities,
+  );
 }
 
 export function createStore<TBuilder extends Builder>(
@@ -91,19 +113,10 @@ export function createStore<TBuilder extends Builder>(
 
         newRoot.delete(id);
 
-        const newEntities = new Map(data.entities);
-
-        const entitiesSchema = Object.fromEntries(newEntities);
-
-        function deleteEntity(id: string) {
-          const entity = ensureEntityExists(id, entitiesSchema);
-
-          entity.children?.forEach((childId) => deleteEntity(childId));
-
-          newEntities.delete(entity.id);
-        }
-
-        deleteEntity(id);
+        const newEntities = deleteEntityAndChildren<TBuilder>(
+          id,
+          data.entities,
+        );
 
         return {
           root: newRoot,

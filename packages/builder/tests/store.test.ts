@@ -408,26 +408,25 @@ describe("store", () => {
       },
     });
 
-    const entitiesSchema = {
+    const entitiesSchema: schemaExports.Schema<typeof builder>["entities"] = {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        type: "test" as const,
+        type: "test",
         inputs: {},
         parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       },
       "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-        type: "test" as const,
+        type: "test",
         inputs: {},
         children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
         parentId: "3dc165dd-88d4-4884-ac8a-5d107d023e54",
       },
       "3dc165dd-88d4-4884-ac8a-5d107d023e54": {
-        type: "test" as const,
+        type: "test",
         inputs: {},
         children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
       },
-      //fix
       "49e91328-02bc-4daa-ab56-619554e85cff": {
-        type: "test" as const,
+        type: "test",
         inputs: {},
         children: [],
       },
@@ -457,11 +456,15 @@ describe("store", () => {
       entitiesSchema,
     );
 
+    delete entitiesSchema["3dc165dd-88d4-4884-ac8a-5d107d023e54"];
+
     expect(ensureEntityExistsMock).toHaveBeenNthCalledWith(
       2,
       "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       entitiesSchema,
     );
+
+    delete entitiesSchema["c1ab14a4-41db-4531-9a58-4825a9ef6d26"];
 
     expect(ensureEntityExistsMock).toHaveBeenNthCalledWith(
       3,
