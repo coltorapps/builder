@@ -1,5 +1,266 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`entity upsertion > can insert new entities into empty schemas 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
+exports[`entity upsertion > can insert new entities into non-empty schemas 1`] = `
+{
+  "entities": Map {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0" => {
+      "inputs": {},
+      "type": "text",
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
+exports[`entity upsertion > can insert new entities with index into non-empty schemas 1`] = `
+{
+  "entities": Map {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0" => {
+      "inputs": {},
+      "type": "text",
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0",
+  },
+}
+`;
+
+exports[`entity upsertion > can insert new entities with parent ID and index into non-empty schemas 1`] = `
+{
+  "entities": Map {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0" => {
+      "children": Set {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "3f9e1fce-8d5b-4888-9600-016f8ec3c9b6",
+      },
+      "inputs": {},
+      "type": "text",
+    },
+    "3f9e1fce-8d5b-4888-9600-016f8ec3c9b6" => {
+      "inputs": {},
+      "parentId": "4c3dc13d-d179-4a03-b4b6-596bad1625d0",
+      "type": "text",
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "parentId": "4c3dc13d-d179-4a03-b4b6-596bad1625d0",
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0",
+  },
+}
+`;
+
+exports[`entity upsertion > can insert new entities with parent ID into non-empty schemas 1`] = `
+{
+  "entities": Map {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0" => {
+      "children": Set {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      },
+      "inputs": {},
+      "type": "text",
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "parentId": "4c3dc13d-d179-4a03-b4b6-596bad1625d0",
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0",
+  },
+}
+`;
+
+exports[`entity upsertion > does nothing when updating an entity without providing a parent ID and index 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
+exports[`entity upsertion > insert new entities with parent ID provided as NULL into non-empty schemas 1`] = `
+{
+  "entities": Map {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0" => {
+      "inputs": {},
+      "type": "text",
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "4c3dc13d-d179-4a03-b4b6-596bad1625d0",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
+exports[`entity upsertion > moves an entity as last to a parent when parent ID was provided and index was not provided 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "parentId": "38781207-38ae-4299-a52a-2da92fce2c84",
+      "type": "text",
+    },
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "inputs": {},
+      "parentId": "38781207-38ae-4299-a52a-2da92fce2c84",
+      "type": "text",
+    },
+    "38781207-38ae-4299-a52a-2da92fce2c84" => {
+      "children": Set {
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      },
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "38781207-38ae-4299-a52a-2da92fce2c84",
+  },
+}
+`;
+
+exports[`entity upsertion > moves an entity to a parent at specific index when parent ID and index were provided 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "parentId": "38781207-38ae-4299-a52a-2da92fce2c84",
+      "type": "text",
+    },
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "inputs": {},
+      "parentId": "38781207-38ae-4299-a52a-2da92fce2c84",
+      "type": "text",
+    },
+    "38781207-38ae-4299-a52a-2da92fce2c84" => {
+      "children": Set {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+      },
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "38781207-38ae-4299-a52a-2da92fce2c84",
+  },
+}
+`;
+
+exports[`entity upsertion > moves an entity to from a parent to another parent when parent ID was provided 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "children": Set {
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+      },
+      "inputs": {},
+      "type": "text",
+    },
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "inputs": {},
+      "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "type": "text",
+    },
+    "38781207-38ae-4299-a52a-2da92fce2c84" => {
+      "children": Set {},
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "38781207-38ae-4299-a52a-2da92fce2c84",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
+exports[`entity upsertion > moves an entity to root at specific index when the provided parent ID is null and index is provided 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "type": "text",
+    },
+    "38781207-38ae-4299-a52a-2da92fce2c84" => {
+      "children": Set {},
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    "38781207-38ae-4299-a52a-2da92fce2c84",
+  },
+}
+`;
+
+exports[`entity upsertion > moves an entity to root when the provided parent ID is null 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "type": "text",
+    },
+    "38781207-38ae-4299-a52a-2da92fce2c84" => {
+      "children": Set {},
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "38781207-38ae-4299-a52a-2da92fce2c84",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
+exports[`entity upsertion > throws when inserting new entities with invalid parent id 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
 exports[`store > can be created with a non-empty schema 1`] = `
 [MockFunction baseValidateSchema] {
   "calls": [
@@ -249,32 +510,6 @@ exports[`store > can retrieve the data 1`] = `
         "label": "test",
       },
       "type": "text",
-    },
-  },
-  "root": Set {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c",
-  },
-}
-`;
-
-exports[`store > can return the data 1`] = `
-{
-  "entities": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
-      "children": Set {
-        "98b6d050-192f-47e3-8690-7d263c25b45a",
-      },
-      "inputs": {
-        "label": "test",
-      },
-      "type": "test",
-    },
-    "98b6d050-192f-47e3-8690-7d263c25b45a" => {
-      "inputs": {
-        "label": "test",
-      },
-      "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "type": "test",
     },
   },
   "root": Set {

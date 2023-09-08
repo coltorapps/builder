@@ -182,7 +182,7 @@ export type SchemaEntity<TBuilder extends Builder = Builder> = {
 
 export interface Schema<TBuilder extends Builder = Builder> {
   entities: Record<string, SchemaEntity<TBuilder>>;
-  root: string[];
+  root: ReadonlyArray<string>;
 }
 
 export type SchemaEntityWithId<TBuilder extends Builder = Builder> =

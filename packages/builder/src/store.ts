@@ -78,6 +78,7 @@ function validateStoreData<TBuilder extends Builder>(
 }
 
 function removeEntityChildFromParentEntity<TBuilder extends Builder>(
+  entityId: string,
   parentEntityId: string,
   entities: StoreData<TBuilder>["entities"],
 ): StoreData<TBuilder>["entities"] {
@@ -89,7 +90,7 @@ function removeEntityChildFromParentEntity<TBuilder extends Builder>(
     return newEntities;
   }
 
-  parentEntity.children?.delete(parentEntityId);
+  parentEntity.children?.delete(entityId);
 
   return newEntities.set(parentEntityId, parentEntity);
 }
@@ -107,23 +108,24 @@ function ensureEntityExists<TBuilder extends Builder>(
   return entity;
 }
 
-function deleteEntity<TBuilder extends Builder>(
-  id: string,
+function baseDeleteEntity<TBuilder extends Builder>(
+  entityId: string,
   data: StoreData<TBuilder>,
 ): StoreData<TBuilder> {
-  const entity = ensureEntityExists(id, data.entities);
+  const entity = ensureEntityExists(entityId, data.entities);
 
   const newData: StoreData<TBuilder> = {
     ...data,
     entities: new Map(data.entities),
   };
 
-  newData.entities.delete(id);
+  newData.entities.delete(entityId);
 
-  newData.root.delete(id);
+  newData.root.delete(entityId);
 
   if (entity.parentId) {
     newData.entities = removeEntityChildFromParentEntity(
+      entityId,
       entity.parentId,
       newData.entities,
     );
@@ -134,8 +136,21 @@ function deleteEntity<TBuilder extends Builder>(
   }
 
   return Array.from(entity.children).reduce(
-    (result, childId) => deleteEntity(childId, result),
+    (result, childId) => baseDeleteEntity(childId, result),
     newData,
+  );
+}
+
+function deleteEntity<TBuilder extends Builder>(
+  entityId: string,
+  dependencies: {
+    data: StoreData<TBuilder>;
+    builder: TBuilder;
+  },
+): StoreData<TBuilder> {
+  return validateStoreData(
+    baseDeleteEntity(entityId, dependencies.data),
+    dependencies.builder,
   );
 }
 
@@ -175,7 +190,7 @@ function addEntityToRoot<TBuilder extends Builder>(
   return new Set(newRoot);
 }
 
-function upsertEntity<TBuilder extends Builder>(
+export function upsertEntity<TBuilder extends Builder>(
   entityId: string,
   entity: StoreEntity<TBuilder>,
   mutationFields: {
@@ -193,10 +208,14 @@ function upsertEntity<TBuilder extends Builder>(
 
   let newEntities = new Map(dependencies.data.entities);
 
-  newEntities.set(entityId, entity);
+  newEntities.set(entityId, {
+    ...entity,
+    parentId: mutationFields.parentId === null ? undefined : entity.parentId,
+  });
 
   if (entity.parentId) {
     newEntities = removeEntityChildFromParentEntity(
+      entityId,
       entity.parentId,
       newEntities,
     );
@@ -276,9 +295,7 @@ export function createStore<TBuilder extends Builder>(
     },
     deleteEntity(entityId) {
       setData((data) => {
-        const newData = deleteEntity(entityId, data);
-
-        return validateStoreData(newData, builder);
+        return deleteEntity(entityId, { data, builder });
       });
     },
   };
