@@ -8,21 +8,15 @@ describe("uuid", () => {
   });
 
   it("can validate uuids", () => {
-    expect(() => validateUuid("invalid")).toThrowErrorMatchingInlineSnapshot(
-      "\"The entity id 'invalid' is invalid.\"",
-    );
+    expect(() => validateUuid("invalid")).toThrowErrorMatchingSnapshot();
 
     expect(() =>
       validateUuid("6e0035c3-0d4c-445f-a42b-2d971225447"),
-    ).toThrowErrorMatchingInlineSnapshot(
-      "\"The entity id '6e0035c3-0d4c-445f-a42b-2d971225447' is invalid.\"",
-    );
+    ).toThrowErrorMatchingSnapshot();
 
     expect(() =>
       validateUuid("6e0035c30d4c445fa42b2d971225447c"),
-    ).toThrowErrorMatchingInlineSnapshot(
-      "\"The entity id '6e0035c30d4c445fa42b2d971225447c' is invalid.\"",
-    );
+    ).toThrowErrorMatchingSnapshot();
 
     expect(() =>
       validateUuid("6e0035c3-0d4c-445f-a42b-2d971225447c"),

@@ -10,20 +10,9 @@ describe("entity", () => {
       name: "text",
     });
 
-    expect(entity).toMatchInlineSnapshot(`
-      {
-        "defaultValue": [Function],
-        "inputs": [],
-        "isValueAllowed": false,
-        "name": "text",
-        "shouldBeProcessed": [Function],
-        "validate": [Function],
-      }
-    `);
+    expect(entity).toMatchSnapshot();
 
-    expect(
-      entity.defaultValue({ inputs: {}, values: {} }),
-    ).toMatchInlineSnapshot("undefined");
+    expect(entity.defaultValue({ inputs: {}, values: {} })).toMatchSnapshot();
   });
 
   it("can validate values", () => {
@@ -36,20 +25,11 @@ describe("entity", () => {
 
     expect(
       entity.validate("valid", { inputs: {}, values: {} }),
-    ).toMatchInlineSnapshot('"valid"');
+    ).toMatchSnapshot();
 
-    expect(() => entity.validate(1, { inputs: {}, values: {} }))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "[
-        {
-          \\"code\\": \\"invalid_type\\",
-          \\"expected\\": \\"string\\",
-          \\"received\\": \\"number\\",
-          \\"path\\": [],
-          \\"message\\": \\"Expected string, received number\\"
-        }
-      ]"
-    `);
+    expect(() =>
+      entity.validate(1, { inputs: {}, values: {} }),
+    ).toThrowErrorMatchingSnapshot();
   });
 
   it("throws when validating without a validator", () => {
@@ -59,13 +39,11 @@ describe("entity", () => {
 
     expect(() =>
       entity.validate("value", { inputs: {}, values: {} }),
-    ).toThrowErrorMatchingInlineSnapshot(
-      "\"Values for entities of type 'text' are not allowed.\"",
-    );
+    ).toThrowErrorMatchingSnapshot();
 
     expect(
       entity.validate(undefined, { inputs: {}, values: {} }),
-    ).toMatchInlineSnapshot("undefined");
+    ).toMatchSnapshot();
   });
 
   it("can be created with default value", () => {
@@ -76,9 +54,7 @@ describe("entity", () => {
       },
     });
 
-    expect(
-      entity.defaultValue({ inputs: {}, values: {} }),
-    ).toMatchInlineSnapshot('"test"');
+    expect(entity.defaultValue({ inputs: {}, values: {} })).toMatchSnapshot();
   });
 
   it("can be created with inputs", () => {
@@ -97,21 +73,6 @@ describe("entity", () => {
       },
     });
 
-    expect(entity).toMatchInlineSnapshot(`
-      {
-        "defaultValue": [Function],
-        "inputs": [
-          {
-            "defaultValue": [Function],
-            "name": "required",
-            "validate": [Function],
-          },
-        ],
-        "isValueAllowed": true,
-        "name": "text",
-        "shouldBeProcessed": [Function],
-        "validate": [Function],
-      }
-    `);
+    expect(entity).toMatchSnapshot();
   });
 });

@@ -6,12 +6,7 @@ describe("subscription manager", () => {
   it("can be created", () => {
     const subscriptionManager = createSubscriptionManager();
 
-    expect(subscriptionManager).toMatchInlineSnapshot(`
-      {
-        "notify": [Function],
-        "subscribe": [Function],
-      }
-    `);
+    expect(subscriptionManager).toMatchSnapshot();
   });
 
   it("allows subscribing to notifications", () => {
@@ -23,7 +18,7 @@ describe("subscription manager", () => {
 
     subscriptionManager.notify("test");
 
-    expect(listener).toHaveBeenCalledWith("test");
+    expect(listener).toMatchSnapshot();
   });
 
   it("allows unsubscribing from notifications", () => {

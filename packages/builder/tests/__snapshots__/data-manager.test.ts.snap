@@ -1,0 +1,39 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`data manager > allows subscribing to data changes 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "age": 18,
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`data manager > can be created 1`] = `
+{
+  "getData": [Function],
+  "setData": [Function],
+  "subscribe": [Function],
+}
+`;
+
+exports[`data manager > can mutate the data 1`] = `
+{
+  "age": 18,
+}
+`;
+
+exports[`data manager > retrieves the data 1`] = `
+{
+  "data": "test",
+}
+`;

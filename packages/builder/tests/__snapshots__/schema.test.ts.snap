@@ -1,0 +1,80 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`schema validation > returns an empty schema when no input schema was provided 1`] = `
+{
+  "entities": {},
+  "root": [],
+}
+`;
+
+exports[`schema validation > returns clean data for valid schemas 1`] = `
+{
+  "entities": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "children": [
+        "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      ],
+      "inputs": {},
+      "type": "section",
+    },
+    "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+      "inputs": {
+        "label": "test",
+      },
+      "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "type": "text",
+    },
+  },
+  "root": [
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  ],
+}
+`;
+
+exports[`schema validation > throws for invalid children ids 1`] = `"The entity id '1' is invalid."`;
+
+exports[`schema validation > throws for invalid parent id 1`] = `"The entity id '1' is invalid."`;
+
+exports[`schema validation > throws for invalid root ids 1`] = `"The entity id '1' is invalid."`;
+
+exports[`schema validation > validates the inputs with the async validator and skips inputs validators with the sync validator 1`] = `
+"[
+  {
+    \\"code\\": \\"invalid_type\\",
+    \\"expected\\": \\"string\\",
+    \\"received\\": \\"undefined\\",
+    \\"path\\": [],
+    \\"message\\": \\"Required\\"
+  }
+]"
+`;
+
+exports[`schema validation > validates the inputs with the async validator and skips inputs validators with the sync validator 2`] = `
+{
+  "entities": {
+    "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+      "inputs": {
+        "label": "testshould be appended",
+      },
+      "type": "text",
+    },
+  },
+  "root": [
+    "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+  ],
+}
+`;
+
+exports[`schema validation > validates the inputs with the async validator and skips inputs validators with the sync validator 3`] = `
+{
+  "entities": {
+    "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+      "inputs": {},
+      "type": "text",
+    },
+  },
+  "root": [
+    "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+  ],
+}
+`;

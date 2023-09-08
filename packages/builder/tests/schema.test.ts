@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 
 import { createBuilder, createEntity, createInput } from "../src";
 import {
+  baseValidateSchema,
   SchemaValidationError,
   schemaValidationErrorCodes,
   validateSchema,
@@ -10,7 +12,7 @@ import {
 } from "../src/schema";
 
 describe("schema validation", () => {
-  it("throws for invalid schemas", () => {
+  it("throws for invalid schemas", async () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -109,7 +111,7 @@ describe("schema validation", () => {
           root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
         errorCause: {
-          code: schemaValidationErrorCodes.MissingEntityId,
+          code: schemaValidationErrorCodes.NonexistentEntityId,
           entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         },
       },
@@ -223,7 +225,7 @@ describe("schema validation", () => {
           root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
         errorCause: {
-          code: schemaValidationErrorCodes.MissingEntityParent,
+          code: schemaValidationErrorCodes.NonexistentEntityParent,
           entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
           entityParentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
         },
@@ -393,7 +395,19 @@ describe("schema validation", () => {
 
     for (const item of schemas) {
       try {
-        validateSchema(builder, item.schema as Schema);
+        await validateSchema(builder, item.schema as Schema);
+
+        throw new Error("Unhandled case. Fix the implementation.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(SchemaValidationError);
+
+        expect((e as SchemaValidationError).cause).toEqual(item.errorCause);
+      }
+    }
+
+    for (const item of schemas) {
+      try {
+        baseValidateSchema(builder, item.schema as Schema);
 
         throw new Error("Unhandled case. Fix the implementation.");
       } catch (e) {
@@ -404,7 +418,65 @@ describe("schema validation", () => {
     }
   });
 
-  it("throws for invalid parent id", () => {
+  it("validates the inputs with the async validator and skips inputs validators with the sync validator", async () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return z.string().parse(value) + "should be appended";
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    await expect(
+      validateSchema(builder, {
+        entities: {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            type: "text",
+            // @ts-expect-error Intentional wrong data type.
+            inputs: {},
+          },
+        },
+        root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+      }),
+    ).rejects.toThrowErrorMatchingSnapshot();
+
+    await expect(
+      validateSchema(builder, {
+        entities: {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            type: "text",
+            inputs: {
+              label: "test",
+            },
+          },
+        },
+        root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+      }),
+    ).resolves.toMatchSnapshot();
+
+    expect(
+      baseValidateSchema(builder, {
+        entities: {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            type: "text",
+            // @ts-expect-error Intentional wrong data type.
+            inputs: {},
+          },
+        },
+        root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+      }),
+    ).toMatchSnapshot();
+  });
+
+  it("throws for invalid parent id", async () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -413,7 +485,7 @@ describe("schema validation", () => {
       ],
     });
 
-    expect(() =>
+    await expect(
       validateSchema(builder, {
         entities: {
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -425,10 +497,10 @@ describe("schema validation", () => {
         },
         root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
       }),
-    ).toThrowErrorMatchingInlineSnapshot("\"The entity id '1' is invalid.\"");
+    ).rejects.toThrowErrorMatchingSnapshot();
   });
 
-  it("throws for invalid children ids", () => {
+  it("throws for invalid children ids", async () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -440,7 +512,7 @@ describe("schema validation", () => {
       },
     });
 
-    expect(() =>
+    await expect(
       validateSchema(builder, {
         entities: {
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -452,10 +524,10 @@ describe("schema validation", () => {
         },
         root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
       }),
-    ).toThrowErrorMatchingInlineSnapshot("\"The entity id '1' is invalid.\"");
+    ).rejects.toThrowErrorMatchingSnapshot();
   });
 
-  it("throws for invalid root ids", () => {
+  it("throws for invalid root ids", async () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -464,7 +536,7 @@ describe("schema validation", () => {
       ],
     });
 
-    expect(() =>
+    await expect(
       validateSchema(builder, {
         entities: {
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -475,10 +547,10 @@ describe("schema validation", () => {
         // @ts-expect-error Intentional wrong data type.
         root: [1, "c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
       }),
-    ).toThrowErrorMatchingInlineSnapshot("\"The entity id '1' is invalid.\"");
+    ).rejects.toThrowErrorMatchingSnapshot();
   });
 
-  it("returns clean data for valid schemas", () => {
+  it("returns clean data for valid schemas", async () => {
     const textEntity = createEntity({
       name: "text",
       inputs: [
@@ -502,18 +574,14 @@ describe("schema validation", () => {
       },
     });
 
-    const cleanEntity = {
-      type: "text",
-      inputs: {
-        label: "test",
-      },
-      parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    };
-
-    const result = validateSchema(builder, {
+    const schema: Schema = {
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-          ...cleanEntity,
+          type: "text",
+          inputs: {
+            label: "test",
+          },
+          parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
           // @ts-expect-error Intentionally redundant property.
           dirty: "should be removed after validation",
         },
@@ -524,22 +592,12 @@ describe("schema validation", () => {
         },
       },
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-    });
+    };
 
-    expect(result).toEqual({
-      entities: {
-        "c1ab14a4-41db-4531-9a58-4825a9ef6d26": cleanEntity,
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "section",
-          inputs: {},
-          children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-        },
-      },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-    });
+    await expect(validateSchema(builder, schema)).resolves.toMatchSnapshot();
   });
 
-  it("returns an empty schema when no input schema was provided", () => {
+  it("returns an empty schema when no input schema was provided", async () => {
     const textEntity = createEntity({
       name: "text",
       inputs: [
@@ -556,11 +614,6 @@ describe("schema validation", () => {
       entities: [textEntity],
     });
 
-    const result = validateSchema(builder);
-
-    expect(result).toEqual({
-      entities: {},
-      root: [],
-    });
+    await expect(validateSchema(builder)).resolves.toMatchSnapshot();
   });
 });

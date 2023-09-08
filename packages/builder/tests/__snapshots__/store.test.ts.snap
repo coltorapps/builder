@@ -1,0 +1,302 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`store > can be created with a non-empty schema 1`] = `
+[MockFunction baseValidateSchema] {
+  "calls": [
+    [
+      {
+        "childrenAllowed": {},
+        "entities": [
+          {
+            "defaultValue": [Function],
+            "inputs": [
+              {
+                "defaultValue": [Function],
+                "name": "label",
+                "validate": [Function],
+              },
+            ],
+            "isValueAllowed": false,
+            "name": "text",
+            "shouldBeProcessed": [Function],
+            "validate": [Function],
+          },
+        ],
+        "entityId": {
+          "generate": [Function],
+          "validate": [Function],
+        },
+        "parentRequired": [],
+      },
+      {
+        "entities": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            "inputs": {
+              "label": "test",
+            },
+            "type": "text",
+          },
+        },
+        "root": [
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "entities": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            "inputs": {
+              "label": "test",
+            },
+            "type": "text",
+          },
+        },
+        "root": [
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
+      },
+    },
+  ],
+}
+`;
+
+exports[`store > can be created with a non-empty schema 2`] = `
+{
+  "addEntity": [Function],
+  "builder": {
+    "childrenAllowed": {},
+    "entities": [
+      {
+        "defaultValue": [Function],
+        "inputs": [
+          {
+            "defaultValue": [Function],
+            "name": "label",
+            "validate": [Function],
+          },
+        ],
+        "isValueAllowed": false,
+        "name": "text",
+        "shouldBeProcessed": [Function],
+        "validate": [Function],
+      },
+    ],
+    "entityId": {
+      "generate": [Function],
+      "validate": [Function],
+    },
+    "parentRequired": [],
+  },
+  "deleteEntity": [Function],
+  "getData": [Function],
+  "getSchema": [Function],
+  "subscribe": [Function],
+  "updateEntity": [Function],
+}
+`;
+
+exports[`store > can be created with an empty schema 1`] = `
+[MockFunction baseValidateSchema] {
+  "calls": [
+    [
+      {
+        "childrenAllowed": {},
+        "entities": [],
+        "entityId": {
+          "generate": [Function],
+          "validate": [Function],
+        },
+        "parentRequired": [],
+      },
+      {
+        "entities": {},
+        "root": [],
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "entities": {},
+        "root": [],
+      },
+    },
+  ],
+}
+`;
+
+exports[`store > can be created with an empty schema 2`] = `
+{
+  "addEntity": [Function],
+  "builder": {
+    "childrenAllowed": {},
+    "entities": [],
+    "entityId": {
+      "generate": [Function],
+      "validate": [Function],
+    },
+    "parentRequired": [],
+  },
+  "deleteEntity": [Function],
+  "getData": [Function],
+  "getSchema": [Function],
+  "subscribe": [Function],
+  "updateEntity": [Function],
+}
+`;
+
+exports[`store > can be created without a schema 1`] = `
+{
+  "addEntity": [Function],
+  "builder": {
+    "childrenAllowed": {},
+    "entities": [],
+    "entityId": {
+      "generate": [Function],
+      "validate": [Function],
+    },
+    "parentRequired": [],
+  },
+  "deleteEntity": [Function],
+  "getData": [Function],
+  "getSchema": [Function],
+  "subscribe": [Function],
+  "updateEntity": [Function],
+}
+`;
+
+exports[`store > can delete entities and cascade delete their children 1`] = `
+{
+  "entities": {
+    "49e91328-02bc-4daa-ab56-619554e85cff": {
+      "children": [],
+      "inputs": {},
+      "type": "test",
+    },
+  },
+  "root": [
+    "49e91328-02bc-4daa-ab56-619554e85cff",
+  ],
+}
+`;
+
+exports[`store > can notifies listeners on changes 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entities": Map {
+          "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f" => {
+            "inputs": {},
+            "type": "text",
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+            "inputs": {},
+            "type": "text",
+          },
+        },
+        "root": Set {
+          "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        },
+      },
+    ],
+    [
+      {
+        "entities": Map {
+          "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f" => {
+            "children": Set {
+              "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            },
+            "inputs": {},
+            "type": "text",
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+            "inputs": {},
+            "parentId": "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f",
+            "type": "text",
+          },
+        },
+        "root": Set {
+          "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f",
+        },
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`store > can retrieve the data 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {
+        "label": "test",
+      },
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
+exports[`store > can return the data 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "children": Set {
+        "98b6d050-192f-47e3-8690-7d263c25b45a",
+      },
+      "inputs": {
+        "label": "test",
+      },
+      "type": "test",
+    },
+    "98b6d050-192f-47e3-8690-7d263c25b45a" => {
+      "inputs": {
+        "label": "test",
+      },
+      "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "type": "test",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
+exports[`store > can return the schema 1`] = `
+{
+  "entities": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "inputs": {
+        "label": "test",
+      },
+      "type": "text",
+    },
+  },
+  "root": [
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  ],
+}
+`;
+
+exports[`store > throws when trying to delete non existent entity 1`] = `"Entity with ID \\"test\\" was not found."`;

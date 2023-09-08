@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`input > can be created with default value 1`] = `"test"`;
+
+exports[`input > can be created with minimal options 1`] = `
+{
+  "defaultValue": [Function],
+  "name": "label",
+  "validate": [Function],
+}
+`;
+
+exports[`input > can be created with minimal options 2`] = `undefined`;
+
+exports[`input > can be created with minimal options 3`] = `"test"`;
+
+exports[`input > can validate values 1`] = `"valid"`;
+
+exports[`input > can validate values 2`] = `
+"[
+  {
+    \\"code\\": \\"invalid_type\\",
+    \\"expected\\": \\"string\\",
+    \\"received\\": \\"number\\",
+    \\"path\\": [],
+    \\"message\\": \\"Expected string, received number\\"
+  }
+]"
+`;

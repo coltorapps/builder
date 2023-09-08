@@ -1,0 +1,77 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`builder > can be created with children and parent rules 1`] = `
+{
+  "childrenAllowed": {
+    "test": true,
+  },
+  "entities": [
+    {
+      "defaultValue": [Function],
+      "inputs": [],
+      "isValueAllowed": false,
+      "name": "test",
+      "shouldBeProcessed": [Function],
+      "validate": [Function],
+    },
+  ],
+  "entityId": {
+    "generate": [Function],
+    "validate": [Function],
+  },
+  "parentRequired": [
+    "test",
+  ],
+}
+`;
+
+exports[`builder > can be created with entities 1`] = `
+{
+  "childrenAllowed": {},
+  "entities": [
+    {
+      "defaultValue": [Function],
+      "inputs": [],
+      "isValueAllowed": false,
+      "name": "test",
+      "shouldBeProcessed": [Function],
+      "validate": [Function],
+    },
+  ],
+  "entityId": {
+    "generate": [Function],
+    "validate": [Function],
+  },
+  "parentRequired": [],
+}
+`;
+
+exports[`builder > can be created with entity ID generator and validator 1`] = `
+{
+  "childrenAllowed": {},
+  "entities": [],
+  "entityId": {
+    "generate": [Function],
+    "validate": [Function],
+  },
+  "parentRequired": [],
+}
+`;
+
+exports[`builder > can be created with entity ID generator and validator 2`] = `"1"`;
+
+exports[`builder > can be created with entity ID generator and validator 3`] = `undefined`;
+
+exports[`builder > can be created with entity ID generator and validator 4`] = `"Not equal to 1"`;
+
+exports[`builder > can be created with minimal options 1`] = `
+{
+  "childrenAllowed": {},
+  "entities": [],
+  "entityId": {
+    "generate": [MockFunction generateUuid],
+    "validate": [MockFunction validateUuid],
+  },
+  "parentRequired": [],
+}
+`;

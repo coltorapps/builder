@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`subscription manager > allows subscribing to notifications 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      "test",
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`subscription manager > can be created 1`] = `
+{
+  "notify": [Function],
+  "subscribe": [Function],
+}
+`;

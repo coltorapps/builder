@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`uuid > can validate uuids 1`] = `"The entity id 'invalid' is invalid."`;
+
+exports[`uuid > can validate uuids 2`] = `"The entity id '6e0035c3-0d4c-445f-a42b-2d971225447' is invalid."`;
+
+exports[`uuid > can validate uuids 3`] = `"The entity id '6e0035c30d4c445fa42b2d971225447c' is invalid."`;

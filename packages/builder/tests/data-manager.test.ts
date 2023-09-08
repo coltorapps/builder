@@ -6,23 +6,13 @@ describe("data manager", () => {
   it("can be created", () => {
     const dataManager = createDataManager({ data: "test" });
 
-    expect(dataManager).toMatchInlineSnapshot(`
-      {
-        "getData": [Function],
-        "setData": [Function],
-        "subscribe": [Function],
-      }
-    `);
+    expect(dataManager).toMatchSnapshot();
   });
 
   it("retrieves the data", () => {
     const dataManager = createDataManager({ data: "test" });
 
-    expect(dataManager.getData()).toMatchInlineSnapshot(`
-      {
-        "data": "test",
-      }
-    `);
+    expect(dataManager.getData()).toMatchSnapshot();
   });
 
   it("can mutate the data", () => {
@@ -32,11 +22,7 @@ describe("data manager", () => {
       age: oldData.age + 1,
     }));
 
-    expect(dataManager.getData()).toMatchInlineSnapshot(`
-      {
-        "age": 18,
-      }
-    `);
+    expect(dataManager.getData()).toMatchSnapshot();
   });
 
   it("allows subscribing to data changes", () => {
@@ -50,7 +36,7 @@ describe("data manager", () => {
       age: oldData.age + 1,
     }));
 
-    expect(listener).toHaveBeenCalledWith({ age: 18 });
+    expect(listener).toMatchSnapshot();
   });
 
   it("allows unsubscribing from data changes", () => {

@@ -17,17 +17,7 @@ describe("builder", () => {
       entities: [],
     });
 
-    expect(builder).toMatchInlineSnapshot(`
-      {
-        "childrenAllowed": {},
-        "entities": [],
-        "entityId": {
-          "generate": [MockFunction generateUuid],
-          "validate": [MockFunction validateUuid],
-        },
-        "parentRequired": [],
-      }
-    `);
+    expect(builder).toMatchSnapshot();
 
     builder.entityId.generate();
 
@@ -53,25 +43,13 @@ describe("builder", () => {
       },
     });
 
-    expect(builder).toMatchInlineSnapshot(`
-      {
-        "childrenAllowed": {},
-        "entities": [],
-        "entityId": {
-          "generate": [Function],
-          "validate": [Function],
-        },
-        "parentRequired": [],
-      }
-    `);
+    expect(builder).toMatchSnapshot();
 
-    expect(builder.entityId.generate()).toMatchInlineSnapshot('"1"');
+    expect(builder.entityId.generate()).toMatchSnapshot();
 
-    expect(builder.entityId.validate("1")).toMatchInlineSnapshot("undefined");
+    expect(builder.entityId.validate("1")).toMatchSnapshot();
 
-    expect(() =>
-      builder.entityId.validate("2"),
-    ).toThrowErrorMatchingInlineSnapshot('"Not equal to 1"');
+    expect(() => builder.entityId.validate("2")).toThrowErrorMatchingSnapshot();
   });
 
   it("can be created with entities", () => {
@@ -79,26 +57,7 @@ describe("builder", () => {
       entities: [createEntity({ name: "test" })],
     });
 
-    expect(builder).toMatchInlineSnapshot(`
-      {
-        "childrenAllowed": {},
-        "entities": [
-          {
-            "defaultValue": [Function],
-            "inputs": [],
-            "isValueAllowed": false,
-            "name": "test",
-            "shouldBeProcessed": [Function],
-            "validate": [Function],
-          },
-        ],
-        "entityId": {
-          "generate": [Function],
-          "validate": [Function],
-        },
-        "parentRequired": [],
-      }
-    `);
+    expect(builder).toMatchSnapshot();
   });
 
   it("can be created with children and parent rules", () => {
@@ -110,29 +69,6 @@ describe("builder", () => {
       parentRequired: ["test"],
     });
 
-    expect(builder).toMatchInlineSnapshot(`
-      {
-        "childrenAllowed": {
-          "test": true,
-        },
-        "entities": [
-          {
-            "defaultValue": [Function],
-            "inputs": [],
-            "isValueAllowed": false,
-            "name": "test",
-            "shouldBeProcessed": [Function],
-            "validate": [Function],
-          },
-        ],
-        "entityId": {
-          "generate": [Function],
-          "validate": [Function],
-        },
-        "parentRequired": [
-          "test",
-        ],
-      }
-    `);
+    expect(builder).toMatchSnapshot();
   });
 });

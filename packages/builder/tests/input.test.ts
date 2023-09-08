@@ -12,17 +12,11 @@ describe("input", () => {
       },
     });
 
-    expect(input).toMatchInlineSnapshot(`
-      {
-        "defaultValue": [Function],
-        "name": "label",
-        "validate": [Function],
-      }
-    `);
+    expect(input).toMatchSnapshot();
 
-    expect(input.defaultValue()).toMatchInlineSnapshot("undefined");
+    expect(input.defaultValue()).toMatchSnapshot();
 
-    expect(input.validate("test")).toMatchInlineSnapshot('"test"');
+    expect(input.validate("test")).toMatchSnapshot();
   });
 
   it("can validate values", () => {
@@ -33,19 +27,9 @@ describe("input", () => {
       },
     });
 
-    expect(input.validate("valid")).toMatchInlineSnapshot('"valid"');
+    expect(input.validate("valid")).toMatchSnapshot();
 
-    expect(() => input.validate(1)).toThrowErrorMatchingInlineSnapshot(`
-      "[
-        {
-          \\"code\\": \\"invalid_type\\",
-          \\"expected\\": \\"string\\",
-          \\"received\\": \\"number\\",
-          \\"path\\": [],
-          \\"message\\": \\"Expected string, received number\\"
-        }
-      ]"
-    `);
+    expect(() => input.validate(1)).toThrowErrorMatchingSnapshot();
   });
 
   it("can be created with default value", () => {
@@ -59,6 +43,6 @@ describe("input", () => {
       },
     });
 
-    expect(input.defaultValue()).toMatchInlineSnapshot('"test"');
+    expect(input.defaultValue()).toMatchSnapshot();
   });
 });

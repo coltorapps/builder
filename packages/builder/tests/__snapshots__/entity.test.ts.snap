@@ -1,0 +1,51 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`entity > can be created with default value 1`] = `"test"`;
+
+exports[`entity > can be created with inputs 1`] = `
+{
+  "defaultValue": [Function],
+  "inputs": [
+    {
+      "defaultValue": [Function],
+      "name": "required",
+      "validate": [Function],
+    },
+  ],
+  "isValueAllowed": true,
+  "name": "text",
+  "shouldBeProcessed": [Function],
+  "validate": [Function],
+}
+`;
+
+exports[`entity > can be created with minimal options 1`] = `
+{
+  "defaultValue": [Function],
+  "inputs": [],
+  "isValueAllowed": false,
+  "name": "text",
+  "shouldBeProcessed": [Function],
+  "validate": [Function],
+}
+`;
+
+exports[`entity > can be created with minimal options 2`] = `undefined`;
+
+exports[`entity > can validate values 1`] = `"valid"`;
+
+exports[`entity > can validate values 2`] = `
+"[
+  {
+    \\"code\\": \\"invalid_type\\",
+    \\"expected\\": \\"string\\",
+    \\"received\\": \\"number\\",
+    \\"path\\": [],
+    \\"message\\": \\"Expected string, received number\\"
+  }
+]"
+`;
+
+exports[`entity > throws when validating without a validator 1`] = `"Values for entities of type 'text' are not allowed."`;
+
+exports[`entity > throws when validating without a validator 2`] = `undefined`;

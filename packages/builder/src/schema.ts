@@ -8,12 +8,12 @@ export const schemaValidationErrorCodes = {
   DuplicateChildId: "DuplicateChildId",
   RootEntityWithParent: "RootEntityWithParent",
   EmptyRoot: "EmptyRoot",
-  MissingEntityId: "MissingEntityId",
+  NonexistentEntityId: "NonexistentEntityId",
   InvalidEntitiesFormat: "InvalidEntitiesFormat",
   MissingEntityType: "MissingEntityType",
   UnknownEntityType: "UnknownEntityType",
   InvalidChildrenFormat: "InvalidChildrenFormat",
-  MissingEntityParent: "MissingEntityParent",
+  NonexistentEntityParent: "NonexistentEntityParent",
   MissingEntityInputs: "MissingEntityInputs",
   InvalidEntityInputsFormat: "InvalidEntityInputsFormat",
   UnknownEntityInputType: "UnknownEntityInputType",
@@ -41,7 +41,7 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
       "Root entities can't have a parent.",
     [schemaValidationErrorCodes.EmptyRoot]:
       "The root must contain at least one entity.",
-    [schemaValidationErrorCodes.MissingEntityId]:
+    [schemaValidationErrorCodes.NonexistentEntityId]:
       "A provided entity ID does not exist.",
     [schemaValidationErrorCodes.InvalidEntitiesFormat]:
       "Entities should be an object containing valid entities.",
@@ -50,7 +50,7 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
       "The provided entity type is unknown.",
     [schemaValidationErrorCodes.InvalidChildrenFormat]:
       "The provided children are invalid.",
-    [schemaValidationErrorCodes.MissingEntityParent]:
+    [schemaValidationErrorCodes.NonexistentEntityParent]:
       "The parent ID references a non-existent entity.",
     [schemaValidationErrorCodes.MissingEntityInputs]:
       "Entity inputs are missing.",
@@ -88,7 +88,7 @@ export type SchemaValidationErrorCause =
       code: typeof schemaValidationErrorCodes.EmptyRoot;
     }
   | {
-      code: typeof schemaValidationErrorCodes.MissingEntityId;
+      code: typeof schemaValidationErrorCodes.NonexistentEntityId;
       entityId: string;
     }
   | {
@@ -105,7 +105,7 @@ export type SchemaValidationErrorCause =
       entityType: string;
     }
   | {
-      code: typeof schemaValidationErrorCodes.MissingEntityParent;
+      code: typeof schemaValidationErrorCodes.NonexistentEntityParent;
       entityId: string;
       entityParentId: string;
     }
@@ -185,11 +185,11 @@ export interface Schema<TBuilder extends Builder = Builder> {
   root: string[];
 }
 
-type EntityWithId<TBuilder extends Builder = Builder> =
+export type SchemaEntityWithId<TBuilder extends Builder = Builder> =
   SchemaEntity<TBuilder> & { id: string };
 
 function getEntityDefinition(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   builder: Builder,
 ): Builder["entities"][number] | undefined {
   return builder.entities.find(
@@ -198,9 +198,9 @@ function getEntityDefinition(
 }
 
 function ensureEntityIsRegistered(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   builder: Builder,
-): void {
+): Builder["entities"][number] {
   const entityDefinition = getEntityDefinition(entity, builder);
 
   if (!entityDefinition) {
@@ -210,9 +210,11 @@ function ensureEntityIsRegistered(
       entityType: entity.type,
     });
   }
+
+  return entityDefinition;
 }
 
-function ensureEntityTypeHasValidFormat(entity: EntityWithId): void {
+function ensureEntityTypeHasValidFormat(entity: SchemaEntityWithId): void {
   if (typeof entity.type !== "string" || entity.type.length === 0) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.MissingEntityType,
@@ -221,7 +223,7 @@ function ensureEntityTypeHasValidFormat(entity: EntityWithId): void {
   }
 }
 
-function ensureEntityInputsHaveValidFormat(entity: EntityWithId): void {
+function ensureEntityInputsHaveValidFormat(entity: SchemaEntityWithId): void {
   if (
     typeof entity.inputs !== "object" ||
     Array.isArray(entity.inputs) ||
@@ -235,7 +237,7 @@ function ensureEntityInputsHaveValidFormat(entity: EntityWithId): void {
   }
 }
 
-function ensureEntityHasInputs(entity: EntityWithId): void {
+function ensureEntityHasInputs(entity: SchemaEntityWithId): void {
   if (!entity.inputs) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.MissingEntityInputs,
@@ -245,7 +247,7 @@ function ensureEntityHasInputs(entity: EntityWithId): void {
 }
 
 function ensureEntityInputIsRegistered(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   inputName: string,
   builder: Builder,
 ): void {
@@ -261,7 +263,7 @@ function ensureEntityInputIsRegistered(
 }
 
 function ensureEntityInputsAreRegistered(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   builder: Builder,
 ): void {
   Object.keys(entity.inputs).forEach((inputName) =>
@@ -269,11 +271,28 @@ function ensureEntityInputsAreRegistered(
   );
 }
 
-export function ensureEntityParentIdHasValidReference(
-  entity: EntityWithId,
-  entities: Schema["entities"],
-): EntityWithId | undefined {
-  if (!entity.parentId) {
+async function validateEntityInputs(
+  entity: SchemaEntityWithId,
+  builder: Builder,
+): Promise<SchemaEntityWithId["inputs"]> {
+  const entityDefinition = ensureEntityIsRegistered(entity, builder);
+
+  const newInputs = { ...entity.inputs };
+
+  for (const input of entityDefinition.inputs) {
+    newInputs[input.name] = await input.validate(entity.inputs[input.name]);
+  }
+
+  return newInputs;
+}
+
+export function ensureEntityOptionalParentIdHasValidReference<
+  TBuilder extends Builder,
+>(
+  entity: SchemaEntityWithId<TBuilder>,
+  entities: Schema<TBuilder>["entities"],
+): SchemaEntityWithId<TBuilder> | undefined {
+  if (typeof entity.parentId === "undefined") {
     return;
   }
 
@@ -281,7 +300,7 @@ export function ensureEntityParentIdHasValidReference(
 
   if (!parentEntity) {
     throw new SchemaValidationError({
-      code: schemaValidationErrorCodes.MissingEntityParent,
+      code: schemaValidationErrorCodes.NonexistentEntityParent,
       entityId: entity.id,
       entityParentId: entity.parentId,
     });
@@ -291,9 +310,9 @@ export function ensureEntityParentIdHasValidReference(
 }
 
 function ensureEntityParentIdDoesntHaveSelfReference(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
 ): void {
-  if (entity.parentId && entity.parentId === entity.id) {
+  if (entity.parentId === entity.id || entity.children?.includes(entity.id)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.SelfEntityReference,
       entityId: entity.id,
@@ -301,7 +320,7 @@ function ensureEntityParentIdDoesntHaveSelfReference(
   }
 }
 
-function ensureEntityChildrenHaveValidFormat(entity: EntityWithId): void {
+function ensureEntityChildrenHaveValidFormat(entity: SchemaEntityWithId): void {
   if (
     typeof entity.children !== "undefined" &&
     !Array.isArray(entity.children)
@@ -314,8 +333,8 @@ function ensureEntityChildrenHaveValidFormat(entity: EntityWithId): void {
 }
 
 export function ensureEntityChildAllowed(
-  entity: EntityWithId,
-  childEntity: EntityWithId,
+  entity: SchemaEntityWithId,
+  childEntity: SchemaEntityWithId,
   builder: Builder,
 ): void {
   const allowedChildren = builder.childrenAllowed[entity.type];
@@ -337,7 +356,7 @@ export function ensureEntityChildAllowed(
 }
 
 function ensureEntityChildrenAreAllowed(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   dependencies: {
     builder: Builder;
     entities: Schema["entities"];
@@ -363,7 +382,10 @@ function ensureEntityChildrenAreAllowed(
   });
 }
 
-function ensureChildIdUnique(entity: EntityWithId, childId: string): void {
+function ensureChildIdUnique(
+  entity: SchemaEntityWithId,
+  childId: string,
+): void {
   if (!entity.children) {
     return;
   }
@@ -377,7 +399,7 @@ function ensureChildIdUnique(entity: EntityWithId, childId: string): void {
 }
 
 function ensureChildrenIdsAreValid(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   dependencies: {
     builder: Builder;
     entities: Schema["entities"];
@@ -396,7 +418,10 @@ function ensureChildrenIdsAreValid(
   });
 }
 
-function ensureEntityHasParentId(entity: EntityWithId, parentId: string): void {
+function ensureEntityHasParentId(
+  entity: SchemaEntityWithId,
+  parentId: string,
+): void {
   if (entity.parentId !== parentId) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.EntityChildrenMismatch,
@@ -407,7 +432,7 @@ function ensureEntityHasParentId(entity: EntityWithId, parentId: string): void {
 }
 
 function ensureEntityChildrenMatchParentIds(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   entities: Schema["entities"],
 ): void {
   if (!entity.children) {
@@ -420,7 +445,7 @@ function ensureEntityChildrenMatchParentIds(
 }
 
 function ensureEntityParentIdMatchesParentChildren(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   entities: Schema["entities"],
 ) {
   if (!entity.parentId) {
@@ -439,7 +464,7 @@ function ensureEntityParentIdMatchesParentChildren(
 }
 
 export function ensureEntityCanLackParent(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   builder: Builder,
 ): void {
   if (!entity.parentId && builder.parentRequired.includes(entity.type)) {
@@ -451,7 +476,7 @@ export function ensureEntityCanLackParent(
 }
 
 export function ensureEntityReachable(
-  entity: EntityWithId,
+  entity: SchemaEntityWithId,
   root: Schema["root"],
 ): void {
   if (!entity.parentId && !root.includes(entity.id)) {
@@ -463,7 +488,7 @@ export function ensureEntityReachable(
 }
 
 function validateEntitySchema<TBuilder extends Builder>(
-  entity: EntityWithId<TBuilder>,
+  entity: SchemaEntityWithId<TBuilder>,
   dependencies: {
     builder: TBuilder;
     schema: Schema<TBuilder>;
@@ -485,7 +510,10 @@ function validateEntitySchema<TBuilder extends Builder>(
 
   ensureEntityInputsAreRegistered(entity, dependencies.builder);
 
-  ensureEntityParentIdHasValidReference(entity, dependencies.schema.entities);
+  ensureEntityOptionalParentIdHasValidReference(
+    entity,
+    dependencies.schema.entities,
+  );
 
   ensureEntityParentIdDoesntHaveSelfReference(entity);
 
@@ -520,15 +548,15 @@ function validateEntitySchema<TBuilder extends Builder>(
   };
 }
 
-export function ensureEntityExists(
+export function ensureEntityExists<TBuilder extends Builder>(
   entityId: string,
-  entities: Schema["entities"],
-): EntityWithId {
+  entities: Schema<TBuilder>["entities"],
+): SchemaEntityWithId<TBuilder> {
   const entity = entities[entityId];
 
   if (!entity) {
     throw new SchemaValidationError({
-      code: schemaValidationErrorCodes.MissingEntityId,
+      code: schemaValidationErrorCodes.NonexistentEntityId,
       entityId,
     });
   }
@@ -625,7 +653,7 @@ export function getEmptySchema<TBuilder extends Builder>(): Schema<TBuilder> {
   return { entities: {}, root: [] };
 }
 
-export function validateSchema<TBuilder extends Builder>(
+export function baseValidateSchema<TBuilder extends Builder>(
   builder: TBuilder,
   schema?: Schema<TBuilder>,
 ): Schema<TBuilder> {
@@ -651,4 +679,20 @@ export function validateSchema<TBuilder extends Builder>(
   ensureRootEntitiesDontHaveParents(computedSchema);
 
   return computedSchema;
+}
+
+export async function validateSchema<TBuilder extends Builder>(
+  builder: TBuilder,
+  schema?: Schema<TBuilder>,
+): Promise<Schema<TBuilder>> {
+  const validatedSchema = baseValidateSchema(builder, schema);
+
+  for (const [id, entity] of Object.entries(validatedSchema.entities)) {
+    validatedSchema.entities[id] = {
+      ...entity,
+      inputs: await validateEntityInputs({ ...entity, id }, builder),
+    };
+  }
+
+  return validatedSchema;
 }
