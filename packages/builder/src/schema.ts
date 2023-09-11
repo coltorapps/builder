@@ -188,8 +188,6 @@ export interface Schema<TBuilder extends Builder = Builder> {
 export type SchemaEntityWithId<TBuilder extends Builder = Builder> =
   SchemaEntity<TBuilder> & { id: string };
 
-
-
 function ensureEntityIsRegistered(
   entity: SchemaEntityWithId,
   builder: Builder,
