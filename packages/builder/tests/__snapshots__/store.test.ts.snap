@@ -184,6 +184,7 @@ exports[`store > can be created with a non-empty schema 2`] = `
   "getSchema": [Function],
   "subscribe": [Function],
   "updateEntity": [Function],
+  "updateEntityInput": [Function],
 }
 `;
 
@@ -235,6 +236,7 @@ exports[`store > can be created with an empty schema 2`] = `
   "getSchema": [Function],
   "subscribe": [Function],
   "updateEntity": [Function],
+  "updateEntityInput": [Function],
 }
 `;
 
@@ -255,6 +257,7 @@ exports[`store > can be created without a schema 1`] = `
   "getSchema": [Function],
   "subscribe": [Function],
   "updateEntity": [Function],
+  "updateEntityInput": [Function],
 }
 `;
 
@@ -486,6 +489,22 @@ exports[`store > can return the schema 1`] = `
 }
 `;
 
+exports[`store > can update entity inputs 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {
+        "label": "New label",
+      },
+      "type": "test",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
+}
+`;
+
 exports[`store > doesn't update the entity when no mutation fields were provided 1`] = `
 {
   "entities": Map {
@@ -507,3 +526,7 @@ exports[`store > throws when trying to delete non existent entity 1`] = `"Entity
 exports[`store > throws when trying to move an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
 exports[`store > throws when trying to update a non existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`store > throws when updating an input of a non-existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`store > throws when updating an non-existent input of an entity 1`] = `"Unkown entity input \\"invalid\\"."`;

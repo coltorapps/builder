@@ -3,15 +3,15 @@ import {
   type Subscribe,
 } from "./subscription-manager";
 
-export function createDataManager<TData>(data: TData): {
+export function createDataManager<TData>(initialData: TData): {
   getData: () => TData;
   setData: (setter: (oldData: TData) => TData) => TData;
   subscribe: Subscribe<TData>;
 } {
-  let localData: TData = data;
+  let data: TData = initialData;
 
   function getData(): TData {
-    return localData;
+    return data;
   }
 
   const { notify, subscribe } = createSubscriptionManager<TData>();
@@ -20,11 +20,11 @@ export function createDataManager<TData>(data: TData): {
     subscribe,
     getData,
     setData(setter) {
-      localData = setter(getData());
+      data = setter(getData());
 
-      notify(localData);
+      notify(data);
 
-      return localData;
+      return data;
     },
   };
 }

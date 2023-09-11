@@ -2,7 +2,7 @@ import { type Builder } from "./builder";
 import { createDataManager } from "./data-manager";
 import { baseValidateSchema, type Schema, type SchemaEntity } from "./schema";
 import { type Subscribe } from "./subscription-manager";
-import { insertIntoSetAtIndex } from "./utils";
+import { getEntityDefinition, insertIntoSetAtIndex } from "./utils";
 
 type StoreEntity<TBuilder extends Builder = Builder> = Pick<
   SchemaEntity<TBuilder>,
@@ -31,6 +31,11 @@ export interface Store<TBuilder extends Builder> {
       index?: number;
       parentId?: string | null;
     },
+  ): void;
+  updateEntityInput<TInputName extends keyof StoreEntity<TBuilder>["inputs"]>(
+    entityId: string,
+    inputName: TInputName,
+    inputValue: StoreEntity<TBuilder>["inputs"][TInputName],
   ): void;
   deleteEntity(entityId: string): void;
   getSchema(): Schema<TBuilder>;
@@ -139,6 +144,8 @@ export function createStore<TBuilder extends Builder>(
     addEntity(entity, mutationFields) {
       setData((data) => {
         const entityId = builder.entityId.generate();
+
+        builder.entityId.validate(entityId);
 
         const newEntity: StoreEntity<TBuilder> = {
           inputs: entity.inputs,
@@ -253,6 +260,30 @@ export function createStore<TBuilder extends Builder>(
     deleteEntity(entityId) {
       setData((data) => {
         return deleteEntity(entityId, data);
+      });
+    },
+    updateEntityInput(entityId, inputName, inputValue) {
+      setData((data) => {
+        const entity = ensureEntityExists(entityId, data.entities);
+
+        const entityDefinition = getEntityDefinition(entity.type, builder);
+
+        if (!entityDefinition) {
+          throw new Error(`Unkown entity type "${entity.type}".`);
+        }
+
+        if (
+          !entityDefinition.inputs.some((input) => input.name === inputName)
+        ) {
+          throw new Error(`Unkown entity input "${inputName.toString()}".`);
+        }
+
+        entity.inputs[inputName] = inputValue;
+
+        return {
+          root: data.root,
+          entities: data.entities.set(entityId, entity),
+        };
       });
     },
   };

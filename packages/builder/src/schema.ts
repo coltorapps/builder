@@ -1,6 +1,6 @@
 import { type Builder } from "./builder";
 import { type InputsValues } from "./input";
-import { type OptionalPropsIfUndefined } from "./utils";
+import { getEntityDefinition, type OptionalPropsIfUndefined } from "./utils";
 
 export const schemaValidationErrorCodes = {
   InvalidRootFormat: "InvalidRootFormat",
@@ -188,20 +188,13 @@ export interface Schema<TBuilder extends Builder = Builder> {
 export type SchemaEntityWithId<TBuilder extends Builder = Builder> =
   SchemaEntity<TBuilder> & { id: string };
 
-function getEntityDefinition(
-  entity: SchemaEntityWithId,
-  builder: Builder,
-): Builder["entities"][number] | undefined {
-  return builder.entities.find(
-    (builderEntity) => builderEntity.name === entity.type,
-  );
-}
+
 
 function ensureEntityIsRegistered(
   entity: SchemaEntityWithId,
   builder: Builder,
 ): Builder["entities"][number] {
-  const entityDefinition = getEntityDefinition(entity, builder);
+  const entityDefinition = getEntityDefinition(entity.type, builder);
 
   if (!entityDefinition) {
     throw new SchemaValidationError({
@@ -251,7 +244,7 @@ function ensureEntityInputIsRegistered(
   inputName: string,
   builder: Builder,
 ): void {
-  const entityDefinition = getEntityDefinition(entity, builder);
+  const entityDefinition = getEntityDefinition(entity.type, builder);
 
   if (!entityDefinition?.inputs.some((input) => input.name === inputName)) {
     throw new SchemaValidationError({

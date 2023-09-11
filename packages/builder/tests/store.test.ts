@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 
 import { createBuilder, createEntity, createInput, createStore } from "../src";
 import * as schemaExports from "../src/schema";
@@ -757,6 +758,91 @@ describe("store", () => {
         {
           parentId: "invalid",
         },
+      ),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("can update entity inputs", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      entities: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "test",
+          inputs: {
+            label: "Old label",
+          },
+        },
+      },
+      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+    });
+
+    store.updateEntityInput(
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "label",
+      "New label",
+    );
+
+    expect(store.getData()).toMatchSnapshot();
+  });
+
+  it("throws when updating an input of a non-existent entity", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      entities: {},
+      root: [],
+    });
+
+    expect(() =>
+      store.updateEntityInput("invalid", "", ""),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when updating an non-existent input of an entity", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      entities: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "test",
+          inputs: {},
+        },
+      },
+      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+    });
+
+    expect(() =>
+      store.updateEntityInput(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "invalid",
+        "",
       ),
     ).toThrowErrorMatchingSnapshot();
   });

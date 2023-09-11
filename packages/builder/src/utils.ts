@@ -1,4 +1,4 @@
-import { type BuilderEntities } from "./builder";
+import { type Builder, type BuilderEntities } from "./builder";
 
 export function getEntitiesNamesExcept<
   const TEntities extends BuilderEntities,
@@ -36,6 +36,15 @@ export function insertIntoSetAtIndex<T>(
   result.splice(index ?? set.size, 0, value);
 
   return new Set(result);
+}
+
+export function getEntityDefinition(
+  entityType: string,
+  builder: Builder,
+): Builder["entities"][number] | undefined {
+  return builder.entities.find(
+    (builderEntity) => builderEntity.name === entityType,
+  );
 }
 
 type UndefinedKeys<T> = {
