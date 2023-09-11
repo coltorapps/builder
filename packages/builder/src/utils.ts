@@ -26,6 +26,18 @@ export function getEntitiesNamesExcept<
   return filteredEntities.map((entity) => entity.name);
 }
 
+export function insertIntoSetAtIndex<T>(
+  set: Set<T>,
+  value: T,
+  index?: number,
+): Set<T> {
+  const result = Array.from(set);
+
+  result.splice(index ?? set.size, 0, value);
+
+  return new Set(result);
+}
+
 type UndefinedKeys<T> = {
   [K in keyof T]: undefined extends T[K] ? K : never;
 }[keyof T];

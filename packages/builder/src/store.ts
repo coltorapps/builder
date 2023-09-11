@@ -2,6 +2,7 @@ import { type Builder } from "./builder";
 import { createDataManager } from "./data-manager";
 import { baseValidateSchema, type Schema, type SchemaEntity } from "./schema";
 import { type Subscribe } from "./subscription-manager";
+import { insertIntoSetAtIndex } from "./utils";
 
 type StoreEntity<TBuilder extends Builder = Builder> = Pick<
   SchemaEntity<TBuilder>,
@@ -13,20 +14,24 @@ export interface StoreData<TBuilder extends Builder = Builder> {
   root: Set<string>;
 }
 
-interface EntityMutationFields {
-  index?: number;
-  parentId?: string | null;
-}
-
 export interface Store<TBuilder extends Builder> {
   builder: TBuilder;
   getData(): StoreData<TBuilder>;
   subscribe: Subscribe<StoreData<TBuilder>>;
   addEntity(
     entity: StoreEntity<TBuilder>,
-    mutationFields?: EntityMutationFields,
+    mutationFields?: {
+      index?: number;
+      parentId?: string;
+    },
   ): void;
-  updateEntity(entityId: string, mutationFields: EntityMutationFields): void;
+  updateEntity(
+    entityId: string,
+    mutationFields: {
+      index?: number;
+      parentId?: string | null;
+    },
+  ): void;
   deleteEntity(entityId: string): void;
   getSchema(): Schema<TBuilder>;
 }
@@ -68,33 +73,6 @@ function transformSchemaToStoreData<TBuilder extends Builder>(
   };
 }
 
-function validateStoreData<TBuilder extends Builder>(
-  storeData: StoreData<TBuilder>,
-  builder: TBuilder,
-): StoreData<TBuilder> {
-  return transformSchemaToStoreData(
-    baseValidateSchema(builder, transformStoreDataToSchema(storeData)),
-  );
-}
-
-function removeEntityChildFromParentEntity<TBuilder extends Builder>(
-  entityId: string,
-  parentEntityId: string,
-  entities: StoreData<TBuilder>["entities"],
-): StoreData<TBuilder>["entities"] {
-  const newEntities = new Map(entities);
-
-  const parentEntity = entities.get(parentEntityId);
-
-  if (!parentEntity) {
-    return newEntities;
-  }
-
-  parentEntity.children?.delete(entityId);
-
-  return newEntities.set(parentEntityId, parentEntity);
-}
-
 function ensureEntityExists<TBuilder extends Builder>(
   id: string,
   entities: StoreData<TBuilder>["entities"],
@@ -108,142 +86,35 @@ function ensureEntityExists<TBuilder extends Builder>(
   return entity;
 }
 
-function baseDeleteEntity<TBuilder extends Builder>(
+function deleteEntity<TBuilder extends Builder>(
   entityId: string,
   data: StoreData<TBuilder>,
 ): StoreData<TBuilder> {
   const entity = ensureEntityExists(entityId, data.entities);
 
-  const newData: StoreData<TBuilder> = {
+  let newData: StoreData<TBuilder> = {
     ...data,
     entities: new Map(data.entities),
   };
 
-  newData.entities.delete(entityId);
-
   newData.root.delete(entityId);
 
   if (entity.parentId) {
-    newData.entities = removeEntityChildFromParentEntity(
-      entityId,
-      entity.parentId,
-      newData.entities,
-    );
+    const parentEntity = ensureEntityExists(entity.parentId, newData.entities);
+
+    parentEntity.children?.delete(entityId);
+
+    newData.entities.set(entity.parentId, parentEntity);
   }
 
-  if (!entity.children || !entity.children.size) {
-    return newData;
-  }
-
-  return Array.from(entity.children).reduce(
-    (result, childId) => baseDeleteEntity(childId, result),
+  newData = Array.from(entity.children ?? []).reduce(
+    (result, childId) => deleteEntity(childId, result),
     newData,
   );
-}
 
-function deleteEntity<TBuilder extends Builder>(
-  entityId: string,
-  dependencies: {
-    data: StoreData<TBuilder>;
-    builder: TBuilder;
-  },
-): StoreData<TBuilder> {
-  return validateStoreData(
-    baseDeleteEntity(entityId, dependencies.data),
-    dependencies.builder,
-  );
-}
+  newData.entities.delete(entityId);
 
-function addEntityToParentChildren<TBuilder extends Builder>(
-  entityId: string,
-  parentEntityId: string,
-  entities: StoreData<TBuilder>["entities"],
-  index?: number,
-): StoreData<TBuilder>["entities"] {
-  const newEntities = new Map(entities);
-
-  const entity = ensureEntityExists(entityId, entities);
-
-  const parentEntity = ensureEntityExists(parentEntityId, entities);
-
-  const parentChildren = Array.from(parentEntity.children ?? []);
-
-  parentChildren.splice(index ?? parentChildren.length ?? 0, 0, entityId);
-
-  newEntities.set(entityId, { ...entity, parentId: parentEntityId });
-
-  return newEntities.set(parentEntityId, {
-    ...parentEntity,
-    children: new Set(parentChildren),
-  });
-}
-
-function addEntityToRoot<TBuilder extends Builder>(
-  entityId: string,
-  root: StoreData<TBuilder>["root"],
-  index?: number,
-): StoreData<TBuilder>["root"] {
-  const newRoot = Array.from(root);
-
-  newRoot.splice(index ?? root.size, 0, entityId);
-
-  return new Set(newRoot);
-}
-
-export function upsertEntity<TBuilder extends Builder>(
-  entityId: string,
-  entity: StoreEntity<TBuilder>,
-  mutationFields: {
-    index?: number;
-    parentId?: string | null;
-  },
-  dependencies: {
-    data: StoreData<TBuilder>;
-    builder: TBuilder;
-  },
-): StoreData<TBuilder> {
-  let newRoot = new Set(dependencies.data.root);
-
-  newRoot.delete(entityId);
-
-  let newEntities = new Map(dependencies.data.entities);
-
-  newEntities.set(entityId, {
-    ...entity,
-    parentId: mutationFields.parentId === null ? undefined : entity.parentId,
-  });
-
-  if (entity.parentId) {
-    newEntities = removeEntityChildFromParentEntity(
-      entityId,
-      entity.parentId,
-      newEntities,
-    );
-  }
-
-  const newParentId = mutationFields.parentId ?? entity.parentId;
-
-  if (
-    mutationFields.parentId === null ||
-    (mutationFields.parentId === undefined && !entity.parentId)
-  ) {
-    newRoot = addEntityToRoot(entityId, newRoot, mutationFields.index);
-  } else if (newParentId) {
-    newEntities = addEntityToParentChildren(
-      entityId,
-      newParentId,
-      newEntities,
-      mutationFields.index,
-    );
-  }
-
-  return validateStoreData(
-    {
-      root: newRoot,
-      entities: newEntities,
-    },
-    dependencies.builder,
-  );
+  return newData;
 }
 
 export function createStore<TBuilder extends Builder>(
@@ -258,7 +129,9 @@ export function createStore<TBuilder extends Builder>(
     builder,
     subscribe,
     getData() {
-      return validateStoreData(getData(), builder);
+      return transformSchemaToStoreData(
+        baseValidateSchema(builder, transformStoreDataToSchema(getData())),
+      );
     },
     getSchema() {
       return baseValidateSchema(builder, transformStoreDataToSchema(getData()));
@@ -270,32 +143,116 @@ export function createStore<TBuilder extends Builder>(
         const newEntity: StoreEntity<TBuilder> = {
           inputs: entity.inputs,
           type: entity.type,
-          ...(mutationFields?.parentId
-            ? { parentId: mutationFields.parentId }
-            : {}),
+          parentId: mutationFields?.parentId,
         };
 
-        return upsertEntity(
-          entityId,
-          newEntity,
-          { ...mutationFields, parentId: mutationFields?.parentId ?? null },
-          { data, builder },
-        );
+        const newEntities = new Map(data.entities);
+
+        let newRoot = new Set(data.root);
+
+        newEntities.set(entityId, newEntity);
+
+        if (!mutationFields?.parentId) {
+          newRoot = insertIntoSetAtIndex(
+            newRoot,
+            entityId,
+            mutationFields?.index,
+          );
+        } else {
+          const parentEntity = ensureEntityExists(
+            mutationFields.parentId,
+            data.entities,
+          );
+
+          parentEntity.children = insertIntoSetAtIndex(
+            parentEntity.children ?? new Set(),
+            entityId,
+            mutationFields?.index,
+          );
+
+          newEntities.set(mutationFields.parentId, parentEntity);
+        }
+
+        return {
+          root: newRoot,
+          entities: newEntities,
+        };
       });
     },
     updateEntity(entityId, mutationFields) {
       setData((data) => {
         const entity = ensureEntityExists(entityId, data.entities);
 
-        return upsertEntity(entityId, entity, mutationFields, {
-          data,
-          builder,
-        });
+        if (
+          mutationFields.index === undefined &&
+          mutationFields.parentId === undefined
+        ) {
+          return data;
+        }
+
+        const newEntities = new Map(data.entities);
+
+        let newRoot = new Set(data.root);
+
+        const newParentEntityId =
+          mutationFields.parentId === null
+            ? undefined
+            : mutationFields.parentId ?? entity.parentId;
+
+        const newEntity = {
+          ...entity,
+          parentId: newParentEntityId,
+        };
+
+        if (!newEntity.parentId) {
+          delete newEntity.parentId;
+        }
+
+        newEntities.set(entityId, newEntity);
+
+        newRoot.delete(entityId);
+
+        if (entity.parentId) {
+          const parentEntity = ensureEntityExists(
+            entity.parentId,
+            data.entities,
+          );
+
+          parentEntity.children?.delete(entityId);
+
+          newEntities.set(entity.parentId, parentEntity);
+        }
+
+        if (mutationFields.parentId === null || !newParentEntityId) {
+          newRoot = insertIntoSetAtIndex(
+            newRoot,
+            entityId,
+            mutationFields?.index,
+          );
+        } else if (newParentEntityId) {
+          const parentEntity = ensureEntityExists(
+            newParentEntityId,
+            data.entities,
+          );
+
+          parentEntity.children = insertIntoSetAtIndex(
+            parentEntity.children ?? new Set(),
+            entityId,
+            mutationFields?.index,
+          );
+
+          newEntities.set(newParentEntityId, parentEntity);
+        }
+
+        return {
+          root: newRoot,
+          entities: newEntities,
+        };
       });
     },
     deleteEntity(entityId) {
       setData((data) => {
-        return deleteEntity(entityId, { data, builder });
+        return deleteEntity(entityId, data);
       });
     },
   };
