@@ -44,35 +44,6 @@ describe("entity", () => {
     }>();
   });
 
-  it("can be created with meta", () => {
-    const entity = createEntity({
-      name: "text",
-      validate(value) {
-        return z.string().parse(value);
-      },
-    });
-
-    type EntityContext = {
-      inputs: {
-        [x: string]: unknown;
-      };
-      values: Record<string, unknown>;
-    };
-
-    expectTypeOf(entity).toEqualTypeOf<{
-      name: "text";
-      inputs: ReadonlyArray<{
-        name: string;
-        validate: (value: unknown) => unknown;
-        defaultValue: () => unknown;
-      }>;
-      isValueAllowed: boolean;
-      validate: (value: unknown, context: EntityContext) => string;
-      defaultValue: (context: EntityContext) => string | undefined;
-      shouldBeProcessed: (context: EntityContext) => boolean;
-    }>();
-  });
-
   it("can be created with inputs", () => {
     const entity = createEntity({
       name: "text",

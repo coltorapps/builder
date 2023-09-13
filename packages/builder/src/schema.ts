@@ -17,6 +17,8 @@ export const schemaValidationErrorCodes = {
   MissingEntityInputs: "MissingEntityInputs",
   InvalidEntityInputsFormat: "InvalidEntityInputsFormat",
   UnknownEntityInputType: "UnknownEntityInputType",
+  InvalidEntityInputs: "InvalidEntityInputs",
+  InvalidEntitiesInputs: "InvalidEntitiesInputs",
   SelfEntityReference: "SelfEntityReference",
   ChildrenNotAllowed: "ChildrenNotAllowed",
   ChildNotAllowed: "ChildNotAllowed",
@@ -69,6 +71,10 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
     [schemaValidationErrorCodes.ParentRequired]: "A parent is required.",
     [schemaValidationErrorCodes.UnreachableEntity]:
       "The entity is not in the root and has no parent ID.",
+    [schemaValidationErrorCodes.InvalidEntityInputs]:
+      "Validation has failed for some entity inputs.",
+    [schemaValidationErrorCodes.InvalidEntitiesInputs]:
+      "Validation has failed for some entities inputs.",
   };
 
 export type SchemaValidationErrorCause =
@@ -161,6 +167,15 @@ export type SchemaValidationErrorCause =
   | {
       code: typeof schemaValidationErrorCodes.UnreachableEntity;
       entityId: string;
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.InvalidEntityInputs;
+      entityId: string;
+      inputsErrors: EntityInputsErrors;
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.InvalidEntitiesInputs;
+      entitiesInputsErrors: EntitiesInputsErrors;
     };
 
 export class SchemaValidationError extends Error {
@@ -270,8 +285,22 @@ async function validateEntityInputs(
 
   const newInputs = { ...entity.inputs };
 
+  const inputsErrors: EntityInputsErrors = {};
+
   for (const input of entityDefinition.inputs) {
-    newInputs[input.name] = await input.validate(entity.inputs[input.name]);
+    try {
+      newInputs[input.name] = await input.validate(entity.inputs[input.name]);
+    } catch (error) {
+      inputsErrors[input.name] = error;
+    }
+  }
+
+  if (Object.keys(inputsErrors).length) {
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.InvalidEntityInputs,
+      entityId: entity.id,
+      inputsErrors,
+    });
   }
 
   return newInputs;
@@ -644,46 +673,114 @@ export function getEmptySchema<TBuilder extends Builder>(): Schema<TBuilder> {
   return { entities: {}, root: [] };
 }
 
-export function baseValidateSchema<TBuilder extends Builder>(
+type SchemValidationResult<TBuilder extends Builder> =
+  | { data: Schema<TBuilder>; success: true }
+  | { error: SchemaValidationError; success: false };
+
+export function validateSchemaIntegrity<TBuilder extends Builder>(
   builder: TBuilder,
   schema?: Schema<TBuilder>,
-): Schema<TBuilder> {
+): SchemValidationResult<TBuilder> {
   if (typeof schema === "undefined") {
-    return getEmptySchema();
+    return { data: getEmptySchema(), success: true };
   }
 
-  ensureEntitiesHaveValidFormat(schema.entities);
+  try {
+    ensureEntitiesHaveValidFormat(schema.entities);
 
-  ensureRootHasValidFormat(schema.root);
+    ensureRootHasValidFormat(schema.root);
 
-  ensureRootNotEmptyWhenThereAreEntities(schema);
+    ensureRootNotEmptyWhenThereAreEntities(schema);
 
-  const validatedEntities = validateEntitiesSchema(schema, builder);
+    const validatedEntities = validateEntitiesSchema(schema, builder);
 
-  const computedSchema = {
-    entities: validatedEntities,
-    root: schema.root,
+    const computedSchema = {
+      entities: validatedEntities,
+      root: schema.root,
+    };
+
+    ensureRootIdsAreValid(computedSchema, builder);
+
+    ensureRootEntitiesDontHaveParents(computedSchema);
+
+    return { data: computedSchema, success: true };
+  } catch (error) {
+    if (error instanceof SchemaValidationError) {
+      return {
+        error,
+        success: false,
+      };
+    }
+
+    throw error;
+  }
+}
+
+export type EntityInputsErrors<TBuilder extends Builder = Builder> = Partial<
+  Record<keyof SchemaEntity<TBuilder>["inputs"], unknown>
+>;
+
+type EntitiesInputsErrors<TBuilder extends Builder = Builder> = Record<
+  string,
+  EntityInputsErrors<TBuilder>
+>;
+
+async function validateEntitiesInputs<TBuilder extends Builder>(
+  schema: Schema<TBuilder>,
+  builder: TBuilder,
+): Promise<SchemValidationResult<TBuilder>> {
+  const newSchema: Schema<TBuilder> = {
+    ...schema,
+    entities: {
+      ...schema.entities,
+    },
   };
 
-  ensureRootIdsAreValid(computedSchema, builder);
+  const entitiesInputsErrors: EntitiesInputsErrors = {};
 
-  ensureRootEntitiesDontHaveParents(computedSchema);
+  for (const [id, entity] of Object.entries(schema.entities)) {
+    try {
+      newSchema.entities[id] = {
+        ...entity,
+        inputs: await validateEntityInputs({ ...entity, id }, builder),
+      };
+    } catch (error) {
+      if (
+        error instanceof SchemaValidationError &&
+        error.cause.code === schemaValidationErrorCodes.InvalidEntityInputs
+      ) {
+        entitiesInputsErrors[id] = error.cause.inputsErrors;
+      } else {
+        throw error;
+      }
+    }
+  }
 
-  return computedSchema;
+  if (Object.keys(entitiesInputsErrors).length) {
+    return {
+      success: false,
+      error: new SchemaValidationError({
+        code: schemaValidationErrorCodes.InvalidEntitiesInputs,
+        entitiesInputsErrors,
+      }),
+    };
+  }
+
+  return {
+    success: true,
+    data: newSchema,
+  };
 }
 
 export async function validateSchema<TBuilder extends Builder>(
   builder: TBuilder,
   schema?: Schema<TBuilder>,
-): Promise<Schema<TBuilder>> {
-  const validatedSchema = baseValidateSchema(builder, schema);
+): Promise<SchemValidationResult<TBuilder>> {
+  const validatedSchema = validateSchemaIntegrity(builder, schema);
 
-  for (const [id, entity] of Object.entries(validatedSchema.entities)) {
-    validatedSchema.entities[id] = {
-      ...entity,
-      inputs: await validateEntityInputs({ ...entity, id }, builder),
-    };
+  if (!validatedSchema.success) {
+    return validatedSchema;
   }
 
-  return validatedSchema;
+  return validateEntitiesInputs(validatedSchema.data, builder);
 }

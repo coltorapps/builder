@@ -1,80 +1,98 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`schema validation > returns an empty schema when no input schema was provided 1`] = `
+exports[`schema integrity validation > returns an empty schema when no input schema was provided 1`] = `
 {
-  "entities": {},
-  "root": [],
-}
-`;
-
-exports[`schema validation > returns clean data for valid schemas 1`] = `
-{
-  "entities": {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-      "children": [
-        "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-      ],
-      "inputs": {},
-      "type": "section",
-    },
-    "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-      "inputs": {
-        "label": "test",
-      },
-      "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "type": "text",
-    },
+  "data": {
+    "entities": {},
+    "root": [],
   },
-  "root": [
-    "6e0035c3-0d4c-445f-a42b-2d971225447c",
-  ],
+  "success": true,
 }
 `;
 
-exports[`schema validation > throws for invalid children ids 1`] = `"The entity id '1' is invalid."`;
+exports[`schema integrity validation > returns clean data for valid schemas 1`] = `
+{
+  "data": {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "children": [
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        ],
+        "inputs": {},
+        "type": "section",
+      },
+      "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+        "inputs": {
+          "label": "test",
+        },
+        "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "type": "text",
+      },
+    },
+    "root": [
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    ],
+  },
+  "success": true,
+}
+`;
 
-exports[`schema validation > throws for invalid parent id 1`] = `"The entity id '1' is invalid."`;
+exports[`schema integrity validation > returns the validated schema 1`] = `
+{
+  "data": {
+    "entities": {
+      "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+        "inputs": {},
+        "type": "text",
+      },
+    },
+    "root": [
+      "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+    ],
+  },
+  "success": true,
+}
+`;
 
-exports[`schema validation > throws for invalid root ids 1`] = `"The entity id '1' is invalid."`;
+exports[`schema integrity validation > throws for invalid children ids 1`] = `"The entity id '1' is invalid."`;
 
-exports[`schema validation > validates the inputs with the async validator and skips inputs validators with the sync validator 1`] = `
-"[
+exports[`schema integrity validation > throws for invalid parent id 1`] = `"The entity id '1' is invalid."`;
+
+exports[`schema integrity validation > throws for invalid root ids 1`] = `"The entity id '1' is invalid."`;
+
+exports[`schema validation > validates inputs with their validators 1`] = `
+{
+  "error": [Error: Validation has failed for some entities inputs.],
+  "success": false,
+}
+`;
+
+exports[`schema validation > validates inputs with their validators 2`] = `
+{
+  "code": "InvalidEntitiesInputs",
+  "entitiesInputsErrors": {
+    "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
+      "label": [ZodError: [
   {
-    \\"code\\": \\"invalid_type\\",
-    \\"expected\\": \\"string\\",
-    \\"received\\": \\"undefined\\",
-    \\"path\\": [],
-    \\"message\\": \\"Required\\"
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
   }
-]"
-`;
-
-exports[`schema validation > validates the inputs with the async validator and skips inputs validators with the sync validator 2`] = `
-{
-  "entities": {
+]],
+    },
     "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-      "inputs": {
-        "label": "testshould be appended",
-      },
-      "type": "text",
+      "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
     },
   },
-  "root": [
-    "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-  ],
-}
-`;
-
-exports[`schema validation > validates the inputs with the async validator and skips inputs validators with the sync validator 3`] = `
-{
-  "entities": {
-    "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-      "inputs": {},
-      "type": "text",
-    },
-  },
-  "root": [
-    "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-  ],
 }
 `;

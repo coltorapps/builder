@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 
 import { createBuilder, createEntity, createInput, createStore } from "../src";
 import * as schemaExports from "../src/schema";
@@ -11,9 +10,9 @@ describe("store", () => {
   });
 
   it("can be created without a schema", () => {
-    const baseValidateSchemaMock = vi.spyOn(
+    const validateSchemaIntegrityMock = vi.spyOn(
       schemaExports,
-      "baseValidateSchema",
+      "validateSchemaIntegrity",
     );
 
     const builder = createBuilder({
@@ -22,15 +21,18 @@ describe("store", () => {
 
     const store = createStore(builder);
 
-    expect(baseValidateSchemaMock).toHaveBeenCalledWith(builder, undefined);
+    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(
+      builder,
+      undefined,
+    );
 
     expect(store).toMatchSnapshot();
   });
 
   it("can be created with a non-empty schema", () => {
-    const baseValidateSchemaMock = vi.spyOn(
+    const validateSchemaIntegrityMock = vi.spyOn(
       schemaExports,
-      "baseValidateSchema",
+      "validateSchemaIntegrity",
     );
 
     const builder = createBuilder({
@@ -50,43 +52,45 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "text",
-          inputs: {
-            label: "test",
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "text",
+            inputs: {
+              label: "test",
+            },
           },
         },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
       },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     });
 
-    expect(baseValidateSchemaMock).toMatchSnapshot();
+    expect(validateSchemaIntegrityMock).toMatchSnapshot();
 
     expect(store).toMatchSnapshot();
   });
 
   it("can be created with an empty schema", () => {
-    const baseValidateSchemaMock = vi.spyOn(
+    const validateSchemaIntegrityMock = vi.spyOn(
       schemaExports,
-      "baseValidateSchema",
+      "validateSchemaIntegrity",
     );
 
     const builder = createBuilder({
       entities: [],
     });
 
-    const store = createStore(builder, { entities: {}, root: [] });
+    const store = createStore(builder, { schema: { entities: {}, root: [] } });
 
-    expect(baseValidateSchemaMock).toMatchSnapshot();
+    expect(validateSchemaIntegrityMock).toMatchSnapshot();
 
     expect(store).toMatchSnapshot();
   });
 
   it("can retrieve the data", () => {
-    const baseValidateSchemaMock = vi.spyOn(
+    const validateSchemaIntegrityMock = vi.spyOn(
       schemaExports,
-      "baseValidateSchema",
+      "validateSchemaIntegrity",
     );
 
     const builder = createBuilder({
@@ -117,11 +121,11 @@ describe("store", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     } as const;
 
-    const store = createStore(builder, schema);
+    const store = createStore(builder, { schema });
 
     expect(store.getData()).toMatchSnapshot();
 
-    expect(baseValidateSchemaMock).toHaveBeenCalledWith(builder, schema);
+    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(builder, schema);
   });
 
   it("can return the schema", () => {
@@ -153,16 +157,9 @@ describe("store", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     } as const;
 
-    const store = createStore(builder, schema);
+    const store = createStore(builder, { schema });
 
-    const baseValidateSchemaMock = vi.spyOn(
-      schemaExports,
-      "baseValidateSchema",
-    );
-
-    expect(store.getSchema()).toMatchSnapshot();
-
-    expect(baseValidateSchemaMock).toHaveBeenCalledWith(builder, schema);
+    expect(store.getSerializedSchema()).toMatchSnapshot();
   });
 
   it("notifies listeners on changes", () => {
@@ -190,13 +187,15 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f": {
-          type: "text",
-          inputs: {},
+      schema: {
+        entities: {
+          "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f": {
+            type: "text",
+            inputs: {},
+          },
         },
+        root: ["e16641c9-9bfe-4ad0-bdd7-8f11d581a22f"],
       },
-      root: ["e16641c9-9bfe-4ad0-bdd7-8f11d581a22f"],
     });
 
     const listener = vi.fn();
@@ -227,33 +226,35 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
-          parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+            parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+          },
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            type: "test",
+            inputs: {},
+            children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+            parentId: "3dc165dd-88d4-4884-ac8a-5d107d023e54",
+          },
+          "3dc165dd-88d4-4884-ac8a-5d107d023e54": {
+            type: "test",
+            inputs: {},
+            children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+          },
+          "49e91328-02bc-4daa-ab56-619554e85cff": {
+            type: "test",
+            inputs: {},
+            children: [],
+          },
         },
-        "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-          type: "test",
-          inputs: {},
-          children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-          parentId: "3dc165dd-88d4-4884-ac8a-5d107d023e54",
-        },
-        "3dc165dd-88d4-4884-ac8a-5d107d023e54": {
-          type: "test",
-          inputs: {},
-          children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-        },
-        "49e91328-02bc-4daa-ab56-619554e85cff": {
-          type: "test",
-          inputs: {},
-          children: [],
-        },
+        root: [
+          "3dc165dd-88d4-4884-ac8a-5d107d023e54",
+          "49e91328-02bc-4daa-ab56-619554e85cff",
+        ],
       },
-      root: [
-        "3dc165dd-88d4-4884-ac8a-5d107d023e54",
-        "49e91328-02bc-4daa-ab56-619554e85cff",
-      ],
     });
 
     store.deleteEntity("3dc165dd-88d4-4884-ac8a-5d107d023e54");
@@ -284,13 +285,15 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+          },
         },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     });
 
     store.addEntity({
@@ -318,13 +321,15 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+          },
         },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     });
 
     store.addEntity(
@@ -357,13 +362,15 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+          },
         },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     });
 
     store.addEntity(
@@ -396,19 +403,21 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
-          children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+            children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
+          },
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
         },
-        "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-          type: "test",
-          inputs: {},
-          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-        },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     });
 
     store.addEntity(
@@ -435,20 +444,22 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
         },
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
-        },
+        root: [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
       },
-      root: [
-        "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      ],
     });
 
     store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
@@ -484,19 +495,21 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
-          children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+            children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
         },
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
-          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-        },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     });
 
     store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
@@ -519,19 +532,21 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
-          children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+            children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
         },
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
-          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-        },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     });
 
     store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
@@ -555,26 +570,28 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
-          children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+            children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
+          },
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
         },
-        "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-          type: "test",
-          inputs: {},
-          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-        },
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
-        },
+        root: [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
       },
-      root: [
-        "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      ],
     });
 
     store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
@@ -597,26 +614,28 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
-          children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+            children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
+          },
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
         },
-        "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-          type: "test",
-          inputs: {},
-          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-        },
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
-        },
+        root: [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
       },
-      root: [
-        "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      ],
     });
 
     store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
@@ -640,27 +659,29 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          type: "test",
-          inputs: {},
-          children: [
-            "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          ],
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+            children: [
+              "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+              "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            ],
+          },
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
         },
-        "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-          type: "test",
-          inputs: {},
-          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-        },
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
-          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-        },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     });
 
     store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
@@ -683,13 +704,15 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
         },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
       },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     });
 
     store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {});
@@ -703,8 +726,10 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {},
-      root: [],
+      schema: {
+        entities: {},
+        root: [],
+      },
     });
 
     expect(() =>
@@ -722,13 +747,15 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
         },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
       },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     });
 
     expect(() =>
@@ -748,8 +775,10 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {},
-      root: [],
+      schema: {
+        entities: {},
+        root: [],
+      },
     });
 
     expect(() =>
@@ -771,7 +800,13 @@ describe("store", () => {
             createInput({
               name: "label",
               validate(value) {
-                return z.string().parse(value);
+                return value;
+              },
+            }),
+            createInput({
+              name: "test",
+              validate(value) {
+                return value;
               },
             }),
           ],
@@ -780,15 +815,18 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {
-            label: "Old label",
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {
+              label: "Old label",
+              test: "Some test",
+            },
           },
         },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
       },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     });
 
     store.updateEntityInput(
@@ -810,8 +848,10 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {},
-      root: [],
+      schema: {
+        entities: {},
+        root: [],
+      },
     });
 
     expect(() =>
@@ -829,13 +869,15 @@ describe("store", () => {
     });
 
     const store = createStore(builder, {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "test",
-          inputs: {},
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
         },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
       },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     });
 
     expect(() =>

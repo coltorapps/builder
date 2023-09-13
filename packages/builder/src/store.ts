@@ -1,6 +1,11 @@
 import { type Builder } from "./builder";
 import { createDataManager } from "./data-manager";
-import { baseValidateSchema, type Schema, type SchemaEntity } from "./schema";
+import {
+  validateSchemaIntegrity,
+  type EntityInputsErrors,
+  type Schema,
+  type SchemaEntity,
+} from "./schema";
 import { type Subscribe } from "./subscription-manager";
 import { getEntityDefinition, insertIntoSetAtIndex } from "./utils";
 
@@ -10,14 +15,18 @@ type StoreEntity<TBuilder extends Builder = Builder> = Pick<
 > & { children?: Set<string> };
 
 export interface StoreData<TBuilder extends Builder = Builder> {
-  entities: Map<string, StoreEntity<TBuilder>>;
-  root: Set<string>;
+  schema: {
+    entities: Map<string, StoreEntity<TBuilder>>;
+    root: Set<string>;
+  };
+  entitiesInputsErrors: Map<string, EntityInputsErrors<TBuilder>>;
 }
 
 export interface Store<TBuilder extends Builder> {
   builder: TBuilder;
   getData(): StoreData<TBuilder>;
   subscribe: Subscribe<StoreData<TBuilder>>;
+  getSerializedSchema(): Schema<TBuilder>;
   addEntity(
     entity: StoreEntity<TBuilder>,
     mutationFields?: {
@@ -38,15 +47,17 @@ export interface Store<TBuilder extends Builder> {
     inputValue: StoreEntity<TBuilder>["inputs"][TInputName],
   ): void;
   deleteEntity(entityId: string): void;
-  getSchema(): Schema<TBuilder>;
+  validateEntityInputs(
+    entityId: string,
+  ): Promise<EntityInputsErrors<TBuilder> | undefined>;
 }
 
-function transformStoreDataToSchema<TBuilder extends Builder>(
+function serializeSchema<TBuilder extends Builder>(
   data: StoreData<TBuilder>,
 ): Schema<TBuilder> {
   const newEntities: Schema<TBuilder>["entities"] = {};
 
-  for (const [id, entity] of data.entities) {
+  for (const [id, entity] of data.schema.entities) {
     const { children, ...entityData } = entity;
 
     newEntities[id] = {
@@ -56,14 +67,14 @@ function transformStoreDataToSchema<TBuilder extends Builder>(
   }
 
   return {
-    root: Array.from(data.root),
+    root: Array.from(data.schema.root),
     entities: newEntities,
   };
 }
 
-function transformSchemaToStoreData<TBuilder extends Builder>(
+function deserializeSchema<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
-): StoreData<TBuilder> {
+): StoreData<TBuilder>["schema"] {
   return {
     entities: new Map(
       Object.entries(schema.entities).map(([id, entity]) => [
@@ -80,7 +91,7 @@ function transformSchemaToStoreData<TBuilder extends Builder>(
 
 function ensureEntityExists<TBuilder extends Builder>(
   id: string,
-  entities: StoreData<TBuilder>["entities"],
+  entities: StoreData<TBuilder>["schema"]["entities"],
 ): StoreEntity<TBuilder> {
   const entity = entities.get(id);
 
@@ -91,25 +102,44 @@ function ensureEntityExists<TBuilder extends Builder>(
   return entity;
 }
 
+function ensureEntityIsRegistered(
+  entityType: string,
+  builder: Builder,
+): Builder["entities"][number] {
+  const entityDefinition = getEntityDefinition(entityType, builder);
+
+  if (!entityDefinition) {
+    throw new Error(`Unkown entity type "${entityType}".`);
+  }
+
+  return entityDefinition;
+}
+
 function deleteEntity<TBuilder extends Builder>(
   entityId: string,
   data: StoreData<TBuilder>,
 ): StoreData<TBuilder> {
-  const entity = ensureEntityExists(entityId, data.entities);
+  const entity = ensureEntityExists(entityId, data.schema.entities);
 
   let newData: StoreData<TBuilder> = {
     ...data,
-    entities: new Map(data.entities),
+    schema: {
+      ...data.schema,
+      entities: new Map(data.schema.entities),
+    },
   };
 
-  newData.root.delete(entityId);
+  newData.schema.root.delete(entityId);
 
   if (entity.parentId) {
-    const parentEntity = ensureEntityExists(entity.parentId, newData.entities);
+    const parentEntity = ensureEntityExists(
+      entity.parentId,
+      newData.schema.entities,
+    );
 
     parentEntity.children?.delete(entityId);
 
-    newData.entities.set(entity.parentId, parentEntity);
+    newData.schema.entities.set(entity.parentId, parentEntity);
   }
 
   newData = Array.from(entity.children ?? []).reduce(
@@ -117,29 +147,36 @@ function deleteEntity<TBuilder extends Builder>(
     newData,
   );
 
-  newData.entities.delete(entityId);
+  newData.schema.entities.delete(entityId);
+
+  newData.entitiesInputsErrors.delete(entityId);
 
   return newData;
 }
 
 export function createStore<TBuilder extends Builder>(
   builder: TBuilder,
-  schema?: Schema<TBuilder>,
+  options?: { schema?: Schema<TBuilder> },
 ): Store<TBuilder> {
+  const validatedSchema = validateSchemaIntegrity(builder, options?.schema);
+
+  if (!validatedSchema.success) {
+    throw validatedSchema.error;
+  }
+
   const { getData, setData, subscribe } = createDataManager<
     StoreData<TBuilder>
-  >(transformSchemaToStoreData(baseValidateSchema(builder, schema)));
+  >({
+    schema: deserializeSchema(validatedSchema.data),
+    entitiesInputsErrors: new Map(),
+  });
 
   return {
     builder,
     subscribe,
-    getData() {
-      return transformSchemaToStoreData(
-        baseValidateSchema(builder, transformStoreDataToSchema(getData())),
-      );
-    },
-    getSchema() {
-      return baseValidateSchema(builder, transformStoreDataToSchema(getData()));
+    getData,
+    getSerializedSchema() {
+      return serializeSchema(getData());
     },
     addEntity(entity, mutationFields) {
       setData((data) => {
@@ -153,9 +190,13 @@ export function createStore<TBuilder extends Builder>(
           parentId: mutationFields?.parentId,
         };
 
-        const newEntities = new Map(data.entities);
+        if (!newEntity.parentId) {
+          delete newEntity.parentId;
+        }
 
-        let newRoot = new Set(data.root);
+        const newEntities = new Map(data.schema.entities);
+
+        let newRoot = new Set(data.schema.root);
 
         newEntities.set(entityId, newEntity);
 
@@ -168,7 +209,7 @@ export function createStore<TBuilder extends Builder>(
         } else {
           const parentEntity = ensureEntityExists(
             mutationFields.parentId,
-            data.entities,
+            data.schema.entities,
           );
 
           parentEntity.children = insertIntoSetAtIndex(
@@ -181,14 +222,17 @@ export function createStore<TBuilder extends Builder>(
         }
 
         return {
-          root: newRoot,
-          entities: newEntities,
+          ...data,
+          schema: {
+            root: newRoot,
+            entities: newEntities,
+          },
         };
       });
     },
     updateEntity(entityId, mutationFields) {
       setData((data) => {
-        const entity = ensureEntityExists(entityId, data.entities);
+        const entity = ensureEntityExists(entityId, data.schema.entities);
 
         if (
           mutationFields.index === undefined &&
@@ -197,9 +241,9 @@ export function createStore<TBuilder extends Builder>(
           return data;
         }
 
-        const newEntities = new Map(data.entities);
+        const newEntities = new Map(data.schema.entities);
 
-        let newRoot = new Set(data.root);
+        let newRoot = new Set(data.schema.root);
 
         const newParentEntityId =
           mutationFields.parentId === null
@@ -222,7 +266,7 @@ export function createStore<TBuilder extends Builder>(
         if (entity.parentId) {
           const parentEntity = ensureEntityExists(
             entity.parentId,
-            data.entities,
+            data.schema.entities,
           );
 
           parentEntity.children?.delete(entityId);
@@ -239,7 +283,7 @@ export function createStore<TBuilder extends Builder>(
         } else if (newParentEntityId) {
           const parentEntity = ensureEntityExists(
             newParentEntityId,
-            data.entities,
+            data.schema.entities,
           );
 
           parentEntity.children = insertIntoSetAtIndex(
@@ -252,8 +296,11 @@ export function createStore<TBuilder extends Builder>(
         }
 
         return {
-          root: newRoot,
-          entities: newEntities,
+          ...data,
+          schema: {
+            root: newRoot,
+            entities: newEntities,
+          },
         };
       });
     },
@@ -264,13 +311,9 @@ export function createStore<TBuilder extends Builder>(
     },
     updateEntityInput(entityId, inputName, inputValue) {
       setData((data) => {
-        const entity = ensureEntityExists(entityId, data.entities);
+        const entity = ensureEntityExists(entityId, data.schema.entities);
 
-        const entityDefinition = getEntityDefinition(entity.type, builder);
-
-        if (!entityDefinition) {
-          throw new Error(`Unkown entity type "${entity.type}".`);
-        }
+        const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
         if (
           !entityDefinition.inputs.some((input) => input.name === inputName)
@@ -281,10 +324,40 @@ export function createStore<TBuilder extends Builder>(
         entity.inputs[inputName] = inputValue;
 
         return {
-          root: data.root,
-          entities: data.entities.set(entityId, entity),
+          ...data,
+          schema: {
+            root: data.schema.root,
+            entities: data.schema.entities.set(entityId, entity),
+          },
         };
       });
+    },
+    async validateEntityInputs(entityId) {
+      const data = getData();
+
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
+
+      const newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
+
+      for (const input of entityDefinition.inputs) {
+        try {
+          await input.validate((entity as StoreEntity).inputs[input.name]);
+
+          newEntitiesInputsErrors.set(entityId, {
+            ...newEntitiesInputsErrors.get(entityId),
+            [input.name]: undefined,
+          });
+        } catch (error) {
+          newEntitiesInputsErrors.set(entityId, {
+            ...newEntitiesInputsErrors.get(entityId),
+            [input.name]: error,
+          });
+        }
+      }
+
+      return newEntitiesInputsErrors.get(entityId);
     },
   };
 }
