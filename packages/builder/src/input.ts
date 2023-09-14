@@ -1,12 +1,10 @@
-export interface Input<TName extends string, TValue> {
+export interface Input<TName extends string = string, TValue = unknown> {
   name: TName;
   validate: (value: unknown) => TValue;
   defaultValue: () => Awaited<TValue> | undefined;
 }
 
-export type InputsValues<
-  TInputs extends ReadonlyArray<Input<string, unknown>>,
-> = {
+export type InputsValues<TInputs extends ReadonlyArray<Input>> = {
   [K in TInputs[number]["name"]]: Awaited<
     ReturnType<Extract<TInputs[number], { name: K }>["validate"]>
   >;

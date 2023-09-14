@@ -4,20 +4,18 @@ import { createDataManager } from "../src/data-manager";
 
 describe("data manager", () => {
   it("can be created", () => {
-    const dataManager = createDataManager({ data: "test" });
+    const dataManager = createDataManager({ someValue: "test" });
 
     expectTypeOf(dataManager).toEqualTypeOf<{
       getData: () => {
-        data: string;
+        someValue: string;
       };
-      setData: (
-        setter: (oldData: { data: string }) => {
-          data: string;
-        },
-      ) => {
-        data: string;
+      setData: (data: { someValue: string }) => {
+        someValue: string;
       };
-      subscribe: (listener: (data: { data: string }) => void) => () => void;
+      subscribe: (
+        listener: (data: { someValue: string }) => void,
+      ) => () => void;
     }>();
   });
 });

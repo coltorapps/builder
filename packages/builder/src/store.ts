@@ -1,7 +1,9 @@
 import { type Builder } from "./builder";
 import { createDataManager } from "./data-manager";
+import { type Input } from "./input";
 import {
   validateSchemaIntegrity,
+  type EntitiesInputsErrors,
   type EntityInputsErrors,
   type Schema,
   type SchemaEntity,
@@ -13,6 +15,11 @@ type StoreEntity<TBuilder extends Builder = Builder> = Pick<
   SchemaEntity<TBuilder>,
   "type" | "inputs" | "parentId"
 > & { children?: Set<string> };
+
+export type StoreEntitiesInputsErrors<TBuilder extends Builder> = Map<
+  string,
+  EntityInputsErrors<TBuilder>
+>;
 
 export interface StoreData<TBuilder extends Builder = Builder> {
   schema: {
@@ -55,10 +62,20 @@ export interface Store<TBuilder extends Builder> {
   validateEntityInputs(
     entityId: string,
   ): Promise<EntityInputsErrors<TBuilder> | undefined>;
-  validateEntitiesInputs(): Promise<
-    StoreData<TBuilder>["entitiesInputsErrors"]
-  >;
-  setActiveEntityId(entityId: StoreData["activeEntityId"]): void;
+  validateEntitiesInputs(): Promise<StoreEntitiesInputsErrors<TBuilder>>;
+  setActiveEntityId(activeEntityId: StoreData["activeEntityId"]): void;
+  setEntityInputError<TInputName extends keyof StoreEntity<TBuilder>["inputs"]>(
+    entityId: string,
+    inputName: TInputName,
+    error?: unknown,
+  ): void;
+  setEntityInputsErrors(
+    entityId: string,
+    entityInputsErrors: EntityInputsErrors<TBuilder>,
+  ): void;
+  setEntitiesInputsErrors(
+    entitiesInputsErrors: EntitiesInputsErrors<TBuilder>,
+  ): void;
 }
 
 function serializeSchema<TBuilder extends Builder>(
@@ -167,6 +184,36 @@ function deleteEntity<TBuilder extends Builder>(
   return newData;
 }
 
+function ensureEntityInputIsRegistered(
+  entityType: string,
+  inputName: string,
+  builder: Builder,
+): Input {
+  const entityDefinition = ensureEntityIsRegistered(entityType, builder);
+
+  const input = entityDefinition.inputs.find(
+    (input) => input.name === inputName,
+  );
+
+  if (!input) {
+    throw new Error(`Unkown entity input "${inputName}".`);
+  }
+
+  return input;
+}
+
+function ensureEntityInputsAreRegistered(
+  entityType: string,
+  inputNames: Array<string>,
+  builder: Builder,
+): Array<Input> {
+  const inputs = inputNames.map((inputName) =>
+    ensureEntityInputIsRegistered(entityType, inputName, builder),
+  );
+
+  return inputs;
+}
+
 async function validateEntityInput<TBuilder extends Builder>(
   entityId: string,
   inputName: string,
@@ -177,18 +224,11 @@ async function validateEntityInput<TBuilder extends Builder>(
     dependencies.data.schema.entities,
   );
 
-  const entityDefinition = ensureEntityIsRegistered(
+  const input = ensureEntityInputIsRegistered(
     entity.type,
+    inputName,
     dependencies.builder,
   );
-
-  const input = entityDefinition.inputs.find(
-    (input) => input.name === inputName,
-  );
-
-  if (!input) {
-    throw new Error(`Unkown entity input "${inputName}".`);
-  }
 
   try {
     await input.validate((entity as StoreEntity).inputs[input.name]);
@@ -258,157 +298,149 @@ export function createStore<TBuilder extends Builder>(
       return serializeSchema(getData());
     },
     addEntity(entity, mutationFields) {
-      setData((data) => {
-        const entityId = builder.entityId.generate();
+      const data = getData();
 
-        builder.entityId.validate(entityId);
+      const entityId = builder.entityId.generate();
 
-        const newEntity: StoreEntity<TBuilder> = {
-          inputs: entity.inputs,
-          type: entity.type,
-          parentId: mutationFields?.parentId,
-        };
+      builder.entityId.validate(entityId);
 
-        if (!newEntity.parentId) {
-          delete newEntity.parentId;
-        }
+      const newEntity: StoreEntity<TBuilder> = {
+        inputs: entity.inputs,
+        type: entity.type,
+        parentId: mutationFields?.parentId,
+      };
 
-        const newEntities = new Map(data.schema.entities);
+      if (!newEntity.parentId) {
+        delete newEntity.parentId;
+      }
 
-        let newRoot = new Set(data.schema.root);
+      const newEntities = new Map(data.schema.entities);
 
-        newEntities.set(entityId, newEntity);
+      let newRoot = new Set(data.schema.root);
 
-        if (!mutationFields?.parentId) {
-          newRoot = insertIntoSetAtIndex(
-            newRoot,
-            entityId,
-            mutationFields?.index,
-          );
-        } else {
-          const parentEntity = ensureEntityExists(
-            mutationFields.parentId,
-            data.schema.entities,
-          );
+      newEntities.set(entityId, newEntity);
 
-          parentEntity.children = insertIntoSetAtIndex(
-            parentEntity.children ?? new Set(),
-            entityId,
-            mutationFields?.index,
-          );
+      if (!mutationFields?.parentId) {
+        newRoot = insertIntoSetAtIndex(
+          newRoot,
+          entityId,
+          mutationFields?.index,
+        );
+      } else {
+        const parentEntity = ensureEntityExists(
+          mutationFields.parentId,
+          data.schema.entities,
+        );
 
-          newEntities.set(mutationFields.parentId, parentEntity);
-        }
+        parentEntity.children = insertIntoSetAtIndex(
+          parentEntity.children ?? new Set(),
+          entityId,
+          mutationFields?.index,
+        );
 
-        return {
-          ...data,
-          schema: {
-            root: newRoot,
-            entities: newEntities,
-          },
-        };
+        newEntities.set(mutationFields.parentId, parentEntity);
+      }
+
+      setData({
+        ...data,
+        schema: {
+          root: newRoot,
+          entities: newEntities,
+        },
       });
     },
     updateEntity(entityId, mutationFields) {
-      setData((data) => {
-        const entity = ensureEntityExists(entityId, data.schema.entities);
+      const data = getData();
 
-        if (
-          mutationFields.index === undefined &&
-          mutationFields.parentId === undefined
-        ) {
-          return data;
-        }
+      const entity = ensureEntityExists(entityId, data.schema.entities);
 
-        const newEntities = new Map(data.schema.entities);
+      if (
+        mutationFields.index === undefined &&
+        mutationFields.parentId === undefined
+      ) {
+        return data;
+      }
 
-        let newRoot = new Set(data.schema.root);
+      const newEntities = new Map(data.schema.entities);
 
-        const newParentEntityId =
-          mutationFields.parentId === null
-            ? undefined
-            : mutationFields.parentId ?? entity.parentId;
+      let newRoot = new Set(data.schema.root);
 
-        const newEntity = {
-          ...entity,
-          parentId: newParentEntityId,
-        };
+      const newParentEntityId =
+        mutationFields.parentId === null
+          ? undefined
+          : mutationFields.parentId ?? entity.parentId;
 
-        if (!newEntity.parentId) {
-          delete newEntity.parentId;
-        }
+      const newEntity = {
+        ...entity,
+        parentId: newParentEntityId,
+      };
 
-        newEntities.set(entityId, newEntity);
+      if (!newEntity.parentId) {
+        delete newEntity.parentId;
+      }
 
-        newRoot.delete(entityId);
+      newEntities.set(entityId, newEntity);
 
-        if (entity.parentId) {
-          const parentEntity = ensureEntityExists(
-            entity.parentId,
-            data.schema.entities,
-          );
+      newRoot.delete(entityId);
 
-          parentEntity.children?.delete(entityId);
+      if (entity.parentId) {
+        const parentEntity = ensureEntityExists(
+          entity.parentId,
+          data.schema.entities,
+        );
 
-          newEntities.set(entity.parentId, parentEntity);
-        }
+        parentEntity.children?.delete(entityId);
 
-        if (mutationFields.parentId === null || !newParentEntityId) {
-          newRoot = insertIntoSetAtIndex(
-            newRoot,
-            entityId,
-            mutationFields?.index,
-          );
-        } else if (newParentEntityId) {
-          const parentEntity = ensureEntityExists(
-            newParentEntityId,
-            data.schema.entities,
-          );
+        newEntities.set(entity.parentId, parentEntity);
+      }
 
-          parentEntity.children = insertIntoSetAtIndex(
-            parentEntity.children ?? new Set(),
-            entityId,
-            mutationFields?.index,
-          );
+      if (mutationFields.parentId === null || !newParentEntityId) {
+        newRoot = insertIntoSetAtIndex(
+          newRoot,
+          entityId,
+          mutationFields?.index,
+        );
+      } else if (newParentEntityId) {
+        const parentEntity = ensureEntityExists(
+          newParentEntityId,
+          data.schema.entities,
+        );
 
-          newEntities.set(newParentEntityId, parentEntity);
-        }
+        parentEntity.children = insertIntoSetAtIndex(
+          parentEntity.children ?? new Set(),
+          entityId,
+          mutationFields?.index,
+        );
 
-        return {
-          ...data,
-          schema: {
-            root: newRoot,
-            entities: newEntities,
-          },
-        };
+        newEntities.set(newParentEntityId, parentEntity);
+      }
+
+      return setData({
+        ...data,
+        schema: {
+          root: newRoot,
+          entities: newEntities,
+        },
       });
     },
     deleteEntity(entityId) {
-      setData((data) => {
-        return deleteEntity(entityId, data);
-      });
+      setData(deleteEntity(entityId, getData()));
     },
     updateEntityInput(entityId, inputName, inputValue) {
-      setData((data) => {
-        const entity = ensureEntityExists(entityId, data.schema.entities);
+      const data = getData();
 
-        const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
+      const entity = ensureEntityExists(entityId, data.schema.entities);
 
-        if (
-          !entityDefinition.inputs.some((input) => input.name === inputName)
-        ) {
-          throw new Error(`Unkown entity input "${inputName.toString()}".`);
-        }
+      ensureEntityInputIsRegistered(entity.type, inputName.toString(), builder);
 
-        entity.inputs[inputName] = inputValue;
+      entity.inputs[inputName] = inputValue;
 
-        return {
-          ...data,
-          schema: {
-            root: data.schema.root,
-            entities: data.schema.entities.set(entityId, entity),
-          },
-        };
+      return setData({
+        ...data,
+        schema: {
+          root: data.schema.root,
+          entities: data.schema.entities.set(entityId, entity),
+        },
       });
     },
     async validateEntityInput(entityId, inputName) {
@@ -430,10 +462,10 @@ export function createStore<TBuilder extends Builder>(
         [inputName]: inputError,
       });
 
-      setData(() => ({
+      setData({
         ...data,
         entitiesInputsErrors: newEntitiesInputsErrors,
-      }));
+      });
     },
     async validateEntityInputs(entityId) {
       const data = getData();
@@ -447,10 +479,10 @@ export function createStore<TBuilder extends Builder>(
 
       newEntitiesInputsErrors.set(entityId, entityInputsErrors ?? {});
 
-      setData(() => ({
+      setData({
         ...data,
         entitiesInputsErrors: newEntitiesInputsErrors,
-      }));
+      });
 
       return entityInputsErrors;
     },
@@ -468,23 +500,81 @@ export function createStore<TBuilder extends Builder>(
         newEntitiesInputsErrors.set(entityId, entityInputsErrors ?? {});
       }
 
-      setData((data) => ({
+      setData({
         ...data,
         entitiesInputsErrors: newEntitiesInputsErrors,
-      }));
+      });
 
       return newEntitiesInputsErrors;
     },
-    setActiveEntityId(entityId) {
-      setData((data) => {
-        if (entityId) {
-          ensureEntityExists(entityId, data.schema.entities);
-        }
+    setActiveEntityId(activeEntityId) {
+      const data = getData();
 
-        return {
-          ...data,
-          activeEntityId: entityId,
-        };
+      if (activeEntityId) {
+        ensureEntityExists(activeEntityId, data.schema.entities);
+      }
+
+      return setData({
+        ...data,
+        activeEntityId: activeEntityId,
+      });
+    },
+    setEntityInputError(entityId, inputName, error) {
+      const data = getData();
+
+      const newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
+
+      ensureEntityExists(entityId, data.schema.entities);
+
+      newEntitiesInputsErrors.set(entityId, {
+        ...data.entitiesInputsErrors.get(entityId),
+        [inputName]: error,
+      });
+
+      return setData({
+        ...data,
+        entitiesInputsErrors: newEntitiesInputsErrors,
+      });
+    },
+    setEntityInputsErrors(entityId, entityInputsErrors) {
+      const data = getData();
+
+      const newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
+
+      ensureEntityExists(entityId, data.schema.entities);
+
+      newEntitiesInputsErrors.set(entityId, entityInputsErrors);
+
+      return setData({
+        ...data,
+        entitiesInputsErrors: newEntitiesInputsErrors,
+      });
+    },
+    setEntitiesInputsErrors(entitiesInputsErrors) {
+      const data = getData();
+
+      const newEntitiesInputsErrors = new Map(
+        Object.entries(entitiesInputsErrors),
+      );
+
+      for (const [
+        entityId,
+        inputsErrors,
+      ] of newEntitiesInputsErrors.entries()) {
+        const entity = ensureEntityExists(entityId, data.schema.entities);
+
+        ensureEntityInputsAreRegistered(
+          entity.type,
+          Object.keys(inputsErrors),
+          builder,
+        );
+
+        newEntitiesInputsErrors.set(entityId, inputsErrors);
+      }
+
+      return setData({
+        ...data,
+        entitiesInputsErrors: newEntitiesInputsErrors,
       });
     },
   };

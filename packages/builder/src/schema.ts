@@ -720,7 +720,7 @@ export type EntityInputsErrors<TBuilder extends Builder = Builder> = Partial<
   Record<keyof SchemaEntity<TBuilder>["inputs"], unknown>
 >;
 
-type EntitiesInputsErrors<TBuilder extends Builder = Builder> = Record<
+export type EntitiesInputsErrors<TBuilder extends Builder = Builder> = Record<
   string,
   EntityInputsErrors<TBuilder>
 >;

@@ -18,9 +18,9 @@ describe("data manager", () => {
   it("can mutate the data", () => {
     const dataManager = createDataManager({ age: 17 });
 
-    dataManager.setData((oldData) => ({
-      age: oldData.age + 1,
-    }));
+    dataManager.setData({
+      age: 18,
+    });
 
     expect(dataManager.getData()).toMatchSnapshot();
   });
@@ -32,9 +32,9 @@ describe("data manager", () => {
 
     dataManager.subscribe(listener);
 
-    dataManager.setData((oldData) => ({
-      age: oldData.age + 1,
-    }));
+    dataManager.setData({
+      age: 18,
+    });
 
     expect(listener).toMatchSnapshot();
   });
@@ -48,9 +48,9 @@ describe("data manager", () => {
 
     unsubscribe();
 
-    dataManager.setData((oldData) => ({
-      age: oldData.age + 1,
-    }));
+    dataManager.setData({
+      age: 18,
+    });
 
     expect(listener).not.toHaveBeenCalled();
   });
