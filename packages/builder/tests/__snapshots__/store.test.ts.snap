@@ -2,6 +2,7 @@
 
 exports[`store > can add entities to a parent entity 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -27,6 +28,7 @@ exports[`store > can add entities to a parent entity 1`] = `
 
 exports[`store > can add entities to a parent entity at a specific index 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -58,6 +60,7 @@ exports[`store > can add entities to a parent entity at a specific index 1`] = `
 
 exports[`store > can add entities to root 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -80,6 +83,7 @@ exports[`store > can add entities to root 1`] = `
 
 exports[`store > can add entities to root at specific index 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -197,9 +201,12 @@ exports[`store > can be created with a non-empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "setActiveEntityId": [Function],
   "subscribe": [Function],
   "updateEntity": [Function],
   "updateEntityInput": [Function],
+  "validateEntitiesInputs": [Function],
+  "validateEntityInput": [Function],
   "validateEntityInputs": [Function],
 }
 `;
@@ -253,9 +260,12 @@ exports[`store > can be created with an empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "setActiveEntityId": [Function],
   "subscribe": [Function],
   "updateEntity": [Function],
   "updateEntityInput": [Function],
+  "validateEntitiesInputs": [Function],
+  "validateEntityInput": [Function],
   "validateEntityInputs": [Function],
 }
 `;
@@ -275,15 +285,19 @@ exports[`store > can be created without a schema 1`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "setActiveEntityId": [Function],
   "subscribe": [Function],
   "updateEntity": [Function],
   "updateEntityInput": [Function],
+  "validateEntitiesInputs": [Function],
+  "validateEntityInput": [Function],
   "validateEntityInputs": [Function],
 }
 `;
 
 exports[`store > can delete entities and cascade delete their children 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -302,6 +316,7 @@ exports[`store > can delete entities and cascade delete their children 1`] = `
 
 exports[`store > can move an entity from root to a parent entity 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -333,6 +348,7 @@ exports[`store > can move an entity from root to a parent entity 1`] = `
 
 exports[`store > can move an entity from root to a parent entity at a specific index 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -364,6 +380,7 @@ exports[`store > can move an entity from root to a parent entity at a specific i
 
 exports[`store > can move an entity in a parent entity 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -395,6 +412,7 @@ exports[`store > can move an entity in a parent entity 1`] = `
 
 exports[`store > can move an entity in root 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -417,6 +435,7 @@ exports[`store > can move an entity in root 1`] = `
 
 exports[`store > can move an entity in root 2`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -439,6 +458,7 @@ exports[`store > can move an entity in root 2`] = `
 
 exports[`store > can move an entity in root 3`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -461,6 +481,7 @@ exports[`store > can move an entity in root 3`] = `
 
 exports[`store > can move an entity to root 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -484,6 +505,7 @@ exports[`store > can move an entity to root 1`] = `
 
 exports[`store > can move an entity to root at a specific index 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -507,6 +529,7 @@ exports[`store > can move an entity to root at a specific index 1`] = `
 
 exports[`store > can retrieve the data 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -542,6 +565,7 @@ exports[`store > can return the schema 1`] = `
 
 exports[`store > can update entity inputs 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
@@ -562,6 +586,7 @@ exports[`store > can update entity inputs 1`] = `
 
 exports[`store > doesn't update the entity when no mutation fields were provided 1`] = `
 {
+  "activeEntityId": null,
   "entitiesInputsErrors": Map {},
   "schema": {
     "entities": Map {
