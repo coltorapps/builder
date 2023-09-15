@@ -572,6 +572,53 @@ exports[`store > can return the schema 1`] = `
 }
 `;
 
+exports[`store > can set a single entity input error 1`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": "Some error",
+    "title": "Title error",
+  },
+}
+`;
+
+exports[`store > can set a single entity input error 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`store > can set a single entity input error 3`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`store > can set inputs errors for a all entities 1`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": "some error",
+    "title": "another error",
+  },
+  "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "label": "some error",
+    "title": "another error",
+  },
+}
+`;
+
+exports[`store > can set inputs errors for a all entities 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`store > can set inputs errors for a all entities 3`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`store > can set inputs errors for a all entities 4`] = `Map {}`;
+
+exports[`store > can set multiple input errors for a single entity 1`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": "some error",
+    "title": "another error",
+  },
+}
+`;
+
+exports[`store > can set multiple input errors for a single entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`store > can set multiple input errors for a single entity 3`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`store > can set the active entity ID 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
 exports[`store > can update entity inputs 1`] = `
 {
   "activeEntityId": null,
@@ -592,6 +639,145 @@ exports[`store > can update entity inputs 1`] = `
   },
 }
 `;
+
+exports[`store > can validate a all inputs of a single entity 1`] = `
+{
+  "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+  "maxLength": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "string",
+    "path": [],
+    "message": "Expected number, received string"
+  }
+]],
+}
+`;
+
+exports[`store > can validate a all inputs of a single entity 2`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+    "maxLength": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "string",
+    "path": [],
+    "message": "Expected number, received string"
+  }
+]],
+  },
+}
+`;
+
+exports[`store > can validate a all inputs of a single entity 3`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`store > can validate a all inputs of all entities 1`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+    "maxLength": undefined,
+  },
+  "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "label": undefined,
+    "maxLength": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "string",
+    "path": [],
+    "message": "Expected number, received string"
+  }
+]],
+  },
+}
+`;
+
+exports[`store > can validate a all inputs of all entities 2`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+    "maxLength": undefined,
+  },
+  "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "label": undefined,
+    "maxLength": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "string",
+    "path": [],
+    "message": "Expected number, received string"
+  }
+]],
+  },
+}
+`;
+
+exports[`store > can validate a single entity input 1`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+  },
+  "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+  },
+}
+`;
+
+exports[`store > can validate a single entity input 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`store > can validate a single entity input 3`] = `"Unkown entity input \\"invalid\\"."`;
 
 exports[`store > doesn't update the entity when no mutation fields were provided 1`] = `
 {

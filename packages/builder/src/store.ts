@@ -232,6 +232,7 @@ async function validateEntityInput<TBuilder extends Builder>(
 
   try {
     await input.validate((entity as StoreEntity).inputs[input.name]);
+
     return undefined;
   } catch (error) {
     return error;
@@ -514,7 +515,7 @@ export function createStore<TBuilder extends Builder>(
         ensureEntityExists(activeEntityId, data.schema.entities);
       }
 
-      return setData({
+      setData({
         ...data,
         activeEntityId: activeEntityId,
       });
@@ -524,14 +525,16 @@ export function createStore<TBuilder extends Builder>(
 
       const newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
 
-      ensureEntityExists(entityId, data.schema.entities);
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      ensureEntityInputIsRegistered(entity.type, inputName.toString(), builder);
 
       newEntitiesInputsErrors.set(entityId, {
         ...data.entitiesInputsErrors.get(entityId),
         [inputName]: error,
       });
 
-      return setData({
+      setData({
         ...data,
         entitiesInputsErrors: newEntitiesInputsErrors,
       });
@@ -541,11 +544,17 @@ export function createStore<TBuilder extends Builder>(
 
       const newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
 
-      ensureEntityExists(entityId, data.schema.entities);
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      ensureEntityInputsAreRegistered(
+        entity.type,
+        Object.keys(entityInputsErrors),
+        builder,
+      );
 
       newEntitiesInputsErrors.set(entityId, entityInputsErrors);
 
-      return setData({
+      setData({
         ...data,
         entitiesInputsErrors: newEntitiesInputsErrors,
       });
@@ -572,7 +581,7 @@ export function createStore<TBuilder extends Builder>(
         newEntitiesInputsErrors.set(entityId, inputsErrors);
       }
 
-      return setData({
+      setData({
         ...data,
         entitiesInputsErrors: newEntitiesInputsErrors,
       });
