@@ -1311,4 +1311,179 @@ describe("store", () => {
 
     expect(store.getData().entitiesInputsErrors).toMatchSnapshot();
   });
+
+  it("can set a reset a single entity input error", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return value;
+              },
+            }),
+            createInput({
+              name: "title",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
+        },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      },
+    });
+
+    store.setEntityInputsErrors("6e0035c3-0d4c-445f-a42b-2d971225447c", {
+      label: "label error",
+      title: "title error",
+    });
+
+    expect(store.getData().entitiesInputsErrors).toMatchSnapshot();
+
+    expect(
+      store.resetEntityInputError(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "label",
+      ),
+    ).toEqual(undefined);
+
+    expect(store.getData().entitiesInputsErrors).toMatchSnapshot();
+
+    expect(() =>
+      store.resetEntityInputError("invalid", "title"),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(() =>
+      store.resetEntityInputError(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        // @ts-expect-error Intentional wrong data type
+        "invalid",
+      ),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("can set a reset all inputs errors for a single entity", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return value;
+              },
+            }),
+            createInput({
+              name: "title",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
+        },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      },
+    });
+
+    store.setEntityInputsErrors("6e0035c3-0d4c-445f-a42b-2d971225447c", {
+      label: "label error",
+      title: "title error",
+    });
+
+    expect(store.getData().entitiesInputsErrors).toMatchSnapshot();
+
+    expect(
+      store.resetEntityInputsErrors("6e0035c3-0d4c-445f-a42b-2d971225447c"),
+    ).toEqual(undefined);
+
+    expect(store.getData().entitiesInputsErrors).toMatchSnapshot();
+
+    expect(() =>
+      store.resetEntityInputsErrors("invalid"),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("can set a reset all inputs errors for a all entities", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return value;
+              },
+            }),
+            createInput({
+              name: "title",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+          },
+        },
+        root: [
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+        ],
+      },
+    });
+
+    store.setEntitiesInputsErrors({
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        label: "label error",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        title: "title error",
+      },
+    });
+
+    expect(store.getData().entitiesInputsErrors).toMatchSnapshot();
+
+    expect(store.resetEntitiesInputsErrors()).toEqual(undefined);
+
+    expect(store.getData().entitiesInputsErrors).toMatchSnapshot();
+  });
 });

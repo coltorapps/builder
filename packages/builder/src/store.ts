@@ -64,15 +64,23 @@ export interface Store<TBuilder extends Builder> {
   ): Promise<EntityInputsErrors<TBuilder> | undefined>;
   validateEntitiesInputs(): Promise<StoreEntitiesInputsErrors<TBuilder>>;
   setActiveEntityId(activeEntityId: StoreData["activeEntityId"]): void;
+  resetEntityInputError<
+    TInputName extends keyof StoreEntity<TBuilder>["inputs"],
+  >(
+    entityId: string,
+    inputName: TInputName,
+  ): void;
   setEntityInputError<TInputName extends keyof StoreEntity<TBuilder>["inputs"]>(
     entityId: string,
     inputName: TInputName,
     error?: unknown,
   ): void;
+  resetEntityInputsErrors(entityId: string): void;
   setEntityInputsErrors(
     entityId: string,
     entityInputsErrors: EntityInputsErrors<TBuilder>,
   ): void;
+  resetEntitiesInputsErrors(): void;
   setEntitiesInputsErrors(
     entitiesInputsErrors: EntitiesInputsErrors<TBuilder>,
   ): void;
@@ -520,6 +528,26 @@ export function createStore<TBuilder extends Builder>(
         activeEntityId: activeEntityId,
       });
     },
+    resetEntityInputError(entityId, inputName) {
+      const data = getData();
+
+      const newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
+
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      ensureEntityInputIsRegistered(entity.type, inputName.toString(), builder);
+
+      const entityInputsErrors = data.entitiesInputsErrors.get(entityId);
+
+      delete entityInputsErrors?.[inputName];
+
+      newEntitiesInputsErrors.set(entityId, entityInputsErrors ?? {});
+
+      setData({
+        ...data,
+        entitiesInputsErrors: newEntitiesInputsErrors,
+      });
+    },
     setEntityInputError(entityId, inputName, error) {
       const data = getData();
 
@@ -533,6 +561,20 @@ export function createStore<TBuilder extends Builder>(
         ...data.entitiesInputsErrors.get(entityId),
         [inputName]: error,
       });
+
+      setData({
+        ...data,
+        entitiesInputsErrors: newEntitiesInputsErrors,
+      });
+    },
+    resetEntityInputsErrors(entityId) {
+      const data = getData();
+
+      const newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
+
+      ensureEntityExists(entityId, data.schema.entities);
+
+      newEntitiesInputsErrors.delete(entityId);
 
       setData({
         ...data,
@@ -557,6 +599,14 @@ export function createStore<TBuilder extends Builder>(
       setData({
         ...data,
         entitiesInputsErrors: newEntitiesInputsErrors,
+      });
+    },
+    resetEntitiesInputsErrors() {
+      const data = getData();
+
+      setData({
+        ...data,
+        entitiesInputsErrors: new Map(),
       });
     },
     setEntitiesInputsErrors(entitiesInputsErrors) {

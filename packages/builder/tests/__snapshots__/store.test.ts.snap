@@ -201,6 +201,9 @@ exports[`store > can be created with a non-empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "resetEntitiesInputsErrors": [Function],
+  "resetEntityInputError": [Function],
+  "resetEntityInputsErrors": [Function],
   "setActiveEntityId": [Function],
   "setEntitiesInputsErrors": [Function],
   "setEntityInputError": [Function],
@@ -263,6 +266,9 @@ exports[`store > can be created with an empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "resetEntitiesInputsErrors": [Function],
+  "resetEntityInputError": [Function],
+  "resetEntityInputsErrors": [Function],
   "setActiveEntityId": [Function],
   "setEntitiesInputsErrors": [Function],
   "setEntityInputError": [Function],
@@ -291,6 +297,9 @@ exports[`store > can be created without a schema 1`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "resetEntitiesInputsErrors": [Function],
+  "resetEntityInputError": [Function],
+  "resetEntityInputsErrors": [Function],
   "setActiveEntityId": [Function],
   "setEntitiesInputsErrors": [Function],
   "setEntityInputError": [Function],
@@ -571,6 +580,53 @@ exports[`store > can return the schema 1`] = `
   ],
 }
 `;
+
+exports[`store > can set a reset a single entity input error 1`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": "label error",
+    "title": "title error",
+  },
+}
+`;
+
+exports[`store > can set a reset a single entity input error 2`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "title": "title error",
+  },
+}
+`;
+
+exports[`store > can set a reset a single entity input error 3`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`store > can set a reset a single entity input error 4`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`store > can set a reset all inputs errors for a all entities 1`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": "label error",
+  },
+  "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "title": "title error",
+  },
+}
+`;
+
+exports[`store > can set a reset all inputs errors for a all entities 2`] = `Map {}`;
+
+exports[`store > can set a reset all inputs errors for a single entity 1`] = `
+Map {
+  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "label": "label error",
+    "title": "title error",
+  },
+}
+`;
+
+exports[`store > can set a reset all inputs errors for a single entity 2`] = `Map {}`;
+
+exports[`store > can set a reset all inputs errors for a single entity 3`] = `"Entity with ID \\"invalid\\" was not found."`;
 
 exports[`store > can set a single entity input error 1`] = `
 Map {
