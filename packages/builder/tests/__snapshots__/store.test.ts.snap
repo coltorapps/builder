@@ -684,13 +684,20 @@ exports[`store > can update entity inputs 1`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
         "inputs": {
           "label": "New label",
-          "test": "Some test",
+          "required": true,
         },
-        "type": "test",
+        "type": "select",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {
+          "maxLength": 1,
+        },
+        "type": "text",
       },
     },
     "root": Set {
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
     },
   },
 }

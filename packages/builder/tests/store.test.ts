@@ -796,18 +796,29 @@ describe("store", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
-          name: "test",
+          name: "select",
           inputs: [
             createInput({
               name: "label",
               validate(value) {
-                return value;
+                return z.string().parse(value);
               },
             }),
             createInput({
-              name: "test",
+              name: "required",
               validate(value) {
-                return value;
+                return z.boolean().parse(value);
+              },
+            }),
+          ],
+        }),
+        createEntity({
+          name: "text",
+          inputs: [
+            createInput({
+              name: "maxLength",
+              validate(value) {
+                return z.number().parse(value);
               },
             }),
           ],
@@ -819,14 +830,23 @@ describe("store", () => {
       schema: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            type: "test",
+            type: "select",
             inputs: {
               label: "Old label",
-              test: "Some test",
+              required: true,
+            },
+          },
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "text",
+            inputs: {
+              maxLength: 1,
             },
           },
         },
-        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+        root: [
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+        ],
       },
     });
 
@@ -834,6 +854,12 @@ describe("store", () => {
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "label",
       "New label",
+    );
+
+    store.updateEntityInput(
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "maxLength",
+      1,
     );
 
     expect(store.getData()).toMatchSnapshot();

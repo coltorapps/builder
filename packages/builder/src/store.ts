@@ -1,6 +1,6 @@
 import { type Builder } from "./builder";
 import { createDataManager } from "./data-manager";
-import { type Input } from "./input";
+import { type Input, type InputsValues } from "./input";
 import {
   validateSchemaIntegrity,
   type EntitiesInputsErrors,
@@ -49,10 +49,13 @@ export interface Store<TBuilder extends Builder> {
       parentId?: string | null;
     },
   ): void;
-  updateEntityInput<TInputName extends keyof StoreEntity<TBuilder>["inputs"]>(
+  updateEntityInput<
+    TInputs extends TBuilder["entities"][number]["inputs"],
+    TInputName extends TInputs[number]["name"],
+  >(
     entityId: string,
     inputName: TInputName,
-    inputValue: StoreEntity<TBuilder>["inputs"][TInputName],
+    inputValue: InputsValues<TInputs>[TInputName],
   ): void;
   deleteEntity(entityId: string): void;
   validateEntityInput<TInputName extends keyof StoreEntity<TBuilder>["inputs"]>(
@@ -442,7 +445,10 @@ export function createStore<TBuilder extends Builder>(
 
       ensureEntityInputIsRegistered(entity.type, inputName.toString(), builder);
 
-      entity.inputs[inputName] = inputValue;
+      entity.inputs = {
+        ...entity.inputs,
+        [inputName]: inputValue,
+      };
 
       return setData({
         ...data,
