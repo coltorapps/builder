@@ -891,6 +891,14 @@ describe("store", () => {
       entities: [
         createEntity({
           name: "test",
+          inputs: [
+            createInput({
+              name: "maxLength",
+              validate(value) {
+                return z.number().parse(value);
+              },
+            }),
+          ],
         }),
       ],
     });
@@ -900,6 +908,7 @@ describe("store", () => {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
+            // @ts-expect-error Intentional wrong data type
             inputs: {},
           },
         },
@@ -910,6 +919,7 @@ describe("store", () => {
     expect(() =>
       store.updateEntityInput(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        // @ts-expect-error Intentional wrong data type
         "invalid",
         "",
       ),
@@ -1342,7 +1352,7 @@ describe("store", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
-          name: "test",
+          name: "select",
           inputs: [
             createInput({
               name: "label",
@@ -1358,6 +1368,17 @@ describe("store", () => {
             }),
           ],
         }),
+        createEntity({
+          name: "text",
+          inputs: [
+            createInput({
+              name: "maxLength",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
       ],
     });
 
@@ -1365,7 +1386,7 @@ describe("store", () => {
       schema: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            type: "test",
+            type: "select",
             inputs: {},
           },
         },

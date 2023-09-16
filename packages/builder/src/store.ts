@@ -9,7 +9,11 @@ import {
   type SchemaEntity,
 } from "./schema";
 import { type Subscribe } from "./subscription-manager";
-import { getEntityDefinition, insertIntoSetAtIndex } from "./utils";
+import {
+  getEntityDefinition,
+  insertIntoSetAtIndex,
+  type KeyofUnion,
+} from "./utils";
 
 type StoreEntity<TBuilder extends Builder = Builder> = Pick<
   SchemaEntity<TBuilder>,
@@ -50,12 +54,13 @@ export interface Store<TBuilder extends Builder> {
     },
   ): void;
   updateEntityInput<
-    TInputs extends TBuilder["entities"][number]["inputs"],
-    TInputName extends TInputs[number]["name"],
+    TInputName extends KeyofUnion<StoreEntity<TBuilder>["inputs"]>,
   >(
     entityId: string,
     inputName: TInputName,
-    inputValue: InputsValues<TInputs>[TInputName],
+    inputValue: InputsValues<
+      TBuilder["entities"][number]["inputs"]
+    >[TInputName],
   ): void;
   deleteEntity(entityId: string): void;
   validateEntityInput<TInputName extends keyof StoreEntity<TBuilder>["inputs"]>(
@@ -68,7 +73,7 @@ export interface Store<TBuilder extends Builder> {
   validateEntitiesInputs(): Promise<StoreEntitiesInputsErrors<TBuilder>>;
   setActiveEntityId(activeEntityId: StoreData["activeEntityId"]): void;
   resetEntityInputError<
-    TInputName extends keyof StoreEntity<TBuilder>["inputs"],
+    TInputName extends KeyofUnion<StoreEntity<TBuilder>["inputs"]>,
   >(
     entityId: string,
     inputName: TInputName,

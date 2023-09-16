@@ -59,3 +59,5 @@ export type OptionalPropsIfUndefined<T> = {
 } & {
   [K in NonUndefinedKeys<T>]: T[K];
 };
+
+export type KeyofUnion<T> = T extends unknown ? keyof T : never;
