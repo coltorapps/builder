@@ -7,8 +7,14 @@ export type { Entity } from "./entity";
 export { createInput } from "./input";
 export type { Input } from "./input";
 
-export { createStore } from "./store";
-export type { Store, StoreData, StoreEntitiesInputsErrors } from "./store";
+export { createStore, storeEventsNames } from "./store";
+export type {
+  Store,
+  StoreData,
+  StoreEntitiesInputsErrors,
+  StoreEvent,
+  StoreEventName,
+} from "./store";
 
 export { validateSchema, SchemaValidationError } from "./schema";
 export type {

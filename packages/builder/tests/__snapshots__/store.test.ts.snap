@@ -209,6 +209,7 @@ exports[`store > can be created with a non-empty schema 2`] = `
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "subscribe": [Function],
+  "subscribeToEvents": [Function],
   "updateEntity": [Function],
   "updateEntityInput": [Function],
   "validateEntitiesInputs": [Function],
@@ -274,6 +275,7 @@ exports[`store > can be created with an empty schema 2`] = `
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "subscribe": [Function],
+  "subscribeToEvents": [Function],
   "updateEntity": [Function],
   "updateEntityInput": [Function],
   "validateEntitiesInputs": [Function],
@@ -305,6 +307,7 @@ exports[`store > can be created without a schema 1`] = `
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "subscribe": [Function],
+  "subscribeToEvents": [Function],
   "updateEntity": [Function],
   "updateEntityInput": [Function],
   "validateEntitiesInputs": [Function],
@@ -860,6 +863,10 @@ exports[`store > doesn't update the entity when no mutation fields were provided
 }
 `;
 
+exports[`store > throws when adding an entity with a non-existent input 1`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`store > throws when adding an entity with an already existent ID 1`] = `"An entitiy with the ID \\"6e0035c3-0d4c-445f-a42b-2d971225447c\\" already exists."`;
+
 exports[`store > throws when trying to add an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
 exports[`store > throws when trying to delete non existent entity 1`] = `"Entity with ID \\"test\\" was not found."`;
@@ -871,3 +878,64 @@ exports[`store > throws when trying to update a non existent entity 1`] = `"Enti
 exports[`store > throws when updating an input of a non-existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
 exports[`store > throws when updating an non-existent input of an entity 1`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`store events system > dispatches events to listeners on mutations 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "name": "EntityAdded",
+        "payload": {
+          "entity": {
+            "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "inputs": {},
+            "type": "test",
+          },
+          "meta": undefined,
+        },
+      },
+    ],
+    [
+      {
+        "name": "EntityUpdated",
+        "payload": {
+          "entity": {
+            "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "inputs": {},
+            "type": "test",
+          },
+          "meta": {
+            "index": 0,
+          },
+        },
+      },
+    ],
+    [
+      {
+        "name": "EntityDeleted",
+        "payload": {
+          "entity": {
+            "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "inputs": {},
+            "type": "test",
+          },
+        },
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;

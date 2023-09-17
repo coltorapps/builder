@@ -1,7 +1,13 @@
-import crypto from "crypto";
+import cryptoNative from "node:crypto";
 
 export function generateUuid(): string {
-  return crypto.randomUUID();
+  const generator = cryptoNative.randomUUID ?? (() => crypto.randomUUID());
+
+  if (!generator) {
+    throw new Error('The "crypto" module is not supported.');
+  }
+
+  return generator();
 }
 
 export function validateUuid(id: string): void {

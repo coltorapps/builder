@@ -269,6 +269,67 @@ describe("store", () => {
     ).toThrowErrorMatchingSnapshot();
   });
 
+  it("throws when adding an entity with an already existent ID", () => {
+    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
+      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    );
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+      childrenAllowed: {
+        test: true,
+      },
+    });
+
+    const store = createStore(builder, {
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
+        },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      },
+    });
+
+    expect(() =>
+      store.addEntity({
+        type: "test",
+        inputs: {},
+      }),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when adding an entity with a non-existent input", () => {
+    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
+      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    );
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+    });
+
+    const store = createStore(builder);
+
+    expect(() =>
+      store.addEntity({
+        type: "test",
+        inputs: {
+          invalid: 1,
+        },
+      }),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
   it("can add entities to root", () => {
     vi.spyOn(uuidExports, "generateUuid").mockImplementation(
       () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -1532,5 +1593,37 @@ describe("store", () => {
     expect(store.resetEntitiesInputsErrors()).toEqual(undefined);
 
     expect(store.getData().entitiesInputsErrors).toMatchSnapshot();
+  });
+});
+
+describe("store events system", () => {
+  it("dispatches events to listeners on mutations", () => {
+    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
+      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    );
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+    });
+
+    const store = createStore(builder);
+
+    const listener = vi.fn();
+
+    store.subscribeToEvents(listener);
+
+    store.addEntity({ type: "test", inputs: {} });
+
+    store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
+      index: 0,
+    });
+
+    store.deleteEntity("6e0035c3-0d4c-445f-a42b-2d971225447c");
+
+    expect(listener).toMatchSnapshot();
   });
 });

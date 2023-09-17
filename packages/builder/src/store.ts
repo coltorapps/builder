@@ -8,7 +8,10 @@ import {
   type Schema,
   type SchemaEntity,
 } from "./schema";
-import { type Subscribe } from "./subscription-manager";
+import {
+  createSubscriptionManager,
+  type Subscribe,
+} from "./subscription-manager";
 import {
   getEntityDefinition,
   insertIntoSetAtIndex,
@@ -19,6 +22,9 @@ type StoreEntity<TBuilder extends Builder = Builder> = Pick<
   SchemaEntity<TBuilder>,
   "type" | "inputs" | "parentId"
 > & { children?: Set<string> };
+
+type StoreEntityWithId<TBuilder extends Builder = Builder> =
+  StoreEntity<TBuilder> & { id: string };
 
 export type StoreEntitiesInputsErrors<TBuilder extends Builder> = Map<
   string,
@@ -34,24 +40,60 @@ export interface StoreData<TBuilder extends Builder = Builder> {
   activeEntityId: string | null;
 }
 
+export const storeEventsNames = {
+  EntityAdded: "EntityAdded",
+  EntityUpdated: "EntityUpdated",
+  EntityDeleted: "EntityDeleted",
+} as const;
+
+export type StoreEventName =
+  (typeof storeEventsNames)[keyof typeof storeEventsNames];
+
+export type StoreEvent<TBuilder extends Builder = Builder> =
+  | {
+      name: typeof storeEventsNames.EntityAdded;
+      payload: {
+        entity: StoreEntityWithId<TBuilder>;
+        meta?: AddEntityMutationFields;
+      };
+    }
+  | {
+      name: typeof storeEventsNames.EntityUpdated;
+      payload: {
+        entity: StoreEntityWithId<TBuilder>;
+        meta: UpdateEntityMutationFields;
+      };
+    }
+  | {
+      name: typeof storeEventsNames.EntityDeleted;
+      payload: {
+        entity: StoreEntityWithId<TBuilder>;
+      };
+    };
+
+interface AddEntityMutationFields {
+  index?: number;
+  parentId?: string;
+}
+
+interface UpdateEntityMutationFields {
+  index?: number;
+  parentId?: string | null;
+}
+
 export interface Store<TBuilder extends Builder> {
   builder: TBuilder;
   getData(): StoreData<TBuilder>;
   subscribe: Subscribe<StoreData<TBuilder>>;
+  subscribeToEvents: Subscribe<StoreEvent<TBuilder>>;
   getSerializedSchema(): Schema<TBuilder>;
   addEntity(
     entity: StoreEntity<TBuilder>,
-    mutationFields?: {
-      index?: number;
-      parentId?: string;
-    },
+    mutationFields?: AddEntityMutationFields,
   ): void;
   updateEntity(
     entityId: string,
-    mutationFields: {
-      index?: number;
-      parentId?: string | null;
-    },
+    mutationFields: UpdateEntityMutationFields,
   ): void;
   updateEntityInput<
     TInputName extends KeyofUnion<StoreEntity<TBuilder>["inputs"]>,
@@ -78,7 +120,9 @@ export interface Store<TBuilder extends Builder> {
     entityId: string,
     inputName: TInputName,
   ): void;
-  setEntityInputError<TInputName extends keyof StoreEntity<TBuilder>["inputs"]>(
+  setEntityInputError<
+    TInputName extends KeyofUnion<StoreEntity<TBuilder>["inputs"]>,
+  >(
     entityId: string,
     inputName: TInputName,
     error?: unknown,
@@ -307,9 +351,13 @@ export function createStore<TBuilder extends Builder>(
     activeEntityId: null,
   });
 
+  const { subscribe: subscribeToEvents, notify: notifyEventsListeners } =
+    createSubscriptionManager<StoreEvent<TBuilder>>();
+
   return {
     builder,
     subscribe,
+    subscribeToEvents,
     getData,
     getSerializedSchema() {
       return serializeSchema(getData());
@@ -321,11 +369,21 @@ export function createStore<TBuilder extends Builder>(
 
       builder.entityId.validate(entityId);
 
+      if (data.schema.entities.has(entityId)) {
+        throw new Error(`An entitiy with the ID "${entityId}" already exists.`);
+      }
+
       const newEntity: StoreEntity<TBuilder> = {
         inputs: entity.inputs,
         type: entity.type,
         parentId: mutationFields?.parentId,
       };
+
+      ensureEntityInputsAreRegistered(
+        newEntity.type,
+        Object.keys(newEntity.inputs),
+        builder,
+      );
 
       if (!newEntity.parentId) {
         delete newEntity.parentId;
@@ -363,6 +421,14 @@ export function createStore<TBuilder extends Builder>(
         schema: {
           root: newRoot,
           entities: newEntities,
+        },
+      });
+
+      notifyEventsListeners({
+        name: storeEventsNames.EntityAdded,
+        payload: {
+          entity: { ...newEntity, id: entityId },
+          meta: mutationFields,
         },
       });
     },
@@ -432,16 +498,35 @@ export function createStore<TBuilder extends Builder>(
         newEntities.set(newParentEntityId, parentEntity);
       }
 
-      return setData({
+      setData({
         ...data,
         schema: {
           root: newRoot,
           entities: newEntities,
         },
       });
+
+      notifyEventsListeners({
+        name: storeEventsNames.EntityUpdated,
+        payload: {
+          entity: { ...newEntity, id: entityId },
+          meta: mutationFields,
+        },
+      });
     },
     deleteEntity(entityId) {
-      setData(deleteEntity(entityId, getData()));
+      const data = getData();
+
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      setData(deleteEntity(entityId, data));
+
+      notifyEventsListeners({
+        name: storeEventsNames.EntityDeleted,
+        payload: {
+          entity: { ...entity, id: entityId },
+        },
+      });
     },
     updateEntityInput(entityId, inputName, inputValue) {
       const data = getData();

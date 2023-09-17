@@ -1,0 +1,36 @@
+{
+  "name": "@builder/react",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "module": "build/lib/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint .",
+    "lint:fix": "pnpm lint --fix",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
+  "devDependencies": {
+    "@builder/eslint-config": "0.0.0",
+    "@types/react": "^18.2.21",
+    "builder": "0.0.0",
+    "eslint": "^8.42.0",
+    "react": "^18.2.0",
+    "tsup": "^7.2.0",
+    "vitest": "^0.34.1"
+  },
+  "peerDependencies": {
+    "builder": "0.0.0",
+    "react": "^18.2.0"
+  }
+}
