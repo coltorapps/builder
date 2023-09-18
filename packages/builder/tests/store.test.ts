@@ -1610,7 +1610,17 @@ describe("store events system", () => {
       ],
     });
 
-    const store = createStore(builder);
+    const store = createStore(builder, {
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+          },
+        },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+      },
+    });
 
     const listener = vi.fn();
 
@@ -1619,10 +1629,10 @@ describe("store events system", () => {
     store.addEntity({ type: "test", inputs: {} });
 
     store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
-      index: 0,
+      parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
     });
 
-    store.deleteEntity("6e0035c3-0d4c-445f-a42b-2d971225447c");
+    store.deleteEntity("51324b32-adc3-4d17-a90e-66b5453935bd");
 
     expect(listener).toMatchSnapshot();
   });

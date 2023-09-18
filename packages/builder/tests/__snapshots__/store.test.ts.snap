@@ -902,10 +902,11 @@ exports[`store events system > dispatches events to listeners on mutations 1`] =
           "entity": {
             "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
             "inputs": {},
+            "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
             "type": "test",
           },
           "meta": {
-            "index": 0,
+            "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
           },
         },
       },
@@ -917,6 +918,20 @@ exports[`store events system > dispatches events to listeners on mutations 1`] =
           "entity": {
             "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
             "inputs": {},
+            "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "type": "test",
+          },
+        },
+      },
+    ],
+    [
+      {
+        "name": "EntityDeleted",
+        "payload": {
+          "entity": {
+            "children": Set {},
+            "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "inputs": {},
             "type": "test",
           },
         },
@@ -924,6 +939,10 @@ exports[`store events system > dispatches events to listeners on mutations 1`] =
     ],
   ],
   "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
     {
       "type": "return",
       "value": undefined,

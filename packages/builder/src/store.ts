@@ -204,6 +204,7 @@ function ensureEntityIsRegistered(
 function deleteEntity<TBuilder extends Builder>(
   entityId: string,
   data: StoreData<TBuilder>,
+  onDelete: (entity: StoreEntityWithId<TBuilder>) => void,
 ): StoreData<TBuilder> {
   const entity = ensureEntityExists(entityId, data.schema.entities);
 
@@ -229,11 +230,13 @@ function deleteEntity<TBuilder extends Builder>(
   }
 
   newData = Array.from(entity.children ?? []).reduce(
-    (result, childId) => deleteEntity(childId, result),
+    (result, childId) => deleteEntity(childId, result, onDelete),
     newData,
   );
 
   newData.schema.entities.delete(entityId);
+
+  onDelete({ ...entity, id: entityId });
 
   newData.entitiesInputsErrors.delete(entityId);
 
@@ -517,16 +520,16 @@ export function createStore<TBuilder extends Builder>(
     deleteEntity(entityId) {
       const data = getData();
 
-      const entity = ensureEntityExists(entityId, data.schema.entities);
-
-      setData(deleteEntity(entityId, data));
-
-      notifyEventsListeners({
-        name: storeEventsNames.EntityDeleted,
-        payload: {
-          entity: { ...entity, id: entityId },
-        },
-      });
+      setData(
+        deleteEntity(entityId, data, (deletedEntity) =>
+          notifyEventsListeners({
+            name: storeEventsNames.EntityDeleted,
+            payload: {
+              entity: deletedEntity,
+            },
+          }),
+        ),
+      );
     },
     updateEntityInput(entityId, inputName, inputValue) {
       const data = getData();
