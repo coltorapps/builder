@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { createBuilder, createEntity, createInput, createStore } from "../src";
@@ -6,7 +6,15 @@ import * as schemaExports from "../src/schema";
 import * as uuidExports from "../src/uuid";
 
 describe("store", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+
+    vi.setSystemTime(new Date(2000, 1, 1, 13));
+  });
+
   afterEach(() => {
+    vi.useRealTimers();
+
     vi.restoreAllMocks();
   });
 
@@ -301,6 +309,136 @@ describe("store", () => {
       store.addEntity({
         type: "test",
         inputs: {},
+      }),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when adding an entity without a parent when parent is required", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+      parentRequired: ["test"],
+    });
+
+    const store = createStore(builder);
+
+    expect(() =>
+      store.addEntity({
+        type: "test",
+        inputs: {},
+      }),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when adding an entity to a non-allowed parent", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+          },
+        },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+      },
+    });
+
+    expect(() =>
+      store.addEntity(
+        {
+          type: "test",
+          inputs: {},
+        },
+        {
+          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+        },
+      ),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when moving an entity to the root when parent is required", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "section",
+        }),
+        createEntity({
+          name: "text",
+        }),
+      ],
+      childrenAllowed: {
+        section: true,
+      },
+      parentRequired: ["text"],
+    });
+
+    const store = createStore(builder, {
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "text",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "section",
+            inputs: {},
+            children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+          },
+        },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+      },
+    });
+
+    expect(() =>
+      store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
+        parentId: null,
+      }),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws moving an entity to a non-allowed parent", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+    });
+
+    const store = createStore(builder, {
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+          },
+        },
+        root: [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
+      },
+    });
+
+    expect(() =>
+      store.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
+        parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
       }),
     ).toThrowErrorMatchingSnapshot();
   });
@@ -911,13 +1049,13 @@ describe("store", () => {
       },
     });
 
-    store.updateEntityInput(
+    store.setEntityInput(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "label",
       "New label",
     );
 
-    store.updateEntityInput(
+    store.setEntityInput(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "maxLength",
       1,
@@ -943,7 +1081,7 @@ describe("store", () => {
     });
 
     expect(() =>
-      store.updateEntityInput("invalid", "", ""),
+      store.setEntityInput("invalid", "", ""),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -978,7 +1116,7 @@ describe("store", () => {
     });
 
     expect(() =>
-      store.updateEntityInput(
+      store.setEntityInput(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         // @ts-expect-error Intentional wrong data type
         "invalid",
@@ -1597,6 +1735,16 @@ describe("store", () => {
 });
 
 describe("store events system", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+
+    vi.setSystemTime(new Date(2000, 1, 1, 13));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("dispatches events to listeners on mutations", () => {
     vi.spyOn(uuidExports, "generateUuid").mockImplementation(
       () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -1608,6 +1756,9 @@ describe("store events system", () => {
           name: "test",
         }),
       ],
+      childrenAllowed: {
+        test: true,
+      },
     });
 
     const store = createStore(builder, {

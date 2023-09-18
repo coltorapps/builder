@@ -1,8 +1,6 @@
 "use client";
 
-import { useRef, useSyncExternalStore } from "react";
-
-import { useBuilder } from "@builder/react";
+import { Builder, useBuilder } from "@builder/react";
 
 import { createBuilder, createEntity } from "../../../packages/builder/dist";
 
@@ -10,27 +8,10 @@ export default function Page() {
   const { store } = useBuilder(
     createBuilder({
       entities: [createEntity({ name: "test" })],
+      childrenAllowed: {
+        test: true
+      }
     }),
-    {
-      onEntityAdded(payload) {
-        console.log(payload);
-      },
-    },
-  );
-
-  const entitiesCache = useRef(store.getData().schema.entities);
-
-  const entities = useSyncExternalStore(
-    (listen) =>
-      store.subscribe((data) => {
-        if (data.schema.entities.size !== entitiesCache.current.size) {
-          entitiesCache.current = data.schema.entities;
-        }
-
-        listen();
-      }),
-    () => entitiesCache.current,
-    () => entitiesCache.current,
   );
 
   return (
@@ -42,7 +23,30 @@ export default function Page() {
       >
         add
       </button>
-      {JSON.stringify(Object.fromEntries(entities.entries()))}
+      <button
+        onClick={() => {
+          store.updateEntity(
+            Array.from(store.getData().schema.root.values())[0]!,
+            { index: 10 },
+          );
+        }}
+      >
+        mov
+      </button>
+      <button
+        onClick={() => {
+          store.updateEntity(
+            Array.from(store.getData().schema.root.values())[0]!,
+            { parentId: Array.from(store.getData().schema.root.values())[1]! },
+          );
+
+          console.log(store.getData());
+          
+        }}
+      >
+        add child
+      </button>
+      <Builder store={store} />
     </>
   );
 }

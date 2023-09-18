@@ -240,14 +240,20 @@ const invalidSchemasCases: Array<{
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
           inputs: {},
-          children: [],
+          children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+        },
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          inputs: {},
+          parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         },
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     errorCause: {
-      code: schemaValidationErrorCodes.ChildrenNotAllowed,
+      code: schemaValidationErrorCodes.ChildNotAllowed,
       entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      childId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
     },
   },
   {

@@ -12,6 +12,7 @@ exports[`store > can add entities to a parent entity 1`] = `
         },
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
         "inputs": {},
@@ -39,6 +40,7 @@ exports[`store > can add entities to a parent entity at a specific index 1`] = `
         },
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
       "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
         "inputs": {},
@@ -206,12 +208,12 @@ exports[`store > can be created with a non-empty schema 2`] = `
   "resetEntityInputsErrors": [Function],
   "setActiveEntityId": [Function],
   "setEntitiesInputsErrors": [Function],
+  "setEntityInput": [Function],
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "subscribe": [Function],
   "subscribeToEvents": [Function],
   "updateEntity": [Function],
-  "updateEntityInput": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
   "validateEntityInputs": [Function],
@@ -272,12 +274,12 @@ exports[`store > can be created with an empty schema 2`] = `
   "resetEntityInputsErrors": [Function],
   "setActiveEntityId": [Function],
   "setEntitiesInputsErrors": [Function],
+  "setEntityInput": [Function],
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "subscribe": [Function],
   "subscribeToEvents": [Function],
   "updateEntity": [Function],
-  "updateEntityInput": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
   "validateEntityInputs": [Function],
@@ -304,12 +306,12 @@ exports[`store > can be created without a schema 1`] = `
   "resetEntityInputsErrors": [Function],
   "setActiveEntityId": [Function],
   "setEntitiesInputsErrors": [Function],
+  "setEntityInput": [Function],
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "subscribe": [Function],
   "subscribeToEvents": [Function],
   "updateEntity": [Function],
-  "updateEntityInput": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
   "validateEntityInputs": [Function],
@@ -348,6 +350,7 @@ exports[`store > can move an entity from root to a parent entity 1`] = `
         },
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
       "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
         "inputs": {},
@@ -358,6 +361,7 @@ exports[`store > can move an entity from root to a parent entity 1`] = `
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -380,6 +384,7 @@ exports[`store > can move an entity from root to a parent entity at a specific i
         },
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
       "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
         "inputs": {},
@@ -390,6 +395,7 @@ exports[`store > can move an entity from root to a parent entity at a specific i
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -412,6 +418,7 @@ exports[`store > can move an entity in a parent entity 1`] = `
         },
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
       "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
         "inputs": {},
@@ -422,6 +429,7 @@ exports[`store > can move an entity in a parent entity 1`] = `
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -444,6 +452,7 @@ exports[`store > can move an entity in root 1`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -467,6 +476,7 @@ exports[`store > can move an entity in root 2`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -490,6 +500,7 @@ exports[`store > can move an entity in root 3`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -510,10 +521,12 @@ exports[`store > can move an entity to root 1`] = `
         "children": Set {},
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -534,10 +547,12 @@ exports[`store > can move an entity to root at a specific index 1`] = `
         "children": Set {},
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
         "inputs": {},
         "type": "test",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -690,12 +705,14 @@ exports[`store > can update entity inputs 1`] = `
           "required": true,
         },
         "type": "select",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
       "51324b32-adc3-4d17-a90e-66b5453935bd" => {
         "inputs": {
           "maxLength": 1,
         },
         "type": "text",
+        "updatedAt": 2000-02-01T11:00:00.000Z,
       },
     },
     "root": Set {
@@ -863,9 +880,17 @@ exports[`store > doesn't update the entity when no mutation fields were provided
 }
 `;
 
+exports[`store > throws moving an entity to a non-allowed parent 1`] = `"Child is not allowed."`;
+
+exports[`store > throws when adding an entity to a non-allowed parent 1`] = `"Child is not allowed."`;
+
 exports[`store > throws when adding an entity with a non-existent input 1`] = `"Unkown entity input \\"invalid\\"."`;
 
 exports[`store > throws when adding an entity with an already existent ID 1`] = `"An entitiy with the ID \\"6e0035c3-0d4c-445f-a42b-2d971225447c\\" already exists."`;
+
+exports[`store > throws when adding an entity without a parent when parent is required 1`] = `"A parent is required."`;
+
+exports[`store > throws when moving an entity to the root when parent is required 1`] = `"A parent is required."`;
 
 exports[`store > throws when trying to add an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
@@ -904,6 +929,7 @@ exports[`store events system > dispatches events to listeners on mutations 1`] =
             "inputs": {},
             "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
             "type": "test",
+            "updatedAt": 2000-02-01T11:00:00.000Z,
           },
           "meta": {
             "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
@@ -920,6 +946,7 @@ exports[`store events system > dispatches events to listeners on mutations 1`] =
             "inputs": {},
             "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
             "type": "test",
+            "updatedAt": 2000-02-01T11:00:00.000Z,
           },
         },
       },
@@ -933,6 +960,7 @@ exports[`store events system > dispatches events to listeners on mutations 1`] =
             "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
             "inputs": {},
             "type": "test",
+            "updatedAt": 2000-02-01T11:00:00.000Z,
           },
         },
       },

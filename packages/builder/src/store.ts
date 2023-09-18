@@ -13,17 +13,19 @@ import {
   type Subscribe,
 } from "./subscription-manager";
 import {
+  entityParentRequired,
   getEntityDefinition,
   insertIntoSetAtIndex,
+  isEntityChildAllowed,
   type KeyofUnion,
 } from "./utils";
 
-type StoreEntity<TBuilder extends Builder = Builder> = Pick<
+export type StoreEntity<TBuilder extends Builder = Builder> = Pick<
   SchemaEntity<TBuilder>,
   "type" | "inputs" | "parentId"
-> & { children?: Set<string> };
+> & { children?: Set<string>; updatedAt?: Date };
 
-type StoreEntityWithId<TBuilder extends Builder = Builder> =
+export type StoreEntityWithId<TBuilder extends Builder = Builder> =
   StoreEntity<TBuilder> & { id: string };
 
 export type StoreEntitiesInputsErrors<TBuilder extends Builder> = Map<
@@ -61,7 +63,7 @@ export type StoreEvent<TBuilder extends Builder = Builder> =
       name: typeof storeEventsNames.EntityUpdated;
       payload: {
         entity: StoreEntityWithId<TBuilder>;
-        meta: UpdateEntityMutationFields;
+        meta?: UpdateEntityMutationFields;
       };
     }
   | {
@@ -81,11 +83,15 @@ interface UpdateEntityMutationFields {
   parentId?: string | null;
 }
 
-export interface Store<TBuilder extends Builder> {
+export interface Store<TBuilder extends Builder = Builder> {
   builder: TBuilder;
   getData(): StoreData<TBuilder>;
-  subscribe: Subscribe<StoreData<TBuilder>>;
-  subscribeToEvents: Subscribe<StoreEvent<TBuilder>>;
+  subscribe(
+    ...args: Parameters<Subscribe<StoreData<TBuilder>>>
+  ): ReturnType<Subscribe<StoreData<TBuilder>>>;
+  subscribeToEvents(
+    ...args: Parameters<Subscribe<StoreEvent<TBuilder>>>
+  ): ReturnType<Subscribe<StoreEvent<TBuilder>>>;
   getSerializedSchema(): Schema<TBuilder>;
   addEntity(
     entity: StoreEntity<TBuilder>,
@@ -95,7 +101,7 @@ export interface Store<TBuilder extends Builder> {
     entityId: string,
     mutationFields: UpdateEntityMutationFields,
   ): void;
-  updateEntityInput<
+  setEntityInput<
     TInputName extends KeyofUnion<StoreEntity<TBuilder>["inputs"]>,
   >(
     entityId: string,
@@ -105,7 +111,9 @@ export interface Store<TBuilder extends Builder> {
     >[TInputName],
   ): void;
   deleteEntity(entityId: string): void;
-  validateEntityInput<TInputName extends keyof StoreEntity<TBuilder>["inputs"]>(
+  validateEntityInput<
+    TInputName extends KeyofUnion<StoreEntity<TBuilder>["inputs"]>,
+  >(
     entityId: string,
     inputName: TInputName,
   ): Promise<void>;
@@ -201,6 +209,22 @@ function ensureEntityIsRegistered(
   return entityDefinition;
 }
 
+function ensureEntityChildAllowed(
+  entityType: string,
+  childEntityType: string,
+  builder: Builder,
+): void {
+  if (!isEntityChildAllowed(entityType, childEntityType, builder)) {
+    throw new Error("Child is not allowed.");
+  }
+}
+
+function ensureEntityCanLackParent(entityType: string, builder: Builder): void {
+  if (entityParentRequired(entityType, builder)) {
+    throw new Error("A parent is required.");
+  }
+}
+
 function deleteEntity<TBuilder extends Builder>(
   entityId: string,
   data: StoreData<TBuilder>,
@@ -225,6 +249,8 @@ function deleteEntity<TBuilder extends Builder>(
     );
 
     parentEntity.children?.delete(entityId);
+
+    parentEntity.updatedAt = new Date();
 
     newData.schema.entities.set(entity.parentId, parentEntity);
   }
@@ -404,17 +430,23 @@ export function createStore<TBuilder extends Builder>(
           entityId,
           mutationFields?.index,
         );
+
+        ensureEntityCanLackParent(newEntity.type, builder);
       } else {
         const parentEntity = ensureEntityExists(
           mutationFields.parentId,
           data.schema.entities,
         );
 
+        ensureEntityChildAllowed(parentEntity.type, newEntity.type, builder);
+
         parentEntity.children = insertIntoSetAtIndex(
           parentEntity.children ?? new Set(),
           entityId,
           mutationFields?.index,
         );
+
+        parentEntity.updatedAt = new Date();
 
         newEntities.set(mutationFields.parentId, parentEntity);
       }
@@ -456,9 +488,10 @@ export function createStore<TBuilder extends Builder>(
           ? undefined
           : mutationFields.parentId ?? entity.parentId;
 
-      const newEntity = {
+      const newEntity: StoreEntity<TBuilder> = {
         ...entity,
         parentId: newParentEntityId,
+        updatedAt: new Date(),
       };
 
       if (!newEntity.parentId) {
@@ -477,6 +510,8 @@ export function createStore<TBuilder extends Builder>(
 
         parentEntity.children?.delete(entityId);
 
+        parentEntity.updatedAt = new Date();
+
         newEntities.set(entity.parentId, parentEntity);
       }
 
@@ -486,17 +521,23 @@ export function createStore<TBuilder extends Builder>(
           entityId,
           mutationFields?.index,
         );
+
+        ensureEntityCanLackParent(newEntity.type, builder);
       } else if (newParentEntityId) {
         const parentEntity = ensureEntityExists(
           newParentEntityId,
           data.schema.entities,
         );
 
+        ensureEntityChildAllowed(parentEntity.type, newEntity.type, builder);
+
         parentEntity.children = insertIntoSetAtIndex(
           parentEntity.children ?? new Set(),
           entityId,
           mutationFields?.index,
         );
+
+        parentEntity.updatedAt = new Date();
 
         newEntities.set(newParentEntityId, parentEntity);
       }
@@ -531,12 +572,14 @@ export function createStore<TBuilder extends Builder>(
         ),
       );
     },
-    updateEntityInput(entityId, inputName, inputValue) {
+    setEntityInput(entityId, inputName, inputValue) {
       const data = getData();
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
       ensureEntityInputIsRegistered(entity.type, inputName.toString(), builder);
+
+      entity.updatedAt = new Date();
 
       entity.inputs = {
         ...entity.inputs,

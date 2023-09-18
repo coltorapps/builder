@@ -14,6 +14,8 @@ export type {
   StoreEntitiesInputsErrors,
   StoreEvent,
   StoreEventName,
+  StoreEntity,
+  StoreEntityWithId,
 } from "./store";
 
 export { validateSchema, SchemaValidationError } from "./schema";

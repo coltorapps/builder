@@ -46,6 +46,27 @@ export function getEntityDefinition(
   );
 }
 
+export function isEntityChildAllowed(
+  entityType: string,
+  childEntityType: string,
+  builder: Builder,
+): boolean {
+  const allowedChildren = builder.childrenAllowed[entityType];
+
+  if (!allowedChildren) {
+    return false;
+  }
+
+  return allowedChildren === true || allowedChildren.includes(childEntityType);
+}
+
+export function entityParentRequired(
+  entityType: string,
+  builder: Builder,
+): boolean {
+  return builder.parentRequired.includes(entityType);
+}
+
 type UndefinedKeys<T> = {
   [K in keyof T]: undefined extends T[K] ? K : never;
 }[keyof T];

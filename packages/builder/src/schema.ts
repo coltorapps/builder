@@ -1,6 +1,11 @@
 import { type Builder } from "./builder";
 import { type InputsValues } from "./input";
-import { getEntityDefinition, type OptionalPropsIfUndefined } from "./utils";
+import {
+  entityParentRequired,
+  getEntityDefinition,
+  isEntityChildAllowed,
+  type OptionalPropsIfUndefined
+} from "./utils";
 
 export const schemaValidationErrorCodes = {
   InvalidRootFormat: "InvalidRootFormat",
@@ -20,7 +25,6 @@ export const schemaValidationErrorCodes = {
   InvalidEntityInputs: "InvalidEntityInputs",
   InvalidEntitiesInputs: "InvalidEntitiesInputs",
   SelfEntityReference: "SelfEntityReference",
-  ChildrenNotAllowed: "ChildrenNotAllowed",
   ChildNotAllowed: "ChildNotAllowed",
   EntityChildrenMismatch: "EntityChildrenMismatch",
   ParentRequired: "ParentRequired",
@@ -61,8 +65,6 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
     [schemaValidationErrorCodes.UnknownEntityInputType]:
       "The provided entity input type is unknown.",
     [schemaValidationErrorCodes.SelfEntityReference]: "Self entity reference.",
-    [schemaValidationErrorCodes.ChildrenNotAllowed]:
-      "Children are not allowed.",
     [schemaValidationErrorCodes.ChildNotAllowed]: "Child is not allowed.",
     [schemaValidationErrorCodes.EntityChildrenMismatch]:
       "Children relationship mismatch.",
@@ -135,10 +137,6 @@ export type SchemaValidationErrorCause =
     }
   | {
       code: typeof schemaValidationErrorCodes.InvalidChildrenFormat;
-      entityId: string;
-    }
-  | {
-      code: typeof schemaValidationErrorCodes.ChildrenNotAllowed;
       entityId: string;
     }
   | {
@@ -357,16 +355,7 @@ export function ensureEntityChildAllowed(
   childEntity: SchemaEntityWithId,
   builder: Builder,
 ): void {
-  const allowedChildren = builder.childrenAllowed[entity.type];
-
-  if (!allowedChildren) {
-    throw new SchemaValidationError({
-      code: schemaValidationErrorCodes.ChildrenNotAllowed,
-      entityId: entity.id,
-    });
-  }
-
-  if (allowedChildren !== true && !allowedChildren.includes(childEntity.type)) {
+  if (!isEntityChildAllowed(entity.type, childEntity.type, builder)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.ChildNotAllowed,
       entityId: entity.id,
@@ -384,15 +373,6 @@ function ensureEntityChildrenAreAllowed(
 ): void {
   if (!entity.children) {
     return;
-  }
-
-  const allowedChildren = dependencies.builder.childrenAllowed[entity.type];
-
-  if (!allowedChildren) {
-    throw new SchemaValidationError({
-      code: schemaValidationErrorCodes.ChildrenNotAllowed,
-      entityId: entity.id,
-    });
   }
 
   entity.children.forEach((id) => {
@@ -487,7 +467,7 @@ export function ensureEntityCanLackParent(
   entity: SchemaEntityWithId,
   builder: Builder,
 ): void {
-  if (!entity.parentId && builder.parentRequired.includes(entity.type)) {
+  if (!entity.parentId && entityParentRequired(entity.type, builder)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.ParentRequired,
       entityId: entity.id,
