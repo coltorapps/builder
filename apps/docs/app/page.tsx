@@ -9,8 +9,8 @@ export default function Page() {
     createBuilder({
       entities: [createEntity({ name: "test" })],
       childrenAllowed: {
-        test: true
-      }
+        test: true,
+      },
     }),
   );
 
@@ -41,7 +41,6 @@ export default function Page() {
           );
 
           console.log(store.getData());
-          
         }}
       >
         add child

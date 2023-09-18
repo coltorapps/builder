@@ -4,7 +4,7 @@ import {
   entityParentRequired,
   getEntityDefinition,
   isEntityChildAllowed,
-  type OptionalPropsIfUndefined
+  type OptionalPropsIfUndefined,
 } from "./utils";
 
 export const schemaValidationErrorCodes = {

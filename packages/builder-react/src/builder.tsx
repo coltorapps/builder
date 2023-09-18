@@ -135,7 +135,11 @@ const MemoizedEntity = memo(function Entity(props: {
   return (
     <div>
       {props.entityId}
-      {childrenIds ? <div style={{marginLeft: '1rem'}}><Entities entitiesIds={childrenIds} /></div> : null}
+      {childrenIds ? (
+        <div style={{ marginLeft: "1rem" }}>
+          <Entities entitiesIds={childrenIds} />
+        </div>
+      ) : null}
     </div>
   );
 });
