@@ -7,23 +7,27 @@ export type { Entity } from "./entity";
 export { createInput } from "./input";
 export type { Input } from "./input";
 
-export { createStore, storeEventsNames } from "./store";
+export { createSchemaStore, schemaStoreEventsNames } from "./schema-store";
 export type {
-  Store,
-  StoreData,
-  StoreEntitiesInputsErrors,
-  StoreEvent,
-  StoreEventName,
-  StoreEntity,
-  StoreEntityWithId,
-} from "./store";
+  SchemaStoreData,
+  SchemaStoreEntity,
+  SchemaStore,
+  SchemaStoreEntityWithId,
+  SchemaStoreEvent,
+} from "./schema-store";
 
-export { validateSchema, SchemaValidationError } from "./schema";
+export { createInputsValidationStore } from "./inputs-validation-store";
 export type {
-  SchemaValidationErrorCode,
-  SchemaValidationErrorCause,
-  SchemaEntity,
+  InputsValidationStore,
+  InputsValidationStoreData,
+} from "./inputs-validation-store";
+
+export { SchemaValidationError, validateSchema } from "./schema";
+export type {
   Schema,
+  SchemaEntity,
+  SchemaValidationErrorCause,
+  SchemaValidationErrorCode,
 } from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";

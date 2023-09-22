@@ -1,4 +1,4 @@
-import { type Builder, type BuilderEntities } from "./builder";
+import { type BuilderEntities } from "./builder";
 
 export function getEntitiesNamesExcept<
   const TEntities extends BuilderEntities,
@@ -35,36 +35,6 @@ export function insertIntoSetAtIndex<T>(
   result.splice(index ?? set.size, 0, value);
 
   return new Set(result);
-}
-
-export function getEntityDefinition(
-  entityType: string,
-  builder: Builder,
-): Builder["entities"][number] | undefined {
-  return builder.entities.find(
-    (builderEntity) => builderEntity.name === entityType,
-  );
-}
-
-export function isEntityChildAllowed(
-  entityType: string,
-  childEntityType: string,
-  builder: Builder,
-): boolean {
-  const allowedChildren = builder.childrenAllowed[entityType];
-
-  if (!allowedChildren) {
-    return false;
-  }
-
-  return allowedChildren === true || allowedChildren.includes(childEntityType);
-}
-
-export function entityParentRequired(
-  entityType: string,
-  builder: Builder,
-): boolean {
-  return builder.parentRequired.includes(entityType);
 }
 
 type UndefinedKeys<T> = {

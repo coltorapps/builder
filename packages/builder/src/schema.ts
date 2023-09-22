@@ -1,11 +1,11 @@
-import { type Builder } from "./builder";
-import { type InputsValues } from "./input";
 import {
-  entityParentRequired,
   getEntityDefinition,
   isEntityChildAllowed,
-  type OptionalPropsIfUndefined,
-} from "./utils";
+  isEntityParentRequired,
+  type Builder,
+} from "./builder";
+import { type InputsValues } from "./input";
+import { type OptionalPropsIfUndefined } from "./utils";
 
 export const schemaValidationErrorCodes = {
   InvalidRootFormat: "InvalidRootFormat",
@@ -467,7 +467,7 @@ export function ensureEntityCanLackParent(
   entity: SchemaEntityWithId,
   builder: Builder,
 ): void {
-  if (!entity.parentId && entityParentRequired(entity.type, builder)) {
+  if (!entity.parentId && isEntityParentRequired(entity.type, builder)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.ParentRequired,
       entityId: entity.id,

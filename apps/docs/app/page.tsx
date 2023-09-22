@@ -4,8 +4,15 @@ import { Builder, useBuilder } from "@builder/react";
 
 import { createBuilder, createEntity } from "../../../packages/builder/dist";
 
+// const builder = createBuilder({
+//   entities: [createEntity({ name: "test" })],
+//   childrenAllowed: {
+//     test: true,
+//   },
+// });
+
 export default function Page() {
-  const { store } = useBuilder(
+  const client = useBuilder(
     createBuilder({
       entities: [createEntity({ name: "test" })],
       childrenAllowed: {
@@ -16,17 +23,17 @@ export default function Page() {
 
   return (
     <>
-      <button
+      {/* <button
         onClick={() => {
-          store.addEntity({ type: "test", inputs: {} });
+          client.schemaStore.addEntity({ type: "test", inputs: {} });
         }}
       >
         add
       </button>
       <button
         onClick={() => {
-          store.updateEntity(
-            Array.from(store.getData().schema.root.values())[0]!,
+          client.schemaStore.updateEntity(
+            Array.from(client.schemaStore.getData().root.values())[0]!,
             { index: 10 },
           );
         }}
@@ -35,17 +42,30 @@ export default function Page() {
       </button>
       <button
         onClick={() => {
-          store.updateEntity(
-            Array.from(store.getData().schema.root.values())[0]!,
-            { parentId: Array.from(store.getData().schema.root.values())[1]! },
+          client.schemaStore.updateEntity(
+            Array.from(client.schemaStore.getData().root.values())[0]!,
+            {
+              parentId: Array.from(
+                client.schemaStore.getData().root.values(),
+              )[1]!,
+            },
           );
 
-          console.log(store.getData());
+          console.log(client.schemaStore.getData());
         }}
       >
         add child
-      </button>
-      <Builder store={store} />
+      </button> */}
+      <Builder client={client}>
+        {({ entity, children }) => {
+          return (
+            <div>
+              {entity.id}
+              <div style={{ paddingLeft: "1rem" }}>{children}</div>
+            </div>
+          );
+        }}
+      </Builder>
     </>
   );
 }
