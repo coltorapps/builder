@@ -18,10 +18,79 @@ describe("inputs validation store", () => {
     const schemaStore = createSchemaStore({ builder });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
     expect(inputsValidationStore).toMatchSnapshot();
+  });
+
+  it("can be created with initial errors", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const schemaStore = createSchemaStore({
+      builder,
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {
+              label: "test label",
+            },
+          },
+        },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      },
+    });
+
+    const inputsValidationStore = createInputsValidationStore({
+      builder,
+      schemaStore,
+      errors: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          label: new Error(),
+        },
+      },
+    });
+
+    expect(inputsValidationStore.getData()).toMatchSnapshot();
+
+    expect(() =>
+      createInputsValidationStore({
+        builder,
+        schemaStore,
+        errors: {
+          invalid: {},
+        },
+      }),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(() =>
+      createInputsValidationStore({
+        builder,
+        schemaStore,
+        errors: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            // @ts-expect-error Intentional wrong data type
+            invalid: new Error(),
+          },
+        },
+      }),
+    ).toThrowErrorMatchingSnapshot();
   });
 
   it("can validate a single entity input", async () => {
@@ -66,6 +135,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
@@ -140,6 +210,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
@@ -206,6 +277,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
@@ -250,6 +322,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
@@ -322,6 +395,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
@@ -396,6 +470,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
@@ -482,6 +557,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
@@ -554,6 +630,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 
@@ -624,6 +701,7 @@ describe("inputs validation store", () => {
     });
 
     const inputsValidationStore = createInputsValidationStore({
+      builder,
       schemaStore,
     });
 

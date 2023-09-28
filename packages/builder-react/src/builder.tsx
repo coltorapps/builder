@@ -20,6 +20,7 @@ import {
   type SchemaStoreEvent,
 } from "builder";
 
+import { type EntityComponent } from "./entities";
 import { arraysAreEqual } from "./utils";
 
 export function useBuilder<TBuilder extends BaseBuilder>(
@@ -90,14 +91,22 @@ export function useBuilder<TBuilder extends BaseBuilder>(
   };
 }
 
+type EntitiesComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
+  [K in TBuilder["entities"][number]["name"]]: EntityComponent<
+    Extract<TBuilder["entities"][number], { name: K }>
+  >;
+};
+
 interface BuilderContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
-  store: SchemaStore<TBuilder>;
+  schemaStore: SchemaStore<TBuilder>;
+  entitiesComponents: EntitiesComponents<TBuilder>;
   renderEntity: EntityRender<TBuilder>;
 }
 
 const BuilderContext = createContext<BuilderContextValue>({
-  store: createSchemaStore({ builder: createBuilder({ entities: [] }) }),
+  schemaStore: createSchemaStore({ builder: createBuilder({ entities: [] }) }),
   renderEntity: (props) => props.children,
+  entitiesComponents: {},
 });
 
 interface EntityRender<TBuilder extends BaseBuilder = BaseBuilder> {
@@ -110,7 +119,11 @@ interface EntityRender<TBuilder extends BaseBuilder = BaseBuilder> {
 const MemoizedEntity = memo(function Entity(props: {
   entityId: string;
 }): ReactNode {
-  const { store, renderEntity } = useContext(BuilderContext);
+  const {
+    schemaStore: store,
+    renderEntity,
+    entitiesComponents,
+  } = useContext(BuilderContext);
 
   const entityCache = useRef(store.getData().entities.get(props.entityId));
 
@@ -142,23 +155,31 @@ const MemoizedEntity = memo(function Entity(props: {
 
   const childrenIds = Array.from(entity?.children ?? []);
 
+  const EntityComponent = entitiesComponents[entity.type];
+
+  if (!EntityComponent) {
+    throw new Error("Entity component not found.");
+  }
+
+  const entityWithId = { ...entity, id: props.entityId };
+
   return renderEntity({
-    entity: { ...entity, id: props.entityId },
-    children: <Entities entitiesIds={childrenIds} />,
+    entity: entityWithId,
+    children: (
+      <EntityComponent entity={entityWithId}>
+        {childrenIds.map((entityId) => (
+          <MemoizedEntity key={entityId} entityId={entityId} />
+        ))}
+      </EntityComponent>
+    ),
   });
 });
 
-function Entities(props: { entitiesIds: string[] }): ReactNode {
-  return props.entitiesIds.map((entityId) => (
-    <MemoizedEntity key={entityId} entityId={entityId} />
-  ));
-}
-
-export function Builder<TBuilder extends BaseBuilder>(props: {
+function Entities<TBuilder extends BaseBuilder>(props: {
   client: {
     schemaStore: SchemaStore<TBuilder>;
-    inputsValidationStore: InputsValidationStore<TBuilder>;
   };
+  entitiesComponents: EntitiesComponents<TBuilder>;
   children?: EntityRender<TBuilder>;
 }): ReactNode {
   const rootCache = useRef(Array.from(props.client.schemaStore.getData().root));
@@ -181,12 +202,20 @@ export function Builder<TBuilder extends BaseBuilder>(props: {
   return (
     <BuilderContext.Provider
       value={{
-        store: props.client.schemaStore,
+        schemaStore: props.client.schemaStore,
         renderEntity:
           (props.children as EntityRender) ?? ((props) => props.children),
+        entitiesComponents:
+          props.entitiesComponents as unknown as EntitiesComponents,
       }}
     >
-      <Entities entitiesIds={root} />
+      {root.map((entityId) => (
+        <MemoizedEntity key={entityId} entityId={entityId} />
+      ))}
     </BuilderContext.Provider>
   );
 }
+
+export const Builder = {
+  Entities,
+};

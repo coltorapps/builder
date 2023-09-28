@@ -18,10 +18,9 @@ import {
 import { type Store } from "./store";
 import { type KeyofUnion } from "./utils";
 
-export type InputsValidationStoreData<TBuilder extends Builder = Builder> = Map<
-  string,
-  EntityInputsErrors<TBuilder>
->;
+export type InputsValidationStoreData<TBuilder extends Builder = Builder> = {
+  errors: Map<string, EntityInputsErrors<TBuilder>>;
+};
 
 export interface InputsValidationStore<TBuilder extends Builder = Builder>
   extends Store<InputsValidationStoreData<TBuilder>> {
@@ -62,6 +61,7 @@ async function validateEntityInput<TBuilder extends Builder>(
   inputName: string,
   dependencies: {
     schemaStore: SchemaStore<TBuilder>;
+    builder: TBuilder;
   },
 ): Promise<unknown> {
   const entity = ensureEntityExists(
@@ -72,7 +72,7 @@ async function validateEntityInput<TBuilder extends Builder>(
   const input = ensureEntityInputIsRegistered(
     entity.type,
     inputName,
-    dependencies.schemaStore.builder,
+    dependencies.builder,
   );
 
   try {
@@ -89,9 +89,10 @@ async function validateEntityInputs<TBuilder extends Builder>(
   dependencies: {
     schemaStore: SchemaStore<TBuilder>;
     data: InputsValidationStoreData<TBuilder>;
+    builder: TBuilder;
   },
 ): Promise<EntityInputsErrors<TBuilder> | undefined> {
-  const newEntitiesInputsErrors = new Map(dependencies.data);
+  const newEntitiesInputsErrors = new Map(dependencies.data.errors);
 
   const entity = ensureEntityExists(
     entityId,
@@ -100,7 +101,7 @@ async function validateEntityInputs<TBuilder extends Builder>(
 
   const entityDefinition = ensureEntityIsRegistered(
     entity.type,
-    dependencies.schemaStore.builder,
+    dependencies.builder,
   );
 
   for (const input of entityDefinition.inputs) {
@@ -119,12 +120,52 @@ async function validateEntityInputs<TBuilder extends Builder>(
   return newEntitiesInputsErrors.get(entityId);
 }
 
+function deserializeEntitiesInputsErrors<TBuilder extends Builder>(
+  entitiesInputsErrors?: EntitiesInputsErrors<TBuilder>,
+): InputsValidationStoreData<TBuilder>["errors"] {
+  return new Map(Object.entries(entitiesInputsErrors ?? {}));
+}
+
+function ensureEntitiesInputsErrorsAreValid<TBuilder extends Builder>(
+  entitiesInputsErrors: InputsValidationStoreData<TBuilder>["errors"],
+  dependencies: {
+    schemaStore: SchemaStore<TBuilder>;
+    builder: TBuilder;
+  },
+): InputsValidationStoreData<TBuilder>["errors"] {
+  const newErrors = new Map(entitiesInputsErrors);
+
+  for (const [entityId, inputsErrors] of newErrors.entries()) {
+    const entity = ensureEntityExists(
+      entityId,
+      dependencies.schemaStore.getData().entities,
+    );
+
+    ensureEntityInputsAreRegistered(
+      entity.type,
+      Object.keys(inputsErrors),
+      dependencies.builder,
+    );
+
+    newErrors.set(entityId, inputsErrors);
+  }
+
+  return newErrors;
+}
+
 export function createInputsValidationStore<TBuilder extends Builder>(options: {
   schemaStore: SchemaStore<TBuilder>;
+  builder: TBuilder;
+  errors?: EntitiesInputsErrors<TBuilder>;
 }): InputsValidationStore<TBuilder> {
   const { getData, setData, subscribe } = createDataManager<
     InputsValidationStoreData<TBuilder>
-  >(new Map());
+  >({
+    errors: ensureEntitiesInputsErrorsAreValid(
+      deserializeEntitiesInputsErrors(options.errors),
+      options,
+    ),
+  });
 
   return {
     subscribe,
@@ -138,14 +179,17 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         options,
       );
 
-      const newData = new Map(data);
+      const newErrors = new Map(data.errors);
 
-      newData.set(entityId, {
-        ...data.get(entityId),
+      newErrors.set(entityId, {
+        ...data.errors.get(entityId),
         [inputName]: inputError,
       });
 
-      setData(newData);
+      setData({
+        ...data,
+        errors: newErrors,
+      });
     },
     async validateEntityInputs(entityId) {
       const data = getData();
@@ -155,34 +199,41 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         data,
       });
 
-      const newData = new Map(data);
+      const newErrors = new Map(data.errors);
 
-      newData.set(entityId, entityInputsErrors ?? {});
+      newErrors.set(entityId, entityInputsErrors ?? {});
 
-      setData(newData);
+      setData({
+        ...data,
+        errors: newErrors,
+      });
     },
     async validateEntitiesInputs() {
       const data = getData();
 
-      const newData = new Map(data);
+      const newErrors = new Map(data.errors);
 
       for (const entityId of Array.from(
         options.schemaStore.getData().entities.keys(),
       )) {
         const entityInputsErrors = await validateEntityInputs(entityId, {
           schemaStore: options.schemaStore,
+          builder: options.builder,
           data,
         });
 
-        newData.set(entityId, entityInputsErrors ?? {});
+        newErrors.set(entityId, entityInputsErrors ?? {});
       }
 
-      setData(newData);
+      setData({
+        ...data,
+        errors: newErrors,
+      });
     },
     resetEntityInputError(entityId, inputName) {
       const data = getData();
 
-      const newData = new Map(data);
+      const newErrors = new Map(data.errors);
 
       const entity = ensureEntityExists(
         entityId,
@@ -192,21 +243,24 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
       ensureEntityInputIsRegistered(
         entity.type,
         inputName.toString(),
-        options.schemaStore.builder,
+        options.builder,
       );
 
-      const entityInputsErrors = data.get(entityId);
+      const entityInputsErrors = data.errors.get(entityId);
 
       delete entityInputsErrors?.[inputName];
 
-      newData.set(entityId, entityInputsErrors ?? {});
+      newErrors.set(entityId, entityInputsErrors ?? {});
 
-      setData(newData);
+      setData({
+        ...data,
+        errors: newErrors,
+      });
     },
     setEntityInputError(entityId, inputName, error) {
       const data = getData();
 
-      const newData = new Map(data);
+      const newErrors = new Map(data.errors);
 
       const entity = ensureEntityExists(
         entityId,
@@ -216,31 +270,37 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
       ensureEntityInputIsRegistered(
         entity.type,
         inputName.toString(),
-        options.schemaStore.builder,
+        options.builder,
       );
 
-      newData.set(entityId, {
-        ...data.get(entityId),
+      newErrors.set(entityId, {
+        ...data.errors.get(entityId),
         [inputName]: error,
       });
 
-      setData(newData);
+      setData({
+        ...data,
+        errors: newErrors,
+      });
     },
     resetEntityInputsErrors(entityId) {
       const data = getData();
 
-      const newData = new Map(data);
+      const newErrors = new Map(data.errors);
 
       ensureEntityExists(entityId, options.schemaStore.getData().entities);
 
-      newData.delete(entityId);
+      newErrors.delete(entityId);
 
-      setData(newData);
+      setData({
+        ...data,
+        errors: newErrors,
+      });
     },
     setEntityInputsErrors(entityId, entityInputsErrors) {
       const data = getData();
 
-      const newData = new Map(data);
+      const newErrors = new Map(data.errors);
 
       const entity = ensureEntityExists(
         entityId,
@@ -250,35 +310,30 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
       ensureEntityInputsAreRegistered(
         entity.type,
         Object.keys(entityInputsErrors),
-        options.schemaStore.builder,
+        options.builder,
       );
 
-      newData.set(entityId, entityInputsErrors);
+      newErrors.set(entityId, entityInputsErrors);
 
-      setData(newData);
+      setData({
+        ...data,
+        errors: newErrors,
+      });
     },
     resetEntitiesInputsErrors() {
-      setData(new Map());
+      setData({
+        ...getData(),
+        errors: new Map(),
+      });
     },
     setEntitiesInputsErrors(entitiesInputsErrors) {
-      const newData = new Map(Object.entries(entitiesInputsErrors));
-
-      for (const [entityId, inputsErrors] of newData.entries()) {
-        const entity = ensureEntityExists(
-          entityId,
-          options.schemaStore.getData().entities,
-        );
-
-        ensureEntityInputsAreRegistered(
-          entity.type,
-          Object.keys(inputsErrors),
-          options.schemaStore.builder,
-        );
-
-        newData.set(entityId, inputsErrors);
-      }
-
-      setData(newData);
+      setData({
+        ...getData(),
+        errors: ensureEntitiesInputsErrorsAreValid(
+          deserializeEntitiesInputsErrors(entitiesInputsErrors),
+          options,
+        ),
+      });
     },
   };
 }

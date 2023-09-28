@@ -9,9 +9,8 @@ import { createDataManager } from "./data-manager";
 import { type InputsValues } from "./input";
 import {
   validateSchemaIntegrity,
-  type EntityInputsErrors,
+  type BaseSchemaEntity,
   type Schema,
-  type SchemaEntity,
 } from "./schema";
 import { type Store } from "./store";
 import {
@@ -20,18 +19,17 @@ import {
 } from "./subscription-manager";
 import { insertIntoSetAtIndex, type KeyofUnion } from "./utils";
 
-export type SchemaStoreEntity<TBuilder extends Builder = Builder> = Pick<
-  SchemaEntity<TBuilder>,
-  "type" | "inputs" | "parentId"
-> & { children?: Set<string>; updatedAt?: Date };
+export type SchemaStoreEntity<TBuilder extends Builder = Builder> =
+  BaseSchemaEntity<
+    TBuilder,
+    {
+      children?: Set<string>;
+      updatedAt?: Date;
+    }
+  >;
 
 export type SchemaStoreEntityWithId<TBuilder extends Builder = Builder> =
   SchemaStoreEntity<TBuilder> & { id: string };
-
-export type StoreEntitiesInputsErrors<TBuilder extends Builder> = Map<
-  string,
-  EntityInputsErrors<TBuilder>
->;
 
 export interface SchemaStoreData<TBuilder extends Builder = Builder> {
   entities: Map<string, SchemaStoreEntity<TBuilder>>;
@@ -69,7 +67,6 @@ export type SchemaStoreEvent<TBuilder extends Builder = Builder> =
 
 export interface SchemaStore<TBuilder extends Builder = Builder>
   extends Store<SchemaStoreData<TBuilder>> {
-  builder: TBuilder;
   subscribeToEvents(
     ...args: Parameters<Subscribe<SchemaStoreEvent<TBuilder>>>
   ): ReturnType<Subscribe<SchemaStoreEvent<TBuilder>>>;
@@ -109,6 +106,8 @@ function serializeSchema<TBuilder extends Builder>(
     newEntities[id] = {
       ...entityData,
       ...(children ? { children: Array.from(children) } : {}),
+      inputs:
+        entityData.inputs as unknown as Schema<TBuilder>["entities"][string]["inputs"],
     };
   }
 
@@ -128,6 +127,8 @@ function deserializeSchema<TBuilder extends Builder>(
         {
           ...entity,
           ...(entity.children ? { children: new Set(entity.children) } : {}),
+          inputs:
+            entity.inputs as unknown as SchemaStoreEntity<TBuilder>["inputs"],
         },
       ]),
     ),
@@ -208,7 +209,6 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
     createSubscriptionManager<SchemaStoreEvent<TBuilder>>();
 
   return {
-    builder: options.builder,
     subscribe,
     subscribeToEvents,
     getData,

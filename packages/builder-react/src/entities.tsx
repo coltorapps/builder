@@ -1,13 +1,17 @@
-import { type Builder, type SchemaStoreEntityWithId } from "builder";
+import {
+  type Builder,
+  type Entity,
+  type SchemaStoreEntityWithId,
+} from "builder";
 
-export type EntityComponent<TBuilder extends Builder = Builder> = (props: {
-  entity: SchemaStoreEntityWithId<TBuilder>;
-  children?: JSX.Element;
+export type EntityComponent<TEntity extends Entity> = (props: {
+  entity: SchemaStoreEntityWithId<Builder<[TEntity]>>;
+  children?: JSX.Element[];
 }) => JSX.Element;
 
-export function createEntityComponent<TBuilder extends Builder>(
-  _builder: TBuilder,
-  render: EntityComponent<TBuilder>,
-): EntityComponent<TBuilder> {
+export function createEntityComponent<TEntity extends Entity>(
+  _entity: TEntity,
+  render: EntityComponent<TEntity>,
+): EntityComponent<TEntity> {
   return render;
 }

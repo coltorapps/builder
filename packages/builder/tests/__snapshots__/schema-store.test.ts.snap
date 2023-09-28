@@ -160,30 +160,6 @@ exports[`schema store > can be created with a non-empty schema 1`] = `
 exports[`schema store > can be created with a non-empty schema 2`] = `
 {
   "addEntity": [Function],
-  "builder": {
-    "childrenAllowed": {},
-    "entities": [
-      {
-        "defaultValue": [Function],
-        "inputs": [
-          {
-            "defaultValue": [Function],
-            "name": "label",
-            "validate": [Function],
-          },
-        ],
-        "isValueAllowed": false,
-        "name": "text",
-        "shouldBeProcessed": [Function],
-        "validate": [Function],
-      },
-    ],
-    "entityId": {
-      "generate": [Function],
-      "validate": [Function],
-    },
-    "parentRequired": [],
-  },
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
@@ -231,15 +207,6 @@ exports[`schema store > can be created with an empty schema 1`] = `
 exports[`schema store > can be created with an empty schema 2`] = `
 {
   "addEntity": [Function],
-  "builder": {
-    "childrenAllowed": {},
-    "entities": [],
-    "entityId": {
-      "generate": [Function],
-      "validate": [Function],
-    },
-    "parentRequired": [],
-  },
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
@@ -253,15 +220,6 @@ exports[`schema store > can be created with an empty schema 2`] = `
 exports[`schema store > can be created without a schema 1`] = `
 {
   "addEntity": [Function],
-  "builder": {
-    "childrenAllowed": {},
-    "entities": [],
-    "entityId": {
-      "generate": [Function],
-      "validate": [Function],
-    },
-    "parentRequired": [],
-  },
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],

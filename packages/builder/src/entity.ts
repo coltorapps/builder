@@ -6,9 +6,11 @@ interface EntityContext<TInputs extends ReadonlyArray<Input<string, unknown>>> {
 }
 
 export interface Entity<
-  TName extends string,
-  TInputs extends ReadonlyArray<Input<string, unknown>>,
-  TValue,
+  TName extends string = string,
+  TInputs extends ReadonlyArray<Input<string, unknown>> = ReadonlyArray<
+    Input<string, unknown>
+  >,
+  TValue = unknown,
 > {
   name: TName;
   inputs: TInputs;

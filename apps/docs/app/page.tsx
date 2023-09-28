@@ -1,31 +1,79 @@
 "use client";
 
-import { Builder, useBuilder } from "@builder/react";
+import { Builder, createEntityComponent, useBuilder } from "@builder/react";
 
-import { createBuilder, createEntity } from "../../../packages/builder/dist";
+import {
+  createBuilder,
+  createEntity,
+  createInput,
+} from "../../../packages/builder/dist";
 
-// const builder = createBuilder({
-//   entities: [createEntity({ name: "test" })],
-//   childrenAllowed: {
-//     test: true,
-//   },
-// });
+const builder = createBuilder({
+  entities: [
+    createEntity({
+      name: "test",
+      inputs: [
+        createInput({
+          name: "label",
+          validate(value) {
+            if (typeof value !== "string") {
+              throw new Error();
+            }
+            return value;
+          },
+        }),
+      ],
+    }),
+    createEntity({
+      name: "select",
+      inputs: [
+        createInput({
+          name: "kebag",
+          validate(value) {
+            return value;
+          },
+        }),
+      ],
+    }),
+  ],
+  childrenAllowed: {
+    test: true,
+  },
+});
+
+const testComponent = createEntityComponent(
+  builder.entities[0],
+  ({ entity, children }) => {
+    return (
+      <div>
+        {entity.id} {entity.type}
+        <div style={{ paddingLeft: "1rem" }}>{children}</div>
+      </div>
+    );
+  },
+);
+
+const selectComponent = createEntityComponent(
+  builder.entities[1],
+  ({ entity }) => {
+    return (
+      <div>
+        {entity.id} {entity.type}
+      </div>
+    );
+  },
+);
 
 export default function Page() {
-  const client = useBuilder(
-    createBuilder({
-      entities: [createEntity({ name: "test" })],
-      childrenAllowed: {
-        test: true,
-      },
-    }),
-  );
+  const client = useBuilder(builder);
 
   return (
     <>
-      {/* <button
+      <button
         onClick={() => {
-          client.schemaStore.addEntity({ type: "test", inputs: {} });
+          client.schemaStore.addEntity({ type: "test", inputs: {
+            label: ''
+          } });
         }}
       >
         add
@@ -55,17 +103,22 @@ export default function Page() {
         }}
       >
         add child
-      </button> */}
-      <Builder client={client}>
-        {({ entity, children }) => {
+      </button>
+      <Builder.Entities
+        client={client}
+        entitiesComponents={{
+          test: testComponent,
+          select: selectComponent,
+        }}
+      >
+        {({ children }) => {
           return (
             <div>
-              {entity.id}
               <div style={{ paddingLeft: "1rem" }}>{children}</div>
             </div>
           );
         }}
-      </Builder>
+      </Builder.Entities>
     </>
   );
 }

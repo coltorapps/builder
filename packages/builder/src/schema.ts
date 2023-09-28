@@ -182,16 +182,25 @@ export class SchemaValidationError extends Error {
   }
 }
 
-export type SchemaEntity<TBuilder extends Builder = Builder> = {
+export type BaseSchemaEntity<
+  TBuilder extends Builder = Builder,
+  TExtend = object,
+> = {
   [K in TBuilder["entities"][number]["name"]]: {
     type: K;
     inputs: OptionalPropsIfUndefined<
       InputsValues<Extract<TBuilder["entities"][number], { name: K }>["inputs"]>
     >;
-    children?: Array<string>;
     parentId?: string;
-  };
+  } & TExtend;
 }[TBuilder["entities"][number]["name"]];
+
+export type SchemaEntity<TBuilder extends Builder = Builder> = BaseSchemaEntity<
+  TBuilder,
+  {
+    children?: Array<string>;
+  }
+>;
 
 export interface Schema<TBuilder extends Builder = Builder> {
   entities: Record<string, SchemaEntity<TBuilder>>;
@@ -255,7 +264,7 @@ function ensureEntityInputIsRegistered(
   inputName: string,
   builder: Builder,
 ): void {
-  const entityDefinition = getEntityDefinition(entity.type, builder);
+  const entityDefinition = ensureEntityIsRegistered(entity, builder);
 
   if (!entityDefinition?.inputs.some((input) => input.name === inputName)) {
     throw new SchemaValidationError({
