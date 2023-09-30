@@ -1,7 +1,7 @@
 import {
   createSubscriptionManager,
-  type SubscriptionEvent,
   type Subscribe,
+  type SubscriptionEvent,
 } from "./subscription-manager";
 
 export function createDataManager<TData, TEvent extends SubscriptionEvent>(
