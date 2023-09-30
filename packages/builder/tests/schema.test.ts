@@ -400,7 +400,9 @@ describe("schema integrity validation", () => {
     });
 
     for (const item of invalidSchemasCases) {
-      const result = validateSchemaIntegrity(builder, item.schema as Schema);
+      const result = validateSchemaIntegrity(item.schema as Schema, {
+        builder,
+      });
 
       expect(result).toEqual({
         success: false,
@@ -427,16 +429,21 @@ describe("schema integrity validation", () => {
     });
 
     expect(
-      validateSchemaIntegrity(builder, {
-        entities: {
-          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-            type: "text",
-            // @ts-expect-error Intentional wrong data type.
-            inputs: {},
+      validateSchemaIntegrity(
+        {
+          entities: {
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+              type: "text",
+              // @ts-expect-error Intentional wrong data type.
+              inputs: {},
+            },
           },
+          root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
-        root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-      }),
+        {
+          builder,
+        },
+      ),
     ).toMatchSnapshot();
   });
 
@@ -450,17 +457,22 @@ describe("schema integrity validation", () => {
     });
 
     expect(() =>
-      validateSchemaIntegrity(builder, {
-        entities: {
-          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-            type: "text",
-            inputs: {},
-            // @ts-expect-error Intentional wrong data type.
-            parentId: 1,
+      validateSchemaIntegrity(
+        {
+          entities: {
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+              type: "text",
+              inputs: {},
+              // @ts-expect-error Intentional wrong data type.
+              parentId: 1,
+            },
           },
+          root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
-        root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-      }),
+        {
+          builder,
+        },
+      ),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -477,17 +489,22 @@ describe("schema integrity validation", () => {
     });
 
     expect(() =>
-      validateSchemaIntegrity(builder, {
-        entities: {
-          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-            type: "text",
-            inputs: {},
-            // @ts-expect-error Intentional wrong data type.
-            children: [1],
+      validateSchemaIntegrity(
+        {
+          entities: {
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+              type: "text",
+              inputs: {},
+              // @ts-expect-error Intentional wrong data type.
+              children: [1],
+            },
           },
+          root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
-        root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-      }),
+        {
+          builder,
+        },
+      ),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -501,16 +518,21 @@ describe("schema integrity validation", () => {
     });
 
     expect(() =>
-      validateSchemaIntegrity(builder, {
-        entities: {
-          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-            type: "text",
-            inputs: {},
+      validateSchemaIntegrity(
+        {
+          entities: {
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+              type: "text",
+              inputs: {},
+            },
           },
+          // @ts-expect-error Intentional wrong data type.
+          root: [1, "c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
-        // @ts-expect-error Intentional wrong data type.
-        root: [1, "c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-      }),
+        {
+          builder,
+        },
+      ),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -558,27 +580,7 @@ describe("schema integrity validation", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     };
 
-    expect(validateSchemaIntegrity(builder, schema)).toMatchSnapshot();
-  });
-
-  it("returns an empty schema when no input schema was provided", () => {
-    const textEntity = createEntity({
-      name: "text",
-      inputs: [
-        createInput({
-          name: "label",
-          validate(value) {
-            return value;
-          },
-        }),
-      ],
-    });
-
-    const builder = createBuilder({
-      entities: [textEntity],
-    });
-
-    expect(validateSchemaIntegrity(builder)).toMatchSnapshot();
+    expect(validateSchemaIntegrity(schema, { builder })).toMatchSnapshot();
   });
 });
 
@@ -611,7 +613,7 @@ describe("schema validation", () => {
     });
 
     for (const item of invalidSchemasCases) {
-      const result = await validateSchema(builder, item.schema as Schema);
+      const result = await validateSchema(item.schema as Schema, { builder });
 
       expect(result).toEqual({
         success: false,
@@ -637,28 +639,31 @@ describe("schema validation", () => {
       ],
     });
 
-    const result = await validateSchema(builder, {
-      entities: {
-        "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-          type: "text",
-          inputs: {
-            // @ts-expect-error Intentional wrong data type
-            label: 1,
+    const result = await validateSchema(
+      {
+        entities: {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            type: "text",
+            inputs: {
+              // @ts-expect-error Intentional wrong data type
+              label: 1,
+            },
+          },
+          "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
+            type: "text",
+            inputs: {
+              // @ts-expect-error Intentional wrong data type
+              label: 1,
+            },
           },
         },
-        "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
-          type: "text",
-          inputs: {
-            // @ts-expect-error Intentional wrong data type
-            label: 1,
-          },
-        },
+        root: [
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+          "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb",
+        ],
       },
-      root: [
-        "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-        "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb",
-      ],
-    });
+      { builder },
+    );
 
     expect(result).toMatchSnapshot();
 

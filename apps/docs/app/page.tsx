@@ -71,9 +71,12 @@ export default function Page() {
     <>
       <button
         onClick={() => {
-          client.schemaStore.addEntity({ type: "test", inputs: {
-            label: ''
-          } });
+          client.schemaStore.addEntity({
+            type: "test",
+            inputs: {
+              label: "",
+            },
+          });
         }}
       >
         add

@@ -95,30 +95,6 @@ exports[`schema store > can be created with a non-empty schema 1`] = `
   "calls": [
     [
       {
-        "childrenAllowed": {},
-        "entities": [
-          {
-            "defaultValue": [Function],
-            "inputs": [
-              {
-                "defaultValue": [Function],
-                "name": "label",
-                "validate": [Function],
-              },
-            ],
-            "isValueAllowed": false,
-            "name": "text",
-            "shouldBeProcessed": [Function],
-            "validate": [Function],
-          },
-        ],
-        "entityId": {
-          "generate": [Function],
-          "validate": [Function],
-        },
-        "parentRequired": [],
-      },
-      {
         "entities": {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             "inputs": {
@@ -130,6 +106,32 @@ exports[`schema store > can be created with a non-empty schema 1`] = `
         "root": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
         ],
+      },
+      {
+        "builder": {
+          "childrenAllowed": {},
+          "entities": [
+            {
+              "defaultValue": [Function],
+              "inputs": [
+                {
+                  "defaultValue": [Function],
+                  "name": "label",
+                  "validate": [Function],
+                },
+              ],
+              "isValueAllowed": false,
+              "name": "text",
+              "shouldBeProcessed": [Function],
+              "validate": [Function],
+            },
+          ],
+          "entityId": {
+            "generate": [Function],
+            "validate": [Function],
+          },
+          "parentRequired": [],
+        },
       },
     ],
   ],
@@ -175,17 +177,19 @@ exports[`schema store > can be created with an empty schema 1`] = `
   "calls": [
     [
       {
-        "childrenAllowed": {},
-        "entities": [],
-        "entityId": {
-          "generate": [Function],
-          "validate": [Function],
-        },
-        "parentRequired": [],
-      },
-      {
         "entities": {},
         "root": [],
+      },
+      {
+        "builder": {
+          "childrenAllowed": {},
+          "entities": [],
+          "entityId": {
+            "generate": [Function],
+            "validate": [Function],
+          },
+          "parentRequired": [],
+        },
       },
     ],
   ],

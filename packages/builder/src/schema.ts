@@ -667,8 +667,10 @@ type SchemValidationResult<TBuilder extends Builder> =
   | { error: SchemaValidationError; success: false };
 
 export function validateSchemaIntegrity<TBuilder extends Builder>(
-  builder: TBuilder,
-  schema?: Schema<TBuilder>,
+  schema: Schema<TBuilder>,
+  dependencies: {
+    builder: TBuilder;
+  },
 ): SchemValidationResult<TBuilder> {
   if (typeof schema === "undefined") {
     return { data: getEmptySchema(), success: true };
@@ -681,14 +683,14 @@ export function validateSchemaIntegrity<TBuilder extends Builder>(
 
     ensureRootNotEmptyWhenThereAreEntities(schema);
 
-    const validatedEntities = validateEntitiesSchema(schema, builder);
+    const validatedEntities = validateEntitiesSchema(schema, dependencies.builder);
 
     const computedSchema = {
       entities: validatedEntities,
       root: schema.root,
     };
 
-    ensureRootIdsAreValid(computedSchema, builder);
+    ensureRootIdsAreValid(computedSchema, dependencies.builder);
 
     ensureRootEntitiesDontHaveParents(computedSchema);
 
@@ -716,7 +718,9 @@ export type EntitiesInputsErrors<TBuilder extends Builder = Builder> = Record<
 
 async function validateEntitiesInputs<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
-  builder: TBuilder,
+  dependencies: {
+    builder: TBuilder;
+  },
 ): Promise<SchemValidationResult<TBuilder>> {
   const newSchema: Schema<TBuilder> = {
     ...schema,
@@ -731,7 +735,7 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
     try {
       newSchema.entities[id] = {
         ...entity,
-        inputs: await validateEntityInputs({ ...entity, id }, builder),
+        inputs: await validateEntityInputs({ ...entity, id }, dependencies.builder),
       };
     } catch (error) {
       if (
@@ -762,14 +766,16 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
 }
 
 export async function validateSchema<TBuilder extends Builder>(
-  builder: TBuilder,
-  schema?: Schema<TBuilder>,
+  schema: Schema<TBuilder>,
+  dependencies: {
+    builder: TBuilder;
+  },
 ): Promise<SchemValidationResult<TBuilder>> {
-  const validatedSchema = validateSchemaIntegrity(builder, schema);
+  const validatedSchema = validateSchemaIntegrity(schema, dependencies);
 
   if (!validatedSchema.success) {
     return validatedSchema;
   }
 
-  return validateEntitiesInputs(validatedSchema.data, builder);
+  return validateEntitiesInputs(validatedSchema.data, dependencies);
 }

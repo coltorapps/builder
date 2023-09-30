@@ -57,23 +57,23 @@ describe("inputs validation store", () => {
       },
     });
 
-    const inputsValidationStore = createInputsValidationStore({
-      builder,
-      schemaStore,
-      errors: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          label: new Error(),
+    expect(
+      createInputsValidationStore({
+        builder,
+        schemaStore,
+        entitiesInputsErrors: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            label: new Error(),
+          },
         },
-      },
-    });
-
-    expect(inputsValidationStore.getData()).toMatchSnapshot();
+      }).getData(),
+    ).toMatchSnapshot();
 
     expect(() =>
       createInputsValidationStore({
         builder,
         schemaStore,
-        errors: {
+        entitiesInputsErrors: {
           invalid: {},
         },
       }),
@@ -83,7 +83,7 @@ describe("inputs validation store", () => {
       createInputsValidationStore({
         builder,
         schemaStore,
-        errors: {
+        entitiesInputsErrors: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             // @ts-expect-error Intentional wrong data type
             invalid: new Error(),
@@ -475,36 +475,48 @@ describe("inputs validation store", () => {
     });
 
     expect(
-      inputsValidationStore.setEntitiesInputsErrors({
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          label: "some error",
-          title: "another error",
-        },
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          label: "some error",
-          title: "another error",
-        },
-      }),
+      inputsValidationStore.setEntitiesInputsErrors(
+        new Map(
+          Object.entries({
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              label: "some error",
+              title: "another error",
+            },
+            "51324b32-adc3-4d17-a90e-66b5453935bd": {
+              label: "some error",
+              title: "another error",
+            },
+          }),
+        ),
+      ),
     ).toEqual(undefined);
 
     expect(inputsValidationStore.getData()).toMatchSnapshot();
 
     expect(() =>
-      inputsValidationStore.setEntitiesInputsErrors({
-        invalid: {},
-      }),
+      inputsValidationStore.setEntitiesInputsErrors(
+        new Map(
+          Object.entries({
+            invalid: {},
+          }),
+        ),
+      ),
     ).toThrowErrorMatchingSnapshot();
 
     expect(() =>
-      inputsValidationStore.setEntitiesInputsErrors({
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          // @ts-expect-error Intentional wrong data type
-          invalid: "some error",
-        },
-      }),
+      inputsValidationStore.setEntitiesInputsErrors(
+        // @ts-expect-error Intentional wrong data type
+        new Map(
+          Object.entries({
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              invalid: "some error",
+            },
+          }),
+        ),
+      ),
     ).toThrowErrorMatchingSnapshot();
 
-    inputsValidationStore.setEntitiesInputsErrors({});
+    inputsValidationStore.setEntitiesInputsErrors(new Map());
 
     expect(inputsValidationStore.getData()).toMatchSnapshot();
   });
@@ -705,14 +717,18 @@ describe("inputs validation store", () => {
       schemaStore,
     });
 
-    inputsValidationStore.setEntitiesInputsErrors({
-      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        label: "label error",
-      },
-      "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        title: "title error",
-      },
-    });
+    inputsValidationStore.setEntitiesInputsErrors(
+      new Map(
+        Object.entries({
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            label: "label error",
+          },
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            title: "title error",
+          },
+        }),
+      ),
+    );
 
     expect(inputsValidationStore.getData()).toMatchSnapshot();
 

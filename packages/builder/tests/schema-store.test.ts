@@ -36,8 +36,13 @@ describe("schema store", () => {
     const schemaStore = createSchemaStore({ builder });
 
     expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(
-      builder,
-      undefined,
+      {
+        entities: {},
+        root: [],
+      },
+      {
+        builder,
+      },
     );
 
     expect(schemaStore).toMatchSnapshot();
@@ -143,7 +148,9 @@ describe("schema store", () => {
 
     expect(schemaStore.getData()).toMatchSnapshot();
 
-    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(builder, schema);
+    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, {
+      builder,
+    });
   });
 
   it("can return the schema", () => {

@@ -19,7 +19,7 @@ import { type Store } from "./store";
 import { type KeyofUnion } from "./utils";
 
 export type InputsValidationStoreData<TBuilder extends Builder = Builder> = {
-  errors: Map<string, EntityInputsErrors<TBuilder>>;
+  entitiesInputsErrors: Map<string, EntityInputsErrors<TBuilder>>;
 };
 
 export interface InputsValidationStore<TBuilder extends Builder = Builder>
@@ -52,7 +52,7 @@ export interface InputsValidationStore<TBuilder extends Builder = Builder>
   ): void;
   resetEntitiesInputsErrors(): void;
   setEntitiesInputsErrors(
-    entitiesInputsErrors: EntitiesInputsErrors<TBuilder>,
+    entitiesInputsErrors: InputsValidationStoreData<TBuilder>["entitiesInputsErrors"],
   ): void;
 }
 
@@ -92,7 +92,9 @@ async function validateEntityInputs<TBuilder extends Builder>(
     builder: TBuilder;
   },
 ): Promise<EntityInputsErrors<TBuilder> | undefined> {
-  const newEntitiesInputsErrors = new Map(dependencies.data.errors);
+  const newEntitiesInputsErrors = new Map(
+    dependencies.data.entitiesInputsErrors,
+  );
 
   const entity = ensureEntityExists(
     entityId,
@@ -121,21 +123,29 @@ async function validateEntityInputs<TBuilder extends Builder>(
 }
 
 function deserializeEntitiesInputsErrors<TBuilder extends Builder>(
-  entitiesInputsErrors?: EntitiesInputsErrors<TBuilder>,
-): InputsValidationStoreData<TBuilder>["errors"] {
+  entitiesInputsErrors: EntitiesInputsErrors<TBuilder>,
+): InputsValidationStoreData<TBuilder>["entitiesInputsErrors"] {
   return new Map(Object.entries(entitiesInputsErrors ?? {}));
 }
 
 function ensureEntitiesInputsErrorsAreValid<TBuilder extends Builder>(
-  entitiesInputsErrors: InputsValidationStoreData<TBuilder>["errors"],
+  entitiesInputsErrors: EntitiesInputsErrors<TBuilder>,
   dependencies: {
     schemaStore: SchemaStore<TBuilder>;
     builder: TBuilder;
   },
-): InputsValidationStoreData<TBuilder>["errors"] {
-  const newErrors = new Map(entitiesInputsErrors);
+): EntitiesInputsErrors<TBuilder> {
+  if (
+    typeof entitiesInputsErrors !== "object" ||
+    Array.isArray(entitiesInputsErrors) ||
+    entitiesInputsErrors === null
+  ) {
+    throw new Error("Invalid errors format");
+  }
 
-  for (const [entityId, inputsErrors] of newErrors.entries()) {
+  const newEntitiesInputsErrors = { ...entitiesInputsErrors };
+
+  for (const [entityId, inputsErrors] of Object.entries(entitiesInputsErrors)) {
     const entity = ensureEntityExists(
       entityId,
       dependencies.schemaStore.getData().entities,
@@ -147,24 +157,26 @@ function ensureEntitiesInputsErrorsAreValid<TBuilder extends Builder>(
       dependencies.builder,
     );
 
-    newErrors.set(entityId, inputsErrors);
+    newEntitiesInputsErrors[entityId] = inputsErrors;
   }
 
-  return newErrors;
+  return newEntitiesInputsErrors;
 }
 
 export function createInputsValidationStore<TBuilder extends Builder>(options: {
   schemaStore: SchemaStore<TBuilder>;
   builder: TBuilder;
-  errors?: EntitiesInputsErrors<TBuilder>;
+  entitiesInputsErrors?: EntitiesInputsErrors<TBuilder>;
 }): InputsValidationStore<TBuilder> {
+  const validatedErrors = ensureEntitiesInputsErrorsAreValid(
+    options.entitiesInputsErrors ?? {},
+    options,
+  );
+
   const { getData, setData, subscribe } = createDataManager<
     InputsValidationStoreData<TBuilder>
   >({
-    errors: ensureEntitiesInputsErrorsAreValid(
-      deserializeEntitiesInputsErrors(options.errors),
-      options,
-    ),
+    entitiesInputsErrors: deserializeEntitiesInputsErrors(validatedErrors),
   });
 
   return {
@@ -179,16 +191,16 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         options,
       );
 
-      const newErrors = new Map(data.errors);
+      const newErrors = new Map(data.entitiesInputsErrors);
 
       newErrors.set(entityId, {
-        ...data.errors.get(entityId),
+        ...data.entitiesInputsErrors.get(entityId),
         [inputName]: inputError,
       });
 
       setData({
         ...data,
-        errors: newErrors,
+        entitiesInputsErrors: newErrors,
       });
     },
     async validateEntityInputs(entityId) {
@@ -199,19 +211,19 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         data,
       });
 
-      const newErrors = new Map(data.errors);
+      const newErrors = new Map(data.entitiesInputsErrors);
 
       newErrors.set(entityId, entityInputsErrors ?? {});
 
       setData({
         ...data,
-        errors: newErrors,
+        entitiesInputsErrors: newErrors,
       });
     },
     async validateEntitiesInputs() {
       const data = getData();
 
-      const newErrors = new Map(data.errors);
+      const newErrors = new Map(data.entitiesInputsErrors);
 
       for (const entityId of Array.from(
         options.schemaStore.getData().entities.keys(),
@@ -227,13 +239,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
 
       setData({
         ...data,
-        errors: newErrors,
+        entitiesInputsErrors: newErrors,
       });
     },
     resetEntityInputError(entityId, inputName) {
       const data = getData();
 
-      const newErrors = new Map(data.errors);
+      const newErrors = new Map(data.entitiesInputsErrors);
 
       const entity = ensureEntityExists(
         entityId,
@@ -246,7 +258,7 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         options.builder,
       );
 
-      const entityInputsErrors = data.errors.get(entityId);
+      const entityInputsErrors = data.entitiesInputsErrors.get(entityId);
 
       delete entityInputsErrors?.[inputName];
 
@@ -254,13 +266,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
 
       setData({
         ...data,
-        errors: newErrors,
+        entitiesInputsErrors: newErrors,
       });
     },
     setEntityInputError(entityId, inputName, error) {
       const data = getData();
 
-      const newErrors = new Map(data.errors);
+      const newErrors = new Map(data.entitiesInputsErrors);
 
       const entity = ensureEntityExists(
         entityId,
@@ -274,19 +286,19 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
       );
 
       newErrors.set(entityId, {
-        ...data.errors.get(entityId),
+        ...data.entitiesInputsErrors.get(entityId),
         [inputName]: error,
       });
 
       setData({
         ...data,
-        errors: newErrors,
+        entitiesInputsErrors: newErrors,
       });
     },
     resetEntityInputsErrors(entityId) {
       const data = getData();
 
-      const newErrors = new Map(data.errors);
+      const newErrors = new Map(data.entitiesInputsErrors);
 
       ensureEntityExists(entityId, options.schemaStore.getData().entities);
 
@@ -294,13 +306,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
 
       setData({
         ...data,
-        errors: newErrors,
+        entitiesInputsErrors: newErrors,
       });
     },
     setEntityInputsErrors(entityId, entityInputsErrors) {
       const data = getData();
 
-      const newErrors = new Map(data.errors);
+      const newErrors = new Map(data.entitiesInputsErrors);
 
       const entity = ensureEntityExists(
         entityId,
@@ -317,22 +329,24 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
 
       setData({
         ...data,
-        errors: newErrors,
+        entitiesInputsErrors: newErrors,
       });
     },
     resetEntitiesInputsErrors() {
       setData({
         ...getData(),
-        errors: new Map(),
+        entitiesInputsErrors: new Map(),
       });
     },
     setEntitiesInputsErrors(entitiesInputsErrors) {
+      const validatedErrors = ensureEntitiesInputsErrorsAreValid(
+        Object.fromEntries(entitiesInputsErrors),
+        options,
+      );
+
       setData({
         ...getData(),
-        errors: ensureEntitiesInputsErrorsAreValid(
-          deserializeEntitiesInputsErrors(entitiesInputsErrors),
-          options,
-        ),
+        entitiesInputsErrors: deserializeEntitiesInputsErrors(validatedErrors),
       });
     },
   };

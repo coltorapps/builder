@@ -1,15 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`schema integrity validation > returns an empty schema when no input schema was provided 1`] = `
-{
-  "data": {
-    "entities": {},
-    "root": [],
-  },
-  "success": true,
-}
-`;
-
 exports[`schema integrity validation > returns clean data for valid schemas 1`] = `
 {
   "data": {

@@ -18,7 +18,7 @@ exports[`inputs validation store > can be created 1`] = `
 
 exports[`inputs validation store > can be created with initial errors 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": [Error],
     },
@@ -32,7 +32,7 @@ exports[`inputs validation store > can be created with initial errors 3`] = `"Un
 
 exports[`inputs validation store > can set a reset a single entity input error 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": "label error",
       "title": "title error",
@@ -43,7 +43,7 @@ exports[`inputs validation store > can set a reset a single entity input error 1
 
 exports[`inputs validation store > can set a reset a single entity input error 2`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "title": "title error",
     },
@@ -57,7 +57,7 @@ exports[`inputs validation store > can set a reset a single entity input error 4
 
 exports[`inputs validation store > can set a reset all inputs errors for a all entities 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": "label error",
     },
@@ -70,13 +70,13 @@ exports[`inputs validation store > can set a reset all inputs errors for a all e
 
 exports[`inputs validation store > can set a reset all inputs errors for a all entities 2`] = `
 {
-  "errors": Map {},
+  "entitiesInputsErrors": Map {},
 }
 `;
 
 exports[`inputs validation store > can set a reset all inputs errors for a single entity 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": "label error",
       "title": "title error",
@@ -87,7 +87,7 @@ exports[`inputs validation store > can set a reset all inputs errors for a singl
 
 exports[`inputs validation store > can set a reset all inputs errors for a single entity 2`] = `
 {
-  "errors": Map {},
+  "entitiesInputsErrors": Map {},
 }
 `;
 
@@ -95,7 +95,7 @@ exports[`inputs validation store > can set a reset all inputs errors for a singl
 
 exports[`inputs validation store > can set a single entity input error 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": "Some error",
       "title": "Title error",
@@ -110,7 +110,7 @@ exports[`inputs validation store > can set a single entity input error 3`] = `"U
 
 exports[`inputs validation store > can set inputs errors for a all entities 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": "some error",
       "title": "another error",
@@ -129,13 +129,13 @@ exports[`inputs validation store > can set inputs errors for a all entities 3`] 
 
 exports[`inputs validation store > can set inputs errors for a all entities 4`] = `
 {
-  "errors": Map {},
+  "entitiesInputsErrors": Map {},
 }
 `;
 
 exports[`inputs validation store > can set multiple input errors for a single entity 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": "some error",
       "title": "another error",
@@ -150,7 +150,7 @@ exports[`inputs validation store > can set multiple input errors for a single en
 
 exports[`inputs validation store > can validate a all inputs of a single entity 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": [ZodError: [
   {
@@ -179,7 +179,7 @@ exports[`inputs validation store > can validate a all inputs of a single entity 
 
 exports[`inputs validation store > can validate a all inputs of all entities 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": [ZodError: [
   {
@@ -210,7 +210,7 @@ exports[`inputs validation store > can validate a all inputs of all entities 1`]
 
 exports[`inputs validation store > can validate a single entity input 1`] = `
 {
-  "errors": Map {
+  "entitiesInputsErrors": Map {
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "label": [ZodError: [
   {
