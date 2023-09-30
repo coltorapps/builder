@@ -683,7 +683,10 @@ export function validateSchemaIntegrity<TBuilder extends Builder>(
 
     ensureRootNotEmptyWhenThereAreEntities(schema);
 
-    const validatedEntities = validateEntitiesSchema(schema, dependencies.builder);
+    const validatedEntities = validateEntitiesSchema(
+      schema,
+      dependencies.builder,
+    );
 
     const computedSchema = {
       entities: validatedEntities,
@@ -735,7 +738,10 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
     try {
       newSchema.entities[id] = {
         ...entity,
-        inputs: await validateEntityInputs({ ...entity, id }, dependencies.builder),
+        inputs: await validateEntityInputs(
+          { ...entity, id },
+          dependencies.builder,
+        ),
       };
     } catch (error) {
       if (

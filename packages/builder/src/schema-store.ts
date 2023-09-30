@@ -192,12 +192,15 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
   builder: TBuilder;
   schema?: Schema<TBuilder>;
 }): SchemaStore<TBuilder> {
-  const validatedSchema = validateSchemaIntegrity(options.schema ?? {
-    entities: {},
-    root: []
-  }, {
-    builder: options.builder
-  });
+  const validatedSchema = validateSchemaIntegrity(
+    options.schema ?? {
+      entities: {},
+      root: [],
+    },
+    {
+      builder: options.builder,
+    },
+  );
 
   if (!validatedSchema.success) {
     throw validatedSchema.error;
