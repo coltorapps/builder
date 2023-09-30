@@ -1,8 +1,8 @@
-import { type Subscribe } from "./subscription-manager";
+import { type SubscriptionEvent, type Subscribe } from "./subscription-manager";
 
-export interface Store<TData> {
+export interface Store<TData, TEvent extends SubscriptionEvent> {
   getData(): TData;
   subscribe(
-    ...args: Parameters<Subscribe<TData>>
-  ): ReturnType<Subscribe<TData>>;
+    ...args: Parameters<Subscribe<TData, TEvent>>
+  ): ReturnType<Subscribe<TData, TEvent>>;
 }

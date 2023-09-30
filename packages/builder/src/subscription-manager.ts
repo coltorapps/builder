@@ -1,21 +1,32 @@
-interface Listener<TData> {
-  (data: TData): void;
+interface Listener<TData, TEvent extends SubscriptionEvent> {
+  (data: TData, events: Set<TEvent>): void;
 }
 
-export interface Subscribe<TData> {
-  (listener: Listener<TData>): () => void;
+export interface Subscribe<TData, TEvent extends SubscriptionEvent> {
+  (listener: Listener<TData, TEvent>): () => void;
 }
 
-export function createSubscriptionManager<TData>(): {
-  notify: (data: TData) => void;
-  subscribe: Subscribe<TData>;
+export interface SubscriptionEvent<
+  TName extends string = string,
+  TPayload = unknown,
+> {
+  name: TName;
+  payload: TPayload;
+}
+
+export function createSubscriptionManager<
+  TData,
+  TEvent extends SubscriptionEvent,
+>(): {
+  notify: (data: TData, events: Set<TEvent>) => void;
+  subscribe: Subscribe<TData, TEvent>;
 } {
-  const listeners = new Set<Listener<TData>>();
+  const listeners = new Set<Listener<TData, TEvent>>();
 
   return {
-    notify(data: TData) {
+    notify(data, events) {
       listeners.forEach((listener) => {
-        listener(data);
+        listener(data, events);
       });
     },
     subscribe(listener) {
