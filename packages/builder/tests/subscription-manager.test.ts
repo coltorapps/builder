@@ -16,7 +16,7 @@ describe("subscription manager", () => {
 
     subscriptionManager.subscribe(listener);
 
-    subscriptionManager.notify("test");
+    subscriptionManager.notify("test", []);
 
     expect(listener).toMatchSnapshot();
   });
@@ -30,7 +30,7 @@ describe("subscription manager", () => {
 
     unsubscribe();
 
-    subscriptionManager.notify("test");
+    subscriptionManager.notify("test", []);
 
     expect(listener).not.toHaveBeenCalled();
   });

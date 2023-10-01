@@ -1,5 +1,5 @@
 interface Listener<TData, TEvent extends SubscriptionEvent> {
-  (data: TData, events: Set<TEvent>): void;
+  (data: TData, events: Array<TEvent>): void;
 }
 
 export interface Subscribe<TData, TEvent extends SubscriptionEvent> {
@@ -18,7 +18,7 @@ export function createSubscriptionManager<
   TData,
   TEvent extends SubscriptionEvent,
 >(): {
-  notify: (data: TData, events: Set<TEvent>) => void;
+  notify: (data: TData, events: Array<TEvent>) => void;
   subscribe: Subscribe<TData, TEvent>;
 } {
   const listeners = new Set<Listener<TData, TEvent>>();

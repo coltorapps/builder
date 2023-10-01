@@ -5,6 +5,7 @@ exports[`subscription manager > allows subscribing to notifications 1`] = `
   "calls": [
     [
       "test",
+      [],
     ],
   ],
   "results": [

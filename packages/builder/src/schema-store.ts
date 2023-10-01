@@ -35,6 +35,7 @@ export interface SchemaStoreData<TBuilder extends Builder = Builder> {
 export const schemaStoreEventsNames = {
   EntityAdded: "EntityAdded",
   EntityUpdated: "EntityUpdated",
+  EntityInputUpdated: "EntityInputUpdated",
   EntityDeleted: "EntityDeleted",
   RootUpdated: "RootUpdated",
 } as const;
@@ -56,6 +57,13 @@ export type SchemaStoreEvent<TBuilder extends Builder = Builder> =
       }
     >
   | SubscriptionEvent<
+      typeof schemaStoreEventsNames.EntityInputUpdated,
+      {
+        entity: SchemaStoreEntityWithId<TBuilder>;
+        inputName: keyof SchemaStoreEntityWithId<TBuilder>["inputs"];
+      }
+    >
+  | SubscriptionEvent<
       typeof schemaStoreEventsNames.EntityDeleted,
       {
         entity: SchemaStoreEntityWithId<TBuilder>;
@@ -74,23 +82,18 @@ export interface SchemaStore<TBuilder extends Builder = Builder>
       index?: number;
     },
   ): void;
-  updateEntity(
-    id: string,
-    mutationFields: {
-      index?: number;
-      parentId?: string | null;
-    },
-  ): void;
+  moveEntityToParent(entityId: string, parentId: string, index?: number): void;
+  moveEntityToRoot(entityId: string, index?: number): void;
   setEntityInput<
     TInputName extends KeyofUnion<SchemaStoreEntity<TBuilder>["inputs"]>,
   >(
-    id: string,
+    entityId: string,
     inputName: TInputName,
     inputValue: InputsValues<
       TBuilder["entities"][number]["inputs"]
     >[TInputName],
   ): void;
-  deleteEntity(id: string): void;
+  deleteEntity(entityId: string): void;
 }
 
 function serializeSchema<TBuilder extends Builder>(
@@ -148,40 +151,63 @@ export function ensureEntityExists<TBuilder extends Builder>(
 }
 
 function deleteEntity<TBuilder extends Builder>(
-  id: string,
+  entityId: string,
   data: SchemaStoreData<TBuilder>,
-  onDelete: (entity: SchemaStoreEntityWithId<TBuilder>) => void,
-): SchemaStoreData<TBuilder> {
-  const entity = ensureEntityExists(id, data.entities);
+): {
+  data: SchemaStoreData<TBuilder>;
+  deletedEntities: SchemaStoreEntityWithId<TBuilder>[];
+} {
+  const entity = ensureEntityExists(entityId, data.entities);
 
-  let newData: SchemaStoreData<TBuilder> = {
+  const newData: SchemaStoreData<TBuilder> = {
     ...data,
     entities: new Map(data.entities),
   };
 
-  newData.root.delete(id);
+  newData.root.delete(entityId);
 
   if (entity.parentId) {
     const parentEntity = ensureEntityExists(entity.parentId, newData.entities);
 
-    parentEntity.children?.delete(id);
+    parentEntity.children?.delete(entityId);
 
     newData.entities.set(entity.parentId, parentEntity);
   }
 
-  newData = Array.from(entity.children ?? []).reduce(
-    (result, childId) => deleteEntity(childId, result, onDelete),
-    newData,
+  let deletedEntities: SchemaStoreEntityWithId<TBuilder>[] = [
+    {
+      ...entity,
+      id: entityId,
+    },
+  ];
+
+  const childrenDeletionResult = Array.from(entity.children ?? []).reduce<{
+    data: SchemaStoreData<TBuilder>;
+    deletedEntities: SchemaStoreEntityWithId<TBuilder>[];
+  }>(
+    (result, childId) => {
+      const childDeletion = deleteEntity(childId, result.data);
+
+      return {
+        data: childDeletion.data,
+        deletedEntities: result.deletedEntities.concat(
+          childDeletion.deletedEntities,
+        ),
+      };
+    },
+    { data: newData, deletedEntities: [] },
   );
 
-  newData.entities.delete(id);
+  deletedEntities = deletedEntities.concat(
+    childrenDeletionResult.deletedEntities,
+  );
 
-  onDelete({
-    ...entity,
-    id: id,
-  });
+  childrenDeletionResult.data.entities.delete(entityId);
 
-  return newData;
+  return {
+    data: childrenDeletionResult.data,
+    deletedEntities,
+  };
 }
 
 export function createSchemaStore<TBuilder extends Builder>(options: {
@@ -271,17 +297,17 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
         newEntities.set(payload.parentId, parentEntity);
       }
 
-      const events: Set<SchemaStoreEvent<TBuilder>> = new Set([
+      const events: Array<SchemaStoreEvent<TBuilder>> = [
         {
           name: schemaStoreEventsNames.EntityAdded,
           payload: {
             entity: { ...newEntity, id },
           },
         },
-      ]);
+      ];
 
       if (!newEntity.parentId) {
-        events.add({
+        events.push({
           name: schemaStoreEventsNames.RootUpdated,
           payload: {},
         });
@@ -295,200 +321,166 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
         events,
       );
     },
-    updateEntity(id, payload) {
-      if (payload.parentId === undefined && payload.index === undefined) {
-        return;
-      }
-
+    moveEntityToParent(entityId, parentId, index) {
       const data = getData();
-
-      const entity = ensureEntityExists(id, data.entities);
 
       const newEntities = new Map(data.entities);
 
-      let newRoot = new Set(data.root);
+      const newRoot = new Set(data.root);
 
-      if (payload.parentId === null) {
-        newRoot = insertIntoSetAtIndex(newRoot, id, payload?.index);
+      const entity = ensureEntityExists(entityId, data.entities);
 
-        if (entity.parentId) {
-          const parentEntity = ensureEntityExists(entity.parentId, newEntities);
+      const events: Array<SchemaStoreEvent<TBuilder>> = [];
 
-          parentEntity.children?.delete(id);
+      if (entity.parentId) {
+        const oldParentEntity = ensureEntityExists(
+          entity.parentId,
+          data.entities,
+        );
 
-          newEntities.set(entity.parentId, parentEntity);
+        oldParentEntity.children?.delete(entityId);
 
-          newEntities.set(id, { ...entity, parentId: undefined });
-        }
-      } else if (payload.parentId === undefined) {
-        if (entity.parentId) {
-          const parentEntity = ensureEntityExists(entity.parentId, newEntities);
+        newEntities.set(entity.parentId, oldParentEntity);
 
-          parentEntity.children = insertIntoSetAtIndex(
-            parentEntity.children ?? new Set(),
-            id,
-            payload?.index,
-          );
-
-          newEntities.set(entity.parentId, parentEntity);
-        } else {
-          newRoot = insertIntoSetAtIndex(newRoot, id, payload?.index);
+        if (entity.parentId !== parentId) {
+          events.push({
+            name: schemaStoreEventsNames.EntityUpdated,
+            payload: {
+              entity: { ...oldParentEntity, id: entity.parentId },
+            },
+          });
         }
       } else {
-        if (entity.parentId) {
-          const oldParentEntity = ensureEntityExists(
-            entity.parentId,
-            newEntities,
-          );
+        newRoot.delete(entityId);
 
-          oldParentEntity.children?.delete(id);
-
-          newEntities.set(entity.parentId, oldParentEntity);
-        } else {
-          newRoot.delete(id);
-        }
-
-        const newParentEntity = ensureEntityExists(
-          payload.parentId,
-          newEntities,
-        );
-
-        newParentEntity.children = insertIntoSetAtIndex(
-          newParentEntity.children ?? new Set(),
-          id,
-          payload?.index,
-        );
-
-        newEntities.set(payload.parentId, newParentEntity);
-
-        newEntities.set(id, { ...entity, parentId: payload.parentId });
+        events.push({
+          name: schemaStoreEventsNames.RootUpdated,
+          payload: {},
+        });
       }
 
-      // const data = getData();
+      entity.parentId = parentId;
 
-      // const entity = ensureEntityExists(id, data.entities);
+      newEntities.set(entityId, entity);
 
-      // if (payload.index === undefined && payload.parentId === undefined) {
-      //   return data;
-      // }
+      events.push({
+        name: schemaStoreEventsNames.EntityUpdated,
+        payload: {
+          entity: { ...entity, id: entityId },
+        },
+      });
 
-      // const newEntities = new Map(data.entities);
+      const newParentEntity = ensureEntityExists(parentId, data.entities);
 
-      // let newRoot = new Set(data.root);
+      ensureEntityChildAllowed(
+        newParentEntity.type,
+        entity.type,
+        options.builder,
+      );
 
-      // const newParentId =
-      //   payload.parentId === null
-      //     ? undefined
-      //     : payload.parentId ?? entity.parentId;
+      newParentEntity.children = insertIntoSetAtIndex(
+        newParentEntity.children ?? new Set(),
+        entityId,
+        index,
+      );
 
-      // const newEntity: SchemaStoreEntity<TBuilder> = {
-      //   ...entity,
-      //   parentId: newParentId,
-      //   updatedAt: new Date(),
-      // };
+      newEntities.set(parentId, newParentEntity);
 
-      // if (!newEntity.parentId) {
-      //   delete newEntity.parentId;
-      // }
+      events.push({
+        name: schemaStoreEventsNames.EntityUpdated,
+        payload: {
+          entity: { ...newParentEntity, id: parentId },
+        },
+      });
 
-      // newEntities.set(id, newEntity);
-
-      // newRoot.delete(id);
-
-      // const events: Set<SchemaStoreEvent<TBuilder>> = new Set([
-      //   {
-      //     name: schemaStoreEventsNames.EntityUpdated,
-      //     payload: {
-      //       entity: { ...newEntity, id },
-      //     },
-      //   },
-      // ]);
-
-      // if (entity.parentId) {
-      //   const parentEntity = ensureEntityExists(entity.parentId, data.entities);
-
-      //   parentEntity.children?.delete(id);
-
-      //   newEntities.set(entity.parentId, parentEntity);
-
-      //   events.add({
-      //     name: schemaStoreEventsNames.EntityUpdated,
-      //     payload: {
-      //       entity: { ...parentEntity, id: entity.parentId },
-      //     },
-      //   });
-      // }
-
-      // if (payload.parentId === null || !newParentId) {
-      //   ensureEntityCanLackParent(newEntity.type, options.builder);
-
-      //   newRoot = insertIntoSetAtIndex(newRoot, id, payload?.index);
-
-      //   events.add({
-      //     name: schemaStoreEventsNames.RootUpdated,
-      //     payload: {},
-      //   });
-      // } else if (newParentId) {
-      //   const parentEntity = ensureEntityExists(newParentId, data.entities);
-
-      //   ensureEntityChildAllowed(
-      //     parentEntity.type,
-      //     newEntity.type,
-      //     options.builder,
-      //   );
-
-      //   parentEntity.children = insertIntoSetAtIndex(
-      //     parentEntity.children ?? new Set(),
-      //     id,
-      //     payload?.index,
-      //   );
-
-      //   newEntities.set(newParentId, parentEntity);
-
-      //   events.add({
-      //     name: schemaStoreEventsNames.EntityUpdated,
-      //     payload: {
-      //       entity: { ...parentEntity, id: newParentId },
-      //     },
-      //   });
-      // }
-
-      // if (payload.parentId === null) {
-      //   events.add({
-      //     name: schemaStoreEventsNames.RootUpdated,
-      //     payload: {},
-      //   });
-      // } else if (payload.parentId) {
-      //   events.add({
-      //     name: schemaStoreEventsNames.EntityUpdated,
-      //     payload: {},
-      //   });
-      // }
-
-      // setData(
-      //   {
-      //     root: newRoot,
-      //     entities: newEntities,
-      //   },
-      //   events,
-      // );
-    },
-    deleteEntity(id) {
       setData(
-        deleteEntity(id, getData(), (deletedEntity) =>
-          notifyEventsListeners({
+        {
+          entities: newEntities,
+          root: newRoot,
+        },
+        events,
+      );
+    },
+    moveEntityToRoot(entityId, index) {
+      const data = getData();
+
+      const newEntities = new Map(data.entities);
+
+      const newRoot = new Set(data.root);
+
+      const entity = ensureEntityExists(entityId, data.entities);
+
+      const events: Array<SchemaStoreEvent<TBuilder>> = [];
+
+      ensureEntityCanLackParent(entity.type, options.builder);
+
+      if (entity.parentId) {
+        const oldParentEntity = ensureEntityExists(
+          entity.parentId,
+          data.entities,
+        );
+
+        oldParentEntity.children?.delete(entityId);
+
+        newEntities.set(entity.parentId, oldParentEntity);
+
+        events.push({
+          name: schemaStoreEventsNames.EntityUpdated,
+          payload: {
+            entity: { ...oldParentEntity, id: entity.parentId },
+          },
+        });
+      }
+
+      newRoot.delete(entityId);
+
+      events.push({
+        name: schemaStoreEventsNames.RootUpdated,
+        payload: {},
+      });
+
+      delete entity.parentId;
+
+      newEntities.set(entityId, entity);
+
+      events.push({
+        name: schemaStoreEventsNames.EntityUpdated,
+        payload: {
+          entity: { ...entity, id: entityId },
+        },
+      });
+
+      setData(
+        {
+          entities: newEntities,
+          root: insertIntoSetAtIndex(newRoot, entityId, index),
+        },
+        events,
+      );
+    },
+    deleteEntity(entityId) {
+      const { data, deletedEntities } = deleteEntity(entityId, getData());
+
+      const events = deletedEntities.reduce<Array<SchemaStoreEvent<TBuilder>>>(
+        (result, deletedEntity) => {
+          result.push({
             name: schemaStoreEventsNames.EntityDeleted,
             payload: {
               entity: deletedEntity,
             },
-          }),
-        ),
+          });
+
+          return result;
+        },
+        [],
       );
+
+      setData(data, events);
     },
-    setEntityInput(id, inputName, inputValue) {
+    setEntityInput(entityId, inputName, inputValue) {
       const data = getData();
 
-      const entity = ensureEntityExists(id, data.entities);
+      const entity = ensureEntityExists(entityId, data.entities);
 
       ensureEntityInputIsRegistered(
         entity.type,
@@ -501,10 +493,27 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
         [inputName]: inputValue,
       };
 
-      setData({
-        root: data.root,
-        entities: data.entities.set(id, entity),
-      });
+      setData(
+        {
+          root: data.root,
+          entities: data.entities.set(entityId, entity),
+        },
+        [
+          {
+            name: schemaStoreEventsNames.EntityUpdated,
+            payload: {
+              entity: { ...entity, id: entityId },
+            },
+          },
+          {
+            name: schemaStoreEventsNames.EntityInputUpdated,
+            payload: {
+              entity: { ...entity, id: entityId },
+              inputName,
+            },
+          },
+        ],
+      );
     },
   };
 }

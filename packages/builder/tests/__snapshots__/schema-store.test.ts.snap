@@ -9,7 +9,6 @@ exports[`schema store > can add entities to a parent entity 1`] = `
       },
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "inputs": {},
@@ -33,7 +32,6 @@ exports[`schema store > can add entities to a parent entity at a specific index 
       },
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
     "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
       "inputs": {},
@@ -165,10 +163,10 @@ exports[`schema store > can be created with a non-empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "moveEntityToParent": [Function],
+  "moveEntityToRoot": [Function],
   "setEntityInput": [Function],
   "subscribe": [Function],
-  "subscribeToEvents": [Function],
-  "updateEntity": [Function],
 }
 `;
 
@@ -214,10 +212,10 @@ exports[`schema store > can be created with an empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "moveEntityToParent": [Function],
+  "moveEntityToRoot": [Function],
   "setEntityInput": [Function],
   "subscribe": [Function],
-  "subscribeToEvents": [Function],
-  "updateEntity": [Function],
 }
 `;
 
@@ -227,10 +225,10 @@ exports[`schema store > can be created without a schema 1`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedSchema": [Function],
+  "moveEntityToParent": [Function],
+  "moveEntityToRoot": [Function],
   "setEntityInput": [Function],
   "subscribe": [Function],
-  "subscribeToEvents": [Function],
-  "updateEntity": [Function],
 }
 `;
 
@@ -259,7 +257,6 @@ exports[`schema store > can move an entity from root to a parent entity 1`] = `
       },
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
     "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
       "inputs": {},
@@ -270,12 +267,57 @@ exports[`schema store > can move an entity from root to a parent entity 1`] = `
       "inputs": {},
       "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
     "51324b32-adc3-4d17-a90e-66b5453935bd",
   },
+}
+`;
+
+exports[`schema store > can move an entity from root to a parent entity 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {},
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
 }
 `;
 
@@ -289,7 +331,6 @@ exports[`schema store > can move an entity from root to a parent entity at a spe
       },
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
     "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
       "inputs": {},
@@ -300,12 +341,57 @@ exports[`schema store > can move an entity from root to a parent entity at a spe
       "inputs": {},
       "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
     "51324b32-adc3-4d17-a90e-66b5453935bd",
   },
+}
+`;
+
+exports[`schema store > can move an entity from root to a parent entity at a specific index 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {},
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
 }
 `;
 
@@ -319,7 +405,6 @@ exports[`schema store > can move an entity in a parent entity 1`] = `
       },
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
     "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
       "inputs": {},
@@ -330,12 +415,53 @@ exports[`schema store > can move an entity in a parent entity 1`] = `
       "inputs": {},
       "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
     "51324b32-adc3-4d17-a90e-66b5453935bd",
   },
+}
+`;
+
+exports[`schema store > can move an entity in a parent entity 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
 }
 `;
 
@@ -349,7 +475,6 @@ exports[`schema store > can move an entity in root 1`] = `
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
@@ -369,7 +494,6 @@ exports[`schema store > can move an entity in root 2`] = `
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
@@ -389,13 +513,87 @@ exports[`schema store > can move an entity in root 3`] = `
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
     "51324b32-adc3-4d17-a90e-66b5453935bd",
     "6e0035c3-0d4c-445f-a42b-2d971225447c",
   },
+}
+`;
+
+exports[`schema store > can move an entity in root 4`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {},
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {},
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {},
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
 }
 `;
 
@@ -406,18 +604,58 @@ exports[`schema store > can move an entity to root 1`] = `
       "children": Set {},
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
     "51324b32-adc3-4d17-a90e-66b5453935bd",
     "6e0035c3-0d4c-445f-a42b-2d971225447c",
   },
+}
+`;
+
+exports[`schema store > can move an entity to root 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {},
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "RootUpdated",
+          "payload": {},
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
 }
 `;
 
@@ -428,18 +666,58 @@ exports[`schema store > can move an entity to root at a specific index 1`] = `
       "children": Set {},
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
     "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
       "inputs": {},
       "type": "test",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
     "6e0035c3-0d4c-445f-a42b-2d971225447c",
     "51324b32-adc3-4d17-a90e-66b5453935bd",
   },
+}
+`;
+
+exports[`schema store > can move an entity to root at a specific index 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {},
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "RootUpdated",
+          "payload": {},
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
 }
 `;
 
@@ -484,33 +762,17 @@ exports[`schema store > can update entity inputs 1`] = `
         "required": true,
       },
       "type": "select",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
     "51324b32-adc3-4d17-a90e-66b5453935bd" => {
       "inputs": {
         "maxLength": 1,
       },
       "type": "text",
-      "updatedAt": 2000-02-01T11:00:00.000Z,
     },
   },
   "root": Set {
     "6e0035c3-0d4c-445f-a42b-2d971225447c",
     "51324b32-adc3-4d17-a90e-66b5453935bd",
-  },
-}
-`;
-
-exports[`schema store > doesn't update the entity when no mutation fields were provided 1`] = `
-{
-  "entities": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
-      "inputs": {},
-      "type": "test",
-    },
-  },
-  "root": Set {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c",
   },
 }
 `;
@@ -531,111 +793,12 @@ exports[`schema store > throws when trying to add an entity to a non existent pa
 
 exports[`schema store > throws when trying to delete non existent entity 1`] = `"Entity with ID \\"test\\" was not found."`;
 
-exports[`schema store > throws when trying to move an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`schema store > throws when trying to move a non existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`schema store > throws when trying to update a non existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`schema store > throws when trying to move a non existent entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`schema store > throws when trying to move an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
 exports[`schema store > throws when updating an input of a non-existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
 exports[`schema store > throws when updating an non-existent input of an entity 1`] = `"Unkown entity input \\"invalid\\"."`;
-
-exports[`store events system > dispatches events to listeners on mutations 1`] = `
-[MockFunction spy] {
-  "calls": [
-    [
-      {
-        "name": "EntityAdded",
-        "payload": {
-          "entity": {
-            "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "inputs": {},
-            "type": "test",
-          },
-        },
-      },
-    ],
-    [
-      {
-        "name": "EntityUpdated",
-        "payload": {
-          "entity": {
-            "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "inputs": {},
-            "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "type": "test",
-            "updatedAt": 2000-02-01T11:00:00.000Z,
-          },
-        },
-      },
-    ],
-    [
-      {
-        "name": "EntityUpdated",
-        "payload": {
-          "entity": {
-            "children": Set {},
-            "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "inputs": {
-              "label": "new label",
-            },
-            "type": "test",
-            "updatedAt": 2000-02-01T11:00:00.000Z,
-          },
-        },
-      },
-    ],
-    [
-      {
-        "name": "EntityDeleted",
-        "payload": {
-          "entity": {
-            "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "inputs": {},
-            "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "type": "test",
-            "updatedAt": 2000-02-01T11:00:00.000Z,
-          },
-        },
-      },
-    ],
-    [
-      {
-        "name": "EntityDeleted",
-        "payload": {
-          "entity": {
-            "children": Set {},
-            "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "inputs": {
-              "label": "new label",
-            },
-            "type": "test",
-            "updatedAt": 2000-02-01T11:00:00.000Z,
-          },
-        },
-      },
-    ],
-  ],
-  "results": [
-    {
-      "type": "return",
-      "value": undefined,
-    },
-    {
-      "type": "return",
-      "value": undefined,
-    },
-    {
-      "type": "return",
-      "value": undefined,
-    },
-    {
-      "type": "return",
-      "value": undefined,
-    },
-    {
-      "type": "return",
-      "value": undefined,
-    },
-  ],
-}
-`;

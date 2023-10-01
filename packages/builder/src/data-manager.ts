@@ -8,7 +8,7 @@ export function createDataManager<TData, TEvent extends SubscriptionEvent>(
   initialData: TData,
 ): {
   getData: () => TData;
-  setData: (data: TData, events: Set<TEvent>) => TData;
+  setData: (data: TData, events: Array<TEvent>) => TData;
   subscribe: Subscribe<TData, TEvent>;
 } {
   let data: TData = initialData;

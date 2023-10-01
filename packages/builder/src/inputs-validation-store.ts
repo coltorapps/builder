@@ -23,7 +23,7 @@ export type InputsValidationStoreData<TBuilder extends Builder = Builder> = {
 };
 
 export interface InputsValidationStore<TBuilder extends Builder = Builder>
-  extends Store<InputsValidationStoreData<TBuilder>> {
+  extends Store<InputsValidationStoreData<TBuilder>, never> {
   validateEntityInput<
     TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
   >(
@@ -174,7 +174,8 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
   );
 
   const { getData, setData, subscribe } = createDataManager<
-    InputsValidationStoreData<TBuilder>
+    InputsValidationStoreData<TBuilder>,
+    never
   >({
     entitiesInputsErrors: deserializeEntitiesInputsErrors(validatedErrors),
   });
@@ -198,10 +199,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         [inputName]: inputError,
       });
 
-      setData({
-        ...data,
-        entitiesInputsErrors: newErrors,
-      });
+      setData(
+        {
+          ...data,
+          entitiesInputsErrors: newErrors,
+        },
+        [],
+      );
     },
     async validateEntityInputs(entityId) {
       const data = getData();
@@ -215,10 +219,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
 
       newErrors.set(entityId, entityInputsErrors ?? {});
 
-      setData({
-        ...data,
-        entitiesInputsErrors: newErrors,
-      });
+      setData(
+        {
+          ...data,
+          entitiesInputsErrors: newErrors,
+        },
+        [],
+      );
     },
     async validateEntitiesInputs() {
       const data = getData();
@@ -237,10 +244,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         newErrors.set(entityId, entityInputsErrors ?? {});
       }
 
-      setData({
-        ...data,
-        entitiesInputsErrors: newErrors,
-      });
+      setData(
+        {
+          ...data,
+          entitiesInputsErrors: newErrors,
+        },
+        [],
+      );
     },
     resetEntityInputError(entityId, inputName) {
       const data = getData();
@@ -264,10 +274,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
 
       newErrors.set(entityId, entityInputsErrors ?? {});
 
-      setData({
-        ...data,
-        entitiesInputsErrors: newErrors,
-      });
+      setData(
+        {
+          ...data,
+          entitiesInputsErrors: newErrors,
+        },
+        [],
+      );
     },
     setEntityInputError(entityId, inputName, error) {
       const data = getData();
@@ -290,10 +303,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         [inputName]: error,
       });
 
-      setData({
-        ...data,
-        entitiesInputsErrors: newErrors,
-      });
+      setData(
+        {
+          ...data,
+          entitiesInputsErrors: newErrors,
+        },
+        [],
+      );
     },
     resetEntityInputsErrors(entityId) {
       const data = getData();
@@ -304,10 +320,13 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
 
       newErrors.delete(entityId);
 
-      setData({
-        ...data,
-        entitiesInputsErrors: newErrors,
-      });
+      setData(
+        {
+          ...data,
+          entitiesInputsErrors: newErrors,
+        },
+        [],
+      );
     },
     setEntityInputsErrors(entityId, entityInputsErrors) {
       const data = getData();
@@ -327,16 +346,22 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
 
       newErrors.set(entityId, entityInputsErrors);
 
-      setData({
-        ...data,
-        entitiesInputsErrors: newErrors,
-      });
+      setData(
+        {
+          ...data,
+          entitiesInputsErrors: newErrors,
+        },
+        [],
+      );
     },
     resetEntitiesInputsErrors() {
-      setData({
-        ...getData(),
-        entitiesInputsErrors: new Map(),
-      });
+      setData(
+        {
+          ...getData(),
+          entitiesInputsErrors: new Map(),
+        },
+        [],
+      );
     },
     setEntitiesInputsErrors(entitiesInputsErrors) {
       const validatedErrors = ensureEntitiesInputsErrorsAreValid(
@@ -344,10 +369,14 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         options,
       );
 
-      setData({
-        ...getData(),
-        entitiesInputsErrors: deserializeEntitiesInputsErrors(validatedErrors),
-      });
+      setData(
+        {
+          ...getData(),
+          entitiesInputsErrors:
+            deserializeEntitiesInputsErrors(validatedErrors),
+        },
+        [],
+      );
     },
   };
 }
