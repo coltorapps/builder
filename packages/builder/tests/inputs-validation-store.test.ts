@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import {
@@ -139,6 +139,12 @@ describe("inputs validation store", () => {
       schemaStore,
     });
 
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
     await expect(
       inputsValidationStore.validateEntityInput(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -166,6 +172,8 @@ describe("inputs validation store", () => {
         "invalid",
       ),
     ).rejects.toThrowErrorMatchingSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
   it("can validate a all inputs of a single entity", async () => {
@@ -214,6 +222,12 @@ describe("inputs validation store", () => {
       schemaStore,
     });
 
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
     await inputsValidationStore.validateEntityInputs(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     );
@@ -223,6 +237,8 @@ describe("inputs validation store", () => {
     await expect(
       inputsValidationStore.validateEntityInputs("invalid"),
     ).rejects.toThrowErrorMatchingSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
   it("can validate a all inputs of all entities", async () => {
@@ -281,8 +297,17 @@ describe("inputs validation store", () => {
       schemaStore,
     });
 
-    await inputsValidationStore.validateEntitiesInputs(),
-      expect(inputsValidationStore.getData()).toMatchSnapshot();
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
+    await inputsValidationStore.validateEntitiesInputs();
+
+    expect(inputsValidationStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
   it("can set a single entity input error", () => {
@@ -326,6 +351,12 @@ describe("inputs validation store", () => {
       schemaStore,
     });
 
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
     expect(
       inputsValidationStore.setEntityInputError(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -356,6 +387,8 @@ describe("inputs validation store", () => {
         "error",
       ),
     ).toThrowErrorMatchingSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
   it("can set multiple input errors for a single entity", () => {
@@ -399,6 +432,12 @@ describe("inputs validation store", () => {
       schemaStore,
     });
 
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
     expect(
       inputsValidationStore.setEntityInputsErrors(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -424,104 +463,11 @@ describe("inputs validation store", () => {
         },
       ),
     ).toThrowErrorMatchingSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
-  it("can set inputs errors for a all entities", () => {
-    const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          inputs: [
-            createInput({
-              name: "label",
-              validate(value) {
-                return value;
-              },
-            }),
-            createInput({
-              name: "title",
-              validate(value) {
-                return value;
-              },
-            }),
-          ],
-        }),
-      ],
-    });
-
-    const schemaStore = createSchemaStore({
-      builder,
-      schema: {
-        entities: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            type: "test",
-            inputs: {},
-          },
-          "51324b32-adc3-4d17-a90e-66b5453935bd": {
-            type: "test",
-            inputs: {},
-          },
-        },
-        root: [
-          "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          "51324b32-adc3-4d17-a90e-66b5453935bd",
-        ],
-      },
-    });
-
-    const inputsValidationStore = createInputsValidationStore({
-      builder,
-      schemaStore,
-    });
-
-    expect(
-      inputsValidationStore.setEntitiesInputsErrors(
-        new Map(
-          Object.entries({
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              label: "some error",
-              title: "another error",
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              label: "some error",
-              title: "another error",
-            },
-          }),
-        ),
-      ),
-    ).toEqual(undefined);
-
-    expect(inputsValidationStore.getData()).toMatchSnapshot();
-
-    expect(() =>
-      inputsValidationStore.setEntitiesInputsErrors(
-        new Map(
-          Object.entries({
-            invalid: {},
-          }),
-        ),
-      ),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(() =>
-      inputsValidationStore.setEntitiesInputsErrors(
-        // @ts-expect-error Intentional wrong data type
-        new Map(
-          Object.entries({
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              invalid: "some error",
-            },
-          }),
-        ),
-      ),
-    ).toThrowErrorMatchingSnapshot();
-
-    inputsValidationStore.setEntitiesInputsErrors(new Map());
-
-    expect(inputsValidationStore.getData()).toMatchSnapshot();
-  });
-
-  it("can set a reset a single entity input error", () => {
+  it("can reset a single entity input error", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -573,6 +519,12 @@ describe("inputs validation store", () => {
       schemaStore,
     });
 
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
     inputsValidationStore.setEntityInputsErrors(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       {
@@ -603,9 +555,11 @@ describe("inputs validation store", () => {
         "invalid",
       ),
     ).toThrowErrorMatchingSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
-  it("can set a reset all inputs errors for a single entity", () => {
+  it("can reset all inputs errors for a single entity", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -646,6 +600,12 @@ describe("inputs validation store", () => {
       schemaStore,
     });
 
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
     inputsValidationStore.setEntityInputsErrors(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       {
@@ -667,9 +627,11 @@ describe("inputs validation store", () => {
     expect(() =>
       inputsValidationStore.resetEntityInputsErrors("invalid"),
     ).toThrowErrorMatchingSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
-  it("can set a reset all inputs errors for a all entities", () => {
+  it("can reset all inputs errors for all entities", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -715,20 +677,21 @@ describe("inputs validation store", () => {
     const inputsValidationStore = createInputsValidationStore({
       builder,
       schemaStore,
+      entitiesInputsErrors: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          label: "label error",
+        },
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          title: "title error",
+        },
+      },
     });
 
-    inputsValidationStore.setEntitiesInputsErrors(
-      new Map(
-        Object.entries({
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            label: "label error",
-          },
-          "51324b32-adc3-4d17-a90e-66b5453935bd": {
-            title: "title error",
-          },
-        }),
-      ),
-    );
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
 
     expect(inputsValidationStore.getData()).toMatchSnapshot();
 
@@ -737,5 +700,7 @@ describe("inputs validation store", () => {
     );
 
     expect(inputsValidationStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 });

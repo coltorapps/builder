@@ -27,6 +27,9 @@ export type SchemaStoreEntity<TBuilder extends Builder = Builder> =
 export type SchemaStoreEntityWithId<TBuilder extends Builder = Builder> =
   SchemaStoreEntity<TBuilder> & { id: string };
 
+type SerializedSchemaStoreStoreData<TBuilder extends Builder = Builder> =
+  Schema<TBuilder>;
+
 export interface SchemaStoreData<TBuilder extends Builder = Builder> {
   entities: Map<string, SchemaStoreEntity<TBuilder>>;
   root: Set<string>;
@@ -38,6 +41,7 @@ export const schemaStoreEventsNames = {
   EntityInputUpdated: "EntityInputUpdated",
   EntityDeleted: "EntityDeleted",
   RootUpdated: "RootUpdated",
+  DataSet: "DataSet",
 } as const;
 
 export type SchemaStoreEventName =
@@ -70,13 +74,19 @@ export type SchemaStoreEvent<TBuilder extends Builder = Builder> =
       }
     >
   | SubscriptionEvent<
+      typeof schemaStoreEventsNames.DataSet,
+      {
+        data: SchemaStoreData<TBuilder>;
+      }
+    >
+  | SubscriptionEvent<
       typeof schemaStoreEventsNames.RootUpdated,
       Record<string, never>
     >;
 
 export interface SchemaStore<TBuilder extends Builder = Builder>
   extends Store<SchemaStoreData<TBuilder>, SchemaStoreEvent<TBuilder>> {
-  getSerializedSchema(): Schema<TBuilder>;
+  getSerializedData(): SerializedSchemaStoreStoreData<TBuilder>;
   addEntity(
     payload: SchemaStoreEntity<TBuilder> & {
       index?: number;
@@ -96,10 +106,10 @@ export interface SchemaStore<TBuilder extends Builder = Builder>
   deleteEntity(entityId: string): void;
 }
 
-function serializeSchema<TBuilder extends Builder>(
+export function serializeSchemaStoreData<TBuilder extends Builder>(
   data: SchemaStoreData<TBuilder>,
-): Schema<TBuilder> {
-  const newEntities: Schema<TBuilder>["entities"] = {};
+): SerializedSchemaStoreStoreData<TBuilder> {
+  const newEntities: SerializedSchemaStoreStoreData<TBuilder>["entities"] = {};
 
   for (const [id, entity] of data.entities) {
     const { children, ...entityData } = entity;
@@ -108,7 +118,7 @@ function serializeSchema<TBuilder extends Builder>(
       ...entityData,
       ...(children ? { children: Array.from(children) } : {}),
       inputs:
-        entityData.inputs as unknown as Schema<TBuilder>["entities"][string]["inputs"],
+        entityData.inputs as unknown as SerializedSchemaStoreStoreData<TBuilder>["entities"][string]["inputs"],
     };
   }
 
@@ -118,8 +128,8 @@ function serializeSchema<TBuilder extends Builder>(
   };
 }
 
-function deserializeSchema<TBuilder extends Builder>(
-  schema: Schema<TBuilder>,
+export function deserializeSchemaStoreData<TBuilder extends Builder>(
+  schema: SerializedSchemaStoreStoreData<TBuilder>,
 ): SchemaStoreData<TBuilder> {
   return {
     entities: new Map(
@@ -231,13 +241,34 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
   const { getData, setData, subscribe } = createDataManager<
     SchemaStoreData<TBuilder>,
     SchemaStoreEvent<TBuilder>
-  >(deserializeSchema(validatedSchema.data));
+  >(deserializeSchemaStoreData(validatedSchema.data));
 
   return {
     subscribe,
     getData,
-    getSerializedSchema() {
-      return serializeSchema(getData());
+    setData(data) {
+      const validatedSchema = validateSchemaIntegrity(
+        serializeSchemaStoreData(data),
+        {
+          builder: options.builder,
+        },
+      );
+
+      if (!validatedSchema.success) {
+        throw validatedSchema.error;
+      }
+
+      setData(deserializeSchemaStoreData(validatedSchema.data), [
+        {
+          name: schemaStoreEventsNames.DataSet,
+          payload: {
+            data,
+          },
+        },
+      ]);
+    },
+    getSerializedData() {
+      return serializeSchemaStoreData(getData());
     },
     addEntity(payload) {
       const data = getData();

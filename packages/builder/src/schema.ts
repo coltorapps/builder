@@ -5,7 +5,7 @@ import {
   type Builder,
 } from "./builder";
 import { type InputsValues } from "./input";
-import { type OptionalPropsIfUndefined } from "./utils";
+import { type KeyofUnion, type OptionalPropsIfUndefined } from "./utils";
 
 export const schemaValidationErrorCodes = {
   InvalidRootFormat: "InvalidRootFormat",
@@ -711,7 +711,7 @@ export function validateSchemaIntegrity<TBuilder extends Builder>(
 }
 
 export type EntityInputsErrors<TBuilder extends Builder = Builder> = Partial<
-  Record<keyof SchemaEntity<TBuilder>["inputs"], unknown>
+  Record<KeyofUnion<SchemaEntity<TBuilder>["inputs"]>, unknown>
 >;
 
 export type EntitiesInputsErrors<TBuilder extends Builder = Builder> = Record<

@@ -162,9 +162,10 @@ exports[`schema store > can be created with a non-empty schema 2`] = `
   "addEntity": [Function],
   "deleteEntity": [Function],
   "getData": [Function],
-  "getSerializedSchema": [Function],
+  "getSerializedData": [Function],
   "moveEntityToParent": [Function],
   "moveEntityToRoot": [Function],
+  "setData": [Function],
   "setEntityInput": [Function],
   "subscribe": [Function],
 }
@@ -211,9 +212,10 @@ exports[`schema store > can be created with an empty schema 2`] = `
   "addEntity": [Function],
   "deleteEntity": [Function],
   "getData": [Function],
-  "getSerializedSchema": [Function],
+  "getSerializedData": [Function],
   "moveEntityToParent": [Function],
   "moveEntityToRoot": [Function],
+  "setData": [Function],
   "setEntityInput": [Function],
   "subscribe": [Function],
 }
@@ -224,9 +226,10 @@ exports[`schema store > can be created without a schema 1`] = `
   "addEntity": [Function],
   "deleteEntity": [Function],
   "getData": [Function],
-  "getSerializedSchema": [Function],
+  "getSerializedData": [Function],
   "moveEntityToParent": [Function],
   "moveEntityToRoot": [Function],
+  "setData": [Function],
   "setEntityInput": [Function],
   "subscribe": [Function],
 }
@@ -244,6 +247,57 @@ exports[`schema store > can delete entities and cascade delete their children 1`
   "root": Set {
     "49e91328-02bc-4daa-ab56-619554e85cff",
   },
+}
+`;
+
+exports[`schema store > can delete entities and cascade delete their children 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityDeleted",
+          "payload": {
+            "entity": {
+              "children": Set {},
+              "id": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityDeleted",
+          "payload": {
+            "entity": {
+              "children": Set {},
+              "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              "inputs": {},
+              "parentId": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityDeleted",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "parentId": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
 }
 `;
 
@@ -753,6 +807,36 @@ exports[`schema store > can return the schema 1`] = `
 }
 `;
 
+exports[`schema store > can set the data 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entities": Map {},
+        "root": Set {},
+      },
+      [
+        {
+          "name": "DataSet",
+          "payload": {
+            "data": {
+              "entities": Map {},
+              "root": Set {},
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
 exports[`schema store > can update entity inputs 1`] = `
 {
   "entities": Map {
@@ -774,6 +858,83 @@ exports[`schema store > can update entity inputs 1`] = `
     "6e0035c3-0d4c-445f-a42b-2d971225447c",
     "51324b32-adc3-4d17-a90e-66b5453935bd",
   },
+}
+`;
+
+exports[`schema store > can update entity inputs 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": "New label",
+                "required": true,
+              },
+              "type": "select",
+            },
+          },
+        },
+        {
+          "name": "EntityInputUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": "New label",
+                "required": true,
+              },
+              "type": "select",
+            },
+            "inputName": "label",
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {
+                "maxLength": 1,
+              },
+              "type": "text",
+            },
+          },
+        },
+        {
+          "name": "EntityInputUpdated",
+          "payload": {
+            "entity": {
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {
+                "maxLength": 1,
+              },
+              "type": "text",
+            },
+            "inputName": "maxLength",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
 }
 `;
 

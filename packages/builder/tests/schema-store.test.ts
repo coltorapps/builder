@@ -153,6 +153,50 @@ describe("schema store", () => {
     });
   });
 
+  it("can set the data", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const schemaStore = createSchemaStore({
+      builder,
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "text",
+            inputs: {
+              label: "test",
+            },
+          },
+        },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      },
+    });
+
+    const listener = vi.fn();
+
+    schemaStore.subscribe(listener);
+
+    schemaStore.setData({
+      entities: new Map(),
+      root: new Set(),
+    });
+
+    expect(listener).toMatchSnapshot();
+  });
+
   it("can return the schema", () => {
     const builder = createBuilder({
       entities: [
@@ -184,60 +228,8 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({ builder, schema });
 
-    expect(schemaStore.getSerializedSchema()).toMatchSnapshot();
+    expect(schemaStore.getSerializedData()).toMatchSnapshot();
   });
-
-  // it("notifies listeners on changes", () => {
-  //   vi.spyOn(uuidExports, "generateUuid").mockImplementation(
-  //     () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
-  //   );
-
-  //   const builder = createBuilder({
-  //     entities: [
-  //       createEntity({
-  //         name: "text",
-  //         inputs: [
-  //           createInput({
-  //             name: "label",
-  //             validate(value) {
-  //               return value;
-  //             },
-  //           }),
-  //         ],
-  //       }),
-  //     ],
-  //     childrenAllowed: {
-  //       text: true,
-  //     },
-  //   });
-
-  //   const schemaStore = createSchemaStore({
-  //     builder,
-  //     schema: {
-  //       entities: {
-  //         "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f": {
-  //           type: "text",
-  //           inputs: {},
-  //         },
-  //       },
-  //       root: ["e16641c9-9bfe-4ad0-bdd7-8f11d581a22f"],
-  //     },
-  //   });
-
-  //   const listener = vi.fn();
-
-  //   schemaStore.subscribe(listener);
-
-  //   schemaStore.addEntity({ type: "text", inputs: {} });
-
-  //   expect(listener).toHaveBeenCalledWith(schemaStore.getData());
-
-  //   schemaStore.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
-  //     parentId: "e16641c9-9bfe-4ad0-bdd7-8f11d581a22f",
-  //   });
-
-  //   expect(listener).toHaveBeenCalledWith(schemaStore.getData());
-  // });
 
   it("can delete entities and cascade delete their children", () => {
     const builder = createBuilder({
@@ -284,9 +276,17 @@ describe("schema store", () => {
       },
     });
 
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    schemaStore.subscribe(listenerWrapper);
+
     schemaStore.deleteEntity("3dc165dd-88d4-4884-ac8a-5d107d023e54");
 
     expect(schemaStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
   it("throws when trying to delete non existent entity", () => {
@@ -1081,6 +1081,12 @@ describe("schema store", () => {
       },
     });
 
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    schemaStore.subscribe(listenerWrapper);
+
     schemaStore.setEntityInput(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "label",
@@ -1094,6 +1100,8 @@ describe("schema store", () => {
     );
 
     expect(schemaStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
   });
 
   it("throws when updating an input of a non-existent entity", () => {
@@ -1159,75 +1167,3 @@ describe("schema store", () => {
     ).toThrowErrorMatchingSnapshot();
   });
 });
-
-// describe("store events system", () => {
-//   beforeEach(() => {
-//     vi.useFakeTimers();
-
-//     vi.setSystemTime(new Date(2000, 1, 1, 13));
-//   });
-
-//   afterEach(() => {
-//     vi.useRealTimers();
-//   });
-
-//   it("dispatches events to listeners on mutations", () => {
-//     vi.spyOn(uuidExports, "generateUuid").mockImplementation(
-//       () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
-//     );
-
-//     const builder = createBuilder({
-//       entities: [
-//         createEntity({
-//           name: "test",
-//           inputs: [
-//             createInput({
-//               name: "label",
-//               validate(value) {
-//                 return value;
-//               },
-//             }),
-//           ],
-//         }),
-//       ],
-//       childrenAllowed: {
-//         test: true,
-//       },
-//     });
-
-//     const schemaStore = createSchemaStore({
-//       builder,
-//       schema: {
-//         entities: {
-//           "51324b32-adc3-4d17-a90e-66b5453935bd": {
-//             type: "test",
-//             inputs: {
-//               label: "old label",
-//             },
-//           },
-//         },
-//         root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-//       },
-//     });
-
-//     const listener = vi.fn();
-
-//     schemaStore.subscribeToEvents(listener);
-
-//     schemaStore.addEntity({ type: "test", inputs: {} });
-
-//     schemaStore.updateEntity("6e0035c3-0d4c-445f-a42b-2d971225447c", {
-//       parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-//     });
-
-//     schemaStore.setEntityInput(
-//       "51324b32-adc3-4d17-a90e-66b5453935bd",
-//       "label",
-//       "new label",
-//     );
-
-//     schemaStore.deleteEntity("51324b32-adc3-4d17-a90e-66b5453935bd");
-
-//     expect(listener).toMatchSnapshot();
-//   });
-// });
