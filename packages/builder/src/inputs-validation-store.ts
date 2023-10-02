@@ -32,7 +32,7 @@ export const inputsValidationStoreEventsNames = {
   EntityInputErrorUpdated: "EntityInputErrorUpdated",
 } as const;
 
-export type ValidationStoreEventName =
+export type InputsValidationStoreEventName =
   (typeof inputsValidationStoreEventsNames)[keyof typeof inputsValidationStoreEventsNames];
 
 export type InputsValidationStoreEvent<TBuilder extends Builder = Builder> =

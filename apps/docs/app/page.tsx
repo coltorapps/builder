@@ -23,6 +23,12 @@ const builder = createBuilder({
           },
         }),
       ],
+      validate(value) {
+        if (typeof value !== "string") {
+          throw new Error();
+        }
+        return value;
+      },
     }),
     createEntity({
       name: "select",
@@ -83,9 +89,9 @@ export default function Page() {
       </button>
       <button
         onClick={() => {
-          client.schemaStore.updateEntity(
+          client.schemaStore.moveEntityToRoot(
             Array.from(client.schemaStore.getData().root.values())[0]!,
-            { index: 10 },
+            10,
           );
         }}
       >
@@ -93,13 +99,9 @@ export default function Page() {
       </button>
       <button
         onClick={() => {
-          client.schemaStore.updateEntity(
+          client.schemaStore.moveEntityToParent(
             Array.from(client.schemaStore.getData().root.values())[0]!,
-            {
-              parentId: Array.from(
-                client.schemaStore.getData().root.values(),
-              )[1]!,
-            },
+            Array.from(client.schemaStore.getData().root.values())[1]!,
           );
 
           console.log(client.schemaStore.getData());
@@ -108,7 +110,7 @@ export default function Page() {
         add child
       </button>
       <Builder.Entities
-        client={client}
+        {...client}
         entitiesComponents={{
           test: testComponent,
           select: selectComponent,

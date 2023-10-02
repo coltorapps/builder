@@ -19,16 +19,20 @@ export type {
   SchemaStoreEntity,
   SchemaStoreEntityWithId,
   SchemaStoreEvent,
+  SchemaStoreEventName,
 } from "./schema-store";
 
 export {
   createInputsValidationStore,
   deserializeInputsValidationStoreData,
   serializeInputsValidationStoreData,
+  inputsValidationStoreEventsNames,
 } from "./inputs-validation-store";
 export type {
   InputsValidationStore,
   InputsValidationStoreData,
+  InputsValidationStoreEvent,
+  InputsValidationStoreEventName,
 } from "./inputs-validation-store";
 
 export {
@@ -41,6 +45,7 @@ export type {
   SchemaEntity,
   SchemaValidationErrorCause,
   SchemaValidationErrorCode,
+  EntityInputsErrors,
 } from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";

@@ -11,6 +11,7 @@ import {
   validateSchemaIntegrity,
   type BaseSchemaEntity,
   type Schema,
+  type SchemaEntity,
 } from "./schema";
 import { type Store } from "./store";
 import { type SubscriptionEvent } from "./subscription-manager";
@@ -64,7 +65,7 @@ export type SchemaStoreEvent<TBuilder extends Builder = Builder> =
       typeof schemaStoreEventsNames.EntityInputUpdated,
       {
         entity: SchemaStoreEntityWithId<TBuilder>;
-        inputName: keyof SchemaStoreEntityWithId<TBuilder>["inputs"];
+        inputName: KeyofUnion<SchemaEntity<TBuilder>["inputs"]>;
       }
     >
   | SubscriptionEvent<
@@ -500,6 +501,13 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
               entity: deletedEntity,
             },
           });
+
+          if (!deletedEntity.parentId) {
+            result.push({
+              name: schemaStoreEventsNames.RootUpdated,
+              payload: {},
+            });
+          }
 
           return result;
         },

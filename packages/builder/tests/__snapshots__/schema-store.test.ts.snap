@@ -267,6 +267,10 @@ exports[`schema store > can delete entities and cascade delete their children 2`
           },
         },
         {
+          "name": "RootUpdated",
+          "payload": {},
+        },
+        {
           "name": "EntityDeleted",
           "payload": {
             "entity": {
