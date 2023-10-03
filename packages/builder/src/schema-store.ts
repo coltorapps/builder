@@ -158,7 +158,7 @@ export function ensureEntityExists<TBuilder extends Builder>(
     throw new Error(`Entity with ID "${id}" was not found.`);
   }
 
-  return entity;
+  return structuredClone(entity);
 }
 
 function deleteEntity<TBuilder extends Builder>(
@@ -506,6 +506,24 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
             result.push({
               name: schemaStoreEventsNames.RootUpdated,
               payload: {},
+            });
+          } else if (
+            deletedEntity.parentId &&
+            !deletedEntities.some((item) => item.id === deletedEntity.parentId)
+          ) {
+            const parentEntity = ensureEntityExists(
+              deletedEntity.parentId,
+              data.entities,
+            );
+
+            result.push({
+              name: schemaStoreEventsNames.EntityUpdated,
+              payload: {
+                entity: {
+                  ...parentEntity,
+                  id: deletedEntity.parentId,
+                },
+              },
             });
           }
 

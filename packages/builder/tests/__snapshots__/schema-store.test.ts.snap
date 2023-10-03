@@ -259,7 +259,9 @@ exports[`schema store > can delete entities and cascade delete their children 2`
           "name": "EntityDeleted",
           "payload": {
             "entity": {
-              "children": Set {},
+              "children": Set {
+                "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              },
               "id": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
               "inputs": {},
               "type": "test",
@@ -274,7 +276,9 @@ exports[`schema store > can delete entities and cascade delete their children 2`
           "name": "EntityDeleted",
           "payload": {
             "entity": {
-              "children": Set {},
+              "children": Set {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              },
               "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
               "inputs": {},
               "parentId": "3dc165dd-88d4-4884-ac8a-5d107d023e54",

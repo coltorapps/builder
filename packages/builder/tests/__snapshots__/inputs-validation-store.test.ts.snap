@@ -428,10 +428,8 @@ exports[`inputs validation store > can validate a all inputs of all entities 1`]
     "message": "Expected string, received number"
   }
 ]],
-      "maxLength": undefined,
     },
     "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-      "label": undefined,
       "maxLength": [ZodError: [
   {
     "code": "invalid_type",
@@ -464,22 +462,6 @@ exports[`inputs validation store > can validate a all inputs of all entities 2`]
     "message": "Expected string, received number"
   }
 ]],
-            "inputName": "label",
-          },
-        },
-        {
-          "name": "EntityInputErrorUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "error": undefined,
-            "inputName": "maxLength",
-          },
-        },
-        {
-          "name": "EntityInputErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
             "inputName": "label",
           },
         },

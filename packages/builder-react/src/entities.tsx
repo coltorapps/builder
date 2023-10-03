@@ -7,7 +7,7 @@ import {
 
 import { type KeyofUnion } from "./utils";
 
-export type SchemaStoreEntityForRender<TBuilder extends Builder> = {
+export type EntityForRender<TBuilder extends Builder = Builder> = {
   [K in SchemaStoreEntityWithId<TBuilder>["type"]]: Extract<
     SchemaStoreEntityWithId<TBuilder>,
     { type: K }
@@ -22,7 +22,7 @@ export type SchemaStoreEntityForRender<TBuilder extends Builder> = {
 }[SchemaStoreEntityWithId<TBuilder>["type"]];
 
 export type EntityComponent<TEntity extends Entity> = (props: {
-  entity: SchemaStoreEntityForRender<Builder<[TEntity]>>;
+  entity: EntityForRender<Builder<[TEntity]>>;
   children?: JSX.Element[];
   onChange: (value: Awaited<ReturnType<TEntity["validate"]>>) => void;
 }) => JSX.Element;

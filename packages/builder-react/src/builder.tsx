@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useRef,
+  useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -18,13 +19,13 @@ import {
   type InputsValidationStoreEvent,
   type Schema,
   type SchemaStore,
+  type SchemaStoreEntityWithId,
   type SchemaStoreEvent,
 } from "builder";
 
-import {
-  type EntityComponent,
-  type SchemaStoreEntityForRender,
-} from "./entities";
+import { type EntityComponent, type EntityForRender } from "./entities";
+import { type InputComponent, type InputForRender } from "./inputs";
+import { type KeyofUnion } from "./utils";
 
 type EventsListeners<
   TBuilder extends BaseBuilder,
@@ -50,6 +51,7 @@ export function useBuilder<TBuilder extends BaseBuilder>(
     };
   } = {},
 ): {
+  builder: TBuilder;
   schemaStore: SchemaStore<TBuilder>;
   inputsValidationStore: InputsValidationStore<TBuilder>;
 } {
@@ -93,6 +95,7 @@ export function useBuilder<TBuilder extends BaseBuilder>(
   }, [options.events?.inputsValidationStore]);
 
   return {
+    builder,
     schemaStore: schemaStoreRef.current,
     inputsValidationStore: inputsValidationStoreRef.current,
   };
@@ -107,6 +110,7 @@ type EntitiesComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
 interface BuilderContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
   schemaStore: SchemaStore<TBuilder>;
   inputsValidationStore: InputsValidationStore<TBuilder>;
+
   entitiesComponents: EntitiesComponents<TBuilder>;
   renderEntity: EntityRender<TBuilder>;
 }
@@ -131,7 +135,7 @@ const BuilderContext = createContext<BuilderContextValue>({
 
 interface EntityRender<TBuilder extends BaseBuilder = BaseBuilder> {
   (props: {
-    entity: SchemaStoreEntityForRender<TBuilder>;
+    entity: EntityForRender<TBuilder>;
     children: JSX.Element;
   }): JSX.Element;
 }
@@ -142,8 +146,8 @@ const MemoizedEntity = memo(function Entity(props: {
   const {
     schemaStore,
     inputsValidationStore,
-    renderEntity,
     entitiesComponents,
+    renderEntity,
   } = useContext(BuilderContext);
 
   const entityCache = useRef(
@@ -153,12 +157,6 @@ const MemoizedEntity = memo(function Entity(props: {
   const entity = useSyncExternalStore(
     (listen) =>
       schemaStore.subscribe((data, events) => {
-        const storeEntity = data.entities.get(props.entityId);
-
-        if (!storeEntity) {
-          throw new Error("Entity not found.");
-        }
-
         if (
           events.some(
             (event) =>
@@ -167,10 +165,10 @@ const MemoizedEntity = memo(function Entity(props: {
               event.name === schemaStoreEventsNames.DataSet,
           )
         ) {
-          entityCache.current = storeEntity;
-        }
+          entityCache.current = data.entities.get(props.entityId);
 
-        listen();
+          listen();
+        }
       }),
     () => entityCache.current,
     () => entityCache.current,
@@ -215,17 +213,17 @@ const MemoizedEntity = memo(function Entity(props: {
     throw new Error("Entity component not found.");
   }
 
-  const entityWithId = {
+  const entityForRender: EntityForRender = {
     ...entity,
     id: props.entityId,
     inputsErrors: entityInputsErrors,
   };
 
   return renderEntity({
-    entity: entityWithId,
+    entity: entityForRender,
     children: (
       <EntityComponent
-        entity={entityWithId}
+        entity={entityForRender}
         onChange={() => {
           return;
         }}
@@ -238,17 +236,14 @@ const MemoizedEntity = memo(function Entity(props: {
   });
 });
 
-function Entities<TBuilder extends BaseBuilder>(props: {
-  schemaStore: SchemaStore<TBuilder>;
-  inputsValidationStore: InputsValidationStore<TBuilder>;
-  entitiesComponents: EntitiesComponents<TBuilder>;
-  children?: EntityRender<TBuilder>;
-}): ReactNode {
-  const rootCache = useRef(Array.from(props.schemaStore.getData().root));
+function RootEntities(): ReactNode {
+  const { schemaStore } = useContext(BuilderContext);
+
+  const rootCache = useRef(Array.from(schemaStore.getData().root));
 
   const root = useSyncExternalStore(
     (listen) =>
-      props.schemaStore.subscribe((data, events) => {
+      schemaStore.subscribe((data, events) => {
         if (
           events.some(
             (event) =>
@@ -257,32 +252,251 @@ function Entities<TBuilder extends BaseBuilder>(props: {
           )
         ) {
           rootCache.current = Array.from(data.root);
-        }
 
-        listen();
+          listen();
+        }
       }),
     () => rootCache.current,
     () => rootCache.current,
   );
 
+  return root.map((entityId) => (
+    <MemoizedEntity key={entityId} entityId={entityId} />
+  ));
+}
+
+function Entities<TBuilder extends BaseBuilder>(props: {
+  schemaStore: SchemaStore<TBuilder>;
+  inputsValidationStore: InputsValidationStore<TBuilder>;
+  entitiesComponents: EntitiesComponents<TBuilder>;
+  children?: EntityRender<TBuilder>;
+}): ReactNode {
   return (
     <BuilderContext.Provider
       value={{
         schemaStore: props.schemaStore,
         inputsValidationStore: props.inputsValidationStore,
-        renderEntity:
-          (props.children as EntityRender) ?? ((props) => props.children),
         entitiesComponents:
           props.entitiesComponents as unknown as EntitiesComponents,
+        renderEntity:
+          (props.children as EntityRender) ?? ((props) => props.children),
       }}
     >
-      {root.map((entityId) => (
-        <MemoizedEntity key={entityId} entityId={entityId} />
-      ))}
+      <RootEntities />
     </BuilderContext.Provider>
   );
 }
 
+type InputsComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
+  [K in TBuilder["entities"][number]["name"]]: {
+    [K2 in Extract<
+      TBuilder["entities"][number],
+      { name: K }
+    >["inputs"][number]["name"]]: InputComponent<
+      Extract<
+        Extract<TBuilder["entities"][number], { name: K }>["inputs"][number],
+        { name: K2 }
+      >
+    >;
+  };
+};
+
+interface InputRender<TBuilder extends BaseBuilder = BaseBuilder> {
+  (props: {
+    entity: SchemaStoreEntityWithId<TBuilder>;
+    input: {
+      [K in KeyofUnion<
+        SchemaStoreEntityWithId<TBuilder>["inputs"]
+      >]: InputForRender<
+        Extract<TBuilder["entities"][number]["inputs"][number], { name: K }>
+      >;
+    }[KeyofUnion<SchemaStoreEntityWithId<TBuilder>["inputs"]>];
+    children: JSX.Element;
+  }): JSX.Element;
+}
+
+interface InputsContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
+  schemaStore: SchemaStore<TBuilder>;
+  inputsValidationStore: InputsValidationStore<TBuilder>;
+  inputsComponents: InputsComponents<TBuilder>;
+  renderInput: InputRender<TBuilder>;
+  entity: SchemaStoreEntityWithId<TBuilder>;
+}
+
+const InputsContext = createContext<InputsContextValue>({
+  schemaStore: dummySchemaStore,
+  inputsValidationStore: dummyInputsValidationStore,
+  renderInput: (props) => props.children,
+  inputsComponents: {},
+  entity: {
+    id: "",
+    type: "",
+    inputs: {},
+  },
+});
+
+const MemoizedInput = memo(function Input(props: {
+  inputName: string;
+}): ReactNode {
+  const {
+    inputsComponents,
+    inputsValidationStore,
+    schemaStore,
+    entity,
+    renderInput,
+  } = useContext(InputsContext);
+
+  const InputComponent = inputsComponents[entity.type]?.[props.inputName];
+
+  if (!InputComponent) {
+    throw new Error("Input component not found.");
+  }
+
+  const inputValueCache = useRef(
+    schemaStore.getData().entities.get(entity.id)?.inputs[props.inputName],
+  );
+
+  const inputValue = useSyncExternalStore(
+    (listen) =>
+      schemaStore.subscribe((data, events) => {
+        if (
+          events.some(
+            (event) =>
+              (event.name === schemaStoreEventsNames.EntityInputUpdated &&
+                event.payload.entity.id === entity.id &&
+                event.payload.inputName === props.inputName) ||
+              event.name === schemaStoreEventsNames.DataSet,
+          )
+        ) {
+          inputValueCache.current = data.entities.get(entity.id)?.inputs[
+            props.inputName
+          ];
+
+          listen();
+        }
+      }),
+    () => inputValueCache.current,
+    () => inputValueCache.current,
+  );
+
+  const inputErrorCache = useRef(
+    inputsValidationStore.getData().entitiesInputsErrors.get(entity.id)?.[
+      props.inputName
+    ],
+  );
+
+  const inputError = useSyncExternalStore(
+    (listen) =>
+      inputsValidationStore.subscribe((data, events) => {
+        if (
+          events.some(
+            (event) =>
+              (event.name ===
+                inputsValidationStoreEventsNames.EntityInputErrorUpdated &&
+                event.payload.inputName === props.inputName) ||
+              event.name === inputsValidationStoreEventsNames.DataSet,
+          )
+        ) {
+          inputErrorCache.current = data.entitiesInputsErrors.get(entity.id)?.[
+            props.inputName
+          ];
+
+          listen();
+        }
+      }),
+    () => inputErrorCache.current,
+    () => inputErrorCache.current,
+  );
+
+  const input = {
+    name: props.inputName,
+    value: inputValue,
+    error: inputError,
+  };
+
+  return renderInput({
+    entity,
+    input,
+    children: (
+      <InputComponent
+        input={input}
+        onChange={(value) =>
+          schemaStore.setEntityInput(entity.id, props.inputName, value)
+        }
+        validate={() =>
+          inputsValidationStore.validateEntityInput(entity.id, props.inputName)
+        }
+      />
+    ),
+  });
+});
+
+function Inputs<TBuilder extends BaseBuilder>(props: {
+  builder: TBuilder;
+  schemaStore: SchemaStore<TBuilder>;
+  inputsValidationStore: InputsValidationStore<TBuilder>;
+  inputsComponents: InputsComponents<TBuilder>;
+  children?: InputRender<TBuilder>;
+  entityId?: string | null;
+}): ReactNode {
+  const entity = props.entityId
+    ? props.schemaStore.getData().entities.get(props.entityId)
+    : null;
+
+  if (!props.entityId || !entity) {
+    return null;
+  }
+
+  const entityDefinition = props.builder.entities.find(
+    (item) => item.name === entity.type,
+  );
+
+  if (!entityDefinition) {
+    throw new Error("Entity definition was not found.");
+  }
+
+  return (
+    <InputsContext.Provider
+      value={{
+        schemaStore: props.schemaStore,
+        inputsValidationStore: props.inputsValidationStore,
+        inputsComponents: props.inputsComponents as unknown as InputsComponents,
+        entity: {
+          ...entity,
+          id: props.entityId,
+        },
+        renderInput:
+          (props.children as InputRender) ?? ((props) => props.children),
+      }}
+      key={props.entityId}
+    >
+      {entityDefinition.inputs.map((item) => (
+        <MemoizedInput key={item.name} inputName={item.name} />
+      ))}
+    </InputsContext.Provider>
+  );
+}
+
+export function useActiveEntityId(
+  schemaStore: SchemaStore,
+  initialActiveEntityId: string | null = null,
+): [string | null, (id: string | null) => void] {
+  const [activeEntityId, setActiveEntityId] = useState<string | null>(
+    initialActiveEntityId,
+  );
+
+  useEffect(() => {
+    return schemaStore.subscribe((data) => {
+      if (activeEntityId && !data.entities.has(activeEntityId)) {
+        setActiveEntityId(null);
+      }
+    });
+  }, [activeEntityId, schemaStore]);
+
+  return [activeEntityId, setActiveEntityId];
+}
+
 export const Builder = {
   Entities,
+  Inputs,
 };
