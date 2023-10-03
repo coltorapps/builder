@@ -6,11 +6,15 @@ export type InputForRender<TInput extends Input> = {
   error?: unknown;
 };
 
-export type InputComponent<TInput extends Input> = (props: {
+export type InputComponentProps<TInput extends Input = Input> = {
   input: InputForRender<TInput>;
   validate: () => Promise<void>;
   onChange: (value: Awaited<ReturnType<TInput["validate"]>>) => void;
-}) => JSX.Element;
+};
+
+export type InputComponent<TInput extends Input> = (
+  props: InputComponentProps<TInput>,
+) => JSX.Element;
 
 export function createInputComponent<TInput extends Input>(
   _input: TInput,

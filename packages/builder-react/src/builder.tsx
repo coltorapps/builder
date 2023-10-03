@@ -109,10 +109,9 @@ type EntitiesComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
 
 interface BuilderContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
   schemaStore: SchemaStore<TBuilder>;
-  inputsValidationStore: InputsValidationStore<TBuilder>;
-
   entitiesComponents: EntitiesComponents<TBuilder>;
-  renderEntity: EntityRender<TBuilder>;
+  inputsValidationStore: InputsValidationStore<TBuilder>;
+  renderEntity: GenericEntityRender<TBuilder>;
 }
 
 const dummyBuilder = createBuilder({ entities: [] });
@@ -128,27 +127,26 @@ const dummyInputsValidationStore = createInputsValidationStore({
 
 const BuilderContext = createContext<BuilderContextValue>({
   schemaStore: dummySchemaStore,
+  entitiesComponents: {},
   inputsValidationStore: dummyInputsValidationStore,
   renderEntity: (props) => props.children,
-  entitiesComponents: {},
 });
 
-interface EntityRender<TBuilder extends BaseBuilder = BaseBuilder> {
-  (props: {
-    entity: EntityForRender<TBuilder>;
-    children: JSX.Element;
-  }): JSX.Element;
+export interface GenericEntityRenderProps<
+  TBuilder extends BaseBuilder = BaseBuilder,
+> {
+  entity: EntityForRender<TBuilder>;
+  children: JSX.Element;
+}
+interface GenericEntityRender<TBuilder extends BaseBuilder = BaseBuilder> {
+  (props: GenericEntityRenderProps<TBuilder>): JSX.Element;
 }
 
 const MemoizedEntity = memo(function Entity(props: {
   entityId: string;
 }): ReactNode {
-  const {
-    schemaStore,
-    inputsValidationStore,
-    entitiesComponents,
-    renderEntity,
-  } = useContext(BuilderContext);
+  const { schemaStore, entitiesComponents, renderEntity } =
+    useContext(BuilderContext);
 
   const entityCache = useRef(
     schemaStore.getData().entities.get(props.entityId),
@@ -174,33 +172,6 @@ const MemoizedEntity = memo(function Entity(props: {
     () => entityCache.current,
   );
 
-  const entityInputsErrorsCache = useRef(
-    inputsValidationStore.getData().entitiesInputsErrors.get(props.entityId),
-  );
-
-  const entityInputsErrors = useSyncExternalStore(
-    (listen) =>
-      inputsValidationStore.subscribe((data, events) => {
-        if (
-          events.some(
-            (event) =>
-              (event.name ===
-                inputsValidationStoreEventsNames.EntityInputErrorUpdated &&
-                event.payload.entityId === props.entityId) ||
-              event.name === inputsValidationStoreEventsNames.DataSet,
-          )
-        ) {
-          entityInputsErrorsCache.current = data.entitiesInputsErrors.get(
-            props.entityId,
-          );
-        }
-
-        listen();
-      }),
-    () => entityInputsErrorsCache.current,
-    () => entityInputsErrorsCache.current,
-  );
-
   if (!entity) {
     throw new Error("Entity not found.");
   }
@@ -216,7 +187,6 @@ const MemoizedEntity = memo(function Entity(props: {
   const entityForRender: EntityForRender = {
     ...entity,
     id: props.entityId,
-    inputsErrors: entityInputsErrors,
   };
 
   return renderEntity({
@@ -267,9 +237,9 @@ function RootEntities(): ReactNode {
 
 function Entities<TBuilder extends BaseBuilder>(props: {
   schemaStore: SchemaStore<TBuilder>;
-  inputsValidationStore: InputsValidationStore<TBuilder>;
   entitiesComponents: EntitiesComponents<TBuilder>;
-  children?: EntityRender<TBuilder>;
+  inputsValidationStore: InputsValidationStore<TBuilder>;
+  children?: GenericEntityRender<TBuilder>;
 }): ReactNode {
   return (
     <BuilderContext.Provider
@@ -279,7 +249,8 @@ function Entities<TBuilder extends BaseBuilder>(props: {
         entitiesComponents:
           props.entitiesComponents as unknown as EntitiesComponents,
         renderEntity:
-          (props.children as EntityRender) ?? ((props) => props.children),
+          (props.children as GenericEntityRender) ??
+          ((props) => props.children),
       }}
     >
       <RootEntities />
@@ -301,25 +272,29 @@ type InputsComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
   };
 };
 
-interface InputRender<TBuilder extends BaseBuilder = BaseBuilder> {
-  (props: {
-    entity: SchemaStoreEntityWithId<TBuilder>;
-    input: {
-      [K in KeyofUnion<
-        SchemaStoreEntityWithId<TBuilder>["inputs"]
-      >]: InputForRender<
-        Extract<TBuilder["entities"][number]["inputs"][number], { name: K }>
-      >;
-    }[KeyofUnion<SchemaStoreEntityWithId<TBuilder>["inputs"]>];
-    children: JSX.Element;
-  }): JSX.Element;
+export interface GenericInputRenderProps<
+  TBuilder extends BaseBuilder = BaseBuilder,
+> {
+  entity: SchemaStoreEntityWithId<TBuilder>;
+  input: {
+    [K in KeyofUnion<
+      SchemaStoreEntityWithId<TBuilder>["inputs"]
+    >]: InputForRender<
+      Extract<TBuilder["entities"][number]["inputs"][number], { name: K }>
+    >;
+  }[KeyofUnion<SchemaStoreEntityWithId<TBuilder>["inputs"]>];
+  children: JSX.Element;
+}
+
+interface GenericInputRender<TBuilder extends BaseBuilder = BaseBuilder> {
+  (props: GenericInputRenderProps<TBuilder>): JSX.Element;
 }
 
 interface InputsContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
   schemaStore: SchemaStore<TBuilder>;
   inputsValidationStore: InputsValidationStore<TBuilder>;
   inputsComponents: InputsComponents<TBuilder>;
-  renderInput: InputRender<TBuilder>;
+  renderInput: GenericInputRender<TBuilder>;
   entity: SchemaStoreEntityWithId<TBuilder>;
 }
 
@@ -388,6 +363,8 @@ const MemoizedInput = memo(function Input(props: {
   const inputError = useSyncExternalStore(
     (listen) =>
       inputsValidationStore.subscribe((data, events) => {
+        console.log(events);
+
         if (
           events.some(
             (event) =>
@@ -436,7 +413,7 @@ function Inputs<TBuilder extends BaseBuilder>(props: {
   schemaStore: SchemaStore<TBuilder>;
   inputsValidationStore: InputsValidationStore<TBuilder>;
   inputsComponents: InputsComponents<TBuilder>;
-  children?: InputRender<TBuilder>;
+  children?: GenericInputRender<TBuilder>;
   entityId?: string | null;
 }): ReactNode {
   const entity = props.entityId
@@ -466,7 +443,7 @@ function Inputs<TBuilder extends BaseBuilder>(props: {
           id: props.entityId,
         },
         renderInput:
-          (props.children as InputRender) ?? ((props) => props.children),
+          (props.children as GenericInputRender) ?? ((props) => props.children),
       }}
       key={props.entityId}
     >

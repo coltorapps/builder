@@ -52,14 +52,41 @@ exports[`schema integrity validation > throws for invalid root ids 1`] = `"The e
 
 exports[`schema validation > validates inputs with their validators 1`] = `
 {
-  "error": [Error: Validation has failed for some entities inputs.],
+  "reason": {
+    "code": "InvalidEntitiesInputs",
+    "payload": {
+      "entitiesInputsErrors": {
+        "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
+          "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+        },
+        "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+          "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+        },
+      },
+    },
+  },
   "success": false,
 }
 `;
 
 exports[`schema validation > validates inputs with their validators 2`] = `
 {
-  "code": "InvalidEntitiesInputs",
   "entitiesInputsErrors": {
     "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
       "label": [ZodError: [

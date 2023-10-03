@@ -1,31 +1,21 @@
 import {
   type Builder,
   type Entity,
-  type EntityInputsErrors,
   type SchemaStoreEntityWithId,
 } from "builder";
 
-import { type KeyofUnion } from "./utils";
+export type EntityForRender<TBuilder extends Builder = Builder> =
+  SchemaStoreEntityWithId<TBuilder>;
 
-export type EntityForRender<TBuilder extends Builder = Builder> = {
-  [K in SchemaStoreEntityWithId<TBuilder>["type"]]: Extract<
-    SchemaStoreEntityWithId<TBuilder>,
-    { type: K }
-  > & {
-    inputsErrors?: Pick<
-      EntityInputsErrors<TBuilder>,
-      KeyofUnion<
-        Extract<SchemaStoreEntityWithId<TBuilder>, { type: K }>["inputs"]
-      >
-    >;
-  };
-}[SchemaStoreEntityWithId<TBuilder>["type"]];
-
-export type EntityComponent<TEntity extends Entity> = (props: {
+export type EntityComponentProps<TEntity extends Entity = Entity> = {
   entity: EntityForRender<Builder<[TEntity]>>;
   children?: JSX.Element[];
   onChange: (value: Awaited<ReturnType<TEntity["validate"]>>) => void;
-}) => JSX.Element;
+};
+
+export type EntityComponent<TEntity extends Entity = Entity> = (
+  props: EntityComponentProps<TEntity>,
+) => JSX.Element;
 
 export function createEntityComponent<TEntity extends Entity>(
   _entity: TEntity,

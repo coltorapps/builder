@@ -1,5 +1,7 @@
 "use client";
 
+import { schemaValidationErrorCodes } from "builder";
+
 import {
   Builder,
   createEntityComponent,
@@ -8,67 +10,8 @@ import {
   useBuilder,
 } from "@builder/react";
 
-import {
-  createBuilder,
-  createEntity,
-  createInput,
-} from "../../../packages/builder/dist";
-
-const builder = createBuilder({
-  entities: [
-    createEntity({
-      name: "test",
-      inputs: [
-        createInput({
-          name: "label",
-          validate(value) {
-            if (typeof value !== "string") {
-              throw new Error();
-            }
-            if (value.length < 5) {
-              console.log("err");
-
-              throw new Error("Too short");
-            }
-            return value;
-          },
-        }),
-        createInput({
-          name: "kebag2",
-          validate(value) {
-            if (typeof value !== "string") {
-              throw new Error();
-            }
-            return value;
-          },
-        }),
-      ],
-      validate(value) {
-        if (typeof value !== "string") {
-          throw new Error();
-        }
-        return value;
-      },
-    }),
-    createEntity({
-      name: "select",
-      inputs: [
-        createInput({
-          name: "kebag",
-          validate(value) {
-            if (typeof value !== "number") {
-              throw new Error();
-            }
-            return value;
-          },
-        }),
-      ],
-    }),
-  ],
-  childrenAllowed: {
-    test: true,
-  },
-});
+import { builder } from "./builder";
+import { testServer } from "./test";
 
 const testComponent = createEntityComponent(
   builder.entities[0],
@@ -133,7 +76,7 @@ const labelComponent = createInputComponent(
           }}
         />
         <div style={{ color: "red" }}>
-          {input.error instanceof Error ? input.error.message : null}
+          {typeof input.error === "string" ? input.error : undefined}
         </div>
       </div>
     );
@@ -165,7 +108,7 @@ export default function Page() {
           client.schemaStore.addEntity({
             type: "test",
             inputs: {
-              label: "label",
+              label: "lab",
               kebag2: "kebag",
             },
           });
@@ -231,9 +174,6 @@ export default function Page() {
                 >
                   delete
                 </button>
-                {entity.inputsErrors ? (
-                  <span style={{ color: "red" }}>!!!</span>
-                ) : null}
               </div>
             </div>
           );
@@ -256,6 +196,27 @@ export default function Page() {
           return <div style={{ border: "1px solid black" }}>{children}</div>;
         }}
       </Builder.Inputs>
+      <button
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        onClick={async () => {
+          const res = await testServer(client.schemaStore.getSerializedData());
+
+          console.log(res);
+          client.inputsValidationStore.resetEntitiesInputsErrors();
+
+          setTimeout(() => {
+            if (
+              !res.success &&
+              res.reason.code ===
+                schemaValidationErrorCodes.InvalidEntitiesInputs
+            ) {
+              client.inputsValidationStore.setRawData(res.reason.payload);
+            }
+          }, 1000);
+        }}
+      >
+        go
+      </button>
     </>
   );
 }

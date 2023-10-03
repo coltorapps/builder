@@ -167,6 +167,7 @@ exports[`schema store > can be created with a non-empty schema 2`] = `
   "moveEntityToRoot": [Function],
   "setData": [Function],
   "setEntityInput": [Function],
+  "setRawData": [Function],
   "subscribe": [Function],
 }
 `;
@@ -217,6 +218,7 @@ exports[`schema store > can be created with an empty schema 2`] = `
   "moveEntityToRoot": [Function],
   "setData": [Function],
   "setEntityInput": [Function],
+  "setRawData": [Function],
   "subscribe": [Function],
 }
 `;
@@ -231,6 +233,7 @@ exports[`schema store > can be created without a schema 1`] = `
   "moveEntityToRoot": [Function],
   "setData": [Function],
   "setEntityInput": [Function],
+  "setRawData": [Function],
   "subscribe": [Function],
 }
 `;
@@ -812,6 +815,70 @@ exports[`schema store > can return the schema 1`] = `
   "root": [
     "6e0035c3-0d4c-445f-a42b-2d971225447c",
   ],
+}
+`;
+
+exports[`schema store > can set raw data 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entities": Map {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+            "inputs": {
+              "label": "test",
+            },
+            "type": "text",
+          },
+        },
+        "root": Set {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        },
+      },
+      [
+        {
+          "name": "DataSet",
+          "payload": {
+            "data": {
+              "entities": Map {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+                  "inputs": {
+                    "label": "test",
+                  },
+                  "type": "text",
+                },
+              },
+              "root": Set {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              },
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`schema store > can set raw data 2`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {
+        "label": "test",
+      },
+      "type": "text",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
 }
 `;
 

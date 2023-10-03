@@ -3,24 +3,24 @@ import { z } from "zod";
 
 import { createBuilder, createEntity, createInput } from "../src";
 import {
-  SchemaValidationError,
   schemaValidationErrorCodes,
   validateSchema,
   validateSchemaIntegrity,
   type Schema,
-  type SchemaValidationErrorCause,
+  type SchemaValidationErrorReason,
 } from "../src/schema";
 
 const invalidSchemasCases: Array<{
   schema: unknown;
-  errorCause: SchemaValidationErrorCause;
+  reason: SchemaValidationErrorReason;
 }> = [
   {
     schema: {
       entities: {},
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.InvalidRootFormat,
+      payload: {},
     },
   },
   {
@@ -28,9 +28,11 @@ const invalidSchemasCases: Array<{
       entities: {},
       root: {},
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.InvalidRootFormat,
-      root: {},
+      payload: {
+        root: {},
+      },
     },
   },
   {
@@ -38,9 +40,11 @@ const invalidSchemasCases: Array<{
       entities: {},
       root: null,
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.InvalidRootFormat,
-      root: null,
+      payload: {
+        root: null,
+      },
     },
   },
   {
@@ -56,9 +60,11 @@ const invalidSchemasCases: Array<{
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       ],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.DuplicateRootId,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
     },
   },
   {
@@ -73,7 +79,7 @@ const invalidSchemasCases: Array<{
       },
       root: [],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.EmptyRoot,
     },
   },
@@ -82,9 +88,11 @@ const invalidSchemasCases: Array<{
       entities: {},
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.NonexistentEntityId,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
     },
   },
   {
@@ -92,9 +100,11 @@ const invalidSchemasCases: Array<{
       entities: [],
       root: [],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.InvalidEntitiesFormat,
-      entities: [],
+      payload: {
+        entities: [],
+      },
     },
   },
   {
@@ -102,9 +112,11 @@ const invalidSchemasCases: Array<{
       entities: null,
       root: [],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.InvalidEntitiesFormat,
-      entities: null,
+      payload: {
+        entities: null,
+      },
     },
   },
   {
@@ -116,9 +128,11 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.MissingEntityType,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
     },
   },
   {
@@ -131,10 +145,12 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.UnknownEntityType,
-      entityType: "invalid",
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      payload: {
+        entityType: "invalid",
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
     },
   },
   {
@@ -146,9 +162,11 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.MissingEntityInputs,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
     },
   },
   {
@@ -161,10 +179,12 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.InvalidEntityInputsFormat,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-      entityInputs: [],
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        entityInputs: [],
+      },
     },
   },
   {
@@ -179,10 +199,12 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.UnknownEntityInputType,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-      inputName: "invalid",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        inputName: "invalid",
+      },
     },
   },
   {
@@ -196,10 +218,12 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.NonexistentEntityParent,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-      entityParentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        entityParentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      },
     },
   },
   {
@@ -213,9 +237,11 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.SelfEntityReference,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
     },
   },
   {
@@ -229,9 +255,11 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.InvalidChildrenFormat,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
     },
   },
   {
@@ -250,10 +278,12 @@ const invalidSchemasCases: Array<{
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.ChildNotAllowed,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-      childId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        childId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      },
     },
   },
   {
@@ -275,9 +305,11 @@ const invalidSchemasCases: Array<{
         "a1109529-46c6-4290-885b-bb0aca7a92a1",
       ],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.RootEntityWithParent,
-      entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      payload: {
+        entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      },
     },
   },
   {
@@ -298,10 +330,12 @@ const invalidSchemasCases: Array<{
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       ],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.EntityChildrenMismatch,
-      entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      childId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      payload: {
+        entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        childId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
     },
   },
   {
@@ -323,9 +357,11 @@ const invalidSchemasCases: Array<{
       },
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.DuplicateChildId,
-      entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      payload: {
+        entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      },
     },
   },
   {
@@ -348,10 +384,12 @@ const invalidSchemasCases: Array<{
       },
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.EntityParentMismatch,
-      entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-      parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      payload: {
+        entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      },
     },
   },
   {
@@ -364,9 +402,11 @@ const invalidSchemasCases: Array<{
       },
       root: ["a1109529-46c6-4290-885b-bb0aca7a92a1"],
     },
-    errorCause: {
+    reason: {
       code: schemaValidationErrorCodes.ParentRequired,
-      entityId: "a1109529-46c6-4290-885b-bb0aca7a92a1",
+      payload: {
+        entityId: "a1109529-46c6-4290-885b-bb0aca7a92a1",
+      },
     },
   },
 ];
@@ -406,7 +446,7 @@ describe("schema integrity validation", () => {
 
       expect(result).toEqual({
         success: false,
-        error: new SchemaValidationError(item.errorCause),
+        reason: item.reason,
       });
     }
   });
@@ -617,7 +657,7 @@ describe("schema validation", () => {
 
       expect(result).toEqual({
         success: false,
-        error: new SchemaValidationError(item.errorCause),
+        reason: item.reason,
       });
     }
   });
@@ -668,8 +708,8 @@ describe("schema validation", () => {
     expect(result).toMatchSnapshot();
 
     expect(
-      ((result as Record<string, unknown>).error as Record<string, unknown>)
-        .cause,
+      (result as unknown as Record<string, Record<string, unknown>>).reason
+        ?.payload,
     ).toMatchSnapshot();
   });
 });

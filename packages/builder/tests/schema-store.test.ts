@@ -197,6 +197,63 @@ describe("schema store", () => {
     expect(listener).toMatchSnapshot();
   });
 
+  it("can set raw data", () => {
+    const validateSchemaIntegrityMock = vi.spyOn(
+      schemaExports,
+      "validateSchemaIntegrity",
+    );
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const schemaStore = createSchemaStore({
+      builder,
+      schema: {
+        entities: {},
+        root: [],
+      },
+    });
+
+    const listener = vi.fn();
+
+    schemaStore.subscribe(listener);
+
+    const schema = {
+      entities: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          inputs: {
+            label: "test",
+          },
+        },
+      },
+      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+    } as const;
+
+    schemaStore.setRawData(schema);
+
+    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, {
+      builder,
+    });
+
+    expect(listener).toMatchSnapshot();
+
+    expect(schemaStore.getData()).toMatchSnapshot();
+  });
+
   it("can return the schema", () => {
     const builder = createBuilder({
       entities: [

@@ -8,6 +8,7 @@ import {
 import { createDataManager } from "./data-manager";
 import { type InputsValues } from "./input";
 import {
+  SchemaValidationError,
   validateSchemaIntegrity,
   type BaseSchemaEntity,
   type Schema,
@@ -28,7 +29,7 @@ export type SchemaStoreEntity<TBuilder extends Builder = Builder> =
 export type SchemaStoreEntityWithId<TBuilder extends Builder = Builder> =
   SchemaStoreEntity<TBuilder> & { id: string };
 
-type SerializedSchemaStoreStoreData<TBuilder extends Builder = Builder> =
+export type SerializedSchemaStoreData<TBuilder extends Builder = Builder> =
   Schema<TBuilder>;
 
 export interface SchemaStoreData<TBuilder extends Builder = Builder> {
@@ -86,8 +87,12 @@ export type SchemaStoreEvent<TBuilder extends Builder = Builder> =
     >;
 
 export interface SchemaStore<TBuilder extends Builder = Builder>
-  extends Store<SchemaStoreData<TBuilder>, SchemaStoreEvent<TBuilder>> {
-  getSerializedData(): SerializedSchemaStoreStoreData<TBuilder>;
+  extends Store<
+    SchemaStoreData<TBuilder>,
+    SerializedSchemaStoreData<TBuilder>,
+    SchemaStoreEvent<TBuilder>
+  > {
+  getSerializedData(): SerializedSchemaStoreData<TBuilder>;
   addEntity(
     payload: SchemaStoreEntity<TBuilder> & {
       index?: number;
@@ -109,8 +114,8 @@ export interface SchemaStore<TBuilder extends Builder = Builder>
 
 export function serializeSchemaStoreData<TBuilder extends Builder>(
   data: SchemaStoreData<TBuilder>,
-): SerializedSchemaStoreStoreData<TBuilder> {
-  const newEntities: SerializedSchemaStoreStoreData<TBuilder>["entities"] = {};
+): SerializedSchemaStoreData<TBuilder> {
+  const newEntities: SerializedSchemaStoreData<TBuilder>["entities"] = {};
 
   for (const [id, entity] of data.entities) {
     const { children, ...entityData } = entity;
@@ -119,7 +124,7 @@ export function serializeSchemaStoreData<TBuilder extends Builder>(
       ...entityData,
       ...(children ? { children: Array.from(children) } : {}),
       inputs:
-        entityData.inputs as unknown as SerializedSchemaStoreStoreData<TBuilder>["entities"][string]["inputs"],
+        entityData.inputs as unknown as SerializedSchemaStoreData<TBuilder>["entities"][string]["inputs"],
     };
   }
 
@@ -130,7 +135,7 @@ export function serializeSchemaStoreData<TBuilder extends Builder>(
 }
 
 export function deserializeSchemaStoreData<TBuilder extends Builder>(
-  schema: SerializedSchemaStoreStoreData<TBuilder>,
+  schema: SerializedSchemaStoreData<TBuilder>,
 ): SchemaStoreData<TBuilder> {
   return {
     entities: new Map(
@@ -236,7 +241,7 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
   );
 
   if (!validatedSchema.success) {
-    throw validatedSchema.error;
+    throw validatedSchema.reason;
   }
 
   const { getData, setData, subscribe } = createDataManager<
@@ -256,14 +261,34 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
       );
 
       if (!validatedSchema.success) {
-        throw validatedSchema.error;
+        throw new SchemaValidationError(validatedSchema.reason);
       }
 
       setData(deserializeSchemaStoreData(validatedSchema.data), [
         {
           name: schemaStoreEventsNames.DataSet,
           payload: {
-            data,
+            data: data,
+          },
+        },
+      ]);
+    },
+    setRawData(data) {
+      const validatedSchema = validateSchemaIntegrity(data, {
+        builder: options.builder,
+      });
+
+      if (!validatedSchema.success) {
+        throw new SchemaValidationError(validatedSchema.reason);
+      }
+
+      const newData = deserializeSchemaStoreData(validatedSchema.data);
+
+      setData(newData, [
+        {
+          name: schemaStoreEventsNames.DataSet,
+          payload: {
+            data: newData,
           },
         },
       ]);

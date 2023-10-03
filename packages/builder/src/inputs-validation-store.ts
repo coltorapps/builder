@@ -23,7 +23,9 @@ export type InputsValidationStoreData<TBuilder extends Builder = Builder> = {
   entitiesInputsErrors: Map<string, EntityInputsErrors<TBuilder>>;
 };
 
-type SerializedInputsValidationStoreData<TBuilder extends Builder = Builder> = {
+export type SerializedInputsValidationStoreData<
+  TBuilder extends Builder = Builder,
+> = {
   entitiesInputsErrors: EntitiesInputsErrors<TBuilder>;
 };
 
@@ -54,6 +56,7 @@ export type InputsValidationStoreEvent<TBuilder extends Builder = Builder> =
 export interface InputsValidationStore<TBuilder extends Builder = Builder>
   extends Store<
     InputsValidationStoreData<TBuilder>,
+    SerializedInputsValidationStoreData<TBuilder>,
     InputsValidationStoreEvent<TBuilder>
   > {
   getSerializedData(): SerializedInputsValidationStoreData;
@@ -141,7 +144,10 @@ async function validateEntityInputs<TBuilder extends Builder>(
     data: InputsValidationStoreData<TBuilder>;
     builder: TBuilder;
   },
-): Promise<EntityInputsErrors<TBuilder> | undefined> {
+): Promise<{
+  entityInputsErrors: EntityInputsErrors<TBuilder> | undefined;
+  events: Array<InputsValidationStoreEvent<TBuilder>>;
+}> {
   let newEntitiesInputsErrors = new Map(dependencies.data.entitiesInputsErrors);
 
   const entity = ensureEntityExists(
@@ -154,14 +160,31 @@ async function validateEntityInputs<TBuilder extends Builder>(
     dependencies.builder,
   );
 
+  const events: Array<InputsValidationStoreEvent<TBuilder>> = [];
+
   for (const input of entityDefinition.inputs) {
     newEntitiesInputsErrors = await validateEntityInput(entityId, input.name, {
       ...dependencies,
       entitiesInputsErrors: newEntitiesInputsErrors,
     });
+
+    events.push({
+      name: inputsValidationStoreEventsNames.EntityInputErrorUpdated,
+      payload: {
+        entityId,
+        inputName: input.name as KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
+        error:
+          newEntitiesInputsErrors.get(entityId)?.[
+            input.name as keyof EntityInputsErrors<TBuilder>
+          ],
+      },
+    });
   }
 
-  return newEntitiesInputsErrors.get(entityId);
+  return {
+    entityInputsErrors: newEntitiesInputsErrors.get(entityId),
+    events,
+  };
 }
 
 export function deserializeInputsValidationStoreData<TBuilder extends Builder>(
@@ -277,6 +300,25 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
         ],
       );
     },
+    setRawData(data) {
+      const validatedErrors = ensureEntitiesInputsErrorsAreValid(
+        data.entitiesInputsErrors,
+        options,
+      );
+
+      const newData = deserializeInputsValidationStoreData({
+        entitiesInputsErrors: validatedErrors,
+      });
+
+      setData(newData, [
+        {
+          name: inputsValidationStoreEventsNames.DataSet,
+          payload: {
+            data: newData,
+          },
+        },
+      ]);
+    },
     getSerializedData() {
       return serializeInputsValidationStoreData(getData());
     },
@@ -308,23 +350,17 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
     async validateEntityInputs(entityId) {
       const data = getData();
 
-      const entityInputsErrors = await validateEntityInputs(entityId, {
-        ...options,
-        data,
-      });
+      const { entityInputsErrors, events } = await validateEntityInputs(
+        entityId,
+        {
+          ...options,
+          data,
+        },
+      );
 
       const newErrors = new Map(data.entitiesInputsErrors);
 
       newErrors.set(entityId, entityInputsErrors ?? {});
-
-      const events: Array<InputsValidationStoreEvent<TBuilder>> =
-        Object.entries(entityInputsErrors ?? {}).map(([inputName, error]) =>
-          createEntityInputErrorUpdatedEvent({
-            entityId,
-            inputName,
-            error,
-          }),
-        );
 
       setData(
         {
@@ -343,23 +379,16 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
       for (const entityId of Array.from(
         options.schemaStore.getData().entities.keys(),
       )) {
-        const entityInputsErrors = await validateEntityInputs(entityId, {
-          schemaStore: options.schemaStore,
-          builder: options.builder,
-          data,
-        });
+        const { entityInputsErrors, events: nextEvents } =
+          await validateEntityInputs(entityId, {
+            schemaStore: options.schemaStore,
+            builder: options.builder,
+            data,
+          });
 
         newErrors.set(entityId, entityInputsErrors ?? {});
 
-        events = events.concat(
-          Object.entries(entityInputsErrors ?? {}).map(([inputName, error]) =>
-            createEntityInputErrorUpdatedEvent({
-              entityId,
-              inputName,
-              error,
-            }),
-          ),
-        );
+        events = events.concat(nextEvents);
       }
 
       setData(

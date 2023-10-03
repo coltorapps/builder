@@ -25,6 +25,144 @@ describe("inputs validation store", () => {
     expect(inputsValidationStore).toMatchSnapshot();
   });
 
+  it("can set the data", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const schemaStore = createSchemaStore({
+      builder,
+      schema: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "text",
+            inputs: {
+              label: "test",
+            },
+          },
+        },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      },
+    });
+
+    const inputsValidationStore = createInputsValidationStore({
+      builder,
+      schemaStore,
+    });
+
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
+    inputsValidationStore.setData({
+      entitiesInputsErrors: new Map(
+        Object.entries({
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            label: "some error",
+          },
+        }),
+      ),
+    });
+
+    expect(() =>
+      inputsValidationStore.setData({
+        entitiesInputsErrors: new Map(
+          Object.entries({
+            invalid: {
+              label: "some error",
+            },
+          }),
+        ),
+      }),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(inputsValidationStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("can set raw data", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const schema = {
+      entities: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          inputs: {
+            label: "test",
+          },
+        },
+      },
+      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+    } as const;
+
+    const schemaStore = createSchemaStore({
+      builder,
+      schema,
+    });
+
+    const inputsValidationStore = createInputsValidationStore({
+      builder,
+      schemaStore,
+    });
+
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    inputsValidationStore.subscribe(listenerWrapper);
+
+    inputsValidationStore.setRawData({
+      entitiesInputsErrors: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          label: "some error",
+        },
+      },
+    });
+
+    expect(() =>
+      inputsValidationStore.setRawData({
+        entitiesInputsErrors: {
+          invalid: {
+            label: "some error",
+          },
+        },
+      }),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(inputsValidationStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
   it("can be created with initial errors", () => {
     const builder = createBuilder({
       entities: [

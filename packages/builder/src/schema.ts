@@ -79,106 +79,98 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
       "Validation has failed for some entities inputs.",
   };
 
-export type SchemaValidationErrorCause =
+export type SchemaValidationErrorReason =
   | {
       code: typeof schemaValidationErrorCodes.InvalidRootFormat;
-      root?: unknown;
+      payload: { root?: unknown };
     }
   | {
       code: typeof schemaValidationErrorCodes.DuplicateRootId;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.DuplicateChildId;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.EmptyRoot;
     }
   | {
       code: typeof schemaValidationErrorCodes.NonexistentEntityId;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.InvalidEntitiesFormat;
-      entities?: unknown;
+      payload: { entities?: unknown };
     }
   | {
       code: typeof schemaValidationErrorCodes.MissingEntityType;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.UnknownEntityType;
-      entityId: string;
-      entityType: string;
+      payload: { entityId: string; entityType: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.NonexistentEntityParent;
-      entityId: string;
-      entityParentId: string;
+      payload: { entityId: string; entityParentId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.MissingEntityInputs;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.InvalidEntityInputsFormat;
-      entityId: string;
-      entityInputs: unknown;
+      payload: { entityId: string; entityInputs: unknown };
     }
   | {
       code: typeof schemaValidationErrorCodes.UnknownEntityInputType;
-      entityId: string;
-      inputName: string;
+      payload: { entityId: string; inputName: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.SelfEntityReference;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.InvalidChildrenFormat;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.ChildNotAllowed;
-      entityId: string;
-      childId: string;
+      payload: { entityId: string; childId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.RootEntityWithParent;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.EntityChildrenMismatch;
-      entityId: string;
-      childId: string;
+      payload: { entityId: string; childId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.EntityParentMismatch;
-      entityId: string;
-      parentId: string;
+      payload: { entityId: string; parentId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.ParentRequired;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.UnreachableEntity;
-      entityId: string;
+      payload: { entityId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.InvalidEntityInputs;
-      entityId: string;
-      inputsErrors: EntityInputsErrors;
+      payload: { entityId: string; inputsErrors: EntityInputsErrors };
     }
   | {
       code: typeof schemaValidationErrorCodes.InvalidEntitiesInputs;
-      entitiesInputsErrors: EntitiesInputsErrors;
+      payload: { entitiesInputsErrors: EntitiesInputsErrors };
     };
 
 export class SchemaValidationError extends Error {
-  constructor(public cause: SchemaValidationErrorCause) {
-    super(schemaValidationErrorMessages[cause.code] ?? "Unknown error");
+  constructor(public reason: SchemaValidationErrorReason) {
+    super(schemaValidationErrorMessages[reason.code] ?? "Unknown error");
   }
 }
 
@@ -219,8 +211,7 @@ function ensureEntityIsRegistered(
   if (!entityDefinition) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.UnknownEntityType,
-      entityId: entity.id,
-      entityType: entity.type,
+      payload: { entityId: entity.id, entityType: entity.type },
     });
   }
 
@@ -231,7 +222,7 @@ function ensureEntityTypeHasValidFormat(entity: SchemaEntityWithId): void {
   if (typeof entity.type !== "string" || entity.type.length === 0) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.MissingEntityType,
-      entityId: entity.id,
+      payload: { entityId: entity.id },
     });
   }
 }
@@ -244,8 +235,7 @@ function ensureEntityInputsHaveValidFormat(entity: SchemaEntityWithId): void {
   ) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.InvalidEntityInputsFormat,
-      entityId: entity.id,
-      entityInputs: entity.inputs,
+      payload: { entityId: entity.id, entityInputs: entity.inputs },
     });
   }
 }
@@ -254,7 +244,7 @@ function ensureEntityHasInputs(entity: SchemaEntityWithId): void {
   if (!entity.inputs) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.MissingEntityInputs,
-      entityId: entity.id,
+      payload: { entityId: entity.id },
     });
   }
 }
@@ -269,8 +259,7 @@ function ensureEntityInputIsRegistered(
   if (!entityDefinition?.inputs.some((input) => input.name === inputName)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.UnknownEntityInputType,
-      entityId: entity.id,
-      inputName: inputName,
+      payload: { entityId: entity.id, inputName: inputName },
     });
   }
 }
@@ -305,8 +294,7 @@ async function validateEntityInputs(
   if (Object.keys(inputsErrors).length) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.InvalidEntityInputs,
-      entityId: entity.id,
-      inputsErrors,
+      payload: { entityId: entity.id, inputsErrors },
     });
   }
 
@@ -328,8 +316,7 @@ export function ensureEntityOptionalParentIdHasValidReference<
   if (!parentEntity) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.NonexistentEntityParent,
-      entityId: entity.id,
-      entityParentId: entity.parentId,
+      payload: { entityId: entity.id, entityParentId: entity.parentId },
     });
   }
 
@@ -342,7 +329,7 @@ function ensureEntityParentIdDoesntHaveSelfReference(
   if (entity.parentId === entity.id || entity.children?.includes(entity.id)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.SelfEntityReference,
-      entityId: entity.id,
+      payload: { entityId: entity.id },
     });
   }
 }
@@ -354,7 +341,7 @@ function ensureEntityChildrenHaveValidFormat(entity: SchemaEntityWithId): void {
   ) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.InvalidChildrenFormat,
-      entityId: entity.id,
+      payload: { entityId: entity.id },
     });
   }
 }
@@ -367,8 +354,7 @@ export function ensureEntityChildAllowed(
   if (!isEntityChildAllowed(entity.type, childEntity.type, builder)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.ChildNotAllowed,
-      entityId: entity.id,
-      childId: childEntity.id,
+      payload: { entityId: entity.id, childId: childEntity.id },
     });
   }
 }
@@ -402,7 +388,7 @@ function ensureChildIdUnique(
   if (entity.children.filter((id) => id === childId).length > 1) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.DuplicateChildId,
-      entityId: entity.id,
+      payload: { entityId: entity.id },
     });
   }
 }
@@ -434,8 +420,7 @@ function ensureEntityHasParentId(
   if (entity.parentId !== parentId) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.EntityChildrenMismatch,
-      entityId: parentId,
-      childId: entity.id,
+      payload: { entityId: parentId, childId: entity.id },
     });
   }
 }
@@ -466,8 +451,7 @@ function ensureEntityParentIdMatchesParentChildren(
   if (!parent.children?.includes(entity.id)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.EntityParentMismatch,
-      entityId: entity.id,
-      parentId: entity.parentId,
+      payload: { entityId: entity.id, parentId: entity.parentId },
     });
   }
 }
@@ -479,7 +463,7 @@ export function ensureEntityCanLackParent(
   if (!entity.parentId && isEntityParentRequired(entity.type, builder)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.ParentRequired,
-      entityId: entity.id,
+      payload: { entityId: entity.id },
     });
   }
 }
@@ -491,7 +475,7 @@ export function ensureEntityReachable(
   if (!entity.parentId && !root.includes(entity.id)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.UnreachableEntity,
-      entityId: entity.id,
+      payload: { entityId: entity.id },
     });
   }
 }
@@ -566,7 +550,7 @@ export function ensureEntityExists<TBuilder extends Builder>(
   if (!entity) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.NonexistentEntityId,
-      entityId,
+      payload: { entityId },
     });
   }
 
@@ -580,7 +564,7 @@ function ensureRootEntityIdUnique(
   if (root.filter((id) => id === entityId).length > 1) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.DuplicateRootId,
-      entityId,
+      payload: { entityId },
     });
   }
 }
@@ -593,7 +577,7 @@ function ensureEntitiesHaveValidFormat(entities: Schema["entities"]): void {
   ) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.InvalidEntitiesFormat,
-      entities,
+      payload: { entities },
     });
   }
 }
@@ -602,7 +586,7 @@ function ensureRootHasValidFormat(root: Schema["root"]): void {
   if (!Array.isArray(root)) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.InvalidRootFormat,
-      root: root,
+      payload: { root },
     });
   }
 }
@@ -647,7 +631,7 @@ function ensureRootEntityDoesntHaveParent(
   if (typeof entity.parentId !== "undefined") {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.RootEntityWithParent,
-      entityId: id,
+      payload: { entityId: id },
     });
   }
 }
@@ -664,7 +648,7 @@ export function getEmptySchema<TBuilder extends Builder>(): Schema<TBuilder> {
 
 type SchemValidationResult<TBuilder extends Builder> =
   | { data: Schema<TBuilder>; success: true }
-  | { error: SchemaValidationError; success: false };
+  | { reason: SchemaValidationErrorReason; success: false };
 
 export function validateSchemaIntegrity<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
@@ -701,7 +685,7 @@ export function validateSchemaIntegrity<TBuilder extends Builder>(
   } catch (error) {
     if (error instanceof SchemaValidationError) {
       return {
-        error,
+        reason: error.reason,
         success: false,
       };
     }
@@ -746,9 +730,9 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
     } catch (error) {
       if (
         error instanceof SchemaValidationError &&
-        error.cause.code === schemaValidationErrorCodes.InvalidEntityInputs
+        error.reason.code === schemaValidationErrorCodes.InvalidEntityInputs
       ) {
-        entitiesInputsErrors[id] = error.cause.inputsErrors;
+        entitiesInputsErrors[id] = error.reason.payload.inputsErrors;
       } else {
         throw error;
       }
@@ -758,10 +742,10 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
   if (Object.keys(entitiesInputsErrors).length) {
     return {
       success: false,
-      error: new SchemaValidationError({
+      reason: new SchemaValidationError({
         code: schemaValidationErrorCodes.InvalidEntitiesInputs,
-        entitiesInputsErrors,
-      }),
+        payload: { entitiesInputsErrors },
+      }).reason,
     };
   }
 
