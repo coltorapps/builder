@@ -44,7 +44,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "text",
@@ -126,7 +126,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema,
+      data: schema,
     });
 
     const inputsValidationStore = createInputsValidationStore({
@@ -182,7 +182,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -199,9 +199,11 @@ describe("inputs validation store", () => {
       createInputsValidationStore({
         builder,
         schemaStore,
-        entitiesInputsErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            label: new Error(),
+        data: {
+          entitiesInputsErrors: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              label: new Error(),
+            },
           },
         },
       }).getData(),
@@ -211,8 +213,10 @@ describe("inputs validation store", () => {
       createInputsValidationStore({
         builder,
         schemaStore,
-        entitiesInputsErrors: {
-          invalid: {},
+        data: {
+          entitiesInputsErrors: {
+            invalid: {},
+          },
         },
       }),
     ).toThrowErrorMatchingSnapshot();
@@ -221,10 +225,12 @@ describe("inputs validation store", () => {
       createInputsValidationStore({
         builder,
         schemaStore,
-        entitiesInputsErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            // @ts-expect-error Intentional wrong data type
-            invalid: new Error(),
+        data: {
+          entitiesInputsErrors: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              // @ts-expect-error Intentional wrong data type
+              invalid: new Error(),
+            },
           },
         },
       }),
@@ -250,7 +256,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -339,7 +345,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -404,7 +410,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -473,7 +479,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -554,7 +560,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -641,7 +647,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
@@ -722,7 +728,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -794,7 +800,7 @@ describe("inputs validation store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      schema: {
+      data: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -815,12 +821,14 @@ describe("inputs validation store", () => {
     const inputsValidationStore = createInputsValidationStore({
       builder,
       schemaStore,
-      entitiesInputsErrors: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          label: "label error",
-        },
-        "51324b32-adc3-4d17-a90e-66b5453935bd": {
-          title: "title error",
+      data: {
+        entitiesInputsErrors: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            label: "label error",
+          },
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            title: "title error",
+          },
         },
       },
     });

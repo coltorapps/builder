@@ -261,10 +261,10 @@ function createEntityInputErrorUpdatedEvent<TBuilder extends Builder>(options: {
 export function createInputsValidationStore<TBuilder extends Builder>(options: {
   schemaStore: SchemaStore<TBuilder>;
   builder: TBuilder;
-  entitiesInputsErrors?: EntitiesInputsErrors<TBuilder>;
+  data?: SerializedInputsValidationStoreData<TBuilder>;
 }): InputsValidationStore<TBuilder> {
   const validatedErrors = ensureEntitiesInputsErrorsAreValid(
-    options.entitiesInputsErrors ?? {},
+    options.data?.entitiesInputsErrors ?? {},
     options,
   );
 
@@ -277,48 +277,33 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
     }),
   );
 
+  function setRawData(data: SerializedInputsValidationStoreData<TBuilder>) {
+    const validatedErrors = ensureEntitiesInputsErrorsAreValid(
+      data.entitiesInputsErrors,
+      options,
+    );
+
+    const newData = deserializeInputsValidationStoreData({
+      entitiesInputsErrors: validatedErrors,
+    });
+
+    setData(newData, [
+      {
+        name: inputsValidationStoreEventsNames.DataSet,
+        payload: {
+          data: newData,
+        },
+      },
+    ]);
+  }
+
   return {
     subscribe,
     getData,
     setData(data) {
-      const validatedErrors = ensureEntitiesInputsErrorsAreValid(
-        serializeInputsValidationStoreData(data).entitiesInputsErrors,
-        options,
-      );
-
-      setData(
-        deserializeInputsValidationStoreData({
-          entitiesInputsErrors: validatedErrors,
-        }),
-        [
-          {
-            name: inputsValidationStoreEventsNames.DataSet,
-            payload: {
-              data,
-            },
-          },
-        ],
-      );
+      setRawData(serializeInputsValidationStoreData(data));
     },
-    setRawData(data) {
-      const validatedErrors = ensureEntitiesInputsErrorsAreValid(
-        data.entitiesInputsErrors,
-        options,
-      );
-
-      const newData = deserializeInputsValidationStoreData({
-        entitiesInputsErrors: validatedErrors,
-      });
-
-      setData(newData, [
-        {
-          name: inputsValidationStoreEventsNames.DataSet,
-          payload: {
-            data: newData,
-          },
-        },
-      ]);
-    },
+    setRawData,
     getSerializedData() {
       return serializeInputsValidationStoreData(getData());
     },

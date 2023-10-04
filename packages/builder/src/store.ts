@@ -1,6 +1,10 @@
 import { type Subscribe, type SubscriptionEvent } from "./subscription-manager";
 
-export interface Store<TData, TRawData, TEvent extends SubscriptionEvent> {
+export interface Store<
+  TData = unknown,
+  TRawData = unknown,
+  TEvent extends SubscriptionEvent = SubscriptionEvent,
+> {
   getData(): TData;
   setData(data: TData): void;
   setRawData(data: TRawData): void;

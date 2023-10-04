@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { schemaValidationErrorCodes } from "builder";
 
 import {
@@ -95,10 +96,30 @@ const selectComponent = createEntityComponent(
 );
 
 export default function Page() {
-  const client = useBuilder(builder);
+  const client = useBuilder(builder, {
+    events: {
+      inputsValidationStore: {
+        onDataSet(payload) {
+          const firstEntityId = Object.keys(
+            Object.fromEntries(payload.data.entitiesInputsErrors),
+          )[0];
+
+          if (firstEntityId) {
+            setSelectedEntityId(firstEntityId);
+          }
+        },
+      },
+    },
+  });
 
   const [selectedEntityId, setSelectedEntityId] = useActiveEntityId(
     client.schemaStore,
+  );
+
+  const inputsErrors = useSyncExternalStore(
+    (listen) => client.inputsValidationStore.subscribe(listen),
+    () => client.inputsValidationStore.getData(),
+    () => client.inputsValidationStore.getData(),
   );
 
   return (
@@ -144,6 +165,8 @@ export default function Page() {
         }}
       >
         {({ children, entity }) => {
+          console.log("red");
+
           return (
             <div
               onClick={(e) => {
@@ -174,6 +197,10 @@ export default function Page() {
                 >
                   delete
                 </button>
+                {inputsErrors.entitiesInputsErrors.has(entity.id) &&
+                selectedEntityId !== entity.id ? (
+                  <span style={{ color: "red" }}>!!!</span>
+                ) : null}
               </div>
             </div>
           );

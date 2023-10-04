@@ -228,10 +228,10 @@ function deleteEntity<TBuilder extends Builder>(
 
 export function createSchemaStore<TBuilder extends Builder>(options: {
   builder: TBuilder;
-  schema?: Schema<TBuilder>;
+  data?: SerializedSchemaStoreData<TBuilder>;
 }): SchemaStore<TBuilder> {
   const validatedSchema = validateSchemaIntegrity(
-    options.schema ?? {
+    options.data ?? {
       entities: {},
       root: [],
     },
@@ -241,7 +241,7 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
   );
 
   if (!validatedSchema.success) {
-    throw validatedSchema.reason;
+    throw new SchemaValidationError(validatedSchema.reason);
   }
 
   const { getData, setData, subscribe } = createDataManager<
@@ -249,50 +249,34 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
     SchemaStoreEvent<TBuilder>
   >(deserializeSchemaStoreData(validatedSchema.data));
 
+  function setRawData(data: SerializedSchemaStoreData<TBuilder>) {
+    const validatedSchema = validateSchemaIntegrity(data, {
+      builder: options.builder,
+    });
+
+    if (!validatedSchema.success) {
+      throw new SchemaValidationError(validatedSchema.reason);
+    }
+
+    const newData = deserializeSchemaStoreData(validatedSchema.data);
+
+    setData(newData, [
+      {
+        name: schemaStoreEventsNames.DataSet,
+        payload: {
+          data: newData,
+        },
+      },
+    ]);
+  }
+
   return {
     subscribe,
     getData,
     setData(data) {
-      const validatedSchema = validateSchemaIntegrity(
-        serializeSchemaStoreData(data),
-        {
-          builder: options.builder,
-        },
-      );
-
-      if (!validatedSchema.success) {
-        throw new SchemaValidationError(validatedSchema.reason);
-      }
-
-      setData(deserializeSchemaStoreData(validatedSchema.data), [
-        {
-          name: schemaStoreEventsNames.DataSet,
-          payload: {
-            data: data,
-          },
-        },
-      ]);
+      setRawData(serializeSchemaStoreData(data));
     },
-    setRawData(data) {
-      const validatedSchema = validateSchemaIntegrity(data, {
-        builder: options.builder,
-      });
-
-      if (!validatedSchema.success) {
-        throw new SchemaValidationError(validatedSchema.reason);
-      }
-
-      const newData = deserializeSchemaStoreData(validatedSchema.data);
-
-      setData(newData, [
-        {
-          name: schemaStoreEventsNames.DataSet,
-          payload: {
-            data: newData,
-          },
-        },
-      ]);
-    },
+    setRawData,
     getSerializedData() {
       return serializeSchemaStoreData(getData());
     },

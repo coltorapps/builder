@@ -52,3 +52,5 @@ export type {
 } from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";
+
+export type { Store } from "./store";
