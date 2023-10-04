@@ -163,7 +163,13 @@ export function ensureEntityExists<TBuilder extends Builder>(
     throw new Error(`Entity with ID "${id}" was not found.`);
   }
 
-  return structuredClone(entity);
+  const entityClone = { ...entity };
+
+  if (entityClone.children) {
+    entityClone.children = new Set(entityClone.children);
+  }
+
+  return entityClone;
 }
 
 function deleteEntity<TBuilder extends Builder>(
@@ -228,10 +234,10 @@ function deleteEntity<TBuilder extends Builder>(
 
 export function createSchemaStore<TBuilder extends Builder>(options: {
   builder: TBuilder;
-  data?: SerializedSchemaStoreData<TBuilder>;
+  rawData?: SerializedSchemaStoreData<TBuilder>;
 }): SchemaStore<TBuilder> {
   const validatedSchema = validateSchemaIntegrity(
-    options.data ?? {
+    options.rawData ?? {
       entities: {},
       root: [],
     },

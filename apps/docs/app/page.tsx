@@ -96,21 +96,7 @@ const selectComponent = createEntityComponent(
 );
 
 export default function Page() {
-  const client = useBuilder(builder, {
-    events: {
-      inputsValidationStore: {
-        onDataSet(payload) {
-          const firstEntityId = Object.keys(
-            Object.fromEntries(payload.data.entitiesInputsErrors),
-          )[0];
-
-          if (firstEntityId) {
-            setSelectedEntityId(firstEntityId);
-          }
-        },
-      },
-    },
-  });
+  const client = useBuilder(builder);
 
   const [selectedEntityId, setSelectedEntityId] = useActiveEntityId(
     client.schemaStore,
@@ -165,8 +151,6 @@ export default function Page() {
         }}
       >
         {({ children, entity }) => {
-          console.log("red");
-
           return (
             <div
               onClick={(e) => {
@@ -238,6 +222,21 @@ export default function Page() {
                 schemaValidationErrorCodes.InvalidEntitiesInputs
             ) {
               client.inputsValidationStore.setRawData(res.reason.payload);
+
+              const firstEntityWithErrors = Object.keys(
+                res.reason.payload.entitiesInputsErrors,
+              )[0];
+
+              if (
+                selectedEntityId &&
+                res.reason.payload.entitiesInputsErrors[selectedEntityId]
+              ) {
+                return;
+              }
+
+              if (firstEntityWithErrors) {
+                setSelectedEntityId(firstEntityWithErrors);
+              }
             }
           }, 1000);
         }}

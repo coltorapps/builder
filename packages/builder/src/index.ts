@@ -49,6 +49,7 @@ export type {
   SchemaValidationErrorReason as SchemaValidationErrorCause,
   SchemaValidationErrorCode,
   EntityInputsErrors,
+  EntitiesInputsErrors,
 } from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";

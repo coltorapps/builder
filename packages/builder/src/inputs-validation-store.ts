@@ -261,10 +261,10 @@ function createEntityInputErrorUpdatedEvent<TBuilder extends Builder>(options: {
 export function createInputsValidationStore<TBuilder extends Builder>(options: {
   schemaStore: SchemaStore<TBuilder>;
   builder: TBuilder;
-  data?: SerializedInputsValidationStoreData<TBuilder>;
+  rawData?: SerializedInputsValidationStoreData<TBuilder>;
 }): InputsValidationStore<TBuilder> {
   const validatedErrors = ensureEntitiesInputsErrorsAreValid(
-    options.data?.entitiesInputsErrors ?? {},
+    options.rawData?.entitiesInputsErrors ?? {},
     options,
   );
 

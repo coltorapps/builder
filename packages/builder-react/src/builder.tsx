@@ -15,6 +15,7 @@ import {
   inputsValidationStoreEventsNames,
   schemaStoreEventsNames,
   type Builder as BaseBuilder,
+  type EntitiesInputsErrors,
   type InputsValidationStore,
   type InputsValidationStoreEvent,
   type Schema,
@@ -41,7 +42,8 @@ type EventsListeners<
 export function useBuilder<TBuilder extends BaseBuilder>(
   builder: TBuilder,
   options: {
-    schema?: Schema<TBuilder>;
+    initialSchema?: Schema<TBuilder>;
+    initialEntitiesInputsErrors?: EntitiesInputsErrors<TBuilder>;
     events?: {
       schemaStore?: EventsListeners<TBuilder, SchemaStoreEvent<TBuilder>>;
       inputsValidationStore?: EventsListeners<
@@ -56,13 +58,18 @@ export function useBuilder<TBuilder extends BaseBuilder>(
   inputsValidationStore: InputsValidationStore<TBuilder>;
 } {
   const schemaStoreRef = useRef(
-    createSchemaStore({ builder, data: options.schema }),
+    createSchemaStore({ builder, rawData: options.initialSchema }),
   );
 
   const inputsValidationStoreRef = useRef(
     createInputsValidationStore({
       schemaStore: schemaStoreRef.current,
       builder,
+      rawData: options.initialEntitiesInputsErrors
+        ? {
+            entitiesInputsErrors: options.initialEntitiesInputsErrors,
+          }
+        : undefined,
     }),
   );
 
@@ -457,6 +464,10 @@ export function useActiveEntityId(
   );
 
   useEffect(() => {
+    if (activeEntityId && !schemaStore.getData().entities.has(activeEntityId)) {
+      throw new Error("Entity not found.");
+    }
+
     return schemaStore.subscribe((data) => {
       if (activeEntityId && !data.entities.has(activeEntityId)) {
         setActiveEntityId(null);
