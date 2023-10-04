@@ -221,7 +221,7 @@ export default function Page() {
               res.reason.code ===
                 schemaValidationErrorCodes.InvalidEntitiesInputs
             ) {
-              client.inputsValidationStore.setRawData(res.reason.payload);
+              client.inputsValidationStore.setSerializedData(res.reason.payload);
 
               const firstEntityWithErrors = Object.keys(
                 res.reason.payload.entitiesInputsErrors,

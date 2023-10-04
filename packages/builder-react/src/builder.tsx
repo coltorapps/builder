@@ -58,18 +58,16 @@ export function useBuilder<TBuilder extends BaseBuilder>(
   inputsValidationStore: InputsValidationStore<TBuilder>;
 } {
   const schemaStoreRef = useRef(
-    createSchemaStore({ builder, rawData: options.initialSchema }),
+    createSchemaStore({ builder, serializedData: options.initialSchema }),
   );
 
   const inputsValidationStoreRef = useRef(
     createInputsValidationStore({
       schemaStore: schemaStoreRef.current,
       builder,
-      rawData: options.initialEntitiesInputsErrors
-        ? {
-            entitiesInputsErrors: options.initialEntitiesInputsErrors,
-          }
-        : undefined,
+      serializedData: {
+        entitiesInputsErrors: options.initialEntitiesInputsErrors ?? {},
+      },
     }),
   );
 

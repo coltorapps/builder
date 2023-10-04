@@ -234,10 +234,10 @@ function deleteEntity<TBuilder extends Builder>(
 
 export function createSchemaStore<TBuilder extends Builder>(options: {
   builder: TBuilder;
-  rawData?: SerializedSchemaStoreData<TBuilder>;
+  serializedData?: SerializedSchemaStoreData<TBuilder>;
 }): SchemaStore<TBuilder> {
   const validatedSchema = validateSchemaIntegrity(
-    options.rawData ?? {
+    options.serializedData ?? {
       entities: {},
       root: [],
     },
@@ -255,7 +255,7 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
     SchemaStoreEvent<TBuilder>
   >(deserializeSchemaStoreData(validatedSchema.data));
 
-  function setRawData(data: SerializedSchemaStoreData<TBuilder>) {
+  function setSerializedData(data: SerializedSchemaStoreData<TBuilder>) {
     const validatedSchema = validateSchemaIntegrity(data, {
       builder: options.builder,
     });
@@ -280,9 +280,9 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
     subscribe,
     getData,
     setData(data) {
-      setRawData(serializeSchemaStoreData(data));
+      setSerializedData(serializeSchemaStoreData(data));
     },
-    setRawData,
+    setSerializedData: setSerializedData,
     getSerializedData() {
       return serializeSchemaStoreData(getData());
     },

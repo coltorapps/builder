@@ -167,7 +167,7 @@ exports[`schema store > can be created with a non-empty schema 2`] = `
   "moveEntityToRoot": [Function],
   "setData": [Function],
   "setEntityInput": [Function],
-  "setRawData": [Function],
+  "setSerializedData": [Function],
   "subscribe": [Function],
 }
 `;
@@ -218,7 +218,7 @@ exports[`schema store > can be created with an empty schema 2`] = `
   "moveEntityToRoot": [Function],
   "setData": [Function],
   "setEntityInput": [Function],
-  "setRawData": [Function],
+  "setSerializedData": [Function],
   "subscribe": [Function],
 }
 `;
@@ -233,7 +233,7 @@ exports[`schema store > can be created without a schema 1`] = `
   "moveEntityToRoot": [Function],
   "setData": [Function],
   "setEntityInput": [Function],
-  "setRawData": [Function],
+  "setSerializedData": [Function],
   "subscribe": [Function],
 }
 `;

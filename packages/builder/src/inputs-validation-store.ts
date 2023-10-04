@@ -261,10 +261,10 @@ function createEntityInputErrorUpdatedEvent<TBuilder extends Builder>(options: {
 export function createInputsValidationStore<TBuilder extends Builder>(options: {
   schemaStore: SchemaStore<TBuilder>;
   builder: TBuilder;
-  rawData?: SerializedInputsValidationStoreData<TBuilder>;
+  serializedData?: SerializedInputsValidationStoreData<TBuilder>;
 }): InputsValidationStore<TBuilder> {
   const validatedErrors = ensureEntitiesInputsErrorsAreValid(
-    options.rawData?.entitiesInputsErrors ?? {},
+    options.serializedData?.entitiesInputsErrors ?? {},
     options,
   );
 
@@ -277,7 +277,9 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
     }),
   );
 
-  function setRawData(data: SerializedInputsValidationStoreData<TBuilder>) {
+  function setSerializedData(
+    data: SerializedInputsValidationStoreData<TBuilder>,
+  ) {
     const validatedErrors = ensureEntitiesInputsErrorsAreValid(
       data.entitiesInputsErrors,
       options,
@@ -301,9 +303,9 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
     subscribe,
     getData,
     setData(data) {
-      setRawData(serializeInputsValidationStoreData(data));
+      setSerializedData(serializeInputsValidationStoreData(data));
     },
-    setRawData,
+    setSerializedData: setSerializedData,
     getSerializedData() {
       return serializeInputsValidationStoreData(getData());
     },

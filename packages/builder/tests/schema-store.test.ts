@@ -72,7 +72,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "text",
@@ -102,7 +102,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: { entities: {}, root: [] },
+      serializedData: { entities: {}, root: [] },
     });
 
     expect(validateSchemaIntegrityMock).toMatchSnapshot();
@@ -144,7 +144,7 @@ describe("schema store", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     } as const;
 
-    const schemaStore = createSchemaStore({ builder, rawData: schema });
+    const schemaStore = createSchemaStore({ builder, serializedData: schema });
 
     expect(schemaStore.getData()).toMatchSnapshot();
 
@@ -172,7 +172,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "text",
@@ -221,7 +221,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {},
         root: [],
       },
@@ -243,7 +243,7 @@ describe("schema store", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     } as const;
 
-    schemaStore.setRawData(schema);
+    schemaStore.setSerializedData(schema);
 
     expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, {
       builder,
@@ -283,7 +283,7 @@ describe("schema store", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     } as const;
 
-    const schemaStore = createSchemaStore({ builder, rawData: schema });
+    const schemaStore = createSchemaStore({ builder, serializedData: schema });
 
     expect(schemaStore.getSerializedData()).toMatchSnapshot();
   });
@@ -302,7 +302,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -372,7 +372,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -422,7 +422,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -460,7 +460,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "text",
@@ -493,7 +493,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -562,7 +562,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -599,7 +599,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -637,7 +637,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -675,7 +675,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -713,7 +713,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -766,7 +766,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -810,7 +810,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -854,7 +854,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -908,7 +908,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -963,7 +963,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "test",
@@ -1012,7 +1012,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {},
         root: [],
       },
@@ -1038,7 +1038,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
@@ -1068,7 +1068,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {},
         root: [],
       },
@@ -1115,7 +1115,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
@@ -1172,7 +1172,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {},
         root: [],
       },
@@ -1202,7 +1202,7 @@ describe("schema store", () => {
 
     const schemaStore = createSchemaStore({
       builder,
-      rawData: {
+      serializedData: {
         entities: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "test",
