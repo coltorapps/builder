@@ -1,4 +1,12 @@
-export { Builder, useActiveEntityId, useBuilder } from "./builder";
+export {
+  Builder,
+  useActiveEntityId,
+  useBuilder,
+  useSchemaStore,
+  useSchemaStoreData,
+  useInputsValidationStore,
+  useInputsValidationStoreData,
+} from "./builder";
 export type {
   GenericEntityRenderProps,
   GenericInputRenderProps,

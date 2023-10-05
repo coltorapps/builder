@@ -1,7 +1,13 @@
+import { type Schema, type SchemaEntityWithId } from "./schema";
+
+interface InputContext {
+  schema: Schema;
+  entity: SchemaEntityWithId;
+}
+
 export interface Input<TName extends string = string, TValue = unknown> {
   name: TName;
-  validate: (value: unknown) => TValue;
-  defaultValue: () => Awaited<TValue> | undefined;
+  validate: (value: unknown, context: InputContext) => TValue;
 }
 
 export type InputsValues<TInputs extends ReadonlyArray<Input>> = {
@@ -10,18 +16,8 @@ export type InputsValues<TInputs extends ReadonlyArray<Input>> = {
   >;
 };
 
-type OptionalInputArgs = "defaultValue";
-
 export function createInput<const TName extends string, TValue>(
-  options: Omit<Input<TName, TValue>, OptionalInputArgs> &
-    Partial<Pick<Input<TName, TValue>, OptionalInputArgs>>,
+  options: Input<TName, TValue>,
 ): Input<TName, TValue> {
-  function fallbackDefaultValue() {
-    return undefined;
-  }
-
-  return {
-    ...options,
-    defaultValue: options.defaultValue ?? fallbackDefaultValue,
-  };
+  return options;
 }

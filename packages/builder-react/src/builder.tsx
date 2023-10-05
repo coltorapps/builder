@@ -17,9 +17,11 @@ import {
   type Builder as BaseBuilder,
   type EntitiesInputsErrors,
   type InputsValidationStore,
+  type InputsValidationStoreData,
   type InputsValidationStoreEvent,
   type Schema,
   type SchemaStore,
+  type SchemaStoreData,
   type SchemaStoreEntityWithId,
   type SchemaStoreEvent,
 } from "builder";
@@ -112,8 +114,11 @@ type EntitiesComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
   >;
 };
 
-interface BuilderContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
+interface SchemaStoreContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
   schemaStore: SchemaStore<TBuilder>;
+}
+
+interface BuilderContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
   entitiesComponents: EntitiesComponents<TBuilder>;
   renderEntity: GenericEntityRender<TBuilder>;
 }
@@ -129,8 +134,11 @@ const dummyInputsValidationStore = createInputsValidationStore({
   schemaStore: dummySchemaStore,
 });
 
-const BuilderContext = createContext<BuilderContextValue>({
+const SchemaStoreContext = createContext<SchemaStoreContextValue>({
   schemaStore: dummySchemaStore,
+});
+
+const EntitiesContext = createContext<BuilderContextValue>({
   entitiesComponents: {},
   renderEntity: (props) => props.children,
 });
@@ -148,8 +156,9 @@ interface GenericEntityRender<TBuilder extends BaseBuilder = BaseBuilder> {
 const MemoizedEntity = memo(function Entity(props: {
   entityId: string;
 }): ReactNode {
-  const { schemaStore, entitiesComponents, renderEntity } =
-    useContext(BuilderContext);
+  const { entitiesComponents, renderEntity } = useContext(EntitiesContext);
+
+  const { schemaStore } = useContext(SchemaStoreContext);
 
   const entityCache = useRef(
     schemaStore.getData().entities.get(props.entityId),
@@ -210,7 +219,7 @@ const MemoizedEntity = memo(function Entity(props: {
 });
 
 function RootEntities(): ReactNode {
-  const { schemaStore } = useContext(BuilderContext);
+  const { schemaStore } = useContext(SchemaStoreContext);
 
   const rootCache = useRef(Array.from(schemaStore.getData().root));
 
@@ -244,18 +253,23 @@ function Entities<TBuilder extends BaseBuilder>(props: {
   children?: GenericEntityRender<TBuilder>;
 }): ReactNode {
   return (
-    <BuilderContext.Provider
+    <SchemaStoreContext.Provider
       value={{
         schemaStore: props.schemaStore,
-        entitiesComponents:
-          props.entitiesComponents as unknown as EntitiesComponents,
-        renderEntity:
-          (props.children as GenericEntityRender) ??
-          ((props) => props.children),
       }}
     >
-      <RootEntities />
-    </BuilderContext.Provider>
+      <EntitiesContext.Provider
+        value={{
+          entitiesComponents:
+            props.entitiesComponents as unknown as EntitiesComponents,
+          renderEntity:
+            (props.children as GenericEntityRender) ??
+            ((props) => props.children),
+        }}
+      >
+        <RootEntities />
+      </EntitiesContext.Provider>
+    </SchemaStoreContext.Provider>
   );
 }
 
@@ -292,7 +306,6 @@ interface GenericInputRender<TBuilder extends BaseBuilder = BaseBuilder> {
 }
 
 interface InputsContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
-  schemaStore: SchemaStore<TBuilder>;
   inputsValidationStore: InputsValidationStore<TBuilder>;
   inputsComponents: InputsComponents<TBuilder>;
   renderInput: GenericInputRender<TBuilder>;
@@ -300,7 +313,6 @@ interface InputsContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
 }
 
 const InputsContext = createContext<InputsContextValue>({
-  schemaStore: dummySchemaStore,
   inputsValidationStore: dummyInputsValidationStore,
   renderInput: (props) => props.children,
   inputsComponents: {},
@@ -317,10 +329,12 @@ const MemoizedInput = memo(function Input(props: {
   const {
     inputsComponents,
     inputsValidationStore,
-    schemaStore,
+
     entity,
     renderInput,
   } = useContext(InputsContext);
+
+  const { schemaStore } = useContext(SchemaStoreContext);
 
   const InputComponent = inputsComponents[entity.type]?.[props.inputName];
 
@@ -396,6 +410,7 @@ const MemoizedInput = memo(function Input(props: {
     children: (
       <InputComponent
         input={input}
+        entity={entity}
         onChange={(value) =>
           schemaStore.setEntityInput(entity.id, props.inputName, value)
         }
@@ -432,24 +447,31 @@ function Inputs<TBuilder extends BaseBuilder>(props: {
   }
 
   return (
-    <InputsContext.Provider
+    <SchemaStoreContext.Provider
       value={{
         schemaStore: props.schemaStore,
-        inputsValidationStore: props.inputsValidationStore,
-        inputsComponents: props.inputsComponents as unknown as InputsComponents,
-        entity: {
-          ...entity,
-          id: props.entityId,
-        },
-        renderInput:
-          (props.children as GenericInputRender) ?? ((props) => props.children),
       }}
-      key={props.entityId}
     >
-      {entityDefinition.inputs.map((item) => (
-        <MemoizedInput key={item.name} inputName={item.name} />
-      ))}
-    </InputsContext.Provider>
+      <InputsContext.Provider
+        value={{
+          inputsValidationStore: props.inputsValidationStore,
+          inputsComponents:
+            props.inputsComponents as unknown as InputsComponents,
+          entity: {
+            ...entity,
+            id: props.entityId,
+          },
+          renderInput:
+            (props.children as GenericInputRender) ??
+            ((props) => props.children),
+        }}
+        key={props.entityId}
+      >
+        {entityDefinition.inputs.map((item) => (
+          <MemoizedInput key={item.name} inputName={item.name} />
+        ))}
+      </InputsContext.Provider>
+    </SchemaStoreContext.Provider>
   );
 }
 
@@ -474,6 +496,52 @@ export function useActiveEntityId(
   }, [activeEntityId, schemaStore]);
 
   return [activeEntityId, setActiveEntityId];
+}
+
+export function useSchemaStore<
+  TBuilder extends BaseBuilder,
+>(): SchemaStore<TBuilder> {
+  const { schemaStore } = useContext(SchemaStoreContext);
+
+  return schemaStore as SchemaStore<TBuilder>;
+}
+
+export function useSchemaStoreData<TBuilder extends BaseBuilder>(
+  schemaStore?: SchemaStore<TBuilder>,
+): SchemaStoreData<TBuilder> {
+  const { schemaStore: contextSchemaStore } = useContext(SchemaStoreContext);
+
+  const usedSchemaStore = schemaStore ?? contextSchemaStore;
+
+  return useSyncExternalStore(
+    (listen) => usedSchemaStore.subscribe(listen),
+    () => usedSchemaStore.getData(),
+    () => usedSchemaStore.getData(),
+  ) as SchemaStoreData<TBuilder>;
+}
+
+export function useInputsValidationStore<
+  TBuilder extends BaseBuilder,
+>(): InputsValidationStore<TBuilder> {
+  const { inputsValidationStore } = useContext(InputsContext);
+
+  return inputsValidationStore as InputsValidationStore<TBuilder>;
+}
+
+export function useInputsValidationStoreData<TBuilder extends BaseBuilder>(
+  inputsValidationStore?: InputsValidationStore<TBuilder>,
+): InputsValidationStoreData<TBuilder> {
+  const { inputsValidationStore: contextInputsValidationStore } =
+    useContext(InputsContext);
+
+  const usedInputsValidationStore =
+    inputsValidationStore ?? contextInputsValidationStore;
+
+  return useSyncExternalStore(
+    (listen) => usedInputsValidationStore.subscribe(listen),
+    () => usedInputsValidationStore.getData(),
+    () => usedInputsValidationStore.getData(),
+  ) as InputsValidationStoreData<TBuilder>;
 }
 
 export const Builder = {

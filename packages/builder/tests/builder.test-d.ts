@@ -1,6 +1,6 @@
 import { describe, expectTypeOf, it } from "vitest";
 
-import { createBuilder, createEntity } from "../src";
+import { createBuilder, createEntity, type Entity, type Input } from "../src";
 
 describe("builder", () => {
   it("can be created with minimal options", () => {
@@ -28,29 +28,9 @@ describe("builder", () => {
       parentRequired: ["test"],
     });
 
-    type EntityContext = {
-      inputs: {
-        [x: string]: unknown;
-      };
-      values: {
-        [x: string]: unknown;
-      };
-    };
-
     expectTypeOf(builder).toEqualTypeOf<{
       entities: readonly [
-        {
-          name: "test";
-          inputs: readonly {
-            name: string;
-            validate: (value: unknown) => unknown;
-            defaultValue: () => unknown;
-          }[];
-          isValueAllowed: boolean;
-          validate: (value: unknown, context: EntityContext) => unknown;
-          defaultValue: (context: EntityContext) => unknown;
-          shouldBeProcessed: (context: EntityContext) => boolean;
-        },
+        Entity<"test", readonly Input<string, unknown>[], unknown>,
       ];
       entityId: {
         generate: () => string;

@@ -113,7 +113,6 @@ exports[`schema store > can be created with a non-empty schema 1`] = `
               "defaultValue": [Function],
               "inputs": [
                 {
-                  "defaultValue": [Function],
                   "name": "label",
                   "validate": [Function],
                 },

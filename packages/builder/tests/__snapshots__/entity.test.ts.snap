@@ -7,7 +7,6 @@ exports[`entity > can be created with inputs 1`] = `
   "defaultValue": [Function],
   "inputs": [
     {
-      "defaultValue": [Function],
       "name": "required",
       "validate": [Function],
     },

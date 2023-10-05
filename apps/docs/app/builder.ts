@@ -1,59 +1,53 @@
+import { z } from "zod";
+
 import {
   createBuilder,
   createEntity,
   createInput,
 } from "../../../packages/builder/dist";
 
-export const builder = createBuilder({
-  entities: [
-    createEntity({
-      name: "test",
-      inputs: [
-        createInput({
-          name: "label",
-          validate(value) {
-            if (typeof value !== "string") {
-              throw "Must be stirng";
-            }
-            if (value.length < 5) {
-              throw "Too short!!";
-            }
-            return value;
-          },
-        }),
-        createInput({
-          name: "kebag2",
-          validate(value) {
-            if (typeof value !== "string") {
-              throw new Error();
-            }
-            return value;
-          },
-        }),
-      ],
-      validate(value) {
-        if (typeof value !== "string") {
-          throw new Error();
-        }
-        return value;
-      },
-    }),
-    createEntity({
-      name: "select",
-      inputs: [
-        createInput({
-          name: "kebag",
-          validate(value) {
-            if (typeof value !== "number") {
-              throw new Error();
-            }
-            return value;
-          },
-        }),
-      ],
-    }),
-  ],
-  childrenAllowed: {
-    test: true,
+export const visibleWhenInput = createInput({
+  name: "visibleWhen",
+  validate(value, context) {
+    const result = z
+      .object({
+        entityId: z.string(),
+      })
+      .refine((val) => Boolean(context.schema.entities[val.entityId]), {
+        message: "Entity doesn't exist.",
+      })
+      .refine((val) => val.entityId !== context.entity.id, {
+        message: "Can't self refernce.",
+      })
+      .optional()
+      .safeParse(value);
+
+    if (!result.success) {
+      throw result.error.flatten().formErrors[0];
+    }
+
+    return result.data;
   },
+});
+
+export const labelInput = createInput({
+  name: "label",
+  validate(value) {
+    const result = z.string().min(1).safeParse(value);
+
+    if (!result.success) {
+      throw result.error.flatten().formErrors[0];
+    }
+
+    return result.data;
+  },
+});
+
+export const textEntity = createEntity({
+  name: "text",
+  inputs: [visibleWhenInput, labelInput],
+});
+
+export const builder = createBuilder({
+  entities: [textEntity],
 });

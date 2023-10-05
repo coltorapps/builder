@@ -26,8 +26,8 @@ export type {
 export {
   createInputsValidationStore,
   deserializeInputsValidationStoreData,
-  serializeInputsValidationStoreData,
   inputsValidationStoreEventsNames,
+  serializeInputsValidationStoreData,
 } from "./inputs-validation-store";
 export type {
   InputsValidationStore,
@@ -44,12 +44,13 @@ export {
   validateSchemaIntegrity,
 } from "./schema";
 export type {
+  EntitiesInputsErrors,
+  EntityInputsErrors,
   Schema,
   SchemaEntity,
+  SchemaEntityWithId,
   SchemaValidationErrorReason as SchemaValidationErrorCause,
   SchemaValidationErrorCode,
-  EntityInputsErrors,
-  EntitiesInputsErrors,
 } from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";

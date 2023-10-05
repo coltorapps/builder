@@ -115,8 +115,22 @@ async function validateEntityInput<TBuilder extends Builder>(
     ...newEntitiesInputsErrors.get(entityId),
   };
 
+  const schema = dependencies.schemaStore.getSerializedData();
+
+  const schemaEntity = schema.entities[entityId];
+
+  if (!schemaEntity) {
+    throw new Error("Schema entity not found.");
+  }
+
   try {
-    await input.validate((entity as SchemaStoreEntity).inputs[input.name]);
+    await input.validate((entity as SchemaStoreEntity).inputs[input.name], {
+      schema,
+      entity: {
+        ...schemaEntity,
+        id: entityId,
+      },
+    });
 
     delete entityInputsErrors?.[
       inputName as keyof EntityInputsErrors<TBuilder>

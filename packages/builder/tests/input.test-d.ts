@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createInput } from "../src/input";
+import { createInput, type Schema, type SchemaEntityWithId } from "../src";
 
 describe("input", () => {
   it("can be created", () => {
@@ -14,8 +14,13 @@ describe("input", () => {
 
     expectTypeOf(input).toEqualTypeOf<{
       name: "label";
-      validate: (value: unknown) => string;
-      defaultValue: () => string | undefined;
+      validate: (
+        value: unknown,
+        context: {
+          schema: Schema;
+          entity: SchemaEntityWithId;
+        },
+      ) => string;
     }>();
   });
 });

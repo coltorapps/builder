@@ -1,6 +1,5 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { schemaValidationErrorCodes } from "builder";
 
 import {
@@ -9,103 +8,118 @@ import {
   createInputComponent,
   useActiveEntityId,
   useBuilder,
+  useInputsValidationStore,
+  useSchemaStoreData,
 } from "@builder/react";
 
-import { builder } from "./builder";
+import { builder, labelInput, textEntity, visibleWhenInput } from "./builder";
 import { testServer } from "./test";
 
-const testComponent = createEntityComponent(
-  builder.entities[0],
-  ({ entity, children }) => {
-    return (
-      <div>
-        {entity.id} {entity.type} {entity.inputs.label} {entity.inputs.kebag2}
-        <div style={{ paddingLeft: "1rem" }}>{children}</div>
-      </div>
-    );
-  },
-);
+const textComponent = createEntityComponent(textEntity, ({ entity }) => {
+  return (
+    <div>
+      {entity.inputs.label}
+      <input />
+    </div>
+  );
+});
 
-const kebagComponent = createInputComponent(
-  builder.entities[1].inputs[0],
-  ({ input, validate, onChange }) => {
-    return (
-      <div>
-        Kebag {input.name}{" "}
-        <input
-          value={input.value}
-          onChange={(e) => {
-            onChange(Number(e.target.value));
-            void validate();
-          }}
-        />
-      </div>
-    );
-  },
-);
-
-const kebag2Component = createInputComponent(
-  builder.entities[0].inputs[1],
+const visibleWhenComponent = createInputComponent(
+  visibleWhenInput,
   ({ input, onChange, validate }) => {
+    const schemaStoreData = useSchemaStoreData<typeof builder>();
+    const err = useInputsValidationStore();
+
     return (
       <div>
-        Kebag {input.name}{" "}
-        <input
-          value={input.value}
-          onChange={(e) => {
-            onChange(e.target.value);
+        Visible when
+        <select
+          value={input.value?.entityId ?? ""}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onChange={async (e) => {
+            if (!e.target.value) {
+              onChange(undefined);
+            } else {
+              onChange({ entityId: e.target.value });
+            }
 
-            void validate();
+            await validate();
+
+            setTimeout(() => {
+              console.log(err.resetEntitiesInputsErrors());
+            }, 1000);
           }}
-        />
+        >
+          <option value="">Select</option>
+          {Array.from(schemaStoreData.entities.entries()).map(
+            ([id, entity]) => (
+              <option key={id} value={id}>
+                {entity.inputs.label}
+              </option>
+            ),
+          )}
+        </select>
+        <span style={{ color: "red" }}>
+          {typeof input.error === "string"
+            ? input.error
+            : JSON.stringify(input.error)}
+        </span>
       </div>
     );
   },
 );
 
 const labelComponent = createInputComponent(
-  builder.entities[0].inputs[0],
-  ({ input, validate, onChange }) => {
+  labelInput,
+  ({ input, onChange, validate }) => {
     return (
       <div>
-        input {input.name}{" "}
+        Label
         <input
-          value={input.value}
+          value={input.value ?? ""}
           onChange={(e) => {
             onChange(e.target.value);
+
             void validate();
           }}
         />
-        <div style={{ color: "red" }}>
-          {typeof input.error === "string" ? input.error : undefined}
-        </div>
-      </div>
-    );
-  },
-);
-
-const selectComponent = createEntityComponent(
-  builder.entities[1],
-  ({ entity }) => {
-    return (
-      <div>
-        {entity.id} {entity.type}
+        <span style={{ color: "red" }}>
+          {typeof input.error === "string"
+            ? input.error
+            : JSON.stringify(input.error)}
+        </span>
       </div>
     );
   },
 );
 
 export default function Page() {
-  const client = useBuilder(builder);
+  const client = useBuilder(builder, {
+    events: {
+      schemaStore: {
+        onEntityDeleted(payload) {
+          const entities = client.schemaStore.getData().entities;
+
+          entities.forEach((entity, id) => {
+            if (
+              entity.type === "text" &&
+              entity.inputs.visibleWhen?.entityId === payload.entity.id
+            ) {
+              client.schemaStore.setEntityInput(id, "visibleWhen", undefined);
+            }
+          });
+        },
+      },
+      inputsValidationStore: {
+        onEntityInputErrorUpdated(payload) {
+          payload.entityId;
+        },
+      },
+    },
+  });
 
   const [selectedEntityId, setSelectedEntityId] = useActiveEntityId(
     client.schemaStore,
-  );
-
-  const inputsErrors = useSyncExternalStore(
-    (listen) => client.inputsValidationStore.subscribe(listen),
-    () => client.inputsValidationStore.getData(),
-    () => client.inputsValidationStore.getData(),
   );
 
   return (
@@ -113,41 +127,20 @@ export default function Page() {
       <button
         onClick={() => {
           client.schemaStore.addEntity({
-            type: "test",
+            type: "text",
             inputs: {
-              label: "lab",
-              kebag2: "kebag",
+              label: "Text Input",
             },
           });
         }}
       >
         add
       </button>
-      <button
-        onClick={() => {
-          client.schemaStore.moveEntityToRoot(
-            Array.from(client.schemaStore.getData().root.values())[0]!,
-            10,
-          );
-        }}
-      >
-        mov
-      </button>
-      <button
-        onClick={() => {
-          client.schemaStore.moveEntityToParent(
-            Array.from(client.schemaStore.getData().root.values())[0]!,
-            Array.from(client.schemaStore.getData().root.values())[1]!,
-          );
-        }}
-      >
-        add child
-      </button>
+
       <Builder.Entities
         {...client}
         entitiesComponents={{
-          test: testComponent,
-          select: selectComponent,
+          text: textComponent,
         }}
       >
         {({ children, entity }) => {
@@ -156,11 +149,7 @@ export default function Page() {
               onClick={(e) => {
                 e.stopPropagation();
 
-                if (selectedEntityId === entity.id) {
-                  setSelectedEntityId(null);
-                } else {
-                  setSelectedEntityId(entity.id);
-                }
+                setSelectedEntityId(entity.id);
               }}
             >
               <div
@@ -181,10 +170,6 @@ export default function Page() {
                 >
                   delete
                 </button>
-                {inputsErrors.entitiesInputsErrors.has(entity.id) &&
-                selectedEntityId !== entity.id ? (
-                  <span style={{ color: "red" }}>!!!</span>
-                ) : null}
               </div>
             </div>
           );
@@ -194,19 +179,12 @@ export default function Page() {
         {...client}
         entityId={selectedEntityId}
         inputsComponents={{
-          select: {
-            kebag: kebagComponent,
-          },
-          test: {
+          text: {
+            visibleWhen: visibleWhenComponent,
             label: labelComponent,
-            kebag2: kebag2Component,
           },
         }}
-      >
-        {({ children }) => {
-          return <div style={{ border: "1px solid black" }}>{children}</div>;
-        }}
-      </Builder.Inputs>
+      />
       <button
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick={async () => {
@@ -221,7 +199,9 @@ export default function Page() {
               res.reason.code ===
                 schemaValidationErrorCodes.InvalidEntitiesInputs
             ) {
-              client.inputsValidationStore.setSerializedData(res.reason.payload);
+              client.inputsValidationStore.setSerializedData(
+                res.reason.payload,
+              );
 
               const firstEntityWithErrors = Object.keys(
                 res.reason.payload.entitiesInputsErrors,

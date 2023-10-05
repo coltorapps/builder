@@ -3,6 +3,15 @@ import { z } from "zod";
 
 import { createInput } from "../src/input";
 
+const dummyInputContext = {
+  schema: { entities: {}, root: [] },
+  entity: {
+    id: "",
+    inputs: {},
+    type: "",
+  },
+};
+
 describe("input", () => {
   it("can be created with minimal options", () => {
     const input = createInput({
@@ -14,9 +23,7 @@ describe("input", () => {
 
     expect(input).toMatchSnapshot();
 
-    expect(input.defaultValue()).toMatchSnapshot();
-
-    expect(input.validate("test")).toMatchSnapshot();
+    expect(input.validate("test", dummyInputContext)).toMatchSnapshot();
   });
 
   it("can validate values", () => {
@@ -27,22 +34,10 @@ describe("input", () => {
       },
     });
 
-    expect(input.validate("valid")).toMatchSnapshot();
+    expect(input.validate("valid", dummyInputContext)).toMatchSnapshot();
 
-    expect(() => input.validate(1)).toThrowErrorMatchingSnapshot();
-  });
-
-  it("can be created with default value", () => {
-    const input = createInput({
-      name: "label",
-      validate(value) {
-        return z.string().parse(value);
-      },
-      defaultValue() {
-        return "test";
-      },
-    });
-
-    expect(input.defaultValue()).toMatchSnapshot();
+    expect(() =>
+      input.validate(1, dummyInputContext),
+    ).toThrowErrorMatchingSnapshot();
   });
 });

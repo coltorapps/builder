@@ -2,7 +2,7 @@ import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
 import { createEntity } from "../src/entity";
-import { createInput } from "../src/input";
+import { createInput, type Input } from "../src/input";
 
 describe("entity", () => {
   it("can be created", () => {
@@ -29,14 +29,11 @@ describe("entity", () => {
       };
       values: Record<string, unknown>;
     };
+    entity.inputs;
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
-      inputs: ReadonlyArray<{
-        name: string;
-        validate: (value: unknown) => unknown;
-        defaultValue: () => unknown;
-      }>;
+      inputs: readonly Input[];
       isValueAllowed: boolean;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
@@ -77,16 +74,8 @@ describe("entity", () => {
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
       inputs: readonly [
-        {
-          name: "label";
-          validate: (value: unknown) => string;
-          defaultValue: () => string | undefined;
-        },
-        {
-          name: "defaultValue";
-          validate: (value: unknown) => string | undefined;
-          defaultValue: () => string | undefined;
-        },
+        Input<"label", string>,
+        Input<"defaultValue", string | undefined>,
       ];
       isValueAllowed: boolean;
       validate: (value: unknown, context: EntityContext) => string;

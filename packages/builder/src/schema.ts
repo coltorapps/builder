@@ -275,9 +275,15 @@ function ensureEntityInputsAreRegistered(
 
 async function validateEntityInputs(
   entity: SchemaEntityWithId,
-  builder: Builder,
+  dependencies: {
+    builder: Builder;
+    schema: Schema;
+  },
 ): Promise<SchemaEntityWithId["inputs"]> {
-  const entityDefinition = ensureEntityIsRegistered(entity, builder);
+  const entityDefinition = ensureEntityIsRegistered(
+    entity,
+    dependencies.builder,
+  );
 
   const newInputs = { ...entity.inputs };
 
@@ -285,7 +291,10 @@ async function validateEntityInputs(
 
   for (const input of entityDefinition.inputs) {
     try {
-      newInputs[input.name] = await input.validate(entity.inputs[input.name]);
+      newInputs[input.name] = await input.validate(entity.inputs[input.name], {
+        schema: dependencies.schema,
+        entity,
+      });
     } catch (error) {
       inputsErrors[input.name] = error;
     }
@@ -724,7 +733,10 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
         ...entity,
         inputs: await validateEntityInputs(
           { ...entity, id },
-          dependencies.builder,
+          {
+            builder: dependencies.builder,
+            schema: newSchema,
+          },
         ),
       };
     } catch (error) {
