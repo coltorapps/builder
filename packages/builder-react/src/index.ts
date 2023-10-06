@@ -4,6 +4,7 @@ export {
   useBuilder,
   useSchemaStore,
   useSchemaStoreData,
+  useSchemaStoreRoot,
   useInputsValidationStore,
   useInputsValidationStoreData,
 } from "./builder";

@@ -5,6 +5,7 @@ import {
   type Builder,
 } from "./builder";
 import { type InputsValues } from "./input";
+import { type SchemaStoreData } from "./schema-store";
 import { deserializeSchemaStoreData } from "./schema-store-serialization";
 import { type KeyofUnion, type OptionalPropsIfUndefined } from "./utils";
 
@@ -278,7 +279,7 @@ async function validateEntityInputs(
   entity: SchemaEntityWithId,
   dependencies: {
     builder: Builder;
-    schema: Schema;
+    schemaStoreData: SchemaStoreData;
   },
 ): Promise<SchemaEntityWithId["inputs"]> {
   const entityDefinition = ensureEntityIsRegistered(
@@ -290,9 +291,9 @@ async function validateEntityInputs(
 
   const inputsErrors: EntityInputsErrors = {};
 
-  const schemaStoreData = deserializeSchemaStoreData(dependencies.schema);
-
-  const schemaStoreEntity = schemaStoreData.entities.get(entity.id);
+  const schemaStoreEntity = dependencies.schemaStoreData.entities.get(
+    entity.id,
+  );
 
   if (!schemaStoreEntity) {
     throw Error("Entity not found.");
@@ -301,7 +302,7 @@ async function validateEntityInputs(
   for (const input of entityDefinition.inputs) {
     try {
       newInputs[input.name] = await input.validate(entity.inputs[input.name], {
-        schema: schemaStoreData,
+        schema: dependencies.schemaStoreData,
         entity: {
           ...schemaStoreEntity,
           id: entity.id,
@@ -739,6 +740,8 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
 
   const entitiesInputsErrors: EntitiesInputsErrors = {};
 
+  const schemaStoreData = deserializeSchemaStoreData(newSchema);
+
   for (const [id, entity] of Object.entries(schema.entities)) {
     try {
       newSchema.entities[id] = {
@@ -747,7 +750,7 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
           { ...entity, id },
           {
             builder: dependencies.builder,
-            schema: newSchema,
+            schemaStoreData,
           },
         ),
       };

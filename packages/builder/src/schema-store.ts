@@ -87,7 +87,9 @@ export type SchemaStoreEvent<TBuilder extends Builder = Builder> =
     >
   | SubscriptionEvent<
       typeof schemaStoreEventsNames.RootUpdated,
-      Record<string, never>
+      {
+        root: SchemaStoreData<TBuilder>["root"];
+      }
     >;
 
 export function ensureEntityExists<TBuilder extends Builder>(
@@ -293,7 +295,9 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
       if (!newEntity.parentId) {
         events.push({
           name: schemaStoreEventsNames.RootUpdated,
-          payload: {},
+          payload: {
+            root: newRoot,
+          },
         });
       }
 
@@ -305,7 +309,7 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
         events,
       );
     },
-    moveEntityToParent(entityId, parentId, index) {
+    setEntityParentId(entityId, parentId, index) {
       const data = getData();
 
       const newEntities = new Map(data.entities);
@@ -339,7 +343,9 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
 
         events.push({
           name: schemaStoreEventsNames.RootUpdated,
-          payload: {},
+          payload: {
+            root: newRoot,
+          },
         });
       }
 
@@ -385,7 +391,7 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
         events,
       );
     },
-    moveEntityToRoot(entityId, index) {
+    removeEntityParentId(entityId, index) {
       const data = getData();
 
       const newEntities = new Map(data.entities);
@@ -420,7 +426,9 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
 
       events.push({
         name: schemaStoreEventsNames.RootUpdated,
-        payload: {},
+        payload: {
+          root: newRoot,
+        },
       });
 
       delete entity.parentId;
@@ -457,7 +465,9 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
           if (!deletedEntity.parentId) {
             result.push({
               name: schemaStoreEventsNames.RootUpdated,
-              payload: {},
+              payload: {
+                root: data.root,
+              },
             });
           } else if (
             deletedEntity.parentId &&
@@ -524,6 +534,72 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
         ],
       );
     },
+    setEntityIndex(entityId, index) {
+      const data = getData();
+
+      const entity = ensureEntityExists(entityId, data.entities);
+
+      if (entity.parentId) {
+        const newEntities = new Map(data.entities);
+
+        const parentEntity = ensureEntityExists(entity.parentId, data.entities);
+
+        ensureEntityChildAllowed(
+          parentEntity.type,
+          entity.type,
+          options.builder,
+        );
+
+        parentEntity.children?.delete(entityId);
+
+        parentEntity.children = insertIntoSetAtIndex(
+          parentEntity.children ?? new Set(),
+          entityId,
+          index,
+        );
+
+        newEntities.set(entity.parentId, parentEntity);
+
+        setData(
+          {
+            ...data,
+            entities: newEntities,
+          },
+          [
+            {
+              name: schemaStoreEventsNames.EntityUpdated,
+              payload: {
+                entity: {
+                  ...parentEntity,
+                  id: entity.parentId,
+                },
+              },
+            },
+          ],
+        );
+
+        return;
+      }
+
+      const newRoot = new Set(data.root);
+
+      newRoot.delete(entityId);
+
+      setData(
+        {
+          ...data,
+          root: insertIntoSetAtIndex(newRoot, entityId, index),
+        },
+        [
+          {
+            name: schemaStoreEventsNames.RootUpdated,
+            payload: {
+              root: newRoot,
+            },
+          },
+        ],
+      );
+    },
   };
 }
 
@@ -538,8 +614,9 @@ export type SchemaStore<TBuilder extends Builder = Builder> = Store<
       index?: number;
     },
   ): void;
-  moveEntityToParent(entityId: string, parentId: string, index?: number): void;
-  moveEntityToRoot(entityId: string, index?: number): void;
+  setEntityParentId(entityId: string, parentId: string, index?: number): void;
+  removeEntityParentId(entityId: string, index?: number): void;
+  setEntityIndex(entityId: string, index: number): void;
   setEntityInput<
     TInputName extends KeyofUnion<SchemaStoreEntity<TBuilder>["inputs"]>,
   >(

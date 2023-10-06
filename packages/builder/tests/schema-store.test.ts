@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import {
@@ -11,18 +11,6 @@ import * as schemaExports from "../src/schema";
 import * as uuidExports from "../src/uuid";
 
 describe("schema store", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-
-    vi.setSystemTime(new Date(2000, 1, 1, 13));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-
-    vi.restoreAllMocks();
-  });
-
   it("can be created without a schema", () => {
     const validateSchemaIntegrityMock = vi.spyOn(
       schemaExports,
@@ -478,7 +466,7 @@ describe("schema store", () => {
     });
 
     expect(() =>
-      schemaStore.moveEntityToRoot("6e0035c3-0d4c-445f-a42b-2d971225447c"),
+      schemaStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c"),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -512,7 +500,7 @@ describe("schema store", () => {
     });
 
     expect(() =>
-      schemaStore.moveEntityToParent(
+      schemaStore.setEntityParentId(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "51324b32-adc3-4d17-a90e-66b5453935bd",
       ),
@@ -737,15 +725,15 @@ describe("schema store", () => {
 
     schemaStore.subscribe(listenerWrapper);
 
-    schemaStore.moveEntityToRoot("6e0035c3-0d4c-445f-a42b-2d971225447c", 0);
+    schemaStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c", 0);
 
     expect(schemaStore.getData()).toMatchSnapshot();
 
-    schemaStore.moveEntityToRoot("6e0035c3-0d4c-445f-a42b-2d971225447c", 1);
+    schemaStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c", 1);
 
     expect(schemaStore.getData()).toMatchSnapshot();
 
-    schemaStore.moveEntityToRoot("6e0035c3-0d4c-445f-a42b-2d971225447c");
+    schemaStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     expect(schemaStore.getData()).toMatchSnapshot();
 
@@ -789,7 +777,7 @@ describe("schema store", () => {
 
     schemaStore.subscribe(listenerWrapper);
 
-    schemaStore.moveEntityToRoot("6e0035c3-0d4c-445f-a42b-2d971225447c");
+    schemaStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     expect(schemaStore.getData()).toMatchSnapshot();
 
@@ -833,7 +821,7 @@ describe("schema store", () => {
 
     schemaStore.subscribe(listenerWrapper);
 
-    schemaStore.moveEntityToRoot("6e0035c3-0d4c-445f-a42b-2d971225447c", 0);
+    schemaStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c", 0);
 
     expect(schemaStore.getData()).toMatchSnapshot();
 
@@ -884,7 +872,7 @@ describe("schema store", () => {
 
     schemaStore.subscribe(listenerWrapper);
 
-    schemaStore.moveEntityToParent(
+    schemaStore.setEntityParentId(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     );
@@ -938,7 +926,7 @@ describe("schema store", () => {
 
     schemaStore.subscribe(listenerWrapper);
 
-    schemaStore.moveEntityToParent(
+    schemaStore.setEntityParentId(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       0,
@@ -994,7 +982,7 @@ describe("schema store", () => {
 
     schemaStore.subscribe(listenerWrapper);
 
-    schemaStore.moveEntityToParent(
+    schemaStore.setEntityParentId(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       0,
@@ -1019,11 +1007,11 @@ describe("schema store", () => {
     });
 
     expect(() =>
-      schemaStore.moveEntityToParent("invalid", "invalid"),
+      schemaStore.setEntityParentId("invalid", "invalid"),
     ).toThrowErrorMatchingSnapshot();
 
     expect(() =>
-      schemaStore.moveEntityToRoot("invalid"),
+      schemaStore.removeEntityParentId("invalid"),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -1050,7 +1038,7 @@ describe("schema store", () => {
     });
 
     expect(() =>
-      schemaStore.moveEntityToParent(
+      schemaStore.setEntityParentId(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "invalid",
       ),
@@ -1222,5 +1210,58 @@ describe("schema store", () => {
         "",
       ),
     ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("can change entity's index", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+      childrenAllowed: {
+        test: true,
+      },
+    });
+
+    const schemaStore = createSchemaStore({
+      builder,
+      serializedData: {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "test",
+            inputs: {},
+          },
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "test",
+            inputs: {},
+            children: [
+              "eedf598e-1422-469a-acb1-b2d8bfabb0f3",
+              "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e",
+            ],
+          },
+          "eedf598e-1422-469a-acb1-b2d8bfabb0f3": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
+          "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e": {
+            type: "test",
+            inputs: {},
+            parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
+        },
+        root: [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
+      },
+    });
+
+    schemaStore.setEntityIndex("6e0035c3-0d4c-445f-a42b-2d971225447c", 0);
+
+    schemaStore.setEntityIndex("7c3cf1e5-c35d-49c0-80ca-e8000ac8095e", 0);
+
+    expect(schemaStore.getData()).toMatchSnapshot();
   });
 });

@@ -221,28 +221,9 @@ const MemoizedEntity = memo(function Entity(props: {
 function RootEntities(): ReactNode {
   const { schemaStore } = useContext(SchemaStoreContext);
 
-  const rootCache = useRef(Array.from(schemaStore.getData().root));
+  const root = useSchemaStoreRoot(schemaStore);
 
-  const root = useSyncExternalStore(
-    (listen) =>
-      schemaStore.subscribe((data, events) => {
-        if (
-          events.some(
-            (event) =>
-              event.name === schemaStoreEventsNames.RootUpdated ||
-              event.name === schemaStoreEventsNames.DataSet,
-          )
-        ) {
-          rootCache.current = Array.from(data.root);
-
-          listen();
-        }
-      }),
-    () => rootCache.current,
-    () => rootCache.current,
-  );
-
-  return root.map((entityId) => (
+  return Array.from(root).map((entityId) => (
     <MemoizedEntity key={entityId} entityId={entityId} />
   ));
 }
@@ -518,6 +499,36 @@ export function useSchemaStoreData<TBuilder extends BaseBuilder>(
     () => usedSchemaStore.getData(),
     () => usedSchemaStore.getData(),
   ) as SchemaStoreData<TBuilder>;
+}
+
+export function useSchemaStoreRoot<TBuilder extends BaseBuilder>(
+  schemaStore?: SchemaStore<TBuilder>,
+): SchemaStoreData<TBuilder>["root"] {
+  const { schemaStore: contextSchemaStore } = useContext(SchemaStoreContext);
+
+  const usedSchemaStore = schemaStore ?? contextSchemaStore;
+
+  const rootCache = useRef(usedSchemaStore.getData().root);
+
+  return useSyncExternalStore(
+    (listen) =>
+      usedSchemaStore.subscribe((data, events) => {
+        
+        if (
+          events.some(
+            (event) =>
+              event.name === schemaStoreEventsNames.RootUpdated ||
+              event.name === schemaStoreEventsNames.DataSet,
+          )
+        ) {
+          rootCache.current = new Set(data.root);
+
+          listen();
+        }
+      }),
+    () => rootCache.current,
+    () => rootCache.current,
+  );
 }
 
 export function useInputsValidationStore<

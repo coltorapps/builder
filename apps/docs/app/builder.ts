@@ -4,7 +4,7 @@ import {
   createBuilder,
   createEntity,
   createInput,
-} from "../../../packages/builder/dist";
+} from "builder";
 
 export const visibleWhenInput = createInput({
   name: "visibleWhen",
@@ -13,7 +13,7 @@ export const visibleWhenInput = createInput({
       .object({
         entityId: z.string(),
       })
-      .refine((val) => Boolean(context.schema.entities[val.entityId]), {
+      .refine((val) => context.schema.entities.has(val.entityId), {
         message: "Entity doesn't exist.",
       })
       .refine((val) => val.entityId !== context.entity.id, {

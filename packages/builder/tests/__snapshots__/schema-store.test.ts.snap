@@ -162,10 +162,11 @@ exports[`schema store > can be created with a non-empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedData": [Function],
-  "moveEntityToParent": [Function],
-  "moveEntityToRoot": [Function],
+  "removeEntityParentId": [Function],
   "setData": [Function],
+  "setEntityIndex": [Function],
   "setEntityInput": [Function],
+  "setEntityParentId": [Function],
   "setSerializedData": [Function],
   "subscribe": [Function],
 }
@@ -213,10 +214,11 @@ exports[`schema store > can be created with an empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedData": [Function],
-  "moveEntityToParent": [Function],
-  "moveEntityToRoot": [Function],
+  "removeEntityParentId": [Function],
   "setData": [Function],
+  "setEntityIndex": [Function],
   "setEntityInput": [Function],
+  "setEntityParentId": [Function],
   "setSerializedData": [Function],
   "subscribe": [Function],
 }
@@ -228,12 +230,46 @@ exports[`schema store > can be created without a schema 1`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getSerializedData": [Function],
-  "moveEntityToParent": [Function],
-  "moveEntityToRoot": [Function],
+  "removeEntityParentId": [Function],
   "setData": [Function],
+  "setEntityIndex": [Function],
   "setEntityInput": [Function],
+  "setEntityParentId": [Function],
   "setSerializedData": [Function],
   "subscribe": [Function],
+}
+`;
+
+exports[`schema store > can change entity's index 1`] = `
+{
+  "entities": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "inputs": {},
+      "type": "test",
+    },
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "children": Set {
+        "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e",
+        "eedf598e-1422-469a-acb1-b2d8bfabb0f3",
+      },
+      "inputs": {},
+      "type": "test",
+    },
+    "eedf598e-1422-469a-acb1-b2d8bfabb0f3" => {
+      "inputs": {},
+      "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "type": "test",
+    },
+    "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e" => {
+      "inputs": {},
+      "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "type": "test",
+    },
+  },
+  "root": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    "51324b32-adc3-4d17-a90e-66b5453935bd",
+  },
 }
 `;
 
@@ -272,7 +308,11 @@ exports[`schema store > can delete entities and cascade delete their children 2`
         },
         {
           "name": "RootUpdated",
-          "payload": {},
+          "payload": {
+            "root": Set {
+              "49e91328-02bc-4daa-ab56-619554e85cff",
+            },
+          },
         },
         {
           "name": "EntityDeleted",
@@ -346,7 +386,11 @@ exports[`schema store > can move an entity from root to a parent entity 2`] = `
       [
         {
           "name": "RootUpdated",
-          "payload": {},
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
         },
         {
           "name": "EntityUpdated",
@@ -420,7 +464,11 @@ exports[`schema store > can move an entity from root to a parent entity at a spe
       [
         {
           "name": "RootUpdated",
-          "payload": {},
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
         },
         {
           "name": "EntityUpdated",
@@ -593,7 +641,11 @@ exports[`schema store > can move an entity in root 4`] = `
       [
         {
           "name": "RootUpdated",
-          "payload": {},
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
         },
         {
           "name": "EntityUpdated",
@@ -611,7 +663,11 @@ exports[`schema store > can move an entity in root 4`] = `
       [
         {
           "name": "RootUpdated",
-          "payload": {},
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
         },
         {
           "name": "EntityUpdated",
@@ -629,7 +685,11 @@ exports[`schema store > can move an entity in root 4`] = `
       [
         {
           "name": "RootUpdated",
-          "payload": {},
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
         },
         {
           "name": "EntityUpdated",
@@ -699,7 +759,11 @@ exports[`schema store > can move an entity to root 2`] = `
         },
         {
           "name": "RootUpdated",
-          "payload": {},
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
         },
         {
           "name": "EntityUpdated",
@@ -761,7 +825,11 @@ exports[`schema store > can move an entity to root at a specific index 2`] = `
         },
         {
           "name": "RootUpdated",
-          "payload": {},
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
         },
         {
           "name": "EntityUpdated",
