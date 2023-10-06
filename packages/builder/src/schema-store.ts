@@ -14,6 +14,10 @@ import {
   type Schema,
   type SchemaEntity,
 } from "./schema";
+import {
+  deserializeSchemaStoreData,
+  serializeSchemaStoreData,
+} from "./schema-store-serialization";
 import { type Store } from "./store";
 import { type SubscriptionEvent } from "./subscription-manager";
 import { insertIntoSetAtIndex, type KeyofUnion } from "./utils";
@@ -32,10 +36,10 @@ export type SchemaStoreEntityWithId<TBuilder extends Builder = Builder> =
 export type SerializedSchemaStoreData<TBuilder extends Builder = Builder> =
   Schema<TBuilder>;
 
-export interface SchemaStoreData<TBuilder extends Builder = Builder> {
+export type SchemaStoreData<TBuilder extends Builder = Builder> = {
   entities: Map<string, SchemaStoreEntity<TBuilder>>;
   root: Set<string>;
-}
+};
 
 export const schemaStoreEventsNames = {
   EntityAdded: "EntityAdded",
@@ -85,73 +89,6 @@ export type SchemaStoreEvent<TBuilder extends Builder = Builder> =
       typeof schemaStoreEventsNames.RootUpdated,
       Record<string, never>
     >;
-
-export interface SchemaStore<TBuilder extends Builder = Builder>
-  extends Store<
-    SchemaStoreData<TBuilder>,
-    SerializedSchemaStoreData<TBuilder>,
-    SchemaStoreEvent<TBuilder>
-  > {
-  getSerializedData(): SerializedSchemaStoreData<TBuilder>;
-  addEntity(
-    payload: SchemaStoreEntity<TBuilder> & {
-      index?: number;
-    },
-  ): void;
-  moveEntityToParent(entityId: string, parentId: string, index?: number): void;
-  moveEntityToRoot(entityId: string, index?: number): void;
-  setEntityInput<
-    TInputName extends KeyofUnion<SchemaStoreEntity<TBuilder>["inputs"]>,
-  >(
-    entityId: string,
-    inputName: TInputName,
-    inputValue: InputsValues<
-      TBuilder["entities"][number]["inputs"]
-    >[TInputName],
-  ): void;
-  deleteEntity(entityId: string): void;
-}
-
-export function serializeSchemaStoreData<TBuilder extends Builder>(
-  data: SchemaStoreData<TBuilder>,
-): SerializedSchemaStoreData<TBuilder> {
-  const newEntities: SerializedSchemaStoreData<TBuilder>["entities"] = {};
-
-  for (const [id, entity] of data.entities) {
-    const { children, ...entityData } = entity;
-
-    newEntities[id] = {
-      ...entityData,
-      ...(children ? { children: Array.from(children) } : {}),
-      inputs:
-        entityData.inputs as unknown as SerializedSchemaStoreData<TBuilder>["entities"][string]["inputs"],
-    };
-  }
-
-  return {
-    root: Array.from(data.root),
-    entities: newEntities,
-  };
-}
-
-export function deserializeSchemaStoreData<TBuilder extends Builder>(
-  schema: SerializedSchemaStoreData<TBuilder>,
-): SchemaStoreData<TBuilder> {
-  return {
-    entities: new Map(
-      Object.entries(schema.entities).map(([id, entity]) => [
-        id,
-        {
-          ...entity,
-          ...(entity.children ? { children: new Set(entity.children) } : {}),
-          inputs:
-            entity.inputs as unknown as SchemaStoreEntity<TBuilder>["inputs"],
-        },
-      ]),
-    ),
-    root: new Set(schema.root),
-  };
-}
 
 export function ensureEntityExists<TBuilder extends Builder>(
   id: string,
@@ -589,3 +526,28 @@ export function createSchemaStore<TBuilder extends Builder>(options: {
     },
   };
 }
+
+export type SchemaStore<TBuilder extends Builder = Builder> = Store<
+  SchemaStoreData<TBuilder>,
+  SerializedSchemaStoreData<TBuilder>,
+  SchemaStoreEvent<TBuilder>
+> & {
+  getSerializedData(): SerializedSchemaStoreData<TBuilder>;
+  addEntity(
+    payload: SchemaStoreEntity<TBuilder> & {
+      index?: number;
+    },
+  ): void;
+  moveEntityToParent(entityId: string, parentId: string, index?: number): void;
+  moveEntityToRoot(entityId: string, index?: number): void;
+  setEntityInput<
+    TInputName extends KeyofUnion<SchemaStoreEntity<TBuilder>["inputs"]>,
+  >(
+    entityId: string,
+    inputName: TInputName,
+    inputValue: InputsValues<
+      TBuilder["entities"][number]["inputs"]
+    >[TInputName],
+  ): void;
+  deleteEntity(entityId: string): void;
+};

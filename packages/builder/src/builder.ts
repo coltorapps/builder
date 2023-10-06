@@ -12,7 +12,7 @@ type ChildrenAllowed<TEntities extends BuilderEntities> = {
     | true;
 };
 
-export interface Builder<
+export type Builder<
   TEntities extends BuilderEntities = BuilderEntities,
   TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<
     string,
@@ -21,7 +21,7 @@ export interface Builder<
   TParentRequired extends ReadonlyArray<
     TEntities[number]["name"]
   > = ReadonlyArray<string>,
-> {
+> = {
   entities: TEntities;
   entityId: {
     generate: () => string;
@@ -29,7 +29,7 @@ export interface Builder<
   };
   childrenAllowed: TChildrenAllowed;
   parentRequired: TParentRequired;
-}
+};
 
 type OptionalBuilderArgs = "childrenAllowed" | "parentRequired";
 

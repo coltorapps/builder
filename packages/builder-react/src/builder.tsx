@@ -114,14 +114,14 @@ type EntitiesComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
   >;
 };
 
-interface SchemaStoreContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
+type SchemaStoreContextValue<TBuilder extends BaseBuilder = BaseBuilder> = {
   schemaStore: SchemaStore<TBuilder>;
-}
+};
 
-interface BuilderContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
+type BuilderContextValue<TBuilder extends BaseBuilder = BaseBuilder> = {
   entitiesComponents: EntitiesComponents<TBuilder>;
   renderEntity: GenericEntityRender<TBuilder>;
-}
+};
 
 const dummyBuilder = createBuilder({ entities: [] });
 
@@ -143,15 +143,15 @@ const EntitiesContext = createContext<BuilderContextValue>({
   renderEntity: (props) => props.children,
 });
 
-export interface GenericEntityRenderProps<
+export type GenericEntityRenderProps<
   TBuilder extends BaseBuilder = BaseBuilder,
-> {
+> = {
   entity: EntityForRender<TBuilder>;
   children: JSX.Element;
-}
-interface GenericEntityRender<TBuilder extends BaseBuilder = BaseBuilder> {
+};
+type GenericEntityRender<TBuilder extends BaseBuilder = BaseBuilder> = {
   (props: GenericEntityRenderProps<TBuilder>): JSX.Element;
-}
+};
 
 const MemoizedEntity = memo(function Entity(props: {
   entityId: string;
@@ -287,9 +287,9 @@ type InputsComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
   };
 };
 
-export interface GenericInputRenderProps<
+export type GenericInputRenderProps<
   TBuilder extends BaseBuilder = BaseBuilder,
-> {
+> = {
   entity: SchemaStoreEntityWithId<TBuilder>;
   input: {
     [K in KeyofUnion<
@@ -299,18 +299,18 @@ export interface GenericInputRenderProps<
     >;
   }[KeyofUnion<SchemaStoreEntityWithId<TBuilder>["inputs"]>];
   children: JSX.Element;
-}
+};
 
-interface GenericInputRender<TBuilder extends BaseBuilder = BaseBuilder> {
+type GenericInputRender<TBuilder extends BaseBuilder = BaseBuilder> = {
   (props: GenericInputRenderProps<TBuilder>): JSX.Element;
-}
+};
 
-interface InputsContextValue<TBuilder extends BaseBuilder = BaseBuilder> {
+type InputsContextValue<TBuilder extends BaseBuilder = BaseBuilder> = {
   inputsValidationStore: InputsValidationStore<TBuilder>;
   inputsComponents: InputsComponents<TBuilder>;
   renderInput: GenericInputRender<TBuilder>;
   entity: SchemaStoreEntityWithId<TBuilder>;
-}
+};
 
 const InputsContext = createContext<InputsContextValue>({
   inputsValidationStore: dummyInputsValidationStore,

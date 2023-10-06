@@ -53,42 +53,6 @@ export type InputsValidationStoreEvent<TBuilder extends Builder = Builder> =
       }
     >;
 
-export interface InputsValidationStore<TBuilder extends Builder = Builder>
-  extends Store<
-    InputsValidationStoreData<TBuilder>,
-    SerializedInputsValidationStoreData<TBuilder>,
-    InputsValidationStoreEvent<TBuilder>
-  > {
-  getSerializedData(): SerializedInputsValidationStoreData;
-  validateEntityInput<
-    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
-  >(
-    entityId: string,
-    inputName: TInputName,
-  ): Promise<void>;
-  validateEntityInputs(entityId: string): Promise<void>;
-  validateEntitiesInputs(): Promise<void>;
-  resetEntityInputError<
-    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
-  >(
-    entityId: string,
-    inputName: TInputName,
-  ): void;
-  setEntityInputError<
-    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
-  >(
-    entityId: string,
-    inputName: TInputName,
-    error?: unknown,
-  ): void;
-  resetEntityInputsErrors(entityId: string): void;
-  setEntityInputsErrors(
-    entityId: string,
-    entityInputsErrors: EntityInputsErrors<TBuilder>,
-  ): void;
-  resetEntitiesInputsErrors(): void;
-}
-
 async function validateEntityInput<TBuilder extends Builder>(
   entityId: string,
   inputName: string,
@@ -98,10 +62,9 @@ async function validateEntityInput<TBuilder extends Builder>(
     entitiesInputsErrors: InputsValidationStoreData<TBuilder>["entitiesInputsErrors"];
   },
 ): Promise<InputsValidationStoreData<TBuilder>["entitiesInputsErrors"]> {
-  const entity = ensureEntityExists(
-    entityId,
-    dependencies.schemaStore.getData().entities,
-  );
+  const data = dependencies.schemaStore.getData();
+
+  const entity = ensureEntityExists(entityId, data.entities);
 
   const input = ensureEntityInputIsRegistered(
     entity.type,
@@ -115,19 +78,11 @@ async function validateEntityInput<TBuilder extends Builder>(
     ...newEntitiesInputsErrors.get(entityId),
   };
 
-  const schema = dependencies.schemaStore.getSerializedData();
-
-  const schemaEntity = schema.entities[entityId];
-
-  if (!schemaEntity) {
-    throw new Error("Schema entity not found.");
-  }
-
   try {
     await input.validate((entity as SchemaStoreEntity).inputs[input.name], {
-      schema,
+      schema: data,
       entity: {
-        ...schemaEntity,
+        ...entity,
         id: entityId,
       },
     });
@@ -559,3 +514,38 @@ export function createInputsValidationStore<TBuilder extends Builder>(options: {
     },
   };
 }
+
+export type InputsValidationStore<TBuilder extends Builder = Builder> = Store<
+  InputsValidationStoreData<TBuilder>,
+  SerializedInputsValidationStoreData<TBuilder>,
+  InputsValidationStoreEvent<TBuilder>
+> & {
+  getSerializedData(): SerializedInputsValidationStoreData;
+  validateEntityInput<
+    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
+  >(
+    entityId: string,
+    inputName: TInputName,
+  ): Promise<void>;
+  validateEntityInputs(entityId: string): Promise<void>;
+  validateEntitiesInputs(): Promise<void>;
+  resetEntityInputError<
+    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
+  >(
+    entityId: string,
+    inputName: TInputName,
+  ): void;
+  setEntityInputError<
+    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
+  >(
+    entityId: string,
+    inputName: TInputName,
+    error?: unknown,
+  ): void;
+  resetEntityInputsErrors(entityId: string): void;
+  setEntityInputsErrors(
+    entityId: string,
+    entityInputsErrors: EntityInputsErrors<TBuilder>,
+  ): void;
+  resetEntitiesInputsErrors(): void;
+};

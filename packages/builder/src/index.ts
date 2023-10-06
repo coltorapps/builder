@@ -8,11 +8,11 @@ export { createInput } from "./input";
 export type { Input } from "./input";
 
 export {
-  createSchemaStore,
   deserializeSchemaStoreData,
-  schemaStoreEventsNames,
   serializeSchemaStoreData,
-} from "./schema-store";
+} from "./schema-store-serialization";
+
+export { createSchemaStore, schemaStoreEventsNames } from "./schema-store";
 export type {
   SchemaStore,
   SchemaStoreData,

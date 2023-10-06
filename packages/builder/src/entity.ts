@@ -1,17 +1,17 @@
 import { type Input, type InputsValues } from "./input";
 
-interface EntityContext<TInputs extends ReadonlyArray<Input<string, unknown>>> {
+type EntityContext<TInputs extends ReadonlyArray<Input<string, unknown>>> = {
   inputs: InputsValues<TInputs>;
   values: Record<string, unknown>;
-}
+};
 
-export interface Entity<
+export type Entity<
   TName extends string = string,
   TInputs extends ReadonlyArray<Input<string, unknown>> = ReadonlyArray<
     Input<string, unknown>
   >,
   TValue = unknown,
-> {
+> = {
   name: TName;
   inputs: TInputs;
   isValueAllowed: boolean;
@@ -20,7 +20,7 @@ export interface Entity<
     context: EntityContext<TInputs>,
   ) => Awaited<TValue> | undefined;
   shouldBeProcessed: (context: EntityContext<TInputs>) => boolean;
-}
+};
 
 type OptionalEntityArgs =
   | "inputs"

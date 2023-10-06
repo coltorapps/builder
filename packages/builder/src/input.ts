@@ -1,14 +1,17 @@
-import { type Schema, type SchemaEntityWithId } from "./schema";
+import {
+  type SchemaStoreData,
+  type SchemaStoreEntityWithId,
+} from "./schema-store";
 
-interface InputContext {
-  schema: Schema;
-  entity: SchemaEntityWithId;
-}
+type InputContext = {
+  schema: SchemaStoreData;
+  entity: SchemaStoreEntityWithId;
+};
 
-export interface Input<TName extends string = string, TValue = unknown> {
+export type Input<TName extends string = string, TValue = unknown> = {
   name: TName;
   validate: (value: unknown, context: InputContext) => TValue;
-}
+};
 
 export type InputsValues<TInputs extends ReadonlyArray<Input>> = {
   [K in TInputs[number]["name"]]: Awaited<

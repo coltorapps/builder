@@ -1,18 +1,18 @@
-interface Listener<TData, TEvent extends SubscriptionEvent> {
+type Listener<TData, TEvent extends SubscriptionEvent> = {
   (data: TData, events: Array<TEvent>): void;
-}
+};
 
-export interface Subscribe<TData, TEvent extends SubscriptionEvent> {
+export type Subscribe<TData, TEvent extends SubscriptionEvent> = {
   (listener: Listener<TData, TEvent>): () => void;
-}
+};
 
-export interface SubscriptionEvent<
+export type SubscriptionEvent<
   TName extends string = string,
   TPayload = unknown,
-> {
+> = {
   name: TName;
   payload: TPayload;
-}
+};
 
 export function createSubscriptionManager<
   TData,

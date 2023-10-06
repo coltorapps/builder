@@ -5,6 +5,7 @@ import {
   type Builder,
 } from "./builder";
 import { type InputsValues } from "./input";
+import { deserializeSchemaStoreData } from "./schema-store-serialization";
 import { type KeyofUnion, type OptionalPropsIfUndefined } from "./utils";
 
 export const schemaValidationErrorCodes = {
@@ -194,10 +195,10 @@ export type SchemaEntity<TBuilder extends Builder = Builder> = BaseSchemaEntity<
   }
 >;
 
-export interface Schema<TBuilder extends Builder = Builder> {
+export type Schema<TBuilder extends Builder = Builder> = {
   entities: Record<string, SchemaEntity<TBuilder>>;
   root: ReadonlyArray<string>;
-}
+};
 
 export type SchemaEntityWithId<TBuilder extends Builder = Builder> =
   SchemaEntity<TBuilder> & { id: string };
@@ -289,11 +290,22 @@ async function validateEntityInputs(
 
   const inputsErrors: EntityInputsErrors = {};
 
+  const schemaStoreData = deserializeSchemaStoreData(dependencies.schema);
+
+  const schemaStoreEntity = schemaStoreData.entities.get(entity.id);
+
+  if (!schemaStoreEntity) {
+    throw Error("Entity not found.");
+  }
+
   for (const input of entityDefinition.inputs) {
     try {
       newInputs[input.name] = await input.validate(entity.inputs[input.name], {
-        schema: dependencies.schema,
-        entity,
+        schema: schemaStoreData,
+        entity: {
+          ...schemaStoreEntity,
+          id: entity.id,
+        },
       });
     } catch (error) {
       inputsErrors[input.name] = error;

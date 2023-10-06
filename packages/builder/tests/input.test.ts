@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
+import { type SchemaStoreData } from "../src";
 import { createInput } from "../src/input";
 
 const dummyInputContext = {
-  schema: { entities: {}, root: [] },
+  schema: { entities: new Map(), root: new Set() } as SchemaStoreData,
   entity: {
     id: "",
     inputs: {},
