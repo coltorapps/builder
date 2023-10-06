@@ -1,10 +1,5 @@
+import { createBuilder, createEntity, createInput } from "builder";
 import { z } from "zod";
-
-import {
-  createBuilder,
-  createEntity,
-  createInput,
-} from "builder";
 
 export const visibleWhenInput = createInput({
   name: "visibleWhen",

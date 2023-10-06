@@ -513,7 +513,6 @@ export function useSchemaStoreRoot<TBuilder extends BaseBuilder>(
   return useSyncExternalStore(
     (listen) =>
       usedSchemaStore.subscribe((data, events) => {
-        
         if (
           events.some(
             (event) =>
