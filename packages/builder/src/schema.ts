@@ -281,13 +281,11 @@ async function validateEntityInputs(
     builder: Builder;
     schemaStoreData: SchemaStoreData;
   },
-): Promise<SchemaEntityWithId["inputs"]> {
+): Promise<void> {
   const entityDefinition = ensureEntityIsRegistered(
     entity,
     dependencies.builder,
   );
-
-  const newInputs = { ...entity.inputs };
 
   const inputsErrors: EntityInputsErrors = {};
 
@@ -301,7 +299,7 @@ async function validateEntityInputs(
 
   for (const input of entityDefinition.inputs) {
     try {
-      newInputs[input.name] = await input.validate(entity.inputs[input.name], {
+      await input.validate(entity.inputs[input.name], {
         schema: dependencies.schemaStoreData,
         entity: {
           ...schemaStoreEntity,
@@ -319,8 +317,6 @@ async function validateEntityInputs(
       payload: { entityId: entity.id, inputsErrors },
     });
   }
-
-  return newInputs;
 }
 
 export function ensureEntityOptionalParentIdHasValidReference<
@@ -744,16 +740,13 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
 
   for (const [id, entity] of Object.entries(schema.entities)) {
     try {
-      newSchema.entities[id] = {
-        ...entity,
-        inputs: await validateEntityInputs(
-          { ...entity, id },
-          {
-            builder: dependencies.builder,
-            schemaStoreData,
-          },
-        ),
-      };
+      await validateEntityInputs(
+        { ...entity, id },
+        {
+          builder: dependencies.builder,
+          schemaStoreData,
+        },
+      );
     } catch (error) {
       if (
         error instanceof SchemaValidationError &&
