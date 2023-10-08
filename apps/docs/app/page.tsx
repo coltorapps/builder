@@ -1,5 +1,6 @@
 "use client";
 
+import { type ReactNode } from "react";
 import { DndContext, MouseSensor, useSensor } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -14,16 +15,15 @@ import {
   createEntityComponent,
   createInputComponent,
   useActiveEntityId,
-  useBuilder,
-  useInputsValidationStore,
-  useSchemaStore,
-  useSchemaStoreData,
-  useSchemaStoreRoot,
-  type GenericEntityRenderProps,
+  useBuilderStore,
+  useBuilderStoreData,
 } from "@builder/react";
 
-import { builder, labelInput, textEntity, visibleWhenInput } from "./builder";
-import { testServer } from "./test";
+import { createFormBuilder } from "./builder";
+import { validateForm } from "./test";
+
+const { textEntity, labelInput, visibleWhenInput, formBuilder } =
+  createFormBuilder();
 
 const textComponent = createEntityComponent(textEntity, ({ entity }) => {
   return (
@@ -37,8 +37,7 @@ const textComponent = createEntityComponent(textEntity, ({ entity }) => {
 const visibleWhenComponent = createInputComponent(
   visibleWhenInput,
   ({ input, onChange, validate }) => {
-    const schemaStoreData = useSchemaStoreData<typeof builder>();
-    const err = useInputsValidationStore();
+    const builderStoreData = useBuilderStoreData<typeof formBuilder>();
 
     return (
       <div>
@@ -54,14 +53,10 @@ const visibleWhenComponent = createInputComponent(
             }
 
             await validate();
-
-            setTimeout(() => {
-              console.log(err.resetEntitiesInputsErrors());
-            }, 1000);
           }}
         >
           <option value="">Select</option>
-          {Array.from(schemaStoreData.entities.entries()).map(
+          {Array.from(builderStoreData.schema.entities.entries()).map(
             ([id, entity]) => (
               <option key={id} value={id}>
                 {entity.inputs.label}
@@ -103,87 +98,40 @@ const labelComponent = createInputComponent(
   },
 );
 
-function RenderEntity({
-  children,
-  entity,
-  selectedEntityId,
-  setSelectedEntityId,
-}: GenericEntityRenderProps<typeof builder> & {
-  selectedEntityId: string | null;
-  setSelectedEntityId: (id: string) => void;
-}) {
+function SortableItem(props: { id: string; children: ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: entity.id });
+    useSortable({ id: props.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const schemaStore = useSchemaStore();
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      onClick={(e) => {
-        e.stopPropagation();
-
-        setSelectedEntityId(entity.id);
-      }}
-    >
-      <div
-        style={{
-          paddingLeft: "1rem",
-          borderWidth: "1px",
-          borderStyle: "solid",
-          borderColor: selectedEntityId === entity.id ? "blue" : "transparent",
-        }}
-      >
-        {children}{" "}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            schemaStore.deleteEntity(entity.id);
-          }}
-        >
-          delete
-        </button>
-      </div>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {props.children}
     </div>
   );
 }
 
 export default function Page() {
-  const client = useBuilder(builder, {
+  const builderStore = useBuilderStore(formBuilder, {
     events: {
-      schemaStore: {
-        onEntityDeleted(payload) {
-          const entities = client.schemaStore.getData().entities;
-
-          entities.forEach((entity, id) => {
-            if (
-              entity.type === "text" &&
-              entity.inputs.visibleWhen?.entityId === payload.entity.id
-            ) {
-              client.schemaStore.setEntityInput(id, "visibleWhen", undefined);
-            }
-          });
-        },
-      },
-      inputsValidationStore: {
-        onEntityInputErrorUpdated(payload) {
-          payload.entityId;
-        },
+      onEntityDeleted(payload) {
+        builderStore.getData().schema.entities.forEach((entity, id) => {
+          if (
+            "visibleWhen" in entity.inputs &&
+            entity.inputs.visibleWhen?.entityId === payload.entity.id
+          ) {
+            builderStore.setEntityInput(id, "visibleWhen", undefined);
+          }
+        });
       },
     },
   });
 
-  const [selectedEntityId, setSelectedEntityId] = useActiveEntityId(
-    client.schemaStore,
-  );
+  const [selectedEntityId, setSelectedEntityId] =
+    useActiveEntityId(builderStore);
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -191,13 +139,13 @@ export default function Page() {
     },
   });
 
-  const root = useSchemaStoreRoot(client.schemaStore);
+  const builderStoreData = useBuilderStoreData(builderStore);
 
   return (
     <>
       <button
         onClick={() => {
-          client.schemaStore.addEntity({
+          builderStore.addEntity({
             type: "text",
             inputs: {
               label: "Text Input" + Math.random().toString(),
@@ -217,47 +165,56 @@ export default function Page() {
             return;
           }
 
-          const index = Array.from(client.schemaStore.getData().root).findIndex(
+          const index = Array.from(builderStoreData.schema.root).findIndex(
             (id) => id === overId,
           );
 
-          client.schemaStore.setEntityIndex(e.active.id, index);
+          builderStore.setEntityIndex(e.active.id, index);
         }}
       >
         <SortableContext
-          items={Array.from(root)}
+          items={Array.from(builderStoreData.schema.root)}
           strategy={verticalListSortingStrategy}
         >
           <Builder.Entities
-            {...client}
+            builderStore={builderStore}
             entitiesComponents={{
               text: textComponent,
             }}
           >
             {(props) => {
               return (
-                <>
-                  <RenderEntity
-                    {...props}
-                    selectedEntityId={selectedEntityId}
-                    setSelectedEntityId={setSelectedEntityId}
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      client.schemaStore.deleteEntity(props.entity.id);
+                <SortableItem id={props.entity.id}>
+                  <div
+                    style={{
+                      paddingLeft: "1rem",
+                      borderWidth: "1px",
+                      borderStyle: "solid",
+                      borderColor:
+                        selectedEntityId === props.entity.id
+                          ? "blue"
+                          : "transparent",
                     }}
+                    onClick={() => setSelectedEntityId(props.entity.id)}
                   >
-                    delete
-                  </button>
-                </>
+                    {props.children}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        builderStore.deleteEntity(props.entity.id);
+                      }}
+                    >
+                      delete
+                    </button>
+                  </div>
+                </SortableItem>
               );
             }}
           </Builder.Entities>
         </SortableContext>
       </DndContext>
       <Builder.Inputs
-        {...client}
+        builderStore={builderStore}
         entityId={selectedEntityId}
         inputsComponents={{
           text: {
@@ -271,10 +228,12 @@ export default function Page() {
         className="bg-red-500 text-red-500"
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick={async () => {
-          const res = await testServer(client.schemaStore.getSerializedData());
+          builderStore.resetEntitiesInputsErrors();
 
+          const res = await validateForm(
+            builderStore.getSerializedData().schema,
+          );
           console.log(res);
-          client.inputsValidationStore.resetEntitiesInputsErrors();
 
           setTimeout(() => {
             if (
@@ -282,9 +241,10 @@ export default function Page() {
               res.reason.code ===
                 schemaValidationErrorCodes.InvalidEntitiesInputs
             ) {
-              client.inputsValidationStore.setSerializedData(
-                res.reason.payload,
-              );
+              builderStore.setSerializedData({
+                ...builderStore.getSerializedData(),
+                ...res.reason.payload,
+              });
 
               const firstEntityWithErrors = Object.keys(
                 res.reason.payload.entitiesInputsErrors,

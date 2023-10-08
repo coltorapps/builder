@@ -1,0 +1,1959 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`builder store > can add entities to a parent entity 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "children": Set {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        },
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can add entities to a parent entity at a specific index 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "children": Set {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+        },
+        "inputs": {},
+        "type": "test",
+      },
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can add entities to root 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can add entities to root at specific index 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can be created with a non-empty schema 1`] = `
+[MockFunction validateSchemaIntegrity] {
+  "calls": [
+    [
+      {
+        "entities": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            "inputs": {
+              "label": "test",
+            },
+            "type": "text",
+          },
+        },
+        "root": [
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
+      },
+      {
+        "builder": {
+          "childrenAllowed": {},
+          "entities": [
+            {
+              "defaultValue": [Function],
+              "inputs": [
+                {
+                  "name": "label",
+                  "validate": [Function],
+                },
+              ],
+              "isValueAllowed": false,
+              "name": "text",
+              "shouldBeProcessed": [Function],
+              "validate": [Function],
+            },
+          ],
+          "entityId": {
+            "generate": [Function],
+            "validate": [Function],
+          },
+          "parentRequired": [],
+        },
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "data": {
+          "entities": {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              "inputs": {
+                "label": "test",
+              },
+              "type": "text",
+            },
+          },
+          "root": [
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          ],
+        },
+        "success": true,
+      },
+    },
+  ],
+}
+`;
+
+exports[`builder store > can be created with a non-empty schema 2`] = `
+{
+  "addEntity": [Function],
+  "builder": {
+    "childrenAllowed": {},
+    "entities": [
+      {
+        "defaultValue": [Function],
+        "inputs": [
+          {
+            "name": "label",
+            "validate": [Function],
+          },
+        ],
+        "isValueAllowed": false,
+        "name": "text",
+        "shouldBeProcessed": [Function],
+        "validate": [Function],
+      },
+    ],
+    "entityId": {
+      "generate": [Function],
+      "validate": [Function],
+    },
+    "parentRequired": [],
+  },
+  "deleteEntity": [Function],
+  "getData": [Function],
+  "getSerializedData": [Function],
+  "removeEntityParentId": [Function],
+  "resetEntitiesInputsErrors": [Function],
+  "resetEntityInputError": [Function],
+  "resetEntityInputsErrors": [Function],
+  "setData": [Function],
+  "setEntityIndex": [Function],
+  "setEntityInput": [Function],
+  "setEntityInputError": [Function],
+  "setEntityInputsErrors": [Function],
+  "setEntityParentId": [Function],
+  "setSerializedData": [Function],
+  "subscribe": [Function],
+  "validateEntitiesInputs": [Function],
+  "validateEntityInput": [Function],
+  "validateEntityInputs": [Function],
+}
+`;
+
+exports[`builder store > can be created with an empty schema 1`] = `
+[MockFunction validateSchemaIntegrity] {
+  "calls": [
+    [
+      {
+        "entities": {},
+        "root": [],
+      },
+      {
+        "builder": {
+          "childrenAllowed": {},
+          "entities": [],
+          "entityId": {
+            "generate": [Function],
+            "validate": [Function],
+          },
+          "parentRequired": [],
+        },
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "data": {
+          "entities": {},
+          "root": [],
+        },
+        "success": true,
+      },
+    },
+  ],
+}
+`;
+
+exports[`builder store > can be created with an empty schema 2`] = `
+{
+  "addEntity": [Function],
+  "builder": {
+    "childrenAllowed": {},
+    "entities": [],
+    "entityId": {
+      "generate": [Function],
+      "validate": [Function],
+    },
+    "parentRequired": [],
+  },
+  "deleteEntity": [Function],
+  "getData": [Function],
+  "getSerializedData": [Function],
+  "removeEntityParentId": [Function],
+  "resetEntitiesInputsErrors": [Function],
+  "resetEntityInputError": [Function],
+  "resetEntityInputsErrors": [Function],
+  "setData": [Function],
+  "setEntityIndex": [Function],
+  "setEntityInput": [Function],
+  "setEntityInputError": [Function],
+  "setEntityInputsErrors": [Function],
+  "setEntityParentId": [Function],
+  "setSerializedData": [Function],
+  "subscribe": [Function],
+  "validateEntitiesInputs": [Function],
+  "validateEntityInput": [Function],
+  "validateEntityInputs": [Function],
+}
+`;
+
+exports[`builder store > can be created without a schema 1`] = `
+{
+  "addEntity": [Function],
+  "builder": {
+    "childrenAllowed": {},
+    "entities": [],
+    "entityId": {
+      "generate": [Function],
+      "validate": [Function],
+    },
+    "parentRequired": [],
+  },
+  "deleteEntity": [Function],
+  "getData": [Function],
+  "getSerializedData": [Function],
+  "removeEntityParentId": [Function],
+  "resetEntitiesInputsErrors": [Function],
+  "resetEntityInputError": [Function],
+  "resetEntityInputsErrors": [Function],
+  "setData": [Function],
+  "setEntityIndex": [Function],
+  "setEntityInput": [Function],
+  "setEntityInputError": [Function],
+  "setEntityInputsErrors": [Function],
+  "setEntityParentId": [Function],
+  "setSerializedData": [Function],
+  "subscribe": [Function],
+  "validateEntitiesInputs": [Function],
+  "validateEntityInput": [Function],
+  "validateEntityInputs": [Function],
+}
+`;
+
+exports[`builder store > can change entity's index 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "children": Set {
+          "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e",
+          "eedf598e-1422-469a-acb1-b2d8bfabb0f3",
+        },
+        "inputs": {},
+        "type": "test",
+      },
+      "eedf598e-1422-469a-acb1-b2d8bfabb0f3" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+      "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can delete entities and cascade delete their children 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "49e91328-02bc-4daa-ab56-619554e85cff" => {
+        "children": Set {},
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "49e91328-02bc-4daa-ab56-619554e85cff",
+    },
+  },
+}
+`;
+
+exports[`builder store > can delete entities and cascade delete their children 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityDeleted",
+          "payload": {
+            "entity": {
+              "children": Set {
+                "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              },
+              "id": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": Set {
+              "49e91328-02bc-4daa-ab56-619554e85cff",
+            },
+          },
+        },
+        {
+          "name": "EntityDeleted",
+          "payload": {
+            "entity": {
+              "children": Set {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              },
+              "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              "inputs": {},
+              "parentId": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityDeleted",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "parentId": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can move an entity from root to a parent entity 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "children": Set {
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        },
+        "inputs": {},
+        "type": "test",
+      },
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can move an entity from root to a parent entity 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can move an entity from root to a parent entity at a specific index 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "children": Set {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+        },
+        "inputs": {},
+        "type": "test",
+      },
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can move an entity from root to a parent entity at a specific index 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can move an entity in a parent entity 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "children": Set {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+        },
+        "inputs": {},
+        "type": "test",
+      },
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can move an entity in a parent entity 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can move an entity in root 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can move an entity in root 2`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can move an entity in root 3`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can move an entity in root 4`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can move an entity to root 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "children": Set {},
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can move an entity to root 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {},
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can move an entity to root at a specific index 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "children": Set {},
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can move an entity to root at a specific index 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": Set {},
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": Set {
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can reset a single entity input error 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "label": "label error",
+      "title": "title error",
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "select",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can reset a single entity input error 2`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "title": "title error",
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "select",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can reset a single entity input error 3`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > can reset a single entity input error 4`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`builder store > can reset a single entity input error 5`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "label error",
+            "inputName": "label",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "title error",
+            "inputName": "title",
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": undefined,
+            "inputName": "label",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can reset all inputs errors for a single entity 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "label": "label error",
+      "title": "title error",
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can reset all inputs errors for a single entity 2`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can reset all inputs errors for a single entity 3`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > can reset all inputs errors for a single entity 4`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "label error",
+            "inputName": "label",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "title error",
+            "inputName": "title",
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": undefined,
+            "inputName": "label",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": undefined,
+            "inputName": "title",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can reset all inputs errors for all entities 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "label": "label error",
+    },
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "title": "title error",
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can reset all inputs errors for all entities 2`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can reset all inputs errors for all entities 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": undefined,
+            "inputName": "label",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "error": undefined,
+            "inputName": "title",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can retrieve the data 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "label": "Some error",
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {
+          "label": "test",
+        },
+        "type": "text",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can return the data 1`] = `
+{
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "label": "some error",
+    },
+  },
+  "schema": {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "inputs": {
+          "label": "test",
+        },
+        "type": "text",
+      },
+    },
+    "root": [
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    ],
+  },
+}
+`;
+
+exports[`builder store > can set a single entity input error 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "label": "Some error",
+      "title": "Title error",
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can set a single entity input error 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > can set a single entity input error 3`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`builder store > can set a single entity input error 4`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "Some error",
+            "inputName": "label",
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "Title error",
+            "inputName": "title",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can set multiple input errors for a single entity 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "label": "some error",
+      "title": "another error",
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can set multiple input errors for a single entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > can set multiple input errors for a single entity 3`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`builder store > can set multiple input errors for a single entity 4`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "some error",
+            "inputName": "label",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "another error",
+            "inputName": "title",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can set raw data 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesInputsErrors": Map {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+            "label": "some error",
+          },
+        },
+        "schema": {
+          "entities": Map {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+              "inputs": {
+                "label": "test",
+              },
+              "type": "text",
+            },
+          },
+          "root": Set {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          },
+        },
+      },
+      [
+        {
+          "name": "DataSet",
+          "payload": {
+            "data": {
+              "entitiesInputsErrors": Map {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+                  "label": "some error",
+                },
+              },
+              "schema": {
+                "entities": Map {
+                  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+                    "inputs": {
+                      "label": "test",
+                    },
+                    "type": "text",
+                  },
+                },
+                "root": Set {
+                  "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                },
+              },
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can set raw data 2`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "label": "some error",
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {
+          "label": "test",
+        },
+        "type": "text",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can set the data 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesInputsErrors": Map {},
+        "schema": {
+          "entities": Map {},
+          "root": Set {},
+        },
+      },
+      [
+        {
+          "name": "DataSet",
+          "payload": {
+            "data": {
+              "entitiesInputsErrors": Map {},
+              "schema": {
+                "entities": Map {},
+                "root": Set {},
+              },
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can update entity inputs 1`] = `
+{
+  "entitiesInputsErrors": Map {},
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {
+          "label": "New label",
+          "required": true,
+        },
+        "type": "select",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {
+          "maxLength": 1,
+        },
+        "type": "text",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can update entity inputs 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": "New label",
+                "required": true,
+              },
+              "type": "select",
+            },
+          },
+        },
+        {
+          "name": "EntityInputUpdated",
+          "payload": {
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": "New label",
+                "required": true,
+              },
+              "type": "select",
+            },
+            "inputName": "label",
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {
+                "maxLength": 1,
+              },
+              "type": "text",
+            },
+          },
+        },
+        {
+          "name": "EntityInputUpdated",
+          "payload": {
+            "entity": {
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {
+                "maxLength": 1,
+              },
+              "type": "text",
+            },
+            "inputName": "maxLength",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can validate a all inputs of a single entity 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "maxLength": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "string",
+    "path": [],
+    "message": "Expected number, received string"
+  }
+]],
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {
+          "label": 1,
+          "maxLength": "1",
+        },
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    },
+  },
+}
+`;
+
+exports[`builder store > can validate a all inputs of a single entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > can validate a all inputs of a single entity 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+            "inputName": "label",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "string",
+    "path": [],
+    "message": "Expected number, received string"
+  }
+]],
+            "inputName": "maxLength",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can validate a all inputs of all entities 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {},
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "maxLength": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "string",
+    "path": [],
+    "message": "Expected number, received string"
+  }
+]],
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {
+          "label": 1,
+          "maxLength": 1,
+        },
+        "type": "test",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {
+          "label": "test",
+          "maxLength": "1",
+        },
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can validate a all inputs of all entities 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+            "inputName": "label",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": undefined,
+            "inputName": "maxLength",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "error": undefined,
+            "inputName": "label",
+          },
+        },
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "error": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "string",
+    "path": [],
+    "message": "Expected number, received string"
+  }
+]],
+            "inputName": "maxLength",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can validate a single entity input 1`] = `
+{
+  "entitiesInputsErrors": Map {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+    },
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+    },
+  },
+  "schema": {
+    "entities": Map {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "inputs": {
+          "label": 1,
+        },
+        "type": "test",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": Set {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    },
+  },
+}
+`;
+
+exports[`builder store > can validate a single entity input 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > can validate a single entity input 3`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`builder store > can validate a single entity input 4`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+            "inputName": "label",
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "error": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+            "inputName": "label",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > throws moving an entity to a non-allowed parent 1`] = `"Child is not allowed."`;
+
+exports[`builder store > throws when adding an entity to a non-allowed parent 1`] = `"Child is not allowed."`;
+
+exports[`builder store > throws when adding an entity with a non-existent input 1`] = `"Unkown entity input \\"invalid\\"."`;
+
+exports[`builder store > throws when adding an entity with an already existent ID 1`] = `"An entitiy with the ID \\"6e0035c3-0d4c-445f-a42b-2d971225447c\\" already exists."`;
+
+exports[`builder store > throws when adding an entity without a parent when parent is required 1`] = `"A parent is required."`;
+
+exports[`builder store > throws when moving an entity to the root when parent is required 1`] = `"A parent is required."`;
+
+exports[`builder store > throws when trying to add an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > throws when trying to delete non existent entity 1`] = `"Entity with ID \\"test\\" was not found."`;
+
+exports[`builder store > throws when trying to move a non existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > throws when trying to move a non existent entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > throws when trying to move an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > throws when updating an input of a non-existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > throws when updating an non-existent input of an entity 1`] = `"Unkown entity input \\"invalid\\"."`;

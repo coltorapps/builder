@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import {
   createInput,
-  type SchemaStoreData,
-  type SchemaStoreEntityWithId,
+  type BuilderStoreData,
+  type BuilderStoreEntityWithId,
 } from "../src";
 
 describe("input", () => {
@@ -21,8 +21,8 @@ describe("input", () => {
       validate: (
         value: unknown,
         context: {
-          schema: SchemaStoreData;
-          entity: SchemaStoreEntityWithId;
+          schema: BuilderStoreData['schema'];
+          entity: BuilderStoreEntityWithId;
         },
       ) => string;
     }>();

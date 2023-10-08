@@ -1,13 +1,16 @@
 "use server";
 
-import { validateSchema, type SerializedSchemaStoreData } from "builder";
+import { validateSchema, type Schema } from "builder";
 
-import { builder } from "./builder";
+import { createFormBuilder } from "./builder";
 
-export const testServer = async (
-  schema: SerializedSchemaStoreData<typeof builder>,
-) => {
-  const result = await validateSchema(schema, { builder });
+const { formBuilder } = createFormBuilder({
+  labelInputValidation(value) {
+    if (value === "invalid") {
+      throw "THIS IS WRONG! YES!";
+    }
+  },
+});
 
-  return result;
-};
+export const validateForm = async (schema: Schema<typeof formBuilder>) =>
+  validateSchema(schema, { builder: formBuilder });

@@ -4,9 +4,9 @@ import {
   isEntityParentRequired,
   type Builder,
 } from "./builder";
+import { type BuilderStoreData } from "./builder-store";
+import { deserializeBuilderStoreData } from "./builder-store-serialization";
 import { type InputsValues } from "./input";
-import { type SchemaStoreData } from "./schema-store";
-import { deserializeSchemaStoreData } from "./schema-store-serialization";
 import { type KeyofUnion, type OptionalPropsIfUndefined } from "./utils";
 
 export const schemaValidationErrorCodes = {
@@ -279,7 +279,7 @@ async function validateEntityInputs(
   entity: SchemaEntityWithId,
   dependencies: {
     builder: Builder;
-    schemaStoreData: SchemaStoreData;
+    builderStoreData: BuilderStoreData;
   },
 ): Promise<void> {
   const entityDefinition = ensureEntityIsRegistered(
@@ -289,20 +289,20 @@ async function validateEntityInputs(
 
   const inputsErrors: EntityInputsErrors = {};
 
-  const schemaStoreEntity = dependencies.schemaStoreData.entities.get(
+  const builderStoreEntity = dependencies.builderStoreData.schema.entities.get(
     entity.id,
   );
 
-  if (!schemaStoreEntity) {
+  if (!builderStoreEntity) {
     throw Error("Entity not found.");
   }
 
   for (const input of entityDefinition.inputs) {
     try {
       await input.validate(entity.inputs[input.name], {
-        schema: dependencies.schemaStoreData,
+        schema: dependencies.builderStoreData.schema,
         entity: {
-          ...schemaStoreEntity,
+          ...builderStoreEntity,
           id: entity.id,
         },
       });
@@ -736,7 +736,10 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
 
   const entitiesInputsErrors: EntitiesInputsErrors = {};
 
-  const schemaStoreData = deserializeSchemaStoreData(newSchema);
+  const builderStoreData = deserializeBuilderStoreData({
+    schema: newSchema,
+    entitiesInputsErrors: {},
+  });
 
   for (const [id, entity] of Object.entries(schema.entities)) {
     try {
@@ -744,7 +747,7 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
         { ...entity, id },
         {
           builder: dependencies.builder,
-          schemaStoreData,
+          builderStoreData,
         },
       );
     } catch (error) {

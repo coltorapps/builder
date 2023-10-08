@@ -8,34 +8,20 @@ export { createInput } from "./input";
 export type { Input } from "./input";
 
 export {
-  deserializeSchemaStoreData,
-  serializeSchemaStoreData,
-} from "./schema-store-serialization";
+  deserializeBuilderStoreData,
+  serializeBuilderStoreData,
+} from "./builder-store-serialization";
 
-export { createSchemaStore, schemaStoreEventsNames } from "./schema-store";
+export { createBuilderStore, builderStoreEventsNames } from "./builder-store";
 export type {
-  SchemaStore,
-  SchemaStoreData,
-  SchemaStoreEntity,
-  SchemaStoreEntityWithId,
-  SchemaStoreEvent,
-  SchemaStoreEventName,
-  SerializedSchemaStoreData,
-} from "./schema-store";
-
-export {
-  createInputsValidationStore,
-  deserializeInputsValidationStoreData,
-  inputsValidationStoreEventsNames,
-  serializeInputsValidationStoreData,
-} from "./inputs-validation-store";
-export type {
-  InputsValidationStore,
-  InputsValidationStoreData,
-  InputsValidationStoreEvent,
-  InputsValidationStoreEventName,
-  SerializedInputsValidationStoreData,
-} from "./inputs-validation-store";
+  BuilderStore,
+  BuilderStoreData,
+  BuilderStoreEntity,
+  BuilderStoreEntityWithId,
+  BuilderStoreEvent,
+  BuilderStoreEventName,
+  SerializedBuilderStoreData,
+} from "./builder-store";
 
 export {
   SchemaValidationError,

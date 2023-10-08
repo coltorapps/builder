@@ -1,4 +1,4 @@
-import { type Input, type SchemaStoreEntityWithId } from "builder";
+import { type Input, type BuilderStoreEntityWithId } from "builder";
 
 export type InputForRender<TInput extends Input> = {
   name: TInput["name"];
@@ -8,7 +8,7 @@ export type InputForRender<TInput extends Input> = {
 
 export type InputComponentProps<TInput extends Input = Input> = {
   input: InputForRender<TInput>;
-  entity: SchemaStoreEntityWithId;
+  entity: BuilderStoreEntityWithId;
   validate: () => Promise<void>;
   onChange: (value: Awaited<ReturnType<TInput["validate"]>>) => void;
 };

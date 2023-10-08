@@ -1,11 +1,11 @@
 import {
   type Builder,
   type Entity,
-  type SchemaStoreEntityWithId,
+  type BuilderStoreEntityWithId,
 } from "builder";
 
 export type EntityForRender<TBuilder extends Builder = Builder> =
-  SchemaStoreEntityWithId<TBuilder>;
+  BuilderStoreEntityWithId<TBuilder>;
 
 export type EntityComponentProps<TEntity extends Entity = Entity> = {
   entity: EntityForRender<Builder<[TEntity]>>;
