@@ -5,7 +5,10 @@ import { type BuilderStoreData } from "../src";
 import { createInput } from "../src/input";
 
 const dummyInputContext = {
-  schema: { entities: new Map(), root: new Set() } as BuilderStoreData['schema'],
+  schema: {
+    entities: new Map(),
+    root: new Set(),
+  } as BuilderStoreData["schema"],
   entity: {
     id: "",
     inputs: {},

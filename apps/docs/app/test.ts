@@ -5,7 +5,7 @@ import { validateSchema, type Schema } from "builder";
 import { createFormBuilder } from "./builder";
 
 const { formBuilder } = createFormBuilder({
-  labelInputValidation(value) {
+  async labelInputValidation(value) {
     if (value === "invalid") {
       throw "THIS IS WRONG! YES!";
     }

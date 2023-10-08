@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { useTransition, type ReactNode } from "react";
 import { DndContext, MouseSensor, useSensor } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -141,6 +141,8 @@ export default function Page() {
 
   const builderStoreData = useBuilderStoreData(builderStore);
 
+  const [isPending, startTransition] = useTransition();
+
   return (
     <>
       <button
@@ -225,17 +227,14 @@ export default function Page() {
       />
       <div className="text-3xl">test</div>
       <button
-        className="bg-red-500 text-red-500"
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        onClick={async () => {
-          builderStore.resetEntitiesInputsErrors();
+        onClick={() => {
+          startTransition(async () => {
+            builderStore.resetEntitiesInputsErrors();
 
-          const res = await validateForm(
-            builderStore.getSerializedData().schema,
-          );
-          console.log(res);
+            const res = await validateForm(
+              builderStore.getSerializedData().schema,
+            );
 
-          setTimeout(() => {
             if (
               !res.success &&
               res.reason.code ===
@@ -261,10 +260,10 @@ export default function Page() {
                 setSelectedEntityId(firstEntityWithErrors);
               }
             }
-          }, 1000);
+          });
         }}
       >
-        go
+        {isPending ? "LOADING..." : "SAVE"}
       </button>
     </>
   );

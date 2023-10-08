@@ -1,4 +1,4 @@
-import { type Input, type BuilderStoreEntityWithId } from "builder";
+import { type BuilderStoreEntityWithId, type Input } from "builder";
 
 export type InputForRender<TInput extends Input> = {
   name: TInput["name"];

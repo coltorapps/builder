@@ -1,7 +1,7 @@
 import {
   type Builder,
-  type Entity,
   type BuilderStoreEntityWithId,
+  type Entity,
 } from "builder";
 
 export type EntityForRender<TBuilder extends Builder = Builder> =

@@ -4,7 +4,7 @@ import {
 } from "./builder-store";
 
 type InputContext = {
-  schema: BuilderStoreData['schema'];
+  schema: BuilderStoreData["schema"];
   entity: BuilderStoreEntityWithId;
 };
 

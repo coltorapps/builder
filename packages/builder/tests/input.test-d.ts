@@ -21,7 +21,7 @@ describe("input", () => {
       validate: (
         value: unknown,
         context: {
-          schema: BuilderStoreData['schema'];
+          schema: BuilderStoreData["schema"];
           entity: BuilderStoreEntityWithId;
         },
       ) => string;
