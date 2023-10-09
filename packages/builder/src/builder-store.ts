@@ -435,15 +435,6 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       setSerializedData(serializeBuilderStoreData(data));
     },
     setSerializedData: setSerializedData,
-    setSerializedEntitiesInputsErrors(entitiesInputsErrors) {
-      setSerializedData({
-        ...serializeBuilderStoreData({
-          schema: getData().schema,
-          entitiesInputsErrors: new Map(),
-        }),
-        entitiesInputsErrors,
-      });
-    },
     getSerializedData() {
       return serializeBuilderStoreData(getData());
     },
@@ -1129,9 +1120,6 @@ export type BuilderStore<TBuilder extends Builder = Builder> = Store<
   setEntityInputsErrors(
     entityId: string,
     entityInputsErrors: EntityInputsErrors<TBuilder>,
-  ): void;
-  setSerializedEntitiesInputsErrors(
-    entitiesInputsErrors: EntitiesInputsErrors<TBuilder>,
   ): void;
   resetEntitiesInputsErrors(): void;
 };

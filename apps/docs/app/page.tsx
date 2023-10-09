@@ -20,7 +20,7 @@ import {
 } from "@builder/react";
 
 import { createFormBuilder } from "./builder";
-import { validateForm } from "./test";
+import { validateForm } from "./validate-form";
 
 const { textEntity, labelInput, visibleWhenInput, formBuilder } =
   createFormBuilder();
@@ -36,7 +36,7 @@ const textComponent = createEntityComponent(textEntity, ({ entity }) => {
 
 const visibleWhenComponent = createInputComponent(
   visibleWhenInput,
-  ({ input, onChange, validate }) => {
+  ({ input, entity, onChange, validate }) => {
     const builderStoreData = useBuilderStoreData<typeof formBuilder>();
 
     return (
@@ -56,13 +56,13 @@ const visibleWhenComponent = createInputComponent(
           }}
         >
           <option value="">Select</option>
-          {Array.from(builderStoreData.schema.entities.entries()).map(
-            ([id, entity]) => (
+          {Array.from(builderStoreData.schema.entities.entries())
+            .filter(([id]) => id !== entity.id)
+            .map(([id, entity]) => (
               <option key={id} value={id}>
                 {entity.inputs.label}
               </option>
-            ),
-          )}
+            ))}
         </select>
         <span style={{ color: "red" }}>
           {typeof input.error === "string"
@@ -242,9 +242,10 @@ export default function Page() {
               res.reason.code ===
                 schemaValidationErrorCodes.InvalidEntitiesInputs
             ) {
-              builderStore.setSerializedEntitiesInputsErrors(
-                res.reason.payload.entitiesInputsErrors,
-              );
+              builderStore.setSerializedData({
+                ...builderStore.getSerializedData(),
+                ...res.reason.payload,
+              });
 
               const firstEntityWithErrors = Object.keys(
                 res.reason.payload.entitiesInputsErrors,
