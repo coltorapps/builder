@@ -1,6 +1,25 @@
 "use client";
 
 import { useTransition, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DndContext, MouseSensor, useSensor } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -39,36 +58,39 @@ const visibleWhenComponent = createInputComponent(
   ({ input, entity, onChange, validate }) => {
     const builderStoreData = useBuilderStoreData<typeof formBuilder>();
 
+    const items = Array.from(builderStoreData.schema.entities.entries()).filter(
+      ([id]) => id !== entity.id,
+    );
+
     return (
-      <div>
-        Visible when
-        <select
+      <div className="mb-4">
+        <Select
           value={input.value?.entityId ?? ""}
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onChange={async (e) => {
-            if (!e.target.value) {
+          onValueChange={(value) => {
+            if (!value) {
               onChange(undefined);
             } else {
-              onChange({ entityId: e.target.value });
+              onChange({ entityId: value });
             }
 
-            await validate();
+            void validate();
           }}
         >
-          <option value="">Select</option>
-          {Array.from(builderStoreData.schema.entities.entries())
-            .filter(([id]) => id !== entity.id)
-            .map(([id, entity]) => (
-              <option key={id} value={id}>
-                {entity.inputs.label}
-              </option>
-            ))}
-        </select>
-        <span style={{ color: "red" }}>
-          {typeof input.error === "string"
-            ? input.error
-            : JSON.stringify(input.error)}
-        </span>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Field" />
+          </SelectTrigger>
+          <SelectContent>
+            {items.length ? (
+              items.map(([id, entity]) => (
+                <SelectItem key={id} value={id}>
+                  {entity.inputs.label}
+                </SelectItem>
+              ))
+            ) : (
+              <p className="py-6 text-center text-sm">Noth</p>
+            )}
+          </SelectContent>
+        </Select>
       </div>
     );
   },
@@ -267,6 +289,22 @@ export default function Page() {
       >
         {isPending ? "LOADING..." : "SAVE"}
       </button>
+      <div className="max-w-xs mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Card Title</CardTitle>
+            <CardDescription>Card Description</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Label>Ha</Label>
+            <Input />
+            <ErrorMessage>haha</ErrorMessage>
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full">Save</Button>
+          </CardFooter>
+        </Card>
+      </div>
     </>
   );
 }

@@ -1,13 +1,14 @@
+import { type ReactNode } from "react";
+
 import "./globals.css";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout(props: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className="min-h-screen bg-background font-sans antialiased">
+        {props.children}
+      </body>
     </html>
   );
 }
