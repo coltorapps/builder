@@ -15,10 +15,8 @@ import {
   type Builder as BaseBuilder,
   type BuilderStore,
   type BuilderStoreData,
-  type BuilderStoreEntityWithId,
   type BuilderStoreEvent,
-  type EntitiesInputsErrors,
-  type Schema,
+  type SchemaEntityWithId,
 } from "builder";
 
 import { type EntityComponent, type EntityForRender } from "./entities";
@@ -37,17 +35,16 @@ type EventsListeners<
 export function useBuilderStore<TBuilder extends BaseBuilder>(
   builder: TBuilder,
   options: {
-    initialSchema?: Schema<TBuilder>;
-    initialEntitiesInputsErrors?: EntitiesInputsErrors<TBuilder>;
+    initialData?: Partial<BuilderStoreData<TBuilder>>;
     events?: EventsListeners<TBuilder, BuilderStoreEvent<TBuilder>>;
   } = {},
 ): BuilderStore<TBuilder> {
   const builderStoreRef = useRef(
     createBuilderStore({
       builder,
-      serializedData: {
-        schema: options.initialSchema,
-        entitiesInputsErrors: options.initialEntitiesInputsErrors,
+      initialData: {
+        schema: options.initialData?.schema,
+        entitiesInputsErrors: options.initialData?.entitiesInputsErrors,
       },
     }),
   );
@@ -123,13 +120,13 @@ const MemoizedEntity = memo(function Entity(props: {
     ),
   );
 
-  const entity = data.schema.entities.get(props.entityId);
+  const entity = data.schema.entities[props.entityId];
 
   if (!entity) {
     throw new Error("Entity not found.");
   }
 
-  const childrenIds = Array.from(entity?.children ?? []);
+  const childrenIds = entity?.children ?? [];
 
   const EntityComponent = entitiesComponents[entity.type];
 
@@ -170,7 +167,7 @@ function RootEntities(): ReactNode {
     ),
   );
 
-  return Array.from(data.schema.root).map((entityId) => (
+  return data.schema.root.map((entityId) => (
     <MemoizedEntity key={entityId} entityId={entityId} />
   ));
 }
@@ -218,14 +215,12 @@ type InputsComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
 export type GenericInputRenderProps<
   TBuilder extends BaseBuilder = BaseBuilder,
 > = {
-  entity: BuilderStoreEntityWithId<TBuilder>;
+  entity: SchemaEntityWithId<TBuilder>;
   input: {
-    [K in KeyofUnion<
-      BuilderStoreEntityWithId<TBuilder>["inputs"]
-    >]: InputForRender<
+    [K in KeyofUnion<SchemaEntityWithId<TBuilder>["inputs"]>]: InputForRender<
       Extract<TBuilder["entities"][number]["inputs"][number], { name: K }>
     >;
-  }[KeyofUnion<BuilderStoreEntityWithId<TBuilder>["inputs"]>];
+  }[KeyofUnion<SchemaEntityWithId<TBuilder>["inputs"]>];
   children: JSX.Element;
 };
 
@@ -236,7 +231,7 @@ type GenericInputRender<TBuilder extends BaseBuilder = BaseBuilder> = {
 type InputsContextValue<TBuilder extends BaseBuilder = BaseBuilder> = {
   inputsComponents: InputsComponents<TBuilder>;
   renderInput: GenericInputRender<TBuilder>;
-  entity: BuilderStoreEntityWithId<TBuilder>;
+  entity: SchemaEntityWithId<TBuilder>;
 };
 
 const InputsContext = createContext<InputsContextValue>({
@@ -274,13 +269,9 @@ const MemoizedInput = memo(function Input(props: {
     ),
   );
 
-  const inputValue = data.schema.entities.get(entity.id)?.inputs[
-    props.inputName
-  ];
+  const inputValue = data.schema.entities[entity.id]?.inputs[props.inputName];
 
-  const inputError = data.entitiesInputsErrors.get(entity.id)?.[
-    props.inputName
-  ];
+  const inputError = data.entitiesInputsErrors[entity.id]?.[props.inputName];
 
   const input = {
     name: props.inputName,
@@ -313,7 +304,7 @@ function Inputs<TBuilder extends BaseBuilder>(props: {
   entityId?: string | null;
 }): ReactNode {
   const entity = props.entityId
-    ? props.builderStore.getData().schema.entities.get(props.entityId)
+    ? props.builderStore.getData().schema.entities[props.entityId]
     : null;
 
   if (!props.entityId || !entity) {
@@ -367,13 +358,13 @@ export function useActiveEntityId(
   useEffect(() => {
     if (
       activeEntityId &&
-      !builderStore.getData().schema.entities.has(activeEntityId)
+      !builderStore.getData().schema.entities[activeEntityId]
     ) {
       throw new Error("Entity not found.");
     }
 
     return builderStore.subscribe((data) => {
-      if (activeEntityId && !data.schema.entities.has(activeEntityId)) {
+      if (activeEntityId && !data.schema.entities[activeEntityId]) {
         setActiveEntityId(null);
       }
     });

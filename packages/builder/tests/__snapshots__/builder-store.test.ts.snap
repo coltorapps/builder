@@ -2,100 +2,100 @@
 
 exports[`builder store > can add entities to a parent entity 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "children": Set {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "children": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        },
+        ],
         "inputs": {},
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can add entities to a parent entity at a specific index 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "children": Set {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "children": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
           "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
-        },
+        ],
         "inputs": {},
         "type": "test",
       },
-      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can add entities to root 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "inputs": {},
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can add entities to root at specific index 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "inputs": {},
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
@@ -196,18 +196,17 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
   },
   "deleteEntity": [Function],
   "getData": [Function],
-  "getSerializedData": [Function],
   "removeEntityParentId": [Function],
   "resetEntitiesInputsErrors": [Function],
   "resetEntityInputError": [Function],
   "resetEntityInputsErrors": [Function],
   "setData": [Function],
+  "setEntitiesInputsErrors": [Function],
   "setEntityIndex": [Function],
   "setEntityInput": [Function],
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
-  "setSerializedData": [Function],
   "subscribe": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
@@ -265,18 +264,17 @@ exports[`builder store > can be created with an empty schema 2`] = `
   },
   "deleteEntity": [Function],
   "getData": [Function],
-  "getSerializedData": [Function],
   "removeEntityParentId": [Function],
   "resetEntitiesInputsErrors": [Function],
   "resetEntityInputError": [Function],
   "resetEntityInputsErrors": [Function],
   "setData": [Function],
+  "setEntitiesInputsErrors": [Function],
   "setEntityIndex": [Function],
   "setEntityInput": [Function],
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
-  "setSerializedData": [Function],
   "subscribe": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
@@ -298,18 +296,17 @@ exports[`builder store > can be created without a schema 1`] = `
   },
   "deleteEntity": [Function],
   "getData": [Function],
-  "getSerializedData": [Function],
   "removeEntityParentId": [Function],
   "resetEntitiesInputsErrors": [Function],
   "resetEntityInputError": [Function],
   "resetEntityInputsErrors": [Function],
   "setData": [Function],
+  "setEntitiesInputsErrors": [Function],
   "setEntityIndex": [Function],
   "setEntityInput": [Function],
   "setEntityInputError": [Function],
   "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
-  "setSerializedData": [Function],
   "subscribe": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
@@ -319,56 +316,56 @@ exports[`builder store > can be created without a schema 1`] = `
 
 exports[`builder store > can change entity's index 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
-        "inputs": {},
-        "type": "test",
-      },
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "children": Set {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "children": [
           "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e",
           "eedf598e-1422-469a-acb1-b2d8bfabb0f3",
-        },
+        ],
         "inputs": {},
         "type": "test",
       },
-      "eedf598e-1422-469a-acb1-b2d8bfabb0f3" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "inputs": {},
+        "type": "test",
+      },
+      "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
-      "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e" => {
+      "eedf598e-1422-469a-acb1-b2d8bfabb0f3": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can delete entities and cascade delete their children 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "49e91328-02bc-4daa-ab56-619554e85cff" => {},
+  "entitiesInputsErrors": {
+    "49e91328-02bc-4daa-ab56-619554e85cff": {},
   },
   "schema": {
-    "entities": Map {
-      "49e91328-02bc-4daa-ab56-619554e85cff" => {
-        "children": Set {},
+    "entities": {
+      "49e91328-02bc-4daa-ab56-619554e85cff": {
+        "children": [],
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "49e91328-02bc-4daa-ab56-619554e85cff",
-    },
+    ],
   },
 }
 `;
@@ -382,9 +379,9 @@ exports[`builder store > can delete entities and cascade delete their children 2
           "name": "EntityDeleted",
           "payload": {
             "entity": {
-              "children": Set {
+              "children": [
                 "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-              },
+              ],
               "id": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
               "inputs": {},
               "type": "test",
@@ -403,9 +400,9 @@ exports[`builder store > can delete entities and cascade delete their children 2
           "name": "EntityDeleted",
           "payload": {
             "entity": {
-              "children": Set {
+              "children": [
                 "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              },
+              ],
               "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
               "inputs": {},
               "parentId": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
@@ -438,31 +435,31 @@ exports[`builder store > can delete entities and cascade delete their children 2
 
 exports[`builder store > can move an entity from root to a parent entity 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "children": Set {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "children": [
           "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        },
+        ],
         "inputs": {},
         "type": "test",
       },
-      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
@@ -495,10 +492,10 @@ exports[`builder store > can move an entity from root to a parent entity 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
-              "children": Set {
+              "children": [
                 "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
                 "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              },
+              ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "inputs": {},
               "type": "test",
@@ -519,31 +516,31 @@ exports[`builder store > can move an entity from root to a parent entity 2`] = `
 
 exports[`builder store > can move an entity from root to a parent entity at a specific index 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "children": Set {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "children": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
           "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
-        },
+        ],
         "inputs": {},
         "type": "test",
       },
-      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
@@ -576,10 +573,10 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
           "name": "EntityUpdated",
           "payload": {
             "entity": {
-              "children": Set {
+              "children": [
                 "6e0035c3-0d4c-445f-a42b-2d971225447c",
                 "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
-              },
+              ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "inputs": {},
               "type": "test",
@@ -600,31 +597,31 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
 
 exports[`builder store > can move an entity in a parent entity 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "children": Set {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "children": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
           "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
-        },
+        ],
         "inputs": {},
         "type": "test",
       },
-      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
         "inputs": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
@@ -649,10 +646,10 @@ exports[`builder store > can move an entity in a parent entity 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
-              "children": Set {
+              "children": [
                 "6e0035c3-0d4c-445f-a42b-2d971225447c",
                 "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
-              },
+              ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "inputs": {},
               "type": "test",
@@ -673,66 +670,66 @@ exports[`builder store > can move an entity in a parent entity 2`] = `
 
 exports[`builder store > can move an entity in root 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "inputs": {},
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can move an entity in root 2`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "inputs": {},
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can move an entity in root 3`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "inputs": {},
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
@@ -826,23 +823,23 @@ exports[`builder store > can move an entity in root 4`] = `
 
 exports[`builder store > can move an entity to root 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "children": Set {},
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "children": [],
         "inputs": {},
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
@@ -856,7 +853,7 @@ exports[`builder store > can move an entity to root 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
-              "children": Set {},
+              "children": [],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "inputs": {},
               "type": "test",
@@ -895,23 +892,23 @@ exports[`builder store > can move an entity to root 2`] = `
 
 exports[`builder store > can move an entity to root at a specific index 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "children": Set {},
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "children": [],
         "inputs": {},
         "type": "test",
       },
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
@@ -925,7 +922,7 @@ exports[`builder store > can move an entity to root at a specific index 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
-              "children": Set {},
+              "children": [],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "inputs": {},
               "type": "test",
@@ -964,43 +961,43 @@ exports[`builder store > can move an entity to root at a specific index 2`] = `
 
 exports[`builder store > can reset a single entity input error 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "label error",
       "title": "title error",
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "select",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can reset a single entity input error 2`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "title": "title error",
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "select",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
@@ -1060,39 +1057,39 @@ exports[`builder store > can reset a single entity input error 5`] = `
 
 exports[`builder store > can reset all inputs errors for a single entity 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "label error",
       "title": "title error",
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can reset all inputs errors for a single entity 2`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
@@ -1158,51 +1155,51 @@ exports[`builder store > can reset all inputs errors for a single entity 4`] = `
 
 exports[`builder store > can reset all inputs errors for all entities 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
-      "label": "label error",
-    },
-    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+  "entitiesInputsErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": {
       "title": "title error",
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "label": "label error",
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "inputs": {},
         "type": "test",
       },
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
 
 exports[`builder store > can reset all inputs errors for all entities 2`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "inputs": {},
         "type": "test",
       },
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
@@ -1242,23 +1239,23 @@ exports[`builder store > can reset all inputs errors for all entities 3`] = `
 
 exports[`builder store > can retrieve the data 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "Some error",
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {
           "label": "test",
         },
         "type": "text",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
@@ -1288,22 +1285,22 @@ exports[`builder store > can return the data 1`] = `
 
 exports[`builder store > can set a single entity input error 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "Some error",
       "title": "Title error",
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
@@ -1355,22 +1352,22 @@ exports[`builder store > can set a single entity input error 4`] = `
 
 exports[`builder store > can set multiple input errors for a single entity 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "some error",
       "title": "another error",
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {},
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
@@ -1412,28 +1409,28 @@ exports[`builder store > can set multiple input errors for a single entity 4`] =
 }
 `;
 
-exports[`builder store > can set raw data 1`] = `
+exports[`builder store > can set the data 1`] = `
 [MockFunction spy] {
   "calls": [
     [
       {
-        "entitiesInputsErrors": Map {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+        "entitiesInputsErrors": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             "label": "some error",
           },
         },
         "schema": {
-          "entities": Map {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+          "entities": {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
               "inputs": {
                 "label": "test",
               },
               "type": "text",
             },
           },
-          "root": Set {
+          "root": [
             "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          },
+          ],
         },
       },
       [
@@ -1441,23 +1438,23 @@ exports[`builder store > can set raw data 1`] = `
           "name": "DataSet",
           "payload": {
             "data": {
-              "entitiesInputsErrors": Map {
-                "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+              "entitiesInputsErrors": {
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
                   "label": "some error",
                 },
               },
               "schema": {
-                "entities": Map {
-                  "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+                "entities": {
+                  "6e0035c3-0d4c-445f-a42b-2d971225447c": {
                     "inputs": {
                       "label": "test",
                     },
                     "type": "text",
                   },
                 },
-                "root": Set {
+                "root": [
                   "6e0035c3-0d4c-445f-a42b-2d971225447c",
-                },
+                ],
               },
             },
           },
@@ -1474,88 +1471,52 @@ exports[`builder store > can set raw data 1`] = `
 }
 `;
 
-exports[`builder store > can set raw data 2`] = `
+exports[`builder store > can set the data 2`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "some error",
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {
           "label": "test",
         },
         "type": "text",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
-  },
-}
-`;
-
-exports[`builder store > can set the data 1`] = `
-[MockFunction spy] {
-  "calls": [
-    [
-      {
-        "entitiesInputsErrors": Map {},
-        "schema": {
-          "entities": Map {},
-          "root": Set {},
-        },
-      },
-      [
-        {
-          "name": "DataSet",
-          "payload": {
-            "data": {
-              "entitiesInputsErrors": Map {},
-              "schema": {
-                "entities": Map {},
-                "root": Set {},
-              },
-            },
-          },
-        },
-      ],
     ],
-  ],
-  "results": [
-    {
-      "type": "return",
-      "value": undefined,
-    },
-  ],
+  },
 }
 `;
 
 exports[`builder store > can update entity inputs 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": {},
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "inputs": {
+          "maxLength": 1,
+        },
+        "type": "text",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {
           "label": "New label",
           "required": true,
         },
         "type": "select",
       },
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "inputs": {
-          "maxLength": 1,
-        },
-        "type": "text",
-      },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
@@ -1639,8 +1600,8 @@ exports[`builder store > can update entity inputs 2`] = `
 
 exports[`builder store > can validate a all inputs of a single entity 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+  "entitiesInputsErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "maxLength": [ZodError: [
   {
     "code": "invalid_type",
@@ -1653,8 +1614,8 @@ exports[`builder store > can validate a all inputs of a single entity 1`] = `
     },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {
           "label": 1,
           "maxLength": "1",
@@ -1662,9 +1623,9 @@ exports[`builder store > can validate a all inputs of a single entity 1`] = `
         "type": "test",
       },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+    ],
   },
 }
 `;
@@ -1722,9 +1683,8 @@ exports[`builder store > can validate a all inputs of a single entity 3`] = `
 
 exports[`builder store > can validate a all inputs of all entities 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {},
-    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+  "entitiesInputsErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": {
       "maxLength": [ZodError: [
   {
     "code": "invalid_type",
@@ -1735,28 +1695,29 @@ exports[`builder store > can validate a all inputs of all entities 1`] = `
   }
 ]],
     },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {},
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
-        "inputs": {
-          "label": 1,
-          "maxLength": 1,
-        },
-        "type": "test",
-      },
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "inputs": {
           "label": "test",
           "maxLength": "1",
         },
         "type": "test",
       },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "inputs": {
+          "label": 1,
+          "maxLength": 1,
+        },
+        "type": "test",
+      },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;
@@ -1828,19 +1789,8 @@ exports[`builder store > can validate a all inputs of all entities 2`] = `
 
 exports[`builder store > can validate a single entity input 1`] = `
 {
-  "entitiesInputsErrors": Map {
-    "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
-      "label": [ZodError: [
-  {
-    "code": "invalid_type",
-    "expected": "string",
-    "received": "number",
-    "path": [],
-    "message": "Expected string, received number"
-  }
-]],
-    },
-    "51324b32-adc3-4d17-a90e-66b5453935bd" => {
+  "entitiesInputsErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": {
       "label": [ZodError: [
   {
     "code": "invalid_type",
@@ -1851,24 +1801,35 @@ exports[`builder store > can validate a single entity input 1`] = `
   }
 ]],
     },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+    },
   },
   "schema": {
-    "entities": Map {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "inputs": {
           "label": 1,
         },
         "type": "test",
       },
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => {
-        "inputs": {},
-        "type": "test",
-      },
     },
-    "root": Set {
+    "root": [
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+    ],
   },
 }
 `;

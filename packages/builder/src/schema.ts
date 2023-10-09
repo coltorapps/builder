@@ -4,8 +4,6 @@ import {
   isEntityParentRequired,
   type Builder,
 } from "./builder";
-import { type BuilderStoreData } from "./builder-store";
-import { deserializeBuilderStoreData } from "./builder-store-serialization";
 import { type InputsValues } from "./input";
 import { type KeyofUnion, type OptionalPropsIfUndefined } from "./utils";
 
@@ -279,7 +277,7 @@ async function validateEntityInputs(
   entity: SchemaEntityWithId,
   dependencies: {
     builder: Builder;
-    builderStoreData: BuilderStoreData;
+    schema: Schema;
   },
 ): Promise<void> {
   const entityDefinition = ensureEntityIsRegistered(
@@ -289,20 +287,12 @@ async function validateEntityInputs(
 
   const inputsErrors: EntityInputsErrors = {};
 
-  const builderStoreEntity = dependencies.builderStoreData.schema.entities.get(
-    entity.id,
-  );
-
-  if (!builderStoreEntity) {
-    throw Error("Entity not found.");
-  }
-
   for (const input of entityDefinition.inputs) {
     try {
       await input.validate(entity.inputs[input.name], {
-        schema: dependencies.builderStoreData.schema,
+        schema: dependencies.schema,
         entity: {
-          ...builderStoreEntity,
+          ...entity,
           id: entity.id,
         },
       });
@@ -727,19 +717,7 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
     builder: TBuilder;
   },
 ): Promise<SchemValidationResult<TBuilder>> {
-  const newSchema: Schema<TBuilder> = {
-    ...schema,
-    entities: {
-      ...schema.entities,
-    },
-  };
-
   const entitiesInputsErrors: EntitiesInputsErrors = {};
-
-  const builderStoreData = deserializeBuilderStoreData({
-    schema: newSchema,
-    entitiesInputsErrors: {},
-  });
 
   for (const [id, entity] of Object.entries(schema.entities)) {
     try {
@@ -747,7 +725,7 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
         { ...entity, id },
         {
           builder: dependencies.builder,
-          builderStoreData,
+          schema,
         },
       );
     } catch (error) {
@@ -774,7 +752,7 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
 
   return {
     success: true,
-    data: newSchema,
+    data: schema,
   };
 }
 

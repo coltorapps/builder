@@ -7,20 +7,12 @@ export type { Entity } from "./entity";
 export { createInput } from "./input";
 export type { Input } from "./input";
 
-export {
-  deserializeBuilderStoreData,
-  serializeBuilderStoreData,
-} from "./builder-store-serialization";
-
-export { createBuilderStore, builderStoreEventsNames } from "./builder-store";
+export { builderStoreEventsNames, createBuilderStore } from "./builder-store";
 export type {
   BuilderStore,
   BuilderStoreData,
-  BuilderStoreEntity,
-  BuilderStoreEntityWithId,
   BuilderStoreEvent,
   BuilderStoreEventName,
-  SerializedBuilderStoreData,
 } from "./builder-store";
 
 export {
@@ -40,5 +32,3 @@ export type {
 } from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";
-
-export type { Store } from "./store";

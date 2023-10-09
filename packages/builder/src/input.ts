@@ -1,11 +1,8 @@
-import {
-  type BuilderStoreData,
-  type BuilderStoreEntityWithId,
-} from "./builder-store";
+import { type Schema, type SchemaEntityWithId } from "./schema";
 
 type InputContext = {
-  schema: BuilderStoreData["schema"];
-  entity: BuilderStoreEntityWithId;
+  schema: Schema;
+  entity: SchemaEntityWithId;
 };
 
 export type Input<TName extends string = string, TValue = unknown> = {

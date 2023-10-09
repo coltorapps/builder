@@ -1,11 +1,7 @@
-import {
-  type Builder,
-  type BuilderStoreEntityWithId,
-  type Entity,
-} from "builder";
+import { type Builder, type Entity, type SchemaEntityWithId } from "builder";
 
 export type EntityForRender<TBuilder extends Builder = Builder> =
-  BuilderStoreEntityWithId<TBuilder>;
+  SchemaEntityWithId<TBuilder>;
 
 export type EntityComponentProps<TEntity extends Entity = Entity> = {
   entity: EntityForRender<Builder<[TEntity]>>;

@@ -11,7 +11,7 @@ export function createFormBuilder(options?: {
         .object({
           entityId: z.string(),
         })
-        .refine((val) => context.schema.entities.has(val.entityId), {
+        .refine((val) => context.schema.entities[val.entityId], {
           message: "Entity doesn't exist.",
         })
         .refine((val) => val.entityId !== context.entity.id, {

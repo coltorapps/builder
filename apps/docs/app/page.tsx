@@ -58,7 +58,7 @@ const visibleWhenComponent = createInputComponent(
   ({ input, entity, onChange, validate }) => {
     const builderStoreData = useBuilderStoreData<typeof formBuilder>();
 
-    const items = Array.from(builderStoreData.schema.entities.entries()).filter(
+    const items = Object.entries(builderStoreData.schema.entities).filter(
       ([id]) => id !== entity.id,
     );
 
@@ -140,14 +140,16 @@ export default function Page() {
   const builderStore = useBuilderStore(formBuilder, {
     events: {
       onEntityDeleted(payload) {
-        builderStore.getData().schema.entities.forEach((entity, id) => {
-          if (
-            "visibleWhen" in entity.inputs &&
-            entity.inputs.visibleWhen?.entityId === payload.entity.id
-          ) {
-            builderStore.setEntityInput(id, "visibleWhen", undefined);
-          }
-        });
+        Object.entries(builderStore.getData().schema.entities).forEach(
+          ([id, entity]) => {
+            if (
+              "visibleWhen" in entity.inputs &&
+              entity.inputs.visibleWhen?.entityId === payload.entity.id
+            ) {
+              builderStore.setEntityInput(id, "visibleWhen", undefined);
+            }
+          },
+        );
       },
     },
   });
@@ -255,19 +257,16 @@ export default function Page() {
           startTransition(async () => {
             builderStore.resetEntitiesInputsErrors();
 
-            const res = await validateForm(
-              builderStore.getSerializedData().schema,
-            );
+            const res = await validateForm(builderStore.getData().schema);
 
             if (
               !res.success &&
               res.reason.code ===
                 schemaValidationErrorCodes.InvalidEntitiesInputs
             ) {
-              builderStore.setSerializedData({
-                ...builderStore.getSerializedData(),
-                ...res.reason.payload,
-              });
+              builderStore.setEntitiesInputsErrors(
+                res.reason.payload.entitiesInputsErrors,
+              );
 
               const firstEntityWithErrors = Object.keys(
                 res.reason.payload.entitiesInputsErrors,

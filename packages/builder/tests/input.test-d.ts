@@ -1,11 +1,7 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import {
-  createInput,
-  type BuilderStoreData,
-  type BuilderStoreEntityWithId,
-} from "../src";
+import { createInput, type Schema, type SchemaEntityWithId } from "../src";
 
 describe("input", () => {
   it("can be created", () => {
@@ -21,8 +17,8 @@ describe("input", () => {
       validate: (
         value: unknown,
         context: {
-          schema: BuilderStoreData["schema"];
-          entity: BuilderStoreEntityWithId;
+          schema: Schema;
+          entity: SchemaEntityWithId;
         },
       ) => string;
     }>();

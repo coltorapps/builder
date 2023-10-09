@@ -60,7 +60,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -93,7 +93,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {},
@@ -143,7 +143,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             label: "Some error",
@@ -161,60 +161,6 @@ describe("builder store", () => {
   });
 
   it("can set the data", () => {
-    const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          inputs: [
-            createInput({
-              name: "label",
-              validate(value) {
-                return value;
-              },
-            }),
-          ],
-        }),
-      ],
-    });
-
-    const builderStore = createBuilderStore({
-      builder,
-      serializedData: {
-        entitiesInputsErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            label: "some error",
-          },
-        },
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "text",
-              inputs: {
-                label: "test",
-              },
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    builderStore.subscribe(listener);
-
-    builderStore.setData({
-      entitiesInputsErrors: new Map(),
-      schema: {
-        entities: new Map(),
-        root: new Set(),
-      },
-    });
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can set raw data", () => {
     const validateSchemaIntegrityMock = vi.spyOn(
       schemaExports,
       "validateSchemaIntegrity",
@@ -238,7 +184,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {},
@@ -263,7 +209,7 @@ describe("builder store", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     } as const;
 
-    builderStore.setSerializedData({
+    builderStore.setData({
       schema,
       entitiesInputsErrors: {
         "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -312,7 +258,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             label: "some error",
@@ -322,7 +268,7 @@ describe("builder store", () => {
       },
     });
 
-    expect(builderStore.getSerializedData()).toMatchSnapshot();
+    expect(builderStore.getData()).toMatchSnapshot();
   });
 
   it("can delete entities and cascade delete their children", () => {
@@ -339,7 +285,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {},
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {},
@@ -417,7 +363,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -470,7 +416,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -511,7 +457,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -547,7 +493,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -619,7 +565,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -659,7 +605,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -700,7 +646,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -741,7 +687,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -782,7 +728,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -844,7 +790,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -891,7 +837,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -941,7 +887,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -998,7 +944,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -1056,7 +1002,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -1108,7 +1054,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {},
@@ -1137,7 +1083,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -1170,7 +1116,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {},
@@ -1220,7 +1166,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -1280,7 +1226,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {},
@@ -1313,7 +1259,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -1352,7 +1298,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         entitiesInputsErrors: {},
         schema: {
           entities: {
@@ -1413,7 +1359,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -1500,7 +1446,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -1563,7 +1509,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -1630,7 +1576,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -1709,7 +1655,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -1794,7 +1740,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -1870,7 +1816,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -1937,7 +1883,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore({
       builder,
-      serializedData: {
+      initialData: {
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {

@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { type BuilderStoreData } from "../src";
 import { createInput } from "../src/input";
 
 const dummyInputContext = {
   schema: {
-    entities: new Map(),
-    root: new Set(),
-  } as BuilderStoreData["schema"],
+    entities: {},
+    root: [],
+  },
   entity: {
     id: "",
     inputs: {},
