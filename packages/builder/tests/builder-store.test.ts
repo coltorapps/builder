@@ -340,7 +340,12 @@ describe("builder store", () => {
     const builderStore = createBuilderStore({
       builder,
       serializedData: {
-        entitiesInputsErrors: {},
+        entitiesInputsErrors: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {},
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {},
+          "3dc165dd-88d4-4884-ac8a-5d107d023e54": {},
+          "49e91328-02bc-4daa-ab56-619554e85cff": {},
+        },
         schema: {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {

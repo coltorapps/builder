@@ -208,6 +208,7 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
   "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
   "setSerializedData": [Function],
+  "setSerializedEntitiesInputsErrors": [Function],
   "subscribe": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
@@ -277,6 +278,7 @@ exports[`builder store > can be created with an empty schema 2`] = `
   "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
   "setSerializedData": [Function],
+  "setSerializedEntitiesInputsErrors": [Function],
   "subscribe": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
@@ -310,6 +312,7 @@ exports[`builder store > can be created without a schema 1`] = `
   "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
   "setSerializedData": [Function],
+  "setSerializedEntitiesInputsErrors": [Function],
   "subscribe": [Function],
   "validateEntitiesInputs": [Function],
   "validateEntityInput": [Function],
@@ -355,7 +358,9 @@ exports[`builder store > can change entity's index 1`] = `
 
 exports[`builder store > can delete entities and cascade delete their children 1`] = `
 {
-  "entitiesInputsErrors": Map {},
+  "entitiesInputsErrors": Map {
+    "49e91328-02bc-4daa-ab56-619554e85cff" => {},
+  },
   "schema": {
     "entities": Map {
       "49e91328-02bc-4daa-ab56-619554e85cff" => {

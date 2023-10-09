@@ -139,7 +139,9 @@ export default function Page() {
     },
   });
 
-  const builderStoreData = useBuilderStoreData(builderStore);
+  const builderStoreData = useBuilderStoreData(builderStore, (events) =>
+    events.some((event) => event.name === "RootUpdated"),
+  );
 
   const [isPending, startTransition] = useTransition();
 
@@ -240,10 +242,9 @@ export default function Page() {
               res.reason.code ===
                 schemaValidationErrorCodes.InvalidEntitiesInputs
             ) {
-              builderStore.setSerializedData({
-                ...builderStore.getSerializedData(),
-                ...res.reason.payload,
-              });
+              builderStore.setSerializedEntitiesInputsErrors(
+                res.reason.payload.entitiesInputsErrors,
+              );
 
               const firstEntityWithErrors = Object.keys(
                 res.reason.payload.entitiesInputsErrors,
