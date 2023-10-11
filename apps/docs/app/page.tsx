@@ -35,7 +35,6 @@ import {
   createInputComponent,
   useActiveEntityId,
   useBuilderStore,
-  useBuilderStoreData,
 } from "@builder/react";
 
 import { createFormBuilder } from "./builder";
@@ -53,52 +52,56 @@ const textComponent = createEntityComponent(textEntity, ({ entity }) => {
   );
 });
 
-const visibleWhenComponent = createInputComponent(
-  visibleWhenInput,
-  ({ input, entity, onChange, validate }) => {
-    const builderStoreData = useBuilderStoreData<typeof formBuilder>();
+const createVisibleWhenComponent = (options: {
+  useOptions: () => Array<{ value: string; label: string }>;
+}) =>
+  createInputComponent(
+    visibleWhenInput,
+    ({ input, entity, onChange, validate }) => {
+      const entitiesOptions = options.useOptions();
 
-    const items = Object.entries(builderStoreData.schema.entities).filter(
-      ([id]) => id !== entity.id,
-    );
+      const items = entitiesOptions.filter((item) => item.value !== entity.id);
+      console.log("vis");
 
-    return (
-      <div className="mb-4">
-        <Select
-          value={input.value?.entityId ?? ""}
-          onValueChange={(value) => {
-            if (!value) {
-              onChange(undefined);
-            } else {
-              onChange({ entityId: value });
-            }
+      return (
+        <div className="mb-4">
+          <Select
+            value={input.value?.entityId ?? ""}
+            onValueChange={(value) => {
+              if (!value) {
+                onChange(undefined);
+              } else {
+                onChange({ entityId: value });
+              }
 
-            void validate();
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select Field" />
-          </SelectTrigger>
-          <SelectContent>
-            {items.length ? (
-              items.map(([id, entity]) => (
-                <SelectItem key={id} value={id}>
-                  {entity.inputs.label}
-                </SelectItem>
-              ))
-            ) : (
-              <p className="py-6 text-center text-sm">Noth</p>
-            )}
-          </SelectContent>
-        </Select>
-      </div>
-    );
-  },
-);
+              void validate();
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Field" />
+            </SelectTrigger>
+            <SelectContent>
+              {items.length ? (
+                items.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))
+              ) : (
+                <p className="py-6 text-center text-sm">Noth</p>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    },
+  );
 
 const labelComponent = createInputComponent(
   labelInput,
   ({ input, onChange, validate }) => {
+    console.log("label");
+
     return (
       <div>
         Label
@@ -163,7 +166,7 @@ export default function Page() {
     },
   });
 
-  const builderStoreData = useBuilderStoreData(builderStore, (events) =>
+  const builderStoreData = builderStore.useData((events) =>
     events.some((event) => event.name === "RootUpdated"),
   );
 
@@ -246,7 +249,16 @@ export default function Page() {
         entityId={selectedEntityId}
         inputsComponents={{
           text: {
-            visibleWhen: visibleWhenComponent,
+            visibleWhen: createVisibleWhenComponent({
+              useOptions() {
+                return Object.entries(
+                  builderStore.useData().schema.entities,
+                ).map(([id, entity]) => ({
+                  value: id,
+                  label: entity.inputs.label,
+                }));
+              },
+            }),
             label: labelComponent,
           },
         }}

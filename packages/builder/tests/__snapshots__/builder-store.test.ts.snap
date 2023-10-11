@@ -1014,7 +1014,11 @@ exports[`builder store > can reset a single entity input error 5`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "select",
+            },
             "error": "label error",
             "inputName": "label",
           },
@@ -1022,7 +1026,11 @@ exports[`builder store > can reset a single entity input error 5`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "select",
+            },
             "error": "title error",
             "inputName": "title",
           },
@@ -1034,7 +1042,11 @@ exports[`builder store > can reset a single entity input error 5`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "select",
+            },
             "error": undefined,
             "inputName": "label",
           },
@@ -1104,7 +1116,11 @@ exports[`builder store > can reset all inputs errors for a single entity 4`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": "label error",
             "inputName": "label",
           },
@@ -1112,7 +1128,11 @@ exports[`builder store > can reset all inputs errors for a single entity 4`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": "title error",
             "inputName": "title",
           },
@@ -1124,7 +1144,11 @@ exports[`builder store > can reset all inputs errors for a single entity 4`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": undefined,
             "inputName": "label",
           },
@@ -1132,7 +1156,11 @@ exports[`builder store > can reset all inputs errors for a single entity 4`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": undefined,
             "inputName": "title",
           },
@@ -1212,7 +1240,11 @@ exports[`builder store > can reset all inputs errors for all entities 3`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": undefined,
             "inputName": "label",
           },
@@ -1220,7 +1252,11 @@ exports[`builder store > can reset all inputs errors for all entities 3`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "entity": {
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
             "error": undefined,
             "inputName": "title",
           },
@@ -1317,7 +1353,11 @@ exports[`builder store > can set a single entity input error 4`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": "Some error",
             "inputName": "label",
           },
@@ -1329,7 +1369,11 @@ exports[`builder store > can set a single entity input error 4`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": "Title error",
             "inputName": "title",
           },
@@ -1384,7 +1428,11 @@ exports[`builder store > can set multiple input errors for a single entity 4`] =
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": "some error",
             "inputName": "label",
           },
@@ -1392,7 +1440,11 @@ exports[`builder store > can set multiple input errors for a single entity 4`] =
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
             "error": "another error",
             "inputName": "title",
           },
@@ -1640,7 +1692,14 @@ exports[`builder store > can validate a all inputs of a single entity 3`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": 1,
+                "maxLength": "1",
+              },
+              "type": "test",
+            },
             "error": [ZodError: [
   {
     "code": "invalid_type",
@@ -1656,7 +1715,14 @@ exports[`builder store > can validate a all inputs of a single entity 3`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": 1,
+                "maxLength": "1",
+              },
+              "type": "test",
+            },
             "error": [ZodError: [
   {
     "code": "invalid_type",
@@ -1730,7 +1796,14 @@ exports[`builder store > can validate a all inputs of all entities 2`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": 1,
+                "maxLength": 1,
+              },
+              "type": "test",
+            },
             "error": [ZodError: [
   {
     "code": "invalid_type",
@@ -1746,7 +1819,14 @@ exports[`builder store > can validate a all inputs of all entities 2`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": 1,
+                "maxLength": 1,
+              },
+              "type": "test",
+            },
             "error": undefined,
             "inputName": "maxLength",
           },
@@ -1754,7 +1834,14 @@ exports[`builder store > can validate a all inputs of all entities 2`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "entity": {
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {
+                "label": "test",
+                "maxLength": "1",
+              },
+              "type": "test",
+            },
             "error": undefined,
             "inputName": "label",
           },
@@ -1762,7 +1849,14 @@ exports[`builder store > can validate a all inputs of all entities 2`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "entity": {
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {
+                "label": "test",
+                "maxLength": "1",
+              },
+              "type": "test",
+            },
             "error": [ZodError: [
   {
     "code": "invalid_type",
@@ -1846,7 +1940,13 @@ exports[`builder store > can validate a single entity input 4`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "entity": {
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {
+                "label": 1,
+              },
+              "type": "test",
+            },
             "error": [ZodError: [
   {
     "code": "invalid_type",
@@ -1866,7 +1966,11 @@ exports[`builder store > can validate a single entity input 4`] = `
         {
           "name": "EntityInputErrorUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "entity": {
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
             "error": [ZodError: [
   {
     "code": "invalid_type",

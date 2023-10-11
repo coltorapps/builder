@@ -93,7 +93,7 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
   | SubscriptionEvent<
       typeof builderStoreEventsNames.EntityInputErrorUpdated,
       {
-        entityId: string;
+        entity: SchemaEntityWithId<TBuilder>;
         inputName: KeyofUnion<SchemaEntity<TBuilder>["inputs"]>;
         error: unknown;
       }
@@ -251,6 +251,26 @@ async function validateEntityInput<TBuilder extends Builder>(
   return newEntitiesInputsErrors;
 }
 
+function createEntityInputErrorUpdatedEvent<TBuilder extends Builder>(options: {
+  entity: SchemaEntityWithId<TBuilder>;
+  inputName: string;
+  error: unknown;
+}): Extract<
+  BuilderStoreEvent<TBuilder>,
+  { name: typeof builderStoreEventsNames.EntityInputErrorUpdated }
+> {
+  return {
+    name: builderStoreEventsNames.EntityInputErrorUpdated,
+    payload: {
+      entity: options.entity,
+      inputName: options.inputName as KeyofUnion<
+        SchemaEntity<TBuilder>["inputs"]
+      >,
+      error: options.error,
+    },
+  };
+}
+
 async function validateEntityInputs<TBuilder extends Builder>(
   entityId: string,
   dependencies: {
@@ -283,42 +303,24 @@ async function validateEntityInputs<TBuilder extends Builder>(
       schema,
     });
 
-    events.push({
-      name: builderStoreEventsNames.EntityInputErrorUpdated,
-      payload: {
-        entityId,
-        inputName: input.name as KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
+    events.push(
+      createEntityInputErrorUpdatedEvent({
+        entity: {
+          ...serializeInternalBuilderStoreEntity(entity),
+          id: entityId,
+        },
+        inputName: input.name,
         error:
           newEntitiesInputsErrors.get(entityId)?.[
             input.name as keyof EntityInputsErrors<TBuilder>
           ],
-      },
-    });
+      }),
+    );
   }
 
   return {
     entityInputsErrors: newEntitiesInputsErrors.get(entityId),
     events,
-  };
-}
-
-function createEntityInputErrorUpdatedEvent<TBuilder extends Builder>(options: {
-  entityId: string;
-  inputName: string;
-  error: unknown;
-}): Extract<
-  BuilderStoreEvent<TBuilder>,
-  { name: typeof builderStoreEventsNames.EntityInputErrorUpdated }
-> {
-  return {
-    name: builderStoreEventsNames.EntityInputErrorUpdated,
-    payload: {
-      entityId: options.entityId,
-      inputName: options.inputName as KeyofUnion<
-        SchemaEntity<TBuilder>["inputs"]
-      >,
-      error: options.error,
-    },
   };
 }
 
@@ -939,6 +941,8 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         },
       );
 
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
       setData(
         {
           ...data,
@@ -946,7 +950,10 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         },
         [
           createEntityInputErrorUpdatedEvent({
-            entityId,
+            entity: {
+              ...serializeInternalBuilderStoreEntity(entity),
+              id: entityId,
+            },
             inputName,
             error: newEntitiesInputsErrors.get(entityId)?.[inputName],
           }),
@@ -1029,7 +1036,10 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         },
         [
           createEntityInputErrorUpdatedEvent({
-            entityId,
+            entity: {
+              ...serializeInternalBuilderStoreEntity(entity),
+              id: entityId,
+            },
             inputName,
             error: undefined,
           }),
@@ -1061,7 +1071,10 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         },
         [
           createEntityInputErrorUpdatedEvent({
-            entityId,
+            entity: {
+              ...serializeInternalBuilderStoreEntity(entity),
+              id: entityId,
+            },
             inputName,
             error,
           }),
@@ -1073,14 +1086,17 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
 
       const newErrors = new Map(data.entitiesInputsErrors);
 
-      ensureEntityExists(entityId, data.schema.entities);
+      const entity = ensureEntityExists(entityId, data.schema.entities);
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [];
 
       Object.keys(newErrors.get(entityId) ?? {}).forEach((inputName) =>
         events.push(
           createEntityInputErrorUpdatedEvent({
-            entityId,
+            entity: {
+              ...serializeInternalBuilderStoreEntity(entity),
+              id: entityId,
+            },
             inputName,
             error: undefined,
           }),
@@ -1117,7 +1133,10 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       Object.entries(entityInputsErrors).forEach(([inputName, error]) =>
         events.push(
           createEntityInputErrorUpdatedEvent({
-            entityId,
+            entity: {
+              ...serializeInternalBuilderStoreEntity(entity),
+              id: entityId,
+            },
             inputName,
             error,
           }),
@@ -1141,7 +1160,12 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         Object.keys(entityInputsErrors).forEach((inputName) =>
           events.push(
             createEntityInputErrorUpdatedEvent({
-              entityId,
+              entity: {
+                ...serializeInternalBuilderStoreEntity(
+                  ensureEntityExists(entityId, data.schema.entities),
+                ),
+                id: entityId,
+              },
               inputName,
               error: undefined,
             }),

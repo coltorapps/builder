@@ -32,13 +32,20 @@ type EventsListeners<
     : never;
 };
 
+export type ReactBuilderStore<TBuilder extends BaseBuilder = BaseBuilder> =
+  BuilderStore<TBuilder> & {
+    useData(
+      shouldUpdate?: (events: Array<BuilderStoreEvent<TBuilder>>) => boolean,
+    ): BuilderStoreData<TBuilder>;
+  };
+
 export function useBuilderStore<TBuilder extends BaseBuilder>(
   builder: TBuilder,
   options: {
     initialData?: Partial<BuilderStoreData<TBuilder>>;
     events?: EventsListeners<TBuilder, BuilderStoreEvent<TBuilder>>;
   } = {},
-): BuilderStore<TBuilder> {
+): ReactBuilderStore<TBuilder> {
   const builderStoreRef = useRef(
     createBuilderStore({
       builder,
@@ -61,7 +68,25 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
     });
   }, [options.events]);
 
-  return builderStoreRef.current;
+  return {
+    ...builderStoreRef.current,
+    useData(shouldUpdate = () => true) {
+      const dataCache = useRef(builderStoreRef.current.getData());
+
+      return useSyncExternalStore(
+        (listen) =>
+          builderStoreRef.current.subscribe((data, events) => {
+            if (shouldUpdate(events)) {
+              dataCache.current = data;
+
+              listen();
+            }
+          }),
+        () => dataCache.current,
+        () => dataCache.current,
+      );
+    },
+  };
 }
 
 type EntitiesComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
@@ -71,7 +96,7 @@ type EntitiesComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
 };
 
 type BuilderStoreContextValue<TBuilder extends BaseBuilder = BaseBuilder> = {
-  builderStore: BuilderStore<TBuilder>;
+  builderStore: ReactBuilderStore<TBuilder>;
 };
 
 type BuilderContextValue<TBuilder extends BaseBuilder = BaseBuilder> = {
@@ -85,8 +110,13 @@ const dummyBuilderStore = createBuilderStore({
   builder: dummyBuilder,
 });
 
+const dummyReactBuilderStore: ReactBuilderStore = {
+  ...dummyBuilderStore,
+  useData: () => dummyBuilderStore.getData(),
+};
+
 const BuilderStoreContext = createContext<BuilderStoreContextValue>({
-  builderStore: dummyBuilderStore,
+  builderStore: dummyReactBuilderStore,
 });
 
 const EntitiesContext = createContext<BuilderContextValue>({
@@ -111,7 +141,7 @@ const MemoizedEntity = memo(function Entity(props: {
 
   const { builderStore } = useContext(BuilderStoreContext);
 
-  const data = useBuilderStoreData(builderStore, (events) =>
+  const data = builderStore.useData((events) =>
     events.some(
       (event) =>
         (event.name === builderStoreEventsNames.EntityUpdated &&
@@ -159,7 +189,7 @@ const MemoizedEntity = memo(function Entity(props: {
 function RootEntities(): ReactNode {
   const { builderStore } = useContext(BuilderStoreContext);
 
-  const data = useBuilderStoreData(builderStore, (events) =>
+  const data = builderStore.useData((events) =>
     events.some(
       (event) =>
         event.name === builderStoreEventsNames.RootUpdated ||
@@ -173,7 +203,7 @@ function RootEntities(): ReactNode {
 }
 
 function Entities<TBuilder extends BaseBuilder>(props: {
-  builderStore: BuilderStore<TBuilder>;
+  builderStore: ReactBuilderStore<TBuilder>;
   entitiesComponents: EntitiesComponents<TBuilder>;
   children?: GenericEntityRender<TBuilder>;
 }): ReactNode {
@@ -257,13 +287,14 @@ const MemoizedInput = memo(function Input(props: {
     throw new Error("Input component not found.");
   }
 
-  const data = useBuilderStoreData(builderStore, (events) =>
+  const data = builderStore.useData((events) =>
     events.some(
       (event) =>
         (event.name === builderStoreEventsNames.EntityInputUpdated &&
           event.payload.entity.id === entity.id &&
           event.payload.inputName === props.inputName) ||
         (event.name === builderStoreEventsNames.EntityInputErrorUpdated &&
+          event.payload.entity.id === entity.id &&
           event.payload.inputName === props.inputName) ||
         event.name === builderStoreEventsNames.DataSet,
     ),
@@ -298,7 +329,7 @@ const MemoizedInput = memo(function Input(props: {
 });
 
 function Inputs<TBuilder extends BaseBuilder>(props: {
-  builderStore: BuilderStore<TBuilder>;
+  builderStore: ReactBuilderStore<TBuilder>;
   inputsComponents: InputsComponents<TBuilder>;
   children?: GenericInputRender<TBuilder>;
   entityId?: string | null;
@@ -371,31 +402,6 @@ export function useActiveEntityId(
   }, [activeEntityId, builderStore]);
 
   return [activeEntityId, setActiveEntityId];
-}
-
-export function useBuilderStoreData<TBuilder extends BaseBuilder>(
-  builderStore?: BuilderStore<TBuilder>,
-  shouldUpdate: (events: Array<BuilderStoreEvent<TBuilder>>) => boolean = () =>
-    true,
-): BuilderStoreData<TBuilder> {
-  const { builderStore: contextBuilderStore } = useContext(BuilderStoreContext);
-
-  const usedBuilderStore = builderStore ?? contextBuilderStore;
-
-  const dataCache = useRef(usedBuilderStore.getData());
-
-  return useSyncExternalStore(
-    (listen) =>
-      usedBuilderStore.subscribe((data, events) => {
-        if (shouldUpdate(events as Array<BuilderStoreEvent<TBuilder>>)) {
-          dataCache.current = data;
-
-          listen();
-        }
-      }),
-    () => dataCache.current,
-    () => dataCache.current,
-  ) as BuilderStoreData<TBuilder>;
 }
 
 export const Builder = {
