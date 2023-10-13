@@ -4,7 +4,10 @@ import {
   type SubscriptionEvent,
 } from "./subscription-manager";
 
-export function createDataManager<TData, TEvent extends SubscriptionEvent>(
+export function createDataManager<
+  TData,
+  TEvent extends SubscriptionEvent = SubscriptionEvent,
+>(
   initialData: TData,
 ): {
   getData: () => TData;

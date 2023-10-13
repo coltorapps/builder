@@ -758,15 +758,13 @@ async function validateEntitiesInputs<TBuilder extends Builder>(
 
 export async function validateSchema<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
-  dependencies: {
-    builder: TBuilder;
-  },
+  builder: TBuilder,
 ): Promise<SchemValidationResult<TBuilder>> {
-  const validatedSchema = validateSchemaIntegrity(schema, dependencies);
+  const validatedSchema = validateSchemaIntegrity(schema, { builder });
 
   if (!validatedSchema.success) {
     return validatedSchema;
   }
 
-  return validateEntitiesInputs(validatedSchema.data, dependencies);
+  return validateEntitiesInputs(validatedSchema.data, { builder });
 }

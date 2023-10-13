@@ -653,7 +653,7 @@ describe("schema validation", () => {
     });
 
     for (const item of invalidSchemasCases) {
-      const result = await validateSchema(item.schema as Schema, { builder });
+      const result = await validateSchema(item.schema as Schema, builder);
 
       expect(result).toEqual({
         success: false,
@@ -702,7 +702,7 @@ describe("schema validation", () => {
           "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb",
         ],
       },
-      { builder },
+      builder,
     );
 
     expect(result).toMatchSnapshot();

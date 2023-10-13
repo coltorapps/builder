@@ -19,7 +19,6 @@ export {
   SchemaValidationError,
   schemaValidationErrorCodes,
   validateSchema,
-  validateSchemaIntegrity,
 } from "./schema";
 export type {
   EntitiesInputsErrors,
@@ -27,7 +26,7 @@ export type {
   Schema,
   SchemaEntity,
   SchemaEntityWithId,
-  SchemaValidationErrorReason as SchemaValidationErrorCause,
+  SchemaValidationErrorReason,
   SchemaValidationErrorCode,
 } from "./schema";
 

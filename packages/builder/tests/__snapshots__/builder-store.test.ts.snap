@@ -1,5 +1,98 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`builder store > applies only the last result of an entity input validation 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesInputsErrors": {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            "test": 2,
+          },
+        },
+        "schema": {
+          "entities": {
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+              "inputs": {
+                "test": 1,
+              },
+              "type": "text",
+            },
+          },
+          "root": [
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+          ],
+        },
+      },
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entity": {
+              "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              "inputs": {
+                "test": 1,
+              },
+              "type": "text",
+            },
+            "error": 2,
+            "inputName": "test",
+          },
+        },
+      ],
+    ],
+    [
+      {
+        "entitiesInputsErrors": {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            "test": 0,
+          },
+        },
+        "schema": {
+          "entities": {
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+              "inputs": {
+                "test": 1,
+              },
+              "type": "text",
+            },
+          },
+          "root": [
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+          ],
+        },
+      },
+      [
+        {
+          "name": "EntityInputErrorUpdated",
+          "payload": {
+            "entity": {
+              "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+              "inputs": {
+                "test": 1,
+              },
+              "type": "text",
+            },
+            "error": 0,
+            "inputName": "test",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
 exports[`builder store > can add entities to a parent entity 1`] = `
 {
   "entitiesInputsErrors": {},
@@ -1386,6 +1479,83 @@ exports[`builder store > can set a single entity input error 4`] = `
       "type": "return",
       "value": undefined,
     },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can set all inputs errors for all entities 1`] = `
+{
+  "entitiesInputsErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": {
+      "title": "title error",
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "label": "label error",
+    },
+  },
+  "schema": {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "inputs": {},
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "inputs": {},
+        "type": "test",
+      },
+    },
+    "root": [
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    ],
+  },
+}
+`;
+
+exports[`builder store > can set all inputs errors for all entities 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "DataSet",
+          "payload": {
+            "data": {
+              "entitiesInputsErrors": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "title": "title error",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "label": "label error",
+                },
+              },
+              "schema": {
+                "entities": {
+                  "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                    "inputs": {},
+                    "type": "test",
+                  },
+                  "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                    "inputs": {},
+                    "type": "test",
+                  },
+                },
+                "root": [
+                  "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                  "51324b32-adc3-4d17-a90e-66b5453935bd",
+                ],
+              },
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
     {
       "type": "return",
       "value": undefined,

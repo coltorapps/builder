@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`debounce manager > can be created 1`] = `
+{
+  "get": [Function],
+  "handle": [Function],
+}
+`;

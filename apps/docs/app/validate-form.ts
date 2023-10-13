@@ -13,4 +13,4 @@ const { formBuilder } = createFormBuilder({
 });
 
 export const validateForm = async (schema: Schema<typeof formBuilder>) =>
-  validateSchema(schema, { builder: formBuilder });
+  validateSchema(schema, formBuilder);

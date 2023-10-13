@@ -7,6 +7,7 @@ import {
   createEntity,
   createInput,
 } from "../src";
+import * as debounceManagerExports from "../src/debounce-manager";
 import * as schemaExports from "../src/schema";
 import * as uuidExports from "../src/uuid";
 
@@ -1922,6 +1923,156 @@ describe("builder store", () => {
     expect(builderStore.resetEntitiesInputsErrors()).toEqual(undefined);
 
     expect(builderStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("can set all inputs errors for all entities", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return value;
+              },
+            }),
+            createInput({
+              name: "title",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        schema: {
+          entities: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "test",
+              inputs: {},
+            },
+            "51324b32-adc3-4d17-a90e-66b5453935bd": {
+              type: "test",
+              inputs: {},
+            },
+          },
+          root: [
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "51324b32-adc3-4d17-a90e-66b5453935bd",
+          ],
+        },
+        entitiesInputsErrors: {},
+      },
+    });
+
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    builderStore.subscribe(listenerWrapper);
+
+    builderStore.setEntitiesInputsErrors({
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        label: "label error",
+      },
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        title: "title error",
+      },
+    });
+
+    expect(builderStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("applies only the last result of an entity input validation", async () => {
+    const createDebounceManagerMock = vi.spyOn(
+      debounceManagerExports,
+      "createDebounceManager",
+    );
+
+    let validationNumber = 0;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          inputs: [
+            createInput({
+              name: "test",
+              async validate() {
+                validationNumber++;
+
+                let error = validationNumber;
+
+                if (validationNumber === 1) {
+                  error = validationNumber;
+
+                  await new Promise((resolve) => setTimeout(resolve, 200));
+                } else {
+                  error = validationNumber;
+
+                  await new Promise((resolve) => setTimeout(resolve, 50));
+                }
+
+                throw error;
+
+                return validationNumber;
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        schema: {
+          entities: {
+            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+              type: "text",
+              inputs: {
+                test: 1,
+              },
+            },
+          },
+          root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+        },
+        entitiesInputsErrors: {
+          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+            test: 0,
+          },
+        },
+      },
+    });
+
+    expect(createDebounceManagerMock).toHaveBeenCalledOnce();
+
+    const listener = vi.fn();
+
+    builderStore.subscribe(listener);
+
+    await Promise.all([
+      builderStore.validateEntitiesInputs(),
+      new Promise<void>((resolve) => {
+        // We want to make sure the second validation will get a different lock timestamp.
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+          await builderStore.validateEntitiesInputs();
+
+          resolve();
+        }, 50);
+      }),
+    ]);
 
     expect(listener).toMatchSnapshot();
   });
