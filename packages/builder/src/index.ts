@@ -16,9 +16,21 @@ export type {
 } from "./builder-store";
 
 export {
+  createInterpreterStore,
+  interpreterStoreEventsNames,
+} from "./interpreter-store";
+export type {
+  InterpreterStore,
+  InterpreterStoreData,
+  InterpreterStoreEvent,
+  InterpreterStoreEventName,
+} from "./interpreter-store";
+
+export {
   SchemaValidationError,
   schemaValidationErrorCodes,
   validateSchema,
+  validateSchemaIntegrity,
 } from "./schema";
 export type {
   EntitiesInputsErrors,
@@ -26,8 +38,8 @@ export type {
   Schema,
   SchemaEntity,
   SchemaEntityWithId,
-  SchemaValidationErrorReason,
   SchemaValidationErrorCode,
+  SchemaValidationErrorReason,
 } from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";

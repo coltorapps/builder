@@ -244,25 +244,27 @@ export default function Page() {
           </Builder.Entities>
         </SortableContext>
       </DndContext>
-      <Builder.Inputs
-        builderStore={builderStore}
-        entityId={selectedEntityId}
-        inputsComponents={{
-          text: {
-            visibleWhen: createVisibleWhenComponent({
-              useOptions() {
-                return Object.entries(
-                  builderStore.useData().schema.entities,
-                ).map(([id, entity]) => ({
-                  value: id,
-                  label: entity.inputs.label,
-                }));
-              },
-            }),
-            label: labelComponent,
-          },
-        }}
-      />
+      {selectedEntityId ? (
+        <Builder.Inputs
+          builderStore={builderStore}
+          entityId={selectedEntityId}
+          inputsComponents={{
+            text: {
+              visibleWhen: createVisibleWhenComponent({
+                useOptions() {
+                  return Object.entries(
+                    builderStore.useData().schema.entities,
+                  ).map(([id, entity]) => ({
+                    value: id,
+                    label: entity.inputs.label,
+                  }));
+                },
+              }),
+              label: labelComponent,
+            },
+          }}
+        />
+      ) : null}
       <div className="text-3xl">test</div>
       <button
         onClick={() => {

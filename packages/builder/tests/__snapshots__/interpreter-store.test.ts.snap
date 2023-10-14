@@ -1,0 +1,532 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`interpreter store > can be created 1`] = `
+{
+  "builder": {
+    "childrenAllowed": {},
+    "entities": [],
+    "entityId": {
+      "generate": [Function],
+      "validate": [Function],
+    },
+    "parentRequired": [],
+  },
+  "clearEntitiesValues": [Function],
+  "clearEntityValue": [Function],
+  "getData": [Function],
+  "resetEntitiesErrors": [Function],
+  "resetEntitiesValues": [Function],
+  "resetEntityError": [Function],
+  "resetEntityValue": [Function],
+  "schema": {
+    "entities": {},
+    "root": [],
+  },
+  "setData": [Function],
+  "setEntitiesErrors": [Function],
+  "setEntityError": [Function],
+  "setEntityValue": [Function],
+  "subscribe": [Function],
+}
+`;
+
+exports[`interpreter store > can be created with initial data 1`] = `
+{
+  "entitiesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "error",
+  },
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+  },
+}
+`;
+
+exports[`interpreter store > can clear all entities values 1`] = `
+{
+  "entitiesErrors": {},
+  "entitiesValues": {},
+}
+`;
+
+exports[`interpreter store > can clear all entities values 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {},
+      },
+      [
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "value": undefined,
+          },
+        },
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "value": undefined,
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can clear an entity value 1`] = `"Entity value not allowed."`;
+
+exports[`interpreter store > can clear an entity value 2`] = `
+{
+  "entitiesErrors": {},
+  "entitiesValues": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+  },
+}
+`;
+
+exports[`interpreter store > can clear an entity value 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+        },
+      },
+      [
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "value": undefined,
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can reset all entities errors 1`] = `
+{
+  "entitiesErrors": {},
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+  },
+}
+`;
+
+exports[`interpreter store > can reset all entities errors 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+        },
+      },
+      [
+        {
+          "name": "EntityErrorUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "error": undefined,
+          },
+        },
+        {
+          "name": "EntityErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": undefined,
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can reset all entities values 1`] = `
+{
+  "entitiesErrors": {},
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+  },
+}
+`;
+
+exports[`interpreter store > can reset all entities values 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+        },
+      },
+      [
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "value": "default",
+          },
+        },
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "value": "default",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can reset an entity error 1`] = `"Entity error not allowed."`;
+
+exports[`interpreter store > can reset an entity error 2`] = `
+{
+  "entitiesErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+  },
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+  },
+}
+`;
+
+exports[`interpreter store > can reset an entity error 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+        },
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+        },
+      },
+      [
+        {
+          "name": "EntityErrorUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "error": undefined,
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can reset an entity value 1`] = `"Entity value not allowed."`;
+
+exports[`interpreter store > can reset an entity value 2`] = `
+{
+  "entitiesErrors": {},
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+  },
+}
+`;
+
+exports[`interpreter store > can reset an entity value 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+        },
+      },
+      [
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "value": "default",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can return the data 1`] = `
+{
+  "entitiesErrors": {},
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+  },
+}
+`;
+
+exports[`interpreter store > can set an entity error 1`] = `"Entity error not allowed."`;
+
+exports[`interpreter store > can set an entity error 2`] = `
+{
+  "entitiesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "new error",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+  },
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+  },
+}
+`;
+
+exports[`interpreter store > can set an entity error 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "new error",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+        },
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+        },
+      },
+      [
+        {
+          "name": "EntityErrorUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "error": "new error",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can set an entity value 1`] = `"Entity value not allowed."`;
+
+exports[`interpreter store > can set an entity value 2`] = `
+{
+  "entitiesErrors": {},
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "new value",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+  },
+}
+`;
+
+exports[`interpreter store > can set an entity value 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "new value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+        },
+      },
+      [
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "value": "new value",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can set entities errors 1`] = `"Entity error not allowed."`;
+
+exports[`interpreter store > can set entities errors 2`] = `
+{
+  "entitiesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "new text error",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "new select error",
+  },
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+  },
+}
+`;
+
+exports[`interpreter store > can set entities errors 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "new text error",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "new select error",
+        },
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+        },
+      },
+      [
+        {
+          "name": "DataSet",
+          "payload": {
+            "data": {
+              "entitiesErrors": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": "new text error",
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": "new select error",
+              },
+              "entitiesValues": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+              },
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can set the data 1`] = `"Entity value not allowed."`;
+
+exports[`interpreter store > can set the data 2`] = `"Entity error not allowed."`;
+
+exports[`interpreter store > can set the data 3`] = `
+{
+  "entitiesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "new error",
+  },
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "new value",
+  },
+}
+`;
+
+exports[`interpreter store > can set the data 4`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "new error",
+        },
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "new value",
+        },
+      },
+      [
+        {
+          "name": "DataSet",
+          "payload": {
+            "data": {
+              "entitiesErrors": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": "new error",
+              },
+              "entitiesValues": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": "new value",
+              },
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > doesn't reset entities values when created if configured to 1`] = `{}`;
+
+exports[`interpreter store > resets entities values when created 1`] = `
+{
+  "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+  "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
+}
+`;

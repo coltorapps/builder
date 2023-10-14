@@ -332,14 +332,12 @@ function Inputs<TBuilder extends BaseBuilder>(props: {
   builderStore: ReactBuilderStore<TBuilder>;
   inputsComponents: InputsComponents<TBuilder>;
   children?: GenericInputRender<TBuilder>;
-  entityId?: string | null;
+  entityId: string;
 }): ReactNode {
-  const entity = props.entityId
-    ? props.builderStore.getData().schema.entities[props.entityId]
-    : null;
+  const entity = props.builderStore.getData().schema.entities[props.entityId];
 
-  if (!props.entityId || !entity) {
-    return null;
+  if (!entity) {
+    throw new Error("Entity not found.");
   }
 
   const entityDefinition = props.builderStore.builder.entities.find(
@@ -347,7 +345,7 @@ function Inputs<TBuilder extends BaseBuilder>(props: {
   );
 
   if (!entityDefinition) {
-    throw new Error("Entity definition was not found.");
+    throw new Error("Entity definition not found.");
   }
 
   return (

@@ -354,7 +354,7 @@ function ensureEntitiesInputsErrorsAreValid<TBuilder extends Builder>(
     Array.isArray(entitiesInputsErrors) ||
     entitiesInputsErrors === null
   ) {
-    throw new Error("Invalid errors format");
+    throw new Error("Invalid errors format.");
   }
 
   const newEntitiesInputsErrors = { ...entitiesInputsErrors };
@@ -393,7 +393,7 @@ function serializeInternalBuilderStoreSchema<TBuilder extends Builder>(
   };
 }
 
-function serializeBuilderStoreData<TBuilder extends Builder>(
+function serializeInternalBuilderStoreData<TBuilder extends Builder>(
   data: InternalBuilderStoreData<TBuilder>,
 ): BuilderStoreData<TBuilder> {
   return {
@@ -445,75 +445,44 @@ function deserializeBuilderStoreData<TBuilder extends Builder>(
 function deserializeAndValidateBuilderStoreData<TBuilder extends Builder>(
   data: BuilderStoreData<TBuilder>,
   builder: TBuilder,
-): [InternalBuilderStoreData<TBuilder>, Array<BuilderStoreEvent<TBuilder>>] {
-  const validatedSchema = validateSchemaIntegrity(data.schema, {
+): InternalBuilderStoreData<TBuilder> {
+  const schemaValidationResult = validateSchemaIntegrity(data.schema, {
     builder,
   });
 
-  if (!validatedSchema.success) {
-    throw new SchemaValidationError(validatedSchema.reason);
+  if (!schemaValidationResult.success) {
+    throw new SchemaValidationError(schemaValidationResult.reason);
   }
 
   const validatedEntitiesInputsErrors = ensureEntitiesInputsErrorsAreValid(
     data.entitiesInputsErrors,
     {
-      entities: validatedSchema.data.entities,
+      entities: schemaValidationResult.data.entities,
       builder,
     },
   );
 
-  const newData = deserializeBuilderStoreData<TBuilder>({
-    schema: validatedSchema.data,
+  return deserializeBuilderStoreData<TBuilder>({
+    schema: schemaValidationResult.data,
     entitiesInputsErrors: validatedEntitiesInputsErrors,
   });
-
-  return [
-    newData,
-    [
-      {
-        name: builderStoreEventsNames.DataSet,
-        payload: {
-          data,
-        },
-      },
-    ],
-  ];
 }
 
 export function createBuilderStore<TBuilder extends Builder>(options: {
   builder: TBuilder;
   initialData?: Partial<BuilderStoreData<TBuilder>>;
 }): BuilderStore<TBuilder> {
-  const validatedSchema = validateSchemaIntegrity(
-    options.initialData?.schema ?? {
-      entities: {},
-      root: [],
-    },
-    {
-      builder: options.builder,
-    },
-  );
-
-  if (!validatedSchema.success) {
-    throw new SchemaValidationError(validatedSchema.reason);
-  }
-
-  const validatedErrors = ensureEntitiesInputsErrorsAreValid(
-    options.initialData?.entitiesInputsErrors ?? {},
-    {
-      entities: validatedSchema.data.entities,
-      builder: options.builder,
-    },
-  );
-
   const { getData, setData, subscribe } = createDataManager<
     InternalBuilderStoreData<TBuilder>,
     BuilderStoreEvent<TBuilder>
   >(
-    deserializeBuilderStoreData({
-      schema: validatedSchema.data,
-      entitiesInputsErrors: validatedErrors ?? {},
-    }),
+    deserializeAndValidateBuilderStoreData(
+      {
+        schema: options.initialData?.schema ?? { entities: {}, root: [] },
+        entitiesInputsErrors: options.initialData?.entitiesInputsErrors ?? {},
+      },
+      options.builder,
+    ),
   );
 
   const entitiesInputsValidationDebounceManager =
@@ -525,14 +494,26 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
     builder: options.builder,
     subscribe(listener) {
       return subscribe((data, events) =>
-        listener(serializeBuilderStoreData(data), events),
+        listener(serializeInternalBuilderStoreData(data), events),
       );
     },
     getData() {
-      return serializeBuilderStoreData(getData());
+      return serializeInternalBuilderStoreData(getData());
     },
     setData(data) {
-      setData(...deserializeAndValidateBuilderStoreData(data, options.builder));
+      const newData = deserializeAndValidateBuilderStoreData(
+        data,
+        options.builder,
+      );
+
+      setData(newData, [
+        {
+          name: builderStoreEventsNames.DataSet,
+          payload: {
+            data: serializeInternalBuilderStoreData(newData),
+          },
+        },
+      ]);
     },
     addEntity(payload) {
       const data = getData();
@@ -1214,15 +1195,22 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       );
     },
     setEntitiesInputsErrors(entitiesInputsErrors) {
-      setData(
-        ...deserializeAndValidateBuilderStoreData(
-          {
-            schema: serializeInternalBuilderStoreSchema(getData().schema),
-            entitiesInputsErrors,
-          },
-          options.builder,
-        ),
+      const newData = deserializeAndValidateBuilderStoreData(
+        {
+          schema: serializeInternalBuilderStoreSchema(getData().schema),
+          entitiesInputsErrors,
+        },
+        options.builder,
       );
+
+      setData(newData, [
+        {
+          name: builderStoreEventsNames.DataSet,
+          payload: {
+            data: serializeInternalBuilderStoreData(newData),
+          },
+        },
+      ]);
     },
   };
 }
