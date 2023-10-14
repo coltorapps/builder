@@ -2076,4 +2076,109 @@ describe("builder store", () => {
 
     expect(listener).toMatchSnapshot();
   });
+
+  it("can clone entities", () => {
+    const mockUuids = [
+      "49ae95d3-84c0-4d0d-b914-66adde839572",
+      "55c0940d-7450-4b01-baf8-b84c05ea5cee",
+      "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
+      "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+      "4fb898fb-7207-4952-8e5e-511953a42e2c",
+    ];
+
+    let mockUuidIndex = 0;
+
+    vi.spyOn(uuidExports, "generateUuid").mockImplementation(() => {
+      const uuid = mockUuids[mockUuidIndex++];
+
+      if (!uuid) {
+        throw new Error("Mock UUID not found");
+      }
+
+      return uuid;
+    });
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+          inputs: [
+            createInput({
+              name: "label",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
+      ],
+      childrenAllowed: { test: true },
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        schema: {
+          entities: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "test",
+              inputs: {},
+              children: [
+                "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
+                "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
+              ],
+            },
+            "51324b32-adc3-4d17-a90e-66b5453935bd": {
+              type: "test",
+              inputs: {},
+              children: ["3194bbe0-b2f3-4d5c-b118-3cce0f72ff52"],
+            },
+            "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b": {
+              type: "test",
+              inputs: {},
+              parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            },
+            "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d": {
+              type: "test",
+              inputs: {},
+              parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            },
+            "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52": {
+              type: "test",
+              inputs: {},
+              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+              children: ["1c2ec3a4-18a8-4785-906e-6465b9b5883b"],
+            },
+            "1c2ec3a4-18a8-4785-906e-6465b9b5883b": {
+              type: "test",
+              inputs: {},
+              parentId: "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+            },
+          },
+          root: [
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "51324b32-adc3-4d17-a90e-66b5453935bd",
+          ],
+        },
+      },
+    });
+
+    const listener = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    builderStore.subscribe(listenerWrapper);
+
+    builderStore.cloneEntity("6e0035c3-0d4c-445f-a42b-2d971225447c");
+
+    builderStore.cloneEntity("3194bbe0-b2f3-4d5c-b118-3cce0f72ff52");
+
+    expect(() =>
+      builderStore.cloneEntity("invalid"),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(builderStore.getData().schema).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
 });

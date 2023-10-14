@@ -287,6 +287,7 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
     },
     "parentRequired": [],
   },
+  "cloneEntity": [Function],
   "deleteEntity": [Function],
   "getData": [Function],
   "removeEntityParentId": [Function],
@@ -355,6 +356,7 @@ exports[`builder store > can be created with an empty schema 2`] = `
     },
     "parentRequired": [],
   },
+  "cloneEntity": [Function],
   "deleteEntity": [Function],
   "getData": [Function],
   "removeEntityParentId": [Function],
@@ -387,6 +389,7 @@ exports[`builder store > can be created without a schema 1`] = `
     },
     "parentRequired": [],
   },
+  "cloneEntity": [Function],
   "deleteEntity": [Function],
   "getData": [Function],
   "removeEntityParentId": [Function],
@@ -443,6 +446,185 @@ exports[`builder store > can change entity's index 1`] = `
 }
 `;
 
+exports[`builder store > can clone entities 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+
+exports[`builder store > can clone entities 2`] = `
+{
+  "entities": {
+    "0a97c57c-7743-403c-8105-a8c09eb5ab52": {
+      "children": [
+        "4fb898fb-7207-4952-8e5e-511953a42e2c",
+      ],
+      "inputs": {},
+      "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "type": "test",
+    },
+    "1c2ec3a4-18a8-4785-906e-6465b9b5883b": {
+      "inputs": {},
+      "parentId": "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+      "type": "test",
+    },
+    "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52": {
+      "children": [
+        "1c2ec3a4-18a8-4785-906e-6465b9b5883b",
+      ],
+      "inputs": {},
+      "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "type": "test",
+    },
+    "38c62f6a-634a-4b94-b0af-9b95e6c1dc82": {
+      "inputs": {},
+      "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+      "type": "test",
+    },
+    "49ae95d3-84c0-4d0d-b914-66adde839572": {
+      "children": [
+        "55c0940d-7450-4b01-baf8-b84c05ea5cee",
+        "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
+      ],
+      "inputs": {},
+      "type": "test",
+    },
+    "4fb898fb-7207-4952-8e5e-511953a42e2c": {
+      "inputs": {},
+      "parentId": "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+      "type": "test",
+    },
+    "51324b32-adc3-4d17-a90e-66b5453935bd": {
+      "children": [
+        "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+        "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+      ],
+      "inputs": {},
+      "type": "test",
+    },
+    "55c0940d-7450-4b01-baf8-b84c05ea5cee": {
+      "inputs": {},
+      "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+      "type": "test",
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "children": [
+        "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
+        "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
+      ],
+      "inputs": {},
+      "type": "test",
+    },
+    "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b": {
+      "inputs": {},
+      "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "type": "test",
+    },
+    "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d": {
+      "inputs": {},
+      "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "type": "test",
+    },
+  },
+  "root": [
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    "49ae95d3-84c0-4d0d-b914-66adde839572",
+    "51324b32-adc3-4d17-a90e-66b5453935bd",
+  ],
+}
+`;
+
+exports[`builder store > can clone entities 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityCloned",
+          "payload": {
+            "entity": {
+              "children": [
+                "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
+                "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
+              ],
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "inputs": {},
+              "type": "test",
+            },
+            "entityClone": {
+              "children": [
+                "55c0940d-7450-4b01-baf8-b84c05ea5cee",
+                "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
+              ],
+              "id": "49ae95d3-84c0-4d0d-b914-66adde839572",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": [
+              "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "49ae95d3-84c0-4d0d-b914-66adde839572",
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            ],
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "EntityCloned",
+          "payload": {
+            "entity": {
+              "children": [
+                "1c2ec3a4-18a8-4785-906e-6465b9b5883b",
+              ],
+              "id": "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+              "inputs": {},
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+            "entityClone": {
+              "children": [
+                "4fb898fb-7207-4952-8e5e-511953a42e2c",
+              ],
+              "id": "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+              "inputs": {},
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "children": [
+                "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+                "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+              ],
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "inputs": {},
+              "type": "test",
+            },
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
 exports[`builder store > can delete entities and cascade delete their children 1`] = `
 {
   "entitiesInputsErrors": {
@@ -484,9 +666,9 @@ exports[`builder store > can delete entities and cascade delete their children 2
         {
           "name": "RootUpdated",
           "payload": {
-            "root": Set {
+            "root": [
               "49e91328-02bc-4daa-ab56-619554e85cff",
-            },
+            ],
           },
         },
         {
@@ -565,9 +747,9 @@ exports[`builder store > can move an entity from root to a parent entity 2`] = `
         {
           "name": "RootUpdated",
           "payload": {
-            "root": Set {
+            "root": [
               "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
+            ],
           },
         },
         {
@@ -646,9 +828,9 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
         {
           "name": "RootUpdated",
           "payload": {
-            "root": Set {
+            "root": [
               "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
+            ],
           },
         },
         {
@@ -835,9 +1017,9 @@ exports[`builder store > can move an entity in root 4`] = `
         {
           "name": "RootUpdated",
           "payload": {
-            "root": Set {
+            "root": [
               "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
+            ],
           },
         },
         {
@@ -857,9 +1039,9 @@ exports[`builder store > can move an entity in root 4`] = `
         {
           "name": "RootUpdated",
           "payload": {
-            "root": Set {
+            "root": [
               "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
+            ],
           },
         },
         {
@@ -879,9 +1061,9 @@ exports[`builder store > can move an entity in root 4`] = `
         {
           "name": "RootUpdated",
           "payload": {
-            "root": Set {
+            "root": [
               "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
+            ],
           },
         },
         {
@@ -956,9 +1138,9 @@ exports[`builder store > can move an entity to root 2`] = `
         {
           "name": "RootUpdated",
           "payload": {
-            "root": Set {
+            "root": [
               "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
+            ],
           },
         },
         {
@@ -1025,9 +1207,9 @@ exports[`builder store > can move an entity to root at a specific index 2`] = `
         {
           "name": "RootUpdated",
           "payload": {
-            "root": Set {
+            "root": [
               "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
+            ],
           },
         },
         {
