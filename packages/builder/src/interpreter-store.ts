@@ -274,6 +274,42 @@ function ensureEntitiesErrorsAllowed(
   }
 }
 
+async function validateEntity<TBuilder extends Builder>(
+  entityId: string,
+  dependencies: {
+    data: InternalInterpreterStoreData<TBuilder>;
+    builder: TBuilder;
+    schema: Schema<Builder>;
+  },
+): Promise<{ success: true } | { success: false; error: unknown }> {
+  const entity = ensureEntityExists(entityId, dependencies.schema.entities);
+
+  const entityDefinition = ensureEntityIsRegistered(
+    entity.type,
+    dependencies.builder,
+  );
+
+  if (!entityDefinition.isValueAllowed) {
+    return { success: true };
+  }
+
+  try {
+    await entityDefinition.validate(
+      dependencies.data.entitiesValues.get(entityId),
+      {
+        inputs: entity.inputs,
+        values: serializeInternalEntitiesValues(
+          dependencies.data.entitiesValues,
+        ),
+      },
+    );
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error };
+  }
+}
+
 export function createInterpreterStore<TBuilder extends Builder>(options: {
   builder: TBuilder;
   schema: Schema<TBuilder>;
@@ -577,6 +613,72 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
         },
       ]);
     },
+    async validateEntity(entityId) {
+      const data = getData();
+
+      const entityValidationResult = await validateEntity(entityId, {
+        data,
+        schema: options.schema,
+        builder: options.builder,
+      });
+
+      if (!entityValidationResult.success) {
+        const newEntitiesErrors = new Map(data.entitiesErrors);
+
+        newEntitiesErrors.set(entityId, entityValidationResult.error);
+
+        setData(
+          {
+            ...data,
+            entitiesErrors: newEntitiesErrors,
+          },
+          [
+            {
+              name: interpreterStoreEventsNames.EntityErrorUpdated,
+              payload: {
+                entityId,
+                error: entityValidationResult.error,
+              },
+            },
+          ],
+        );
+      }
+    },
+    async validateEntities() {
+      const data = getData();
+
+      const newEntitiesErrors = new Map(data.entitiesErrors);
+
+      const events: Array<InterpreterStoreEvent<TBuilder>> = [];
+
+      for (const entityId of Object.keys(options.schema.entities)) {
+        const entityValidationResult = await validateEntity(entityId, {
+          data,
+          schema: options.schema,
+          builder: options.builder,
+        });
+
+        if (!entityValidationResult.success) {
+          newEntitiesErrors.set(entityId, entityValidationResult.error);
+
+          events.push({
+            name: interpreterStoreEventsNames.EntityErrorUpdated,
+            payload: {
+              entityId,
+              error: entityValidationResult.error,
+            },
+          });
+        }
+      }
+
+      setData(
+        {
+          ...data,
+          entitiesErrors: newEntitiesErrors,
+        },
+        events,
+      );
+    },
   };
 }
 
@@ -592,6 +694,8 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
   >;
   builder: TBuilder;
   schema: Schema<TBuilder>;
+  validateEntity(entityId: string): Promise<void>;
+  validateEntities(): Promise<void>;
   setEntityValue(entityId: string, value: EntityValue<TBuilder>): void;
   resetEntityValue(entityId: string): void;
   resetEntitiesValues(): void;

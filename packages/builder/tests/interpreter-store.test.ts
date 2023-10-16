@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 
 import { createBuilder, createEntity } from "../src";
 import { createInterpreterStore } from "../src/interpreter-store";
@@ -930,6 +931,70 @@ describe("interpreter store", () => {
         "2df173ee-6b88-4744-a74d-0f21d49166b3": "new section error",
       }),
     ).toThrowErrorMatchingSnapshot();
+
+    expect(interpreterStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("can validate entities", async () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          validate(value) {
+            return z.string().parse(value);
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore({
+      schema: {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "text",
+            inputs: {},
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "text",
+            inputs: {},
+          },
+          "2df173ee-6b88-4744-a74d-0f21d49166b3": {
+            type: "text",
+            inputs: {},
+          },
+        },
+        root: [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          "2df173ee-6b88-4744-a74d-0f21d49166b3",
+        ],
+      },
+      builder,
+      initialData: {
+        entitiesValues: {
+          "2df173ee-6b88-4744-a74d-0f21d49166b3": "valid",
+        },
+        entitiesErrors: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "initial text error",
+        },
+      },
+    });
+
+    const listener = vi.fn();
+
+    interpreterStore.subscribe(listener);
+
+    await interpreterStore.validateEntity(
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    );
+
+    await interpreterStore.validateEntity(
+      "2df173ee-6b88-4744-a74d-0f21d49166b3",
+    );
+
+    await interpreterStore.validateEntities();
 
     expect(interpreterStore.getData()).toMatchSnapshot();
 
