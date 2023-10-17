@@ -3,7 +3,7 @@ import { type Input } from "./input";
 import { generateUuid, validateUuid } from "./uuid";
 
 export type BuilderEntities = ReadonlyArray<
-  Entity<string, ReadonlyArray<Input<string, unknown>>, unknown>
+  Entity<string, ReadonlyArray<Input>, unknown>
 >;
 
 type ChildrenAllowed<TEntities extends BuilderEntities> = {

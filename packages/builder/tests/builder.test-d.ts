@@ -29,9 +29,7 @@ describe("builder", () => {
     });
 
     expectTypeOf(builder).toEqualTypeOf<{
-      entities: readonly [
-        Entity<"test", readonly Input<string, unknown>[], unknown>,
-      ];
+      entities: readonly [Entity<"test", readonly Input[], unknown>];
       entityId: {
         generate: () => string;
         validate: (id: string) => void;

@@ -1,6 +1,10 @@
-export { Builder, useActiveEntityId, useBuilderStore } from "./builder";
+export {
+  Builder,
+  useActiveEntityId,
+  useBuilderStore,
+  useBuilderStoreData,
+} from "./builder";
 export type {
-  ReactBuilderStore,
   GenericEntityRenderProps,
   GenericInputRenderProps,
 } from "./builder";

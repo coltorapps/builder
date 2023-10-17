@@ -45,7 +45,7 @@ export function createFormBuilder(options?: {
 
   const textEntity = createEntity({
     name: "text",
-    inputs: [visibleWhenInput, labelInput],
+    inputs: [labelInput, visibleWhenInput],
   });
 
   const formBuilder = createBuilder({

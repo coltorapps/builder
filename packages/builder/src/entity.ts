@@ -1,15 +1,13 @@
 import { type Input, type InputsValues } from "./input";
 
-type EntityContext<TInputs extends ReadonlyArray<Input<string, unknown>>> = {
+type EntityContext<TInputs extends ReadonlyArray<Input>> = {
   inputs: InputsValues<TInputs>;
   values: Record<string, unknown>;
 };
 
 export type Entity<
   TName extends string = string,
-  TInputs extends ReadonlyArray<Input<string, unknown>> = ReadonlyArray<
-    Input<string, unknown>
-  >,
+  TInputs extends ReadonlyArray<Input> = ReadonlyArray<Input>,
   TValue = unknown,
 > = {
   name: TName;
@@ -31,7 +29,7 @@ type OptionalEntityArgs =
 
 export function createEntity<
   const TName extends string,
-  const TInputs extends ReadonlyArray<Input<string, unknown>>,
+  const TInputs extends ReadonlyArray<Input>,
   TValue,
 >(
   options: Omit<Entity<TName, TInputs, TValue>, OptionalEntityArgs> &

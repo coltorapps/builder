@@ -35,6 +35,7 @@ import {
   createInputComponent,
   useActiveEntityId,
   useBuilderStore,
+  useBuilderStoreData,
 } from "@builder/react";
 
 import { createFormBuilder } from "./builder";
@@ -52,56 +53,52 @@ const textComponent = createEntityComponent(textEntity, ({ entity }) => {
   );
 });
 
-const createVisibleWhenComponent = (options: {
-  useOptions: () => Array<{ value: string; label: string }>;
-}) =>
-  createInputComponent(
-    visibleWhenInput,
-    ({ input, entity, onChange, validate }) => {
-      const entitiesOptions = options.useOptions();
+const visibleWhenComponent = createInputComponent(
+  formBuilder,
+  visibleWhenInput,
+  ({ input, entity, onChange, validate, builderStore }) => {
+    const entities = useBuilderStoreData(builderStore).schema.entities;
 
-      const items = entitiesOptions.filter((item) => item.value !== entity.id);
-      console.log("vis");
+    const items = Object.entries(entities).filter(([id]) => id !== entity.id);
 
-      return (
-        <div className="mb-4">
-          <Select
-            value={input.value?.entityId ?? ""}
-            onValueChange={(value) => {
-              if (!value) {
-                onChange(undefined);
-              } else {
-                onChange({ entityId: value });
-              }
+    return (
+      <div className="mb-4">
+        <Select
+          value={input.value?.entityId ?? ""}
+          onValueChange={(value) => {
+            if (!value) {
+              onChange(undefined);
+            } else {
+              onChange({ entityId: value });
+            }
 
-              void validate();
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Field" />
-            </SelectTrigger>
-            <SelectContent>
-              {items.length ? (
-                items.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))
-              ) : (
-                <p className="py-6 text-center text-sm">Noth</p>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-      );
-    },
-  );
+            void validate();
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select Field" />
+          </SelectTrigger>
+          <SelectContent>
+            {items.length ? (
+              items.map(([id, item]) => (
+                <SelectItem key={id} value={id}>
+                  {item.inputs.label}
+                </SelectItem>
+              ))
+            ) : (
+              <p className="py-6 text-center text-sm">Noth</p>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  },
+);
 
 const labelComponent = createInputComponent(
+  formBuilder,
   labelInput,
-  ({ input, onChange, validate }) => {
-    console.log("label");
-
+  ({ input, onChange, validate, resetError }) => {
     return (
       <div>
         Label
@@ -113,6 +110,7 @@ const labelComponent = createInputComponent(
             void validate();
           }}
         />
+        <Button onClick={() => resetError()}>reset</Button>
         <span style={{ color: "red" }}>
           {typeof input.error === "string"
             ? input.error
@@ -166,7 +164,7 @@ export default function Page() {
     },
   });
 
-  const builderStoreData = builderStore.useData((events) =>
+  const builderStoreData = useBuilderStoreData(builderStore, (events) =>
     events.some((event) => event.name === "RootUpdated"),
   );
 
@@ -250,17 +248,8 @@ export default function Page() {
           entityId={selectedEntityId}
           inputsComponents={{
             text: {
-              visibleWhen: createVisibleWhenComponent({
-                useOptions() {
-                  return Object.entries(
-                    builderStore.useData().schema.entities,
-                  ).map(([id, entity]) => ({
-                    value: id,
-                    label: entity.inputs.label,
-                  }));
-                },
-              }),
               label: labelComponent,
+              visibleWhen: visibleWhenComponent,
             },
           }}
         />
