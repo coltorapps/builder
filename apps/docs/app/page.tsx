@@ -1,6 +1,11 @@
 "use client";
 
-import { useTransition, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useTransition,
+  type ReactNode,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,7 +32,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { schemaValidationErrorCodes } from "builder";
+import {
+  createBuilderStore,
+  schemaValidationErrorCodes,
+  type BuilderStore,
+} from "builder";
 
 import {
   Builder,
@@ -45,6 +54,8 @@ const { textEntity, labelInput, visibleWhenInput, formBuilder } =
   createFormBuilder();
 
 const textComponent = createEntityComponent(textEntity, ({ entity }) => {
+  console.log(entity.id);
+
   return (
     <div className="bg-white shadow rounded p-4">
       {entity.inputs.label} {entity.id}
@@ -54,10 +65,11 @@ const textComponent = createEntityComponent(textEntity, ({ entity }) => {
 });
 
 const visibleWhenComponent = createInputComponent(
-  formBuilder,
   visibleWhenInput,
-  ({ input, entity, onChange, validate, builderStore }) => {
+  ({ input, entity, setValue, validate }) => {
+    const { builderStore } = useContext(FormBuilderStoreContext);
     const entities = useBuilderStoreData(builderStore).schema.entities;
+    console.log(builderStore.getData());
 
     const items = Object.entries(entities).filter(([id]) => id !== entity.id);
 
@@ -67,9 +79,9 @@ const visibleWhenComponent = createInputComponent(
           value={input.value?.entityId ?? ""}
           onValueChange={(value) => {
             if (!value) {
-              onChange(undefined);
+              setValue(undefined);
             } else {
-              onChange({ entityId: value });
+              setValue({ entityId: value });
             }
 
             void validate();
@@ -96,16 +108,15 @@ const visibleWhenComponent = createInputComponent(
 );
 
 const labelComponent = createInputComponent(
-  formBuilder,
   labelInput,
-  ({ input, onChange, validate, resetError }) => {
+  ({ input, setValue, validate, resetError }) => {
     return (
       <div>
         Label
         <input
           value={input.value ?? ""}
           onChange={(e) => {
-            onChange(e.target.value);
+            setValue(e.target.value);
 
             void validate();
           }}
@@ -136,6 +147,12 @@ function SortableItem(props: { id: string; children: ReactNode }) {
     </div>
   );
 }
+
+const FormBuilderStoreContext = createContext<{
+  builderStore: BuilderStore<typeof formBuilder>;
+}>({
+  builderStore: createBuilderStore({ builder: formBuilder }),
+});
 
 export default function Page() {
   const builderStore = useBuilderStore(formBuilder, {
@@ -243,16 +260,22 @@ export default function Page() {
         </SortableContext>
       </DndContext>
       {selectedEntityId ? (
-        <Builder.Inputs
-          builderStore={builderStore}
-          entityId={selectedEntityId}
-          inputsComponents={{
-            text: {
-              label: labelComponent,
-              visibleWhen: visibleWhenComponent,
-            },
+        <FormBuilderStoreContext.Provider
+          value={{
+            builderStore,
           }}
-        />
+        >
+          <Builder.Inputs
+            builderStore={builderStore}
+            entityId={selectedEntityId}
+            inputsComponents={{
+              text: {
+                label: labelComponent,
+                visibleWhen: visibleWhenComponent,
+              },
+            }}
+          />
+        </FormBuilderStoreContext.Provider>
       ) : null}
       <div className="text-3xl">test</div>
       <button

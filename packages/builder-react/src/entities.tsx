@@ -6,7 +6,7 @@ export type EntityForRender<TBuilder extends Builder = Builder> =
 export type EntityComponentProps<TEntity extends Entity = Entity> = {
   entity: EntityForRender<Builder<[TEntity]>>;
   children?: JSX.Element[];
-  onChange: (value: Awaited<ReturnType<TEntity["validate"]>>) => void;
+  setValue: (value: Awaited<ReturnType<TEntity["validate"]>>) => void;
 };
 
 export type EntityComponent<TEntity extends Entity = Entity> = (
