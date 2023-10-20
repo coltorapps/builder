@@ -1,11 +1,13 @@
 export { createBuilder } from "./builder";
-export type { Builder, BuilderEntities } from "./builder";
+export type { Builder } from "./builder";
 
 export { createEntity } from "./entity";
 export type { Entity } from "./entity";
 
 export { createInput } from "./input";
 export type { Input } from "./input";
+
+export type { SubscriptionEvent } from "./subscription-manager";
 
 export { builderStoreEventsNames, createBuilderStore } from "./builder-store";
 export type {
@@ -43,3 +45,10 @@ export type {
 } from "./schema";
 
 export { getEntitiesNamesExcept } from "./utils";
+
+export { validateEntitiesValues } from "./entities-values";
+export type {
+  EntitiesErrors,
+  EntitiesValues,
+  EntityValue,
+} from "./entities-values";

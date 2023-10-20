@@ -606,6 +606,35 @@ exports[`interpreter store > can validate entities 2`] = `
     "message": "Required"
   }
 ]],
+        },
+        "entitiesValues": {
+          "2df173ee-6b88-4744-a74d-0f21d49166b3": "valid",
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
+        },
+      },
+      [
+        {
+          "name": "EntityErrorUpdated",
+          "payload": {
+            "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
+            "error": undefined,
+          },
+        },
+      ],
+    ],
+    [
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
           "6e0035c3-0d4c-445f-a42b-2d971225447c": [ZodError: [
   {
     "code": "invalid_type",
@@ -653,10 +682,21 @@ exports[`interpreter store > can validate entities 2`] = `
 ]],
           },
         },
+        {
+          "name": "EntityErrorUpdated",
+          "payload": {
+            "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
+            "error": undefined,
+          },
+        },
       ],
     ],
   ],
   "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
     {
       "type": "return",
       "value": undefined,

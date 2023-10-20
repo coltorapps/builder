@@ -211,29 +211,27 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
         ],
       },
       {
-        "builder": {
-          "childrenAllowed": {},
-          "entities": [
-            {
-              "defaultValue": [Function],
-              "inputs": [
-                {
-                  "name": "label",
-                  "validate": [Function],
-                },
-              ],
-              "isValueAllowed": false,
-              "name": "text",
-              "shouldBeProcessed": [Function],
-              "validate": [Function],
-            },
-          ],
-          "entityId": {
-            "generate": [Function],
+        "childrenAllowed": {},
+        "entities": [
+          {
+            "defaultValue": [Function],
+            "inputs": [
+              {
+                "name": "label",
+                "validate": [Function],
+              },
+            ],
+            "isValueAllowed": false,
+            "name": "text",
+            "shouldBeProcessed": [Function],
             "validate": [Function],
           },
-          "parentRequired": [],
+        ],
+        "entityId": {
+          "generate": [Function],
+          "validate": [Function],
         },
+        "parentRequired": [],
       },
     ],
   ],
@@ -317,15 +315,13 @@ exports[`builder store > can be created with an empty schema 1`] = `
         "root": [],
       },
       {
-        "builder": {
-          "childrenAllowed": {},
-          "entities": [],
-          "entityId": {
-            "generate": [Function],
-            "validate": [Function],
-          },
-          "parentRequired": [],
+        "childrenAllowed": {},
+        "entities": [],
+        "entityId": {
+          "generate": [Function],
+          "validate": [Function],
         },
+        "parentRequired": [],
       },
     ],
   ],

@@ -275,22 +275,17 @@ function ensureEntityInputsAreRegistered(
 
 async function validateEntityInputs(
   entity: SchemaEntityWithId,
-  dependencies: {
-    builder: Builder;
-    schema: Schema;
-  },
+  builder: Builder,
+  schema: Schema,
 ): Promise<void> {
-  const entityDefinition = ensureEntityIsRegistered(
-    entity,
-    dependencies.builder,
-  );
+  const entityDefinition = ensureEntityIsRegistered(entity, builder);
 
   const inputsErrors: EntityInputsErrors = {};
 
   for (const input of entityDefinition.inputs) {
     try {
       await input.validate(entity.inputs[input.name], {
-        schema: dependencies.schema,
+        schema: schema,
         entity: {
           ...entity,
           id: entity.id,
@@ -369,19 +364,17 @@ export function ensureEntityChildAllowed(
 
 function ensureEntityChildrenAreAllowed(
   entity: SchemaEntityWithId,
-  dependencies: {
-    builder: Builder;
-    entities: Schema["entities"];
-  },
+  builder: Builder,
+  entities: Schema["entities"],
 ): void {
   if (!entity.children) {
     return;
   }
 
   entity.children.forEach((id) => {
-    const childEntity = ensureEntityExists(id, dependencies.entities);
+    const childEntity = ensureEntityExists(id, entities);
 
-    ensureEntityChildAllowed(entity, childEntity, dependencies.builder);
+    ensureEntityChildAllowed(entity, childEntity, builder);
   });
 }
 
@@ -403,19 +396,17 @@ function ensureChildIdUnique(
 
 function ensureChildrenIdsAreValid(
   entity: SchemaEntityWithId,
-  dependencies: {
-    builder: Builder;
-    entities: Schema["entities"];
-  },
+  builder: Builder,
+  entities: Schema["entities"],
 ): void {
   if (!entity.children) {
     return;
   }
 
   entity.children.forEach((childId) => {
-    dependencies.builder.entityId.validate(childId);
+    builder.entityId.validate(childId);
 
-    ensureEntityExists(childId, dependencies.entities);
+    ensureEntityExists(childId, entities);
 
     ensureChildIdUnique(entity, childId);
   });
@@ -490,56 +481,42 @@ export function ensureEntityReachable(
 
 function validateEntitySchema<TBuilder extends Builder>(
   entity: SchemaEntityWithId<TBuilder>,
-  dependencies: {
-    builder: TBuilder;
-    schema: Schema<TBuilder>;
-  },
+  builder: TBuilder,
+  schema: Schema<TBuilder>,
 ): SchemaEntity<TBuilder> {
-  dependencies.builder.entityId.validate(entity.id);
+  builder.entityId.validate(entity.id);
 
   if (typeof entity.parentId !== "undefined") {
-    dependencies.builder.entityId.validate(entity.parentId);
+    builder.entityId.validate(entity.parentId);
   }
 
   ensureEntityTypeHasValidFormat(entity);
 
-  ensureEntityIsRegistered(entity, dependencies.builder);
+  ensureEntityIsRegistered(entity, builder);
 
   ensureEntityHasInputs(entity);
 
   ensureEntityInputsHaveValidFormat(entity);
 
-  ensureEntityInputsAreRegistered(entity, dependencies.builder);
+  ensureEntityInputsAreRegistered(entity, builder);
 
-  ensureEntityOptionalParentIdHasValidReference(
-    entity,
-    dependencies.schema.entities,
-  );
+  ensureEntityOptionalParentIdHasValidReference(entity, schema.entities);
 
   ensureEntityParentIdDoesntHaveSelfReference(entity);
 
   ensureEntityChildrenHaveValidFormat(entity);
 
-  ensureChildrenIdsAreValid(entity, {
-    builder: dependencies.builder,
-    entities: dependencies.schema.entities,
-  });
+  ensureChildrenIdsAreValid(entity, builder, schema.entities);
 
-  ensureEntityChildrenAreAllowed(entity, {
-    builder: dependencies.builder,
-    entities: dependencies.schema.entities,
-  });
+  ensureEntityChildrenAreAllowed(entity, builder, schema.entities);
 
-  ensureEntityChildrenMatchParentIds(entity, dependencies.schema.entities);
+  ensureEntityChildrenMatchParentIds(entity, schema.entities);
 
-  ensureEntityParentIdMatchesParentChildren(
-    entity,
-    dependencies.schema.entities,
-  );
+  ensureEntityParentIdMatchesParentChildren(entity, schema.entities);
 
-  ensureEntityCanLackParent(entity, dependencies.builder);
+  ensureEntityCanLackParent(entity, builder);
 
-  ensureEntityReachable(entity, dependencies.schema.root);
+  ensureEntityReachable(entity, schema.root);
 
   return {
     type: entity.type,
@@ -614,7 +591,7 @@ function validateEntitiesSchema<TBuilder extends Builder>(
   return Object.entries(schema.entities).reduce(
     (result, [key, entity]) => ({
       ...result,
-      [key]: validateEntitySchema({ ...entity, id: key }, { builder, schema }),
+      [key]: validateEntitySchema({ ...entity, id: key }, builder, schema),
     }),
     schema.entities,
   );
@@ -660,9 +637,7 @@ type SchemValidationResult<TBuilder extends Builder> =
 
 export function validateSchemaIntegrity<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
-  dependencies: {
-    builder: TBuilder;
-  },
+  builder: TBuilder,
 ): SchemValidationResult<TBuilder> {
   if (typeof schema === "undefined") {
     return { data: getEmptySchema(), success: true };
@@ -675,17 +650,14 @@ export function validateSchemaIntegrity<TBuilder extends Builder>(
 
     ensureRootNotEmptyWhenThereAreEntities(schema);
 
-    const validatedEntities = validateEntitiesSchema(
-      schema,
-      dependencies.builder,
-    );
+    const validatedEntities = validateEntitiesSchema(schema, builder);
 
     const computedSchema = {
       entities: validatedEntities,
       root: schema.root,
     };
 
-    ensureRootIdsAreValid(computedSchema, dependencies.builder);
+    ensureRootIdsAreValid(computedSchema, builder);
 
     ensureRootEntitiesDontHaveParents(computedSchema);
 
@@ -713,21 +685,13 @@ export type EntitiesInputsErrors<TBuilder extends Builder = Builder> = Record<
 
 async function validateEntitiesInputs<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
-  dependencies: {
-    builder: TBuilder;
-  },
+  builder: TBuilder,
 ): Promise<SchemValidationResult<TBuilder>> {
   const entitiesInputsErrors: EntitiesInputsErrors = {};
 
   for (const [id, entity] of Object.entries(schema.entities)) {
     try {
-      await validateEntityInputs(
-        { ...entity, id },
-        {
-          builder: dependencies.builder,
-          schema,
-        },
-      );
+      await validateEntityInputs({ ...entity, id }, builder, schema);
     } catch (error) {
       if (
         error instanceof SchemaValidationError &&
@@ -760,11 +724,11 @@ export async function validateSchema<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
   builder: TBuilder,
 ): Promise<SchemValidationResult<TBuilder>> {
-  const validatedSchema = validateSchemaIntegrity(schema, { builder });
+  const validatedSchema = validateSchemaIntegrity(schema, builder);
 
   if (!validatedSchema.success) {
     return validatedSchema;
   }
 
-  return validateEntitiesInputs(validatedSchema.data, { builder });
+  return validateEntitiesInputs(validatedSchema.data, builder);
 }

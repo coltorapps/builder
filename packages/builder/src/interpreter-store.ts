@@ -1,6 +1,13 @@
 import { ensureEntityIsRegistered, type Builder } from "./builder";
 import { createDataManager } from "./data-manager";
 import {
+  getEligibleEntitiesIdsForValidation,
+  validateEntityValue,
+  type EntitiesErrors,
+  type EntitiesValues,
+  type EntityValue,
+} from "./entities-values";
+import {
   ensureEntityExists,
   SchemaValidationError,
   validateSchemaIntegrity,
@@ -8,18 +15,14 @@ import {
 } from "./schema";
 import { type Subscribe, type SubscriptionEvent } from "./subscription-manager";
 
-type EntityValue<TBuilder extends Builder = Builder> =
-  | Awaited<ReturnType<TBuilder["entities"][number]["validate"]>>
-  | undefined;
-
 type InternalInterpreterStoreData<TBuilder extends Builder = Builder> = {
   entitiesValues: Map<string, EntityValue<TBuilder>>;
   entitiesErrors: Map<string, unknown>;
 };
 
 export type InterpreterStoreData<TBuilder extends Builder = Builder> = {
-  entitiesValues: Record<string, EntityValue<TBuilder>>;
-  entitiesErrors: Record<string, unknown>;
+  entitiesValues: EntitiesValues<TBuilder>;
+  entitiesErrors: EntitiesErrors;
 };
 
 export const interpreterStoreEventsNames = {
@@ -55,9 +58,7 @@ export type InterpreterStoreEvent<TBuilder extends Builder = Builder> =
 
 function ensureEntitiesErrorsAreValid<TBuilder extends Builder>(
   entitiesErrors: InterpreterStoreData<TBuilder>["entitiesErrors"],
-  dependencies: {
-    schema: Schema<TBuilder>;
-  },
+  schema: Schema<TBuilder>,
 ): InterpreterStoreData<TBuilder>["entitiesErrors"] {
   if (
     typeof entitiesErrors !== "object" ||
@@ -68,7 +69,7 @@ function ensureEntitiesErrorsAreValid<TBuilder extends Builder>(
   }
 
   for (const entityId of Object.keys(entitiesErrors)) {
-    if (!dependencies.schema.entities[entityId]) {
+    if (!schema.entities[entityId]) {
       throw new Error("Entity not found.");
     }
   }
@@ -78,9 +79,7 @@ function ensureEntitiesErrorsAreValid<TBuilder extends Builder>(
 
 function ensureEntitiesValuesAreValid<TBuilder extends Builder>(
   entitiesValues: InterpreterStoreData<TBuilder>["entitiesValues"],
-  dependencies: {
-    schema: Schema<TBuilder>;
-  },
+  schema: Schema<TBuilder>,
 ): InterpreterStoreData<TBuilder>["entitiesValues"] {
   if (
     typeof entitiesValues !== "object" ||
@@ -91,7 +90,7 @@ function ensureEntitiesValuesAreValid<TBuilder extends Builder>(
   }
 
   for (const entityId of Object.keys(entitiesValues)) {
-    if (!dependencies.schema.entities[entityId]) {
+    if (!schema.entities[entityId]) {
       throw new Error("Entity not found.");
     }
   }
@@ -131,23 +130,17 @@ function serializeInternalInterpreterStoreData<TBuilder extends Builder>(
 
 function deserializeAndValidateInterpreterStoreData<TBuilder extends Builder>(
   data: InterpreterStoreData<TBuilder>,
-  dependencies: {
-    builder: TBuilder;
-    schema: Schema<TBuilder>;
-  },
+  builder: TBuilder,
+  schema: Schema<TBuilder>,
 ): InternalInterpreterStoreData<TBuilder> {
   const validatedEntitiesValues = ensureEntitiesValuesAreValid(
     data.entitiesValues,
-    {
-      schema: dependencies.schema,
-    },
+    schema,
   );
 
   const validatedEntitiesErrors = ensureEntitiesErrorsAreValid(
     data.entitiesErrors,
-    {
-      schema: dependencies.schema,
-    },
+    schema,
   );
 
   return deserializeInterpreterStoreData<TBuilder>({
@@ -158,24 +151,19 @@ function deserializeAndValidateInterpreterStoreData<TBuilder extends Builder>(
 
 function resetEntityValue<TBuilder extends Builder>(
   entityId: string,
-  dependencies: {
-    entitiesValues: InternalInterpreterStoreData<TBuilder>["entitiesValues"];
-    schema: Schema<TBuilder>;
-    builder: TBuilder;
-  },
+  entitiesValues: InternalInterpreterStoreData<TBuilder>["entitiesValues"],
+  schema: Schema<TBuilder>,
+  builder: TBuilder,
 ): InternalInterpreterStoreData<TBuilder>["entitiesValues"] {
-  const newEntitiesValues = new Map(dependencies.entitiesValues);
+  const newEntitiesValues = new Map(entitiesValues);
 
-  const entity = ensureEntityExists(entityId, dependencies.schema.entities);
+  const entity = ensureEntityExists(entityId, schema.entities);
 
-  const entityDefinition = ensureEntityIsRegistered(
-    entity.type,
-    dependencies.builder,
-  );
+  const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
   const newValue = entityDefinition.defaultValue({
-    inputs: entity.inputs,
-    values: serializeInternalEntitiesValues(dependencies.entitiesValues),
+    entity,
+    entitiesValues: serializeInternalEntitiesValues(entitiesValues),
   }) as EntityValue<TBuilder>;
 
   newEntitiesValues.set(entityId, newValue);
@@ -185,29 +173,28 @@ function resetEntityValue<TBuilder extends Builder>(
 
 function resetEntitiesValues<TBuilder extends Builder>(
   entitiesValues: InternalInterpreterStoreData<TBuilder>["entitiesValues"],
-  dependencies: {
-    schema: Schema<TBuilder>;
-    builder: TBuilder;
-  },
+  schema: Schema<TBuilder>,
+  builder: TBuilder,
   options?: {
-    skipAlreadySetEntitiesValues: boolean;
+    skipAlreadySetEntitiesValues?: boolean;
   },
 ): InternalInterpreterStoreData<TBuilder>["entitiesValues"] {
   let newEntitiesValues = new Map(entitiesValues);
 
-  for (const entityId of Object.keys(dependencies.schema.entities)) {
+  for (const entityId of Object.keys(schema.entities)) {
     if (
-      !isEntityValueAllowed(entityId, dependencies) ||
+      !isEntityValueAllowed(entityId, builder, schema) ||
       (options?.skipAlreadySetEntitiesValues && entitiesValues.has(entityId))
     ) {
       continue;
     }
 
-    newEntitiesValues = resetEntityValue(entityId, {
-      schema: dependencies.schema,
-      entitiesValues: newEntitiesValues,
-      builder: dependencies.builder,
-    });
+    newEntitiesValues = resetEntityValue(
+      entityId,
+      newEntitiesValues,
+      schema,
+      builder,
+    );
   }
 
   return newEntitiesValues;
@@ -215,98 +202,51 @@ function resetEntitiesValues<TBuilder extends Builder>(
 
 function isEntityValueAllowed(
   entityId: string,
-  dependencies: {
-    builder: Builder;
-    schema: Schema<Builder>;
-  },
+  builder: Builder,
+  schema: Schema<Builder>,
 ): boolean {
-  const entity = ensureEntityExists(entityId, dependencies.schema.entities);
+  const entity = ensureEntityExists(entityId, schema.entities);
 
-  return ensureEntityIsRegistered(entity.type, dependencies.builder)
-    .isValueAllowed;
+  return ensureEntityIsRegistered(entity.type, builder).isValueAllowed;
 }
 
 function ensureEntityValueAllowed(
   entityId: string,
-  dependencies: {
-    builder: Builder;
-    schema: Schema<Builder>;
-  },
+  builder: Builder,
+  schema: Schema<Builder>,
 ): void {
-  if (!isEntityValueAllowed(entityId, dependencies)) {
+  if (!isEntityValueAllowed(entityId, builder, schema)) {
     throw new Error("Entity value not allowed.");
   }
 }
 
 function ensureEntityErrorAllowed(
   entityId: string,
-  dependencies: {
-    builder: Builder;
-    schema: Schema<Builder>;
-  },
+  builder: Builder,
+  schema: Schema<Builder>,
 ): void {
-  if (!isEntityValueAllowed(entityId, dependencies)) {
+  if (!isEntityValueAllowed(entityId, builder, schema)) {
     throw new Error("Entity error not allowed.");
   }
 }
 
 function ensureEntitiesValuesAllowed(
   entitiesValues: InternalInterpreterStoreData["entitiesValues"],
-  dependencies: {
-    builder: Builder;
-    schema: Schema<Builder>;
-  },
+  builder: Builder,
+  schema: Schema<Builder>,
 ): void {
   for (const entityId of entitiesValues.keys()) {
-    ensureEntityValueAllowed(entityId, dependencies);
+    ensureEntityValueAllowed(entityId, builder, schema);
   }
 }
 
 function ensureEntitiesErrorsAllowed(
   entitiesErrors: InternalInterpreterStoreData["entitiesErrors"],
-  dependencies: {
-    builder: Builder;
-    schema: Schema<Builder>;
-  },
+  builder: Builder,
+  schema: Schema<Builder>,
 ): void {
   for (const entityId of entitiesErrors.keys()) {
-    ensureEntityErrorAllowed(entityId, dependencies);
-  }
-}
-
-async function validateEntity<TBuilder extends Builder>(
-  entityId: string,
-  dependencies: {
-    data: InternalInterpreterStoreData<TBuilder>;
-    builder: TBuilder;
-    schema: Schema<Builder>;
-  },
-): Promise<{ success: true } | { success: false; error: unknown }> {
-  const entity = ensureEntityExists(entityId, dependencies.schema.entities);
-
-  const entityDefinition = ensureEntityIsRegistered(
-    entity.type,
-    dependencies.builder,
-  );
-
-  if (!entityDefinition.isValueAllowed) {
-    return { success: true };
-  }
-
-  try {
-    await entityDefinition.validate(
-      dependencies.data.entitiesValues.get(entityId),
-      {
-        inputs: entity.inputs,
-        values: serializeInternalEntitiesValues(
-          dependencies.data.entitiesValues,
-        ),
-      },
-    );
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error };
+    ensureEntityErrorAllowed(entityId, builder, schema);
   }
 }
 
@@ -316,9 +256,10 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
   initialData?: Partial<InterpreterStoreData<TBuilder>>;
   initialEntitiesValuesWithDefaults?: boolean;
 }): InterpreterStore<TBuilder> {
-  const schemaValidationResult = validateSchemaIntegrity(options.schema, {
-    builder: options.builder,
-  });
+  const schemaValidationResult = validateSchemaIntegrity(
+    options.schema,
+    options.builder,
+  );
 
   if (!schemaValidationResult.success) {
     throw new SchemaValidationError(schemaValidationResult.reason);
@@ -329,26 +270,28 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       entitiesValues: options.initialData?.entitiesValues ?? {},
       entitiesErrors: options.initialData?.entitiesErrors ?? {},
     },
-    {
-      builder: options.builder,
-      schema: schemaValidationResult.data,
-    },
+    options.builder,
+    schemaValidationResult.data,
   );
 
-  ensureEntitiesValuesAllowed(initialStoreData.entitiesValues, options);
+  ensureEntitiesValuesAllowed(
+    initialStoreData.entitiesValues,
+    options.builder,
+    options.schema,
+  );
 
-  ensureEntitiesErrorsAllowed(initialStoreData.entitiesErrors, options);
+  ensureEntitiesErrorsAllowed(
+    initialStoreData.entitiesErrors,
+    options.builder,
+    options.schema,
+  );
 
   if (options.initialEntitiesValuesWithDefaults !== false) {
     initialStoreData.entitiesValues = resetEntitiesValues(
       initialStoreData.entitiesValues,
-      {
-        builder: options.builder,
-        schema: options.schema,
-      },
-      {
-        skipAlreadySetEntitiesValues: true,
-      },
+      options.schema,
+      options.builder,
+      { skipAlreadySetEntitiesValues: true },
     );
   }
 
@@ -369,14 +312,23 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       return serializeInternalInterpreterStoreData(getData());
     },
     setData(data) {
-      const newData = deserializeAndValidateInterpreterStoreData(data, {
-        builder: options.builder,
-        schema: schemaValidationResult.data,
-      });
+      const newData = deserializeAndValidateInterpreterStoreData(
+        data,
+        options.builder,
+        schemaValidationResult.data,
+      );
 
-      ensureEntitiesValuesAllowed(newData.entitiesValues, options);
+      ensureEntitiesValuesAllowed(
+        newData.entitiesValues,
+        options.builder,
+        options.schema,
+      );
 
-      ensureEntitiesErrorsAllowed(newData.entitiesErrors, options);
+      ensureEntitiesErrorsAllowed(
+        newData.entitiesErrors,
+        options.builder,
+        options.schema,
+      );
 
       setData(newData, [
         {
@@ -388,7 +340,7 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       ]);
     },
     setEntityValue(entityId, value) {
-      ensureEntityValueAllowed(entityId, options);
+      ensureEntityValueAllowed(entityId, options.builder, options.schema);
 
       const data = getData();
 
@@ -413,15 +365,16 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       );
     },
     resetEntityValue(entityId) {
-      ensureEntityValueAllowed(entityId, options);
+      ensureEntityValueAllowed(entityId, options.builder, options.schema);
 
       const data = getData();
 
-      const newEntitiesValues = resetEntityValue(entityId, {
-        schema: options.schema,
-        entitiesValues: data.entitiesValues,
-        builder: options.builder,
-      });
+      const newEntitiesValues = resetEntityValue(
+        entityId,
+        data.entitiesValues,
+        options.schema,
+        options.builder,
+      );
 
       setData(
         {
@@ -442,10 +395,11 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
     resetEntitiesValues() {
       const data = getData();
 
-      const newEntitiesValues = resetEntitiesValues(data.entitiesValues, {
-        builder: options.builder,
-        schema: options.schema,
-      });
+      const newEntitiesValues = resetEntitiesValues(
+        data.entitiesValues,
+        options.schema,
+        options.builder,
+      );
 
       const events: Array<InterpreterStoreEvent<TBuilder>> = [];
 
@@ -468,7 +422,7 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       );
     },
     clearEntityValue(entityId) {
-      ensureEntityValueAllowed(entityId, options);
+      ensureEntityValueAllowed(entityId, options.builder, options.schema);
 
       const data = getData();
 
@@ -516,7 +470,7 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       );
     },
     setEntityError(entityId, error) {
-      ensureEntityErrorAllowed(entityId, options);
+      ensureEntityErrorAllowed(entityId, options.builder, options.schema);
 
       const data = getData();
 
@@ -541,7 +495,7 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       );
     },
     resetEntityError(entityId) {
-      ensureEntityErrorAllowed(entityId, options);
+      ensureEntityErrorAllowed(entityId, options.builder, options.schema);
 
       const data = getData();
 
@@ -596,13 +550,15 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
           ),
           entitiesErrors,
         },
-        {
-          builder: options.builder,
-          schema: schemaValidationResult.data,
-        },
+        options.builder,
+        schemaValidationResult.data,
       );
 
-      ensureEntitiesErrorsAllowed(newData.entitiesErrors, options);
+      ensureEntitiesErrorsAllowed(
+        newData.entitiesErrors,
+        options.builder,
+        options.schema,
+      );
 
       setData(newData, [
         {
@@ -616,15 +572,31 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
     async validateEntity(entityId) {
       const data = getData();
 
-      const entityValidationResult = await validateEntity(entityId, {
-        data,
-        schema: options.schema,
-        builder: options.builder,
-      });
+      const serializedEntitiesValues = serializeInternalEntitiesValues(
+        data.entitiesValues,
+      );
+
+      const eligibleEntitiesIdsForValidation =
+        getEligibleEntitiesIdsForValidation(
+          serializedEntitiesValues,
+          options.builder,
+          options.schema,
+        );
+
+      if (!eligibleEntitiesIdsForValidation.includes(entityId)) {
+        throw new Error("Entity not eligible for validation.");
+      }
+
+      const entityValidationResult = await validateEntityValue(
+        entityId,
+        serializedEntitiesValues,
+        options.builder,
+        options.schema,
+      );
+
+      const newEntitiesErrors = new Map(data.entitiesErrors);
 
       if (!entityValidationResult.success) {
-        const newEntitiesErrors = new Map(data.entitiesErrors);
-
         newEntitiesErrors.set(entityId, entityValidationResult.error);
 
         setData(
@@ -642,6 +614,24 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
             },
           ],
         );
+      } else {
+        newEntitiesErrors.delete(entityId);
+
+        setData(
+          {
+            ...data,
+            entitiesErrors: newEntitiesErrors,
+          },
+          [
+            {
+              name: interpreterStoreEventsNames.EntityErrorUpdated,
+              payload: {
+                entityId,
+                error: undefined,
+              },
+            },
+          ],
+        );
       }
     },
     async validateEntities() {
@@ -651,12 +641,38 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
 
       const events: Array<InterpreterStoreEvent<TBuilder>> = [];
 
+      const serializedEntitiesValues = serializeInternalEntitiesValues(
+        data.entitiesValues,
+      );
+
+      const eligibleEntitiesIdsForValidation =
+        getEligibleEntitiesIdsForValidation(
+          serializedEntitiesValues,
+          options.builder,
+          options.schema,
+        );
+
       for (const entityId of Object.keys(options.schema.entities)) {
-        const entityValidationResult = await validateEntity(entityId, {
-          data,
-          schema: options.schema,
-          builder: options.builder,
-        });
+        if (!eligibleEntitiesIdsForValidation.includes(entityId)) {
+          newEntitiesErrors.delete(entityId);
+
+          events.push({
+            name: interpreterStoreEventsNames.EntityErrorUpdated,
+            payload: {
+              entityId,
+              error: undefined,
+            },
+          });
+
+          continue;
+        }
+
+        const entityValidationResult = await validateEntityValue(
+          entityId,
+          serializedEntitiesValues,
+          options.builder,
+          options.schema,
+        );
 
         if (!entityValidationResult.success) {
           newEntitiesErrors.set(entityId, entityValidationResult.error);
@@ -666,6 +682,16 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
             payload: {
               entityId,
               error: entityValidationResult.error,
+            },
+          });
+        } else {
+          newEntitiesErrors.delete(entityId);
+
+          events.push({
+            name: interpreterStoreEventsNames.EntityErrorUpdated,
+            payload: {
+              entityId,
+              error: undefined,
             },
           });
         }

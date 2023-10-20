@@ -1,4 +1,6 @@
-import { type Input, type SchemaEntityWithId } from "builder";
+import { type Builder, type Input, type SchemaEntityWithId } from "builder";
+
+import { type KeyofUnion } from "./utils";
 
 export type InputForRender<TInput extends Input> = {
   name: TInput["name"];
@@ -24,3 +26,31 @@ export function createInputComponent<TInput extends Input>(
 ): InputComponent<TInput> {
   return render;
 }
+
+export type InputsComponents<TBuilder extends Builder = Builder> = {
+  [K in TBuilder["entities"][number]["name"]]: {
+    [K2 in Extract<
+      TBuilder["entities"][number],
+      { name: K }
+    >["inputs"][number]["name"]]: InputComponent<
+      Extract<
+        Extract<TBuilder["entities"][number], { name: K }>["inputs"][number],
+        { name: K2 }
+      >
+    >;
+  };
+};
+
+export type GenericInputProps<TBuilder extends Builder = Builder> = {
+  entity: SchemaEntityWithId<TBuilder>;
+  input: {
+    [K in KeyofUnion<SchemaEntityWithId<TBuilder>["inputs"]>]: InputForRender<
+      Extract<TBuilder["entities"][number]["inputs"][number], { name: K }>
+    >;
+  }[KeyofUnion<SchemaEntityWithId<TBuilder>["inputs"]>];
+  children: JSX.Element;
+};
+
+export type GenericInputComponent<TBuilder extends Builder = Builder> = (
+  props: GenericInputProps<TBuilder>,
+) => JSX.Element;

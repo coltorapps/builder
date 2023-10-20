@@ -1,7 +1,7 @@
-import { type BuilderEntities } from "./builder";
+import { type Entity } from "./entity";
 
 export function getEntitiesNamesExcept<
-  const TEntities extends BuilderEntities,
+  const TEntities extends ReadonlyArray<Entity>,
   const TExcludeName extends ReadonlyArray<TEntities[number]["name"]>,
 >(
   entities: TEntities,

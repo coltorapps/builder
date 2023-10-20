@@ -1,8 +1,11 @@
 import { type Input, type InputsValues } from "./input";
 
 type EntityContext<TInputs extends ReadonlyArray<Input>> = {
-  inputs: InputsValues<TInputs>;
-  values: Record<string, unknown>;
+  entity: {
+    id: string;
+    inputs: InputsValues<TInputs>;
+  };
+  entitiesValues: Record<string, unknown>;
 };
 
 export type Entity<

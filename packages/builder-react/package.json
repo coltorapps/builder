@@ -10,6 +10,11 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.js"
     },
+    "./dist/server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "default": "./dist/server.js"
+    },
     "./package.json": "./package.json"
   },
   "license": "MIT",

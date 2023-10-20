@@ -12,7 +12,12 @@ describe("entity", () => {
 
     expect(entity).toMatchSnapshot();
 
-    expect(entity.defaultValue({ inputs: {}, values: {} })).toMatchSnapshot();
+    expect(
+      entity.defaultValue({
+        entity: { id: "", inputs: {} },
+        entitiesValues: {},
+      }),
+    ).toMatchSnapshot();
   });
 
   it("can validate values", () => {
@@ -24,11 +29,17 @@ describe("entity", () => {
     });
 
     expect(
-      entity.validate("valid", { inputs: {}, values: {} }),
+      entity.validate("valid", {
+        entity: { id: "", inputs: {} },
+        entitiesValues: {},
+      }),
     ).toMatchSnapshot();
 
     expect(() =>
-      entity.validate(1, { inputs: {}, values: {} }),
+      entity.validate(1, {
+        entity: { id: "", inputs: {} },
+        entitiesValues: {},
+      }),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -38,11 +49,17 @@ describe("entity", () => {
     });
 
     expect(() =>
-      entity.validate("value", { inputs: {}, values: {} }),
+      entity.validate("value", {
+        entity: { id: "", inputs: {} },
+        entitiesValues: {},
+      }),
     ).toThrowErrorMatchingSnapshot();
 
     expect(
-      entity.validate(undefined, { inputs: {}, values: {} }),
+      entity.validate(undefined, {
+        entity: { id: "", inputs: {} },
+        entitiesValues: {},
+      }),
     ).toMatchSnapshot();
   });
 
@@ -54,7 +71,12 @@ describe("entity", () => {
       },
     });
 
-    expect(entity.defaultValue({ inputs: {}, values: {} })).toMatchSnapshot();
+    expect(
+      entity.defaultValue({
+        entity: { id: "", inputs: {} },
+        entitiesValues: {},
+      }),
+    ).toMatchSnapshot();
   });
 
   it("can be created with inputs", () => {

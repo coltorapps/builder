@@ -4,13 +4,23 @@ export {
   useBuilderStore,
   useBuilderStoreData,
 } from "./builder";
-export type {
-  GenericEntityRenderProps,
-  GenericInputRenderProps,
-} from "./builder";
+
+export {
+  Interpreter,
+  useInterpreterStore,
+  useInterpreterStoreData,
+} from "./interpreter";
 
 export { createEntityComponent } from "./entities";
-export type { EntityComponentProps } from "./entities";
+export type {
+  EntityComponentProps,
+  GenericEntityComponent,
+  GenericEntityProps,
+} from "./entities";
 
 export { createInputComponent } from "./inputs";
-export type { InputComponentProps } from "./inputs";
+export type {
+  GenericInputComponent,
+  GenericInputProps,
+  InputComponentProps,
+} from "./inputs";

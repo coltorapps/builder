@@ -46,6 +46,23 @@ export function createFormBuilder(options?: {
   const textEntity = createEntity({
     name: "text",
     inputs: [labelInput, visibleWhenInput],
+    validate(value) {
+      const result = z.string().min(1).safeParse(value);
+
+      if (!result.success) {
+        throw result.error.flatten().formErrors[0];
+      }
+
+      return result.data;
+    },
+    shouldBeProcessed(context) {
+      return (
+        (context.entity.id === "98220f11-9ebc-46b8-b1d7-abd16f90841c" &&
+          context.entitiesValues["414e1304-d22e-4337-94b9-6821a1dd01e0"] ===
+            "pizda") ||
+        context.entity.id !== "98220f11-9ebc-46b8-b1d7-abd16f90841c"
+      );
+    },
   });
 
   const formBuilder = createBuilder({

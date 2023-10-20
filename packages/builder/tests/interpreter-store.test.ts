@@ -28,9 +28,7 @@ describe("interpreter store", () => {
 
     expect(interpreterStore).toMatchSnapshot();
 
-    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, {
-      builder,
-    });
+    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, builder);
   });
 
   it("resets entities values when created", () => {

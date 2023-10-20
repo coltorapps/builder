@@ -24,12 +24,16 @@ describe("entity", () => {
     });
 
     type EntityContext = {
-      inputs: {
+      entity: {
+        id: string;
+        inputs: {
+          [x: string]: unknown;
+        };
+      };
+      entitiesValues: {
         [x: string]: unknown;
       };
-      values: Record<string, unknown>;
     };
-    entity.inputs;
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
@@ -61,14 +65,17 @@ describe("entity", () => {
           },
         }),
       ],
-      defaultValue({ inputs }) {
-        return inputs.defaultValue;
+      defaultValue({ entity }) {
+        return entity.inputs.defaultValue;
       },
     });
 
     type EntityContext = {
-      inputs: { label: string; defaultValue: string | undefined };
-      values: Record<string, unknown>;
+      entity: {
+        id: string;
+        inputs: { label: string; defaultValue: string | undefined };
+      };
+      entitiesValues: Record<string, unknown>;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{

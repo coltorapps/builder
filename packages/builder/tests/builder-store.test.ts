@@ -29,9 +29,7 @@ describe("builder store", () => {
         entities: {},
         root: [],
       },
-      {
-        builder,
-      },
+      builder,
     );
 
     expect(builderStore).toMatchSnapshot();
@@ -156,9 +154,7 @@ describe("builder store", () => {
 
     expect(builderStore.getData()).toMatchSnapshot();
 
-    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, {
-      builder,
-    });
+    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, builder);
   });
 
   it("can set the data", () => {
@@ -219,9 +215,7 @@ describe("builder store", () => {
       },
     });
 
-    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, {
-      builder,
-    });
+    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, builder);
 
     expect(listener).toMatchSnapshot();
 

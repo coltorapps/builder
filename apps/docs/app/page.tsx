@@ -42,27 +42,40 @@ import {
   Builder,
   createEntityComponent,
   createInputComponent,
+  Interpreter,
   useActiveEntityId,
   useBuilderStore,
   useBuilderStoreData,
+  useInterpreterStore,
 } from "@builder/react";
 
 import { createFormBuilder } from "./builder";
-import { validateForm } from "./validate-form";
+import { validateForm, validateSubmission } from "./validate-form";
 
 const { textEntity, labelInput, visibleWhenInput, formBuilder } =
   createFormBuilder();
 
-const textComponent = createEntityComponent(textEntity, ({ entity }) => {
-  console.log(entity.id);
+const textComponent = createEntityComponent(
+  textEntity,
+  ({ entity, setValue, validate }) => {
+    console.log(entity.id);
 
-  return (
-    <div className="bg-white shadow rounded p-4">
-      {entity.inputs.label} {entity.id}
-      <input />
-    </div>
-  );
-});
+    return (
+      <div className="bg-white shadow rounded p-4">
+        {entity.id}
+        <input
+          value={entity.value ?? ""}
+          onChange={(e) => {
+            setValue(e.target.value);
+            void validate();
+          }}
+          className="border-2"
+        />
+        {entity.error ? String(entity.error) : null}
+      </div>
+    );
+  },
+);
 
 const visibleWhenComponent = createInputComponent(
   visibleWhenInput,
@@ -186,6 +199,27 @@ export default function Page() {
   );
 
   const [isPending, startTransition] = useTransition();
+
+  const interpreterStore = useInterpreterStore(formBuilder, {
+    entities: {
+      "98220f11-9ebc-46b8-b1d7-abd16f90841c": {
+        type: "text",
+        inputs: {
+          label: "1",
+        },
+      },
+      "414e1304-d22e-4337-94b9-6821a1dd01e0": {
+        type: "text",
+        inputs: {
+          label: "2",
+        },
+      },
+    },
+    root: [
+      "98220f11-9ebc-46b8-b1d7-abd16f90841c",
+      "414e1304-d22e-4337-94b9-6821a1dd01e0",
+    ],
+  });
 
   return (
     <>
@@ -314,6 +348,21 @@ export default function Page() {
       >
         {isPending ? "LOADING..." : "SAVE"}
       </button>
+      <button
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        onClick={async () => {
+          builderStore.resetEntitiesInputsErrors();
+
+          const res = await validateSubmission(
+            interpreterStore.getData().entitiesValues,
+            interpreterStore.schema,
+          );
+
+          console.log(res);
+        }}
+      >
+        SUBMIT
+      </button>
       <div className="max-w-xs mx-auto">
         <Card>
           <CardHeader>
@@ -330,6 +379,12 @@ export default function Page() {
           </CardFooter>
         </Card>
       </div>
+      <Interpreter
+        interpreterStore={interpreterStore}
+        entitiesComponents={{
+          text: textComponent,
+        }}
+      />
     </>
   );
 }

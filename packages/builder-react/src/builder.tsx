@@ -13,27 +13,21 @@ import {
   type BuilderStore,
   type BuilderStoreData,
   type BuilderStoreEvent,
-  type SchemaEntityWithId,
 } from "builder";
 
-import { type EntityComponent, type EntityForRender } from "./entities";
-import { type InputComponent, type InputForRender } from "./inputs";
-import { type KeyofUnion } from "./utils";
-
-type EventsListeners<
-  TBuilder extends BaseBuilder,
-  TEvent extends BuilderStoreEvent<TBuilder>,
-> = {
-  [K in `on${TEvent["name"]}`]?: K extends `on${infer REventName}`
-    ? (payload: Extract<TEvent, { name: REventName }>["payload"]) => void
-    : never;
-};
+import {
+  type EntitiesComponents,
+  type EntityForRender,
+  type GenericEntityComponent,
+} from "./entities";
+import { type GenericInputComponent, type InputsComponents } from "./inputs";
+import { type EventsListeners } from "./utils";
 
 export function useBuilderStore<TBuilder extends BaseBuilder>(
   builder: TBuilder,
   options: {
     initialData?: Partial<BuilderStoreData<TBuilder>>;
-    events?: EventsListeners<TBuilder, BuilderStoreEvent<TBuilder>>;
+    events?: EventsListeners<BuilderStoreEvent<TBuilder>>;
   } = {},
 ): BuilderStore<TBuilder> {
   const builderStoreRef = useRef(
@@ -82,28 +76,12 @@ export function useBuilderStoreData<TBuilder extends BaseBuilder>(
   );
 }
 
-type EntitiesComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
-  [K in TBuilder["entities"][number]["name"]]: EntityComponent<
-    Extract<TBuilder["entities"][number], { name: K }>
-  >;
-};
-
-export type GenericEntityRenderProps<
-  TBuilder extends BaseBuilder = BaseBuilder,
-> = {
-  entity: EntityForRender<TBuilder>;
-  children: JSX.Element;
-};
-type GenericEntityRender<TBuilder extends BaseBuilder = BaseBuilder> = {
-  (props: GenericEntityRenderProps<TBuilder>): JSX.Element;
-};
-
 const MemoizedEntity = memo(function Entity(props: {
   entityId: string;
   entitiesComponents: EntitiesComponents;
-  renderEntity: GenericEntityRender;
+  renderEntity: GenericEntityComponent;
   builderStore: BuilderStore;
-}): ReactNode {
+}): JSX.Element {
   const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
       (event) =>
@@ -140,6 +118,18 @@ const MemoizedEntity = memo(function Entity(props: {
         setValue={() => {
           return;
         }}
+        resetError={() => {
+          return;
+        }}
+        resetValue={() => {
+          return;
+        }}
+        clearValue={() => {
+          return;
+        }}
+        validate={() => {
+          return new Promise((resolve) => resolve());
+        }}
       >
         {childrenIds.map((entityId) => (
           <MemoizedEntity key={entityId} {...props} />
@@ -152,7 +142,7 @@ const MemoizedEntity = memo(function Entity(props: {
 function Entities<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   entitiesComponents: EntitiesComponents<TBuilder>;
-  children?: GenericEntityRender<TBuilder>;
+  children?: GenericEntityComponent<TBuilder>;
 }): JSX.Element[] {
   const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
@@ -163,7 +153,7 @@ function Entities<TBuilder extends BaseBuilder>(props: {
   );
 
   const renderEntity =
-    (props.children as GenericEntityRender) ?? ((props) => props.children);
+    (props.children as GenericEntityComponent) ?? ((props) => props.children);
 
   return data.schema.root.map((entityId) => (
     <MemoizedEntity
@@ -178,43 +168,13 @@ function Entities<TBuilder extends BaseBuilder>(props: {
   ));
 }
 
-type InputsComponents<TBuilder extends BaseBuilder = BaseBuilder> = {
-  [K in TBuilder["entities"][number]["name"]]: {
-    [K2 in Extract<
-      TBuilder["entities"][number],
-      { name: K }
-    >["inputs"][number]["name"]]: InputComponent<
-      Extract<
-        Extract<TBuilder["entities"][number], { name: K }>["inputs"][number],
-        { name: K2 }
-      >
-    >;
-  };
-};
-
-export type GenericInputRenderProps<
-  TBuilder extends BaseBuilder = BaseBuilder,
-> = {
-  entity: SchemaEntityWithId<TBuilder>;
-  input: {
-    [K in KeyofUnion<SchemaEntityWithId<TBuilder>["inputs"]>]: InputForRender<
-      Extract<TBuilder["entities"][number]["inputs"][number], { name: K }>
-    >;
-  }[KeyofUnion<SchemaEntityWithId<TBuilder>["inputs"]>];
-  children: JSX.Element;
-};
-
-type GenericInputRender<TBuilder extends BaseBuilder = BaseBuilder> = {
-  (props: GenericInputRenderProps<TBuilder>): JSX.Element;
-};
-
 const MemoizedInput = memo(function Input(props: {
   inputName: string;
   entityId: string;
   entityType: string;
   builderStore: BuilderStore;
   inputsComponents: InputsComponents;
-  renderInput: GenericInputRender;
+  renderInput: GenericInputComponent;
 }): ReactNode {
   const InputComponent =
     props.inputsComponents[props.entityType]?.[props.inputName];
@@ -292,7 +252,7 @@ const MemoizedInput = memo(function Input(props: {
 function Inputs<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   inputsComponents: InputsComponents<TBuilder>;
-  children?: GenericInputRender<TBuilder>;
+  children?: GenericInputComponent<TBuilder>;
   entityId: string;
 }): JSX.Element[] {
   const entity = props.builderStore.getData().schema.entities[props.entityId];
@@ -310,7 +270,7 @@ function Inputs<TBuilder extends BaseBuilder>(props: {
   }
 
   const renderInput =
-    (props.children as GenericInputRender) ?? ((props) => props.children);
+    (props.children as GenericInputComponent) ?? ((props) => props.children);
 
   return entityDefinition.inputs.map((item) => (
     <MemoizedInput

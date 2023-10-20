@@ -2,18 +2,14 @@ import { type Entity } from "./entity";
 import { type Input } from "./input";
 import { generateUuid, validateUuid } from "./uuid";
 
-export type BuilderEntities = ReadonlyArray<
-  Entity<string, ReadonlyArray<Input>, unknown>
->;
-
-type ChildrenAllowed<TEntities extends BuilderEntities> = {
+type ChildrenAllowed<TEntities extends ReadonlyArray<Entity>> = {
   [K in TEntities[number]["name"]]?:
     | ReadonlyArray<TEntities[number]["name"]>
     | true;
 };
 
 export type Builder<
-  TEntities extends BuilderEntities = BuilderEntities,
+  TEntities extends ReadonlyArray<Entity> = ReadonlyArray<Entity>,
   TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<
     string,
     true | ReadonlyArray<string> | undefined
@@ -34,7 +30,7 @@ export type Builder<
 type OptionalBuilderArgs = "childrenAllowed" | "parentRequired";
 
 export function createBuilder<
-  const TEntities extends BuilderEntities,
+  const TEntities extends ReadonlyArray<Entity>,
   const TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<
     string,
     never
