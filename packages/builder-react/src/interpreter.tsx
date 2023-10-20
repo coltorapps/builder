@@ -1,8 +1,17 @@
-import { memo, useEffect, useRef, useSyncExternalStore } from "react";
 import {
+  createContext,
+  memo,
+  useContext,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
+import {
+  createBuilder,
   createInterpreterStore,
   interpreterStoreEventsNames,
   type Builder,
+  type EntitiesValues,
   type InterpreterStore,
   type InterpreterStoreData,
   type InterpreterStoreEvent,
@@ -175,23 +184,69 @@ const MemoizedEntity = memo(function Entity(props: {
   });
 });
 
+const InterpreterContext = createContext<{
+  interpreterStore: InterpreterStore;
+}>({
+  interpreterStore: createInterpreterStore({
+    builder: createBuilder({ entities: [] }),
+    schema: {
+      entities: {},
+      root: [],
+    },
+  }),
+});
+
 export function Interpreter<TBuilder extends Builder>(props: {
   interpreterStore: InterpreterStore<TBuilder>;
   entitiesComponents: EntitiesComponents<TBuilder>;
   children?: GenericEntityComponent<TBuilder>;
-}): JSX.Element[] {
+}): JSX.Element {
   const renderEntity =
     (props.children as GenericEntityComponent) ?? ((props) => props.children);
 
-  return props.interpreterStore.schema.root.map((entityId) => (
-    <MemoizedEntity
-      key={entityId}
-      entityId={entityId}
-      renderEntity={renderEntity}
-      interpreterStore={props.interpreterStore}
-      entitiesComponents={
-        props.entitiesComponents as unknown as EntitiesComponents
-      }
-    />
-  ));
+  return (
+    <InterpreterContext.Provider
+      value={{
+        interpreterStore: props.interpreterStore,
+      }}
+    >
+      {props.interpreterStore.schema.root.map((entityId) => (
+        <MemoizedEntity
+          key={entityId}
+          entityId={entityId}
+          renderEntity={renderEntity}
+          interpreterStore={props.interpreterStore}
+          entitiesComponents={
+            props.entitiesComponents as unknown as EntitiesComponents
+          }
+        />
+      ))}
+    </InterpreterContext.Provider>
+  );
+}
+
+export function useEntitiesValues(entitiesIds?: Array<string>): EntitiesValues {
+  const { interpreterStore } = useContext(InterpreterContext);
+
+  const entitiesValues = useInterpreterStoreData(interpreterStore, (events) =>
+    events.some(
+      (event) =>
+        event.name === interpreterStoreEventsNames.DataSet ||
+        (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
+          entitiesIds &&
+          entitiesIds.includes(event.payload.entityId)) ||
+        (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
+          !entitiesIds),
+    ),
+  ).entitiesValues;
+
+  if (!entitiesIds) {
+    return entitiesValues;
+  }
+
+  return entitiesIds.reduce<EntitiesValues>((result, entityId) => {
+    result[entityId] = entitiesValues[entityId];
+
+    return result;
+  }, {});
 }

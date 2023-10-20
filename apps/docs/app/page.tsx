@@ -46,6 +46,7 @@ import {
   useActiveEntityId,
   useBuilderStore,
   useBuilderStoreData,
+  useEntitiesValues,
   useInterpreterStore,
 } from "@builder/react";
 
@@ -58,7 +59,7 @@ const { textEntity, labelInput, visibleWhenInput, formBuilder } =
 const textComponent = createEntityComponent(
   textEntity,
   ({ entity, setValue, validate }) => {
-    console.log(entity.id);
+    console.log(useEntitiesValues(), entity.id);
 
     return (
       <div className="bg-white shadow rounded p-4">

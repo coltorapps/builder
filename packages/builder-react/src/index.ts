@@ -9,6 +9,7 @@ export {
   Interpreter,
   useInterpreterStore,
   useInterpreterStoreData,
+  useEntitiesValues,
 } from "./interpreter";
 
 export { createEntityComponent } from "./entities";
