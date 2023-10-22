@@ -4,8 +4,8 @@ export type { Builder } from "./builder";
 export { createEntity } from "./entity";
 export type { Entity } from "./entity";
 
-export { createInput } from "./input";
-export type { Input } from "./input";
+export { createAttribute } from "./attribute";
+export type { Attribute } from "./attribute";
 
 export type { SubscriptionEvent } from "./subscription-manager";
 
@@ -35,8 +35,8 @@ export {
   validateSchemaIntegrity,
 } from "./schema";
 export type {
-  EntitiesInputsErrors,
-  EntityInputsErrors,
+  EntitiesAttributesErrors,
+  EntityAttributesErrors,
   Schema,
   SchemaEntity,
   SchemaEntityWithId,

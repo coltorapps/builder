@@ -1,16 +1,14 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`entity > can be created with default value 1`] = `"test"`;
-
-exports[`entity > can be created with inputs 1`] = `
+exports[`entity > can be created with attributes 1`] = `
 {
-  "defaultValue": [Function],
-  "inputs": [
+  "attributes": [
     {
       "name": "required",
       "validate": [Function],
     },
   ],
+  "defaultValue": [Function],
   "isValueAllowed": true,
   "name": "text",
   "shouldBeProcessed": [Function],
@@ -18,10 +16,12 @@ exports[`entity > can be created with inputs 1`] = `
 }
 `;
 
+exports[`entity > can be created with default value 1`] = `"test"`;
+
 exports[`entity > can be created with minimal options 1`] = `
 {
+  "attributes": [],
   "defaultValue": [Function],
-  "inputs": [],
   "isValueAllowed": false,
   "name": "text",
   "shouldBeProcessed": [Function],

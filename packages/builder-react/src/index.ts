@@ -19,9 +19,9 @@ export type {
   GenericEntityProps,
 } from "./entities";
 
-export { createInputComponent } from "./inputs";
+export { createAttributeComponent } from "./attributes";
 export type {
-  GenericInputComponent,
-  GenericInputProps,
-  InputComponentProps,
-} from "./inputs";
+  GenericAttributeComponent,
+  GenericAttributeProps,
+  AttributeComponentProps,
+} from "./attributes";

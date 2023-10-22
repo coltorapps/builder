@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { createBuilder, createEntity } from "../src";
+import * as entitiesValuesExports from "../src/entities-values";
 import { createInterpreterStore } from "../src/interpreter-store";
 import * as schemaExports from "../src/schema";
 
@@ -60,15 +61,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -104,7 +105,7 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
         },
         root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
@@ -135,7 +136,7 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
         },
         root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
@@ -178,15 +179,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -241,15 +242,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -329,15 +330,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -408,15 +409,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -478,11 +479,11 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -542,15 +543,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -612,11 +613,11 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -676,15 +677,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -755,15 +756,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -825,11 +826,11 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -889,15 +890,15 @@ describe("interpreter store", () => {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             type: "select",
-            inputs: {},
+            attributes: {},
           },
           "2df173ee-6b88-4744-a74d-0f21d49166b3": {
             type: "section",
-            inputs: {},
+            attributes: {},
           },
         },
         root: [
@@ -936,6 +937,16 @@ describe("interpreter store", () => {
   });
 
   it("can validate entities", async () => {
+    const validateEntityValueMock = vi.spyOn(
+      entitiesValuesExports,
+      "validateEntityValue",
+    );
+
+    const getEligibleEntitiesIdsForValidationMock = vi.spyOn(
+      entitiesValuesExports,
+      "getEligibleEntitiesIdsForValidation",
+    );
+
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -947,28 +958,30 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
-        entities: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": {
-            type: "text",
-            inputs: {},
-          },
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            type: "text",
-            inputs: {},
-          },
-          "2df173ee-6b88-4744-a74d-0f21d49166b3": {
-            type: "text",
-            inputs: {},
-          },
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
         },
-        root: [
-          "51324b32-adc3-4d17-a90e-66b5453935bd",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        ],
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          attributes: {},
+        },
+        "2df173ee-6b88-4744-a74d-0f21d49166b3": {
+          type: "text",
+          attributes: {},
+        },
       },
+      root: [
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "2df173ee-6b88-4744-a74d-0f21d49166b3",
+      ],
+    } as const;
+
+    const interpreterStore = createInterpreterStore({
+      schema,
       builder,
       initialData: {
         entitiesValues: {
@@ -997,5 +1010,65 @@ describe("interpreter store", () => {
     expect(interpreterStore.getData()).toMatchSnapshot();
 
     expect(listener).toMatchSnapshot();
+
+    const entitiesValues = {
+      "2df173ee-6b88-4744-a74d-0f21d49166b3": "valid",
+      "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
+    };
+
+    expect(getEligibleEntitiesIdsForValidationMock).toHaveBeenNthCalledWith(
+      1,
+      entitiesValues,
+      builder,
+      schema,
+    );
+
+    expect(getEligibleEntitiesIdsForValidationMock).toHaveBeenNthCalledWith(
+      2,
+      entitiesValues,
+      builder,
+      schema,
+    );
+
+    expect(validateEntityValueMock).toHaveBeenNthCalledWith(
+      1,
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      entitiesValues,
+      builder,
+      schema,
+    );
+
+    expect(validateEntityValueMock).toHaveBeenNthCalledWith(
+      2,
+      "2df173ee-6b88-4744-a74d-0f21d49166b3",
+      entitiesValues,
+      builder,
+      schema,
+    );
+
+    expect(validateEntityValueMock).toHaveBeenNthCalledWith(
+      3,
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      entitiesValues,
+      builder,
+      schema,
+    );
+
+    expect(validateEntityValueMock).toHaveBeenNthCalledWith(
+      4,
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      entitiesValues,
+      builder,
+      schema,
+    );
+
+    expect(validateEntityValueMock).toHaveBeenNthCalledWith(
+      5,
+      "2df173ee-6b88-4744-a74d-0f21d49166b3",
+      entitiesValues,
+      builder,
+      schema,
+    );
   });
 });

@@ -1,10 +1,10 @@
-import { createBuilder, createEntity, createInput } from "builder";
+import { createAttribute, createBuilder, createEntity } from "builder";
 import { z } from "zod";
 
 export function createFormBuilder(options?: {
   labelInputValidation?: (value: string) => Promise<void> | void;
 }) {
-  const visibleWhenInput = createInput({
+  const visibleWhenAttribute = createAttribute({
     name: "visibleWhen",
     validate(value, context) {
       const result = z
@@ -28,7 +28,7 @@ export function createFormBuilder(options?: {
     },
   });
 
-  const labelInput = createInput({
+  const labelAttribute = createAttribute({
     name: "label",
     async validate(value) {
       const result = z.string().min(1).safeParse(value);
@@ -45,7 +45,7 @@ export function createFormBuilder(options?: {
 
   const textEntity = createEntity({
     name: "text",
-    inputs: [labelInput, visibleWhenInput],
+    attributes: [labelAttribute, visibleWhenAttribute],
     validate(value) {
       const result = z.string().min(1).safeParse(value);
 
@@ -72,7 +72,7 @@ export function createFormBuilder(options?: {
   return {
     formBuilder,
     textEntity,
-    labelInput,
-    visibleWhenInput,
+    labelAttribute,
+    visibleWhenAttribute,
   };
 }

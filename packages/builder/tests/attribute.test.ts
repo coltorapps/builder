@@ -1,46 +1,48 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createInput } from "../src/input";
+import { createAttribute } from "../src/attribute";
 
-const dummyInputContext = {
+const dummyAttributeContext = {
   schema: {
     entities: {},
     root: [],
   },
   entity: {
     id: "",
-    inputs: {},
+    attributes: {},
     type: "",
   },
 };
 
-describe("input", () => {
+describe("attribute", () => {
   it("can be created with minimal options", () => {
-    const input = createInput({
+    const attribute = createAttribute({
       name: "label",
       validate(value) {
         return value;
       },
     });
 
-    expect(input).toMatchSnapshot();
+    expect(attribute).toMatchSnapshot();
 
-    expect(input.validate("test", dummyInputContext)).toMatchSnapshot();
+    expect(attribute.validate("test", dummyAttributeContext)).toMatchSnapshot();
   });
 
   it("can validate values", () => {
-    const input = createInput({
+    const attribute = createAttribute({
       name: "label",
       validate(value) {
         return z.string().parse(value);
       },
     });
 
-    expect(input.validate("valid", dummyInputContext)).toMatchSnapshot();
+    expect(
+      attribute.validate("valid", dummyAttributeContext),
+    ).toMatchSnapshot();
 
     expect(() =>
-      input.validate(1, dummyInputContext),
+      attribute.validate(1, dummyAttributeContext),
     ).toThrowErrorMatchingSnapshot();
   });
 });

@@ -1,8 +1,8 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
+import { createAttribute, type Attribute } from "../src/attribute";
 import { createEntity } from "../src/entity";
-import { createInput, type Input } from "../src/input";
 
 describe("entity", () => {
   it("can be created", () => {
@@ -26,7 +26,7 @@ describe("entity", () => {
     type EntityContext = {
       entity: {
         id: string;
-        inputs: {
+        attributes: {
           [x: string]: unknown;
         };
       };
@@ -37,7 +37,7 @@ describe("entity", () => {
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
-      inputs: readonly Input[];
+      attributes: readonly Attribute[];
       isValueAllowed: boolean;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
@@ -45,20 +45,20 @@ describe("entity", () => {
     }>();
   });
 
-  it("can be created with inputs", () => {
+  it("can be created with attributes", () => {
     const entity = createEntity({
       name: "text",
       validate(value) {
         return z.string().parse(value);
       },
-      inputs: [
-        createInput({
+      attributes: [
+        createAttribute({
           name: "label",
           validate(value) {
             return z.string().parse(value);
           },
         }),
-        createInput({
+        createAttribute({
           name: "defaultValue",
           validate(value) {
             return z.string().optional().parse(value);
@@ -66,23 +66,23 @@ describe("entity", () => {
         }),
       ],
       defaultValue({ entity }) {
-        return entity.inputs.defaultValue;
+        return entity.attributes.defaultValue;
       },
     });
 
     type EntityContext = {
       entity: {
         id: string;
-        inputs: { label: string; defaultValue: string | undefined };
+        attributes: { label: string; defaultValue: string | undefined };
       };
       entitiesValues: Record<string, unknown>;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
-      inputs: readonly [
-        Input<"label", string>,
-        Input<"defaultValue", string | undefined>,
+      attributes: readonly [
+        Attribute<"label", string>,
+        Attribute<"defaultValue", string | undefined>,
       ];
       isValueAllowed: boolean;
       validate: (value: unknown, context: EntityContext) => string;

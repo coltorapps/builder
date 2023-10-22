@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`entities values validation > can validate entities 1`] = `
+{
+  "entitiesErrors": {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+  },
+  "success": false,
+}
+`;

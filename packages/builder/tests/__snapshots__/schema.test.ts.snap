@@ -5,14 +5,14 @@ exports[`schema integrity validation > returns clean data for valid schemas 1`] 
   "data": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "attributes": {},
         "children": [
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         ],
-        "inputs": {},
         "type": "section",
       },
       "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-        "inputs": {
+        "attributes": {
           "label": "test",
         },
         "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -32,7 +32,7 @@ exports[`schema integrity validation > returns the validated schema 1`] = `
   "data": {
     "entities": {
       "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-        "inputs": {},
+        "attributes": {},
         "type": "text",
       },
     },
@@ -50,12 +50,12 @@ exports[`schema integrity validation > throws for invalid parent id 1`] = `"The 
 
 exports[`schema integrity validation > throws for invalid root ids 1`] = `"The entity id '1' is invalid."`;
 
-exports[`schema validation > validates inputs with their validators 1`] = `
+exports[`schema validation > validates attributes with their validators 1`] = `
 {
   "reason": {
-    "code": "InvalidEntitiesInputs",
+    "code": "InvalidEntitiesAttributes",
     "payload": {
-      "entitiesInputsErrors": {
+      "entitiesAttributesErrors": {
         "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
           "label": [ZodError: [
   {
@@ -85,9 +85,9 @@ exports[`schema validation > validates inputs with their validators 1`] = `
 }
 `;
 
-exports[`schema validation > validates inputs with their validators 2`] = `
+exports[`schema validation > validates attributes with their validators 2`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
       "label": [ZodError: [
   {

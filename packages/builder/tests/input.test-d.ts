@@ -1,18 +1,18 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createInput, type Schema, type SchemaEntityWithId } from "../src";
+import { createAttribute, type Schema, type SchemaEntityWithId } from "../src";
 
-describe("input", () => {
+describe("attribute", () => {
   it("can be created", () => {
-    const input = createInput({
+    const attribute = createAttribute({
       name: "label",
       validate(value) {
         return z.string().parse(value);
       },
     });
 
-    expectTypeOf(input).toEqualTypeOf<{
+    expectTypeOf(attribute).toEqualTypeOf<{
       name: "label";
       validate: (
         value: unknown,

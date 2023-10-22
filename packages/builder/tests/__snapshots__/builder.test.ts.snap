@@ -7,8 +7,8 @@ exports[`builder > can be created with children and parent rules 1`] = `
   },
   "entities": [
     {
+      "attributes": [],
       "defaultValue": [Function],
-      "inputs": [],
       "isValueAllowed": false,
       "name": "test",
       "shouldBeProcessed": [Function],
@@ -30,8 +30,8 @@ exports[`builder > can be created with entities 1`] = `
   "childrenAllowed": {},
   "entities": [
     {
+      "attributes": [],
       "defaultValue": [Function],
-      "inputs": [],
       "isValueAllowed": false,
       "name": "test",
       "shouldBeProcessed": [Function],

@@ -40,8 +40,8 @@ import {
 
 import {
   Builder,
+  createAttributeComponent,
   createEntityComponent,
-  createInputComponent,
   Interpreter,
   useActiveEntityId,
   useBuilderStore,
@@ -53,7 +53,7 @@ import {
 import { createFormBuilder } from "./builder";
 import { validateForm, validateSubmission } from "./validate-form";
 
-const { textEntity, labelInput, visibleWhenInput, formBuilder } =
+const { textEntity, labelAttribute, visibleWhenAttribute, formBuilder } =
   createFormBuilder();
 
 const textComponent = createEntityComponent(
@@ -63,7 +63,7 @@ const textComponent = createEntityComponent(
 
     return (
       <div className="bg-white shadow rounded p-4">
-        {entity.id}
+        {entity.id} {entity.attributes.label}
         <input
           value={entity.value ?? ""}
           onChange={(e) => {
@@ -78,9 +78,9 @@ const textComponent = createEntityComponent(
   },
 );
 
-const visibleWhenComponent = createInputComponent(
-  visibleWhenInput,
-  ({ input, entity, setValue, validate }) => {
+const visibleWhenComponent = createAttributeComponent(
+  visibleWhenAttribute,
+  ({ attribute, entity, setValue, validate }) => {
     const { builderStore } = useContext(FormBuilderStoreContext);
     const entities = useBuilderStoreData(builderStore).schema.entities;
     console.log(builderStore.getData());
@@ -90,7 +90,7 @@ const visibleWhenComponent = createInputComponent(
     return (
       <div className="mb-4">
         <Select
-          value={input.value?.entityId ?? ""}
+          value={attribute.value?.entityId ?? ""}
           onValueChange={(value) => {
             if (!value) {
               setValue(undefined);
@@ -108,7 +108,7 @@ const visibleWhenComponent = createInputComponent(
             {items.length ? (
               items.map(([id, item]) => (
                 <SelectItem key={id} value={id}>
-                  {item.inputs.label}
+                  {item.attributes.label}
                 </SelectItem>
               ))
             ) : (
@@ -121,14 +121,14 @@ const visibleWhenComponent = createInputComponent(
   },
 );
 
-const labelComponent = createInputComponent(
-  labelInput,
-  ({ input, setValue, validate, resetError }) => {
+const labelComponent = createAttributeComponent(
+  labelAttribute,
+  ({ attribute, setValue, validate, resetError }) => {
     return (
       <div>
         Label
         <input
-          value={input.value ?? ""}
+          value={attribute.value ?? ""}
           onChange={(e) => {
             setValue(e.target.value);
 
@@ -137,9 +137,9 @@ const labelComponent = createInputComponent(
         />
         <Button onClick={() => resetError()}>reset</Button>
         <span style={{ color: "red" }}>
-          {typeof input.error === "string"
-            ? input.error
-            : JSON.stringify(input.error)}
+          {typeof attribute.error === "string"
+            ? attribute.error
+            : JSON.stringify(attribute.error)}
         </span>
       </div>
     );
@@ -175,10 +175,10 @@ export default function Page() {
         Object.entries(builderStore.getData().schema.entities).forEach(
           ([id, entity]) => {
             if (
-              "visibleWhen" in entity.inputs &&
-              entity.inputs.visibleWhen?.entityId === payload.entity.id
+              "visibleWhen" in entity.attributes &&
+              entity.attributes.visibleWhen?.entityId === payload.entity.id
             ) {
-              builderStore.setEntityInput(id, "visibleWhen", undefined);
+              builderStore.setEntityAttribute(id, "visibleWhen", undefined);
             }
           },
         );
@@ -205,13 +205,13 @@ export default function Page() {
     entities: {
       "98220f11-9ebc-46b8-b1d7-abd16f90841c": {
         type: "text",
-        inputs: {
+        attributes: {
           label: "1",
         },
       },
       "414e1304-d22e-4337-94b9-6821a1dd01e0": {
         type: "text",
-        inputs: {
+        attributes: {
           label: "2",
         },
       },
@@ -228,7 +228,7 @@ export default function Page() {
         onClick={() => {
           builderStore.addEntity({
             type: "text",
-            inputs: {
+            attributes: {
               label: "Text Input" + Math.random().toString(),
             },
           });
@@ -259,7 +259,7 @@ export default function Page() {
         >
           <Builder.Entities
             builderStore={builderStore}
-            entitiesComponents={{
+            components={{
               text: textComponent,
             }}
           >
@@ -300,10 +300,10 @@ export default function Page() {
             builderStore,
           }}
         >
-          <Builder.Inputs
+          <Builder.Attributes
             builderStore={builderStore}
             entityId={selectedEntityId}
-            inputsComponents={{
+            components={{
               text: {
                 label: labelComponent,
                 visibleWhen: visibleWhenComponent,
@@ -316,26 +316,26 @@ export default function Page() {
       <button
         onClick={() => {
           startTransition(async () => {
-            builderStore.resetEntitiesInputsErrors();
+            builderStore.resetEntitiesAttributesErrors();
 
             const res = await validateForm(builderStore.getData().schema);
 
             if (
               !res.success &&
               res.reason.code ===
-                schemaValidationErrorCodes.InvalidEntitiesInputs
+                schemaValidationErrorCodes.InvalidEntitiesAttributes
             ) {
-              builderStore.setEntitiesInputsErrors(
-                res.reason.payload.entitiesInputsErrors,
+              builderStore.setEntitiesAttributesErrors(
+                res.reason.payload.entitiesAttributesErrors,
               );
 
               const firstEntityWithErrors = Object.keys(
-                res.reason.payload.entitiesInputsErrors,
+                res.reason.payload.entitiesAttributesErrors,
               )[0];
 
               if (
                 selectedEntityId &&
-                res.reason.payload.entitiesInputsErrors[selectedEntityId]
+                res.reason.payload.entitiesAttributesErrors[selectedEntityId]
               ) {
                 return;
               }
@@ -352,7 +352,7 @@ export default function Page() {
       <button
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick={async () => {
-          builderStore.resetEntitiesInputsErrors();
+          builderStore.resetEntitiesAttributesErrors();
 
           const res = await validateSubmission(
             interpreterStore.getData().entitiesValues,

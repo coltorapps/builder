@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
+import { createAttribute } from "../src/attribute";
 import { createEntity } from "../src/entity";
-import { createInput } from "../src/input";
 
 describe("entity", () => {
   it("can be created with minimal options", () => {
@@ -14,7 +14,7 @@ describe("entity", () => {
 
     expect(
       entity.defaultValue({
-        entity: { id: "", inputs: {} },
+        entity: { id: "", attributes: {} },
         entitiesValues: {},
       }),
     ).toMatchSnapshot();
@@ -30,14 +30,14 @@ describe("entity", () => {
 
     expect(
       entity.validate("valid", {
-        entity: { id: "", inputs: {} },
+        entity: { id: "", attributes: {} },
         entitiesValues: {},
       }),
     ).toMatchSnapshot();
 
     expect(() =>
       entity.validate(1, {
-        entity: { id: "", inputs: {} },
+        entity: { id: "", attributes: {} },
         entitiesValues: {},
       }),
     ).toThrowErrorMatchingSnapshot();
@@ -50,14 +50,14 @@ describe("entity", () => {
 
     expect(() =>
       entity.validate("value", {
-        entity: { id: "", inputs: {} },
+        entity: { id: "", attributes: {} },
         entitiesValues: {},
       }),
     ).toThrowErrorMatchingSnapshot();
 
     expect(
       entity.validate(undefined, {
-        entity: { id: "", inputs: {} },
+        entity: { id: "", attributes: {} },
         entitiesValues: {},
       }),
     ).toMatchSnapshot();
@@ -73,17 +73,17 @@ describe("entity", () => {
 
     expect(
       entity.defaultValue({
-        entity: { id: "", inputs: {} },
+        entity: { id: "", attributes: {} },
         entitiesValues: {},
       }),
     ).toMatchSnapshot();
   });
 
-  it("can be created with inputs", () => {
+  it("can be created with attributes", () => {
     const entity = createEntity({
       name: "text",
-      inputs: [
-        createInput({
+      attributes: [
+        createAttribute({
           name: "required",
           validate(value) {
             return value;

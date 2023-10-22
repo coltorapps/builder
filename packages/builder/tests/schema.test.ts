@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createBuilder, createEntity, createInput } from "../src";
+import { createAttribute, createBuilder, createEntity } from "../src";
 import {
   schemaValidationErrorCodes,
   validateSchema,
@@ -52,7 +52,7 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: {},
+          attributes: {},
         },
       },
       root: [
@@ -73,7 +73,7 @@ const invalidSchemasCases: Array<{
         entities: {
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
             type: "text",
-            inputs: {},
+            attributes: {},
           },
         },
       },
@@ -123,7 +123,7 @@ const invalidSchemasCases: Array<{
     schema: {
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-          inputs: {},
+          attributes: {},
         },
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
@@ -140,7 +140,7 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "invalid",
-          inputs: {},
+          attributes: {},
         },
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
@@ -163,7 +163,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.MissingEntityInputs,
+      code: schemaValidationErrorCodes.MissingEntityAttributes,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       },
@@ -174,16 +174,16 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: [],
+          attributes: [],
         },
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.InvalidEntityInputsFormat,
+      code: schemaValidationErrorCodes.InvalidEntityAttributesFormat,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-        entityInputs: [],
+        entityAttributes: [],
       },
     },
   },
@@ -192,7 +192,7 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: {
+          attributes: {
             invalid: "test",
           },
         },
@@ -200,10 +200,10 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.UnknownEntityInputType,
+      code: schemaValidationErrorCodes.UnknownEntityAttributeType,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-        inputName: "invalid",
+        attributeName: "invalid",
       },
     },
   },
@@ -213,7 +213,7 @@ const invalidSchemasCases: Array<{
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
           parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          inputs: {},
+          attributes: {},
         },
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
@@ -232,7 +232,7 @@ const invalidSchemasCases: Array<{
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
           parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-          inputs: {},
+          attributes: {},
         },
       },
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
@@ -249,7 +249,7 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: {},
+          attributes: {},
           children: "invalid",
         },
       },
@@ -267,12 +267,12 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: {},
+          attributes: {},
           children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
         },
         "6e0035c3-0d4c-445f-a42b-2d971225447c": {
           type: "text",
-          inputs: {},
+          attributes: {},
           parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         },
       },
@@ -291,12 +291,12 @@ const invalidSchemasCases: Array<{
       entities: {
         "6e0035c3-0d4c-445f-a42b-2d971225447c": {
           type: "section",
-          inputs: {},
+          attributes: {},
           parentId: "a1109529-46c6-4290-885b-bb0aca7a92a1",
         },
         "a1109529-46c6-4290-885b-bb0aca7a92a1": {
           type: "section",
-          inputs: {},
+          attributes: {},
           children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
         },
       },
@@ -317,11 +317,11 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: {},
+          attributes: {},
         },
         "6e0035c3-0d4c-445f-a42b-2d971225447c": {
           type: "section",
-          inputs: {},
+          attributes: {},
           children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
       },
@@ -343,12 +343,12 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: {},
+          attributes: {},
           parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
         },
         "6e0035c3-0d4c-445f-a42b-2d971225447c": {
           type: "section",
-          inputs: {},
+          attributes: {},
           children: [
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
@@ -369,17 +369,17 @@ const invalidSchemasCases: Array<{
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: {},
+          attributes: {},
           parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
         },
         "6e0035c3-0d4c-445f-a42b-2d971225447c": {
           type: "section",
-          inputs: {},
+          attributes: {},
           children: ["a1109529-46c6-4290-885b-bb0aca7a92a1"],
         },
         "a1109529-46c6-4290-885b-bb0aca7a92a1": {
           type: "section",
-          inputs: {},
+          attributes: {},
         },
       },
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
@@ -397,7 +397,7 @@ const invalidSchemasCases: Array<{
       entities: {
         "a1109529-46c6-4290-885b-bb0aca7a92a1": {
           type: "select",
-          inputs: {},
+          attributes: {},
         },
       },
       root: ["a1109529-46c6-4290-885b-bb0aca7a92a1"],
@@ -417,8 +417,8 @@ describe("schema integrity validation", () => {
       entities: [
         createEntity({
           name: "text",
-          inputs: [
-            createInput({
+          attributes: [
+            createAttribute({
               name: "label",
               validate(value) {
                 return value;
@@ -454,8 +454,8 @@ describe("schema integrity validation", () => {
       entities: [
         createEntity({
           name: "text",
-          inputs: [
-            createInput({
+          attributes: [
+            createAttribute({
               name: "label",
               validate(value) {
                 return z.string().parse(value) + "should be appended";
@@ -473,7 +473,7 @@ describe("schema integrity validation", () => {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
               type: "text",
               // @ts-expect-error Intentional wrong data type.
-              inputs: {},
+              attributes: {},
             },
           },
           root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
@@ -498,7 +498,7 @@ describe("schema integrity validation", () => {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
               type: "text",
-              inputs: {},
+              attributes: {},
               // @ts-expect-error Intentional wrong data type.
               parentId: 1,
             },
@@ -528,7 +528,7 @@ describe("schema integrity validation", () => {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
               type: "text",
-              inputs: {},
+              attributes: {},
               // @ts-expect-error Intentional wrong data type.
               children: [1],
             },
@@ -555,7 +555,7 @@ describe("schema integrity validation", () => {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
               type: "text",
-              inputs: {},
+              attributes: {},
             },
           },
           // @ts-expect-error Intentional wrong data type.
@@ -569,8 +569,8 @@ describe("schema integrity validation", () => {
   it("returns clean data for valid schemas", () => {
     const textEntity = createEntity({
       name: "text",
-      inputs: [
-        createInput({
+      attributes: [
+        createAttribute({
           name: "label",
           validate(value) {
             return value;
@@ -594,7 +594,7 @@ describe("schema integrity validation", () => {
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
-          inputs: {
+          attributes: {
             label: "test",
           },
           parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -603,7 +603,7 @@ describe("schema integrity validation", () => {
         },
         "6e0035c3-0d4c-445f-a42b-2d971225447c": {
           type: "section",
-          inputs: {},
+          attributes: {},
           children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
       },
@@ -620,8 +620,8 @@ describe("schema validation", () => {
       entities: [
         createEntity({
           name: "text",
-          inputs: [
-            createInput({
+          attributes: [
+            createAttribute({
               name: "label",
               validate(value) {
                 return value;
@@ -652,13 +652,13 @@ describe("schema validation", () => {
     }
   });
 
-  it("validates inputs with their validators", async () => {
+  it("validates attributes with their validators", async () => {
     const builder = createBuilder({
       entities: [
         createEntity({
           name: "text",
-          inputs: [
-            createInput({
+          attributes: [
+            createAttribute({
               name: "label",
               validate(value) {
                 return z.string().parse(value);
@@ -674,14 +674,14 @@ describe("schema validation", () => {
         entities: {
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
             type: "text",
-            inputs: {
+            attributes: {
               // @ts-expect-error Intentional wrong data type
               label: 1,
             },
           },
           "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
             type: "text",
-            inputs: {
+            attributes: {
               // @ts-expect-error Intentional wrong data type
               label: 1,
             },

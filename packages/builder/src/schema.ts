@@ -1,10 +1,10 @@
+import { type AttributesValues } from "./attribute";
 import {
   getEntityDefinition,
   isEntityChildAllowed,
   isEntityParentRequired,
   type Builder,
 } from "./builder";
-import { type InputsValues } from "./input";
 import { type KeyofUnion, type OptionalPropsIfUndefined } from "./utils";
 
 export const schemaValidationErrorCodes = {
@@ -19,11 +19,11 @@ export const schemaValidationErrorCodes = {
   UnknownEntityType: "UnknownEntityType",
   InvalidChildrenFormat: "InvalidChildrenFormat",
   NonexistentEntityParent: "NonexistentEntityParent",
-  MissingEntityInputs: "MissingEntityInputs",
-  InvalidEntityInputsFormat: "InvalidEntityInputsFormat",
-  UnknownEntityInputType: "UnknownEntityInputType",
-  InvalidEntityInputs: "InvalidEntityInputs",
-  InvalidEntitiesInputs: "InvalidEntitiesInputs",
+  MissingEntityAttributes: "MissingEntityAttributes",
+  InvalidEntityAttributesFormat: "InvalidEntityAttributesFormat",
+  UnknownEntityAttributeType: "UnknownEntityAttributeType",
+  InvalidEntityAttributes: "InvalidEntityAttributes",
+  InvalidEntitiesAttributes: "InvalidEntitiesAttributes",
   SelfEntityReference: "SelfEntityReference",
   ChildNotAllowed: "ChildNotAllowed",
   EntityChildrenMismatch: "EntityChildrenMismatch",
@@ -58,12 +58,12 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
       "The provided children are invalid.",
     [schemaValidationErrorCodes.NonexistentEntityParent]:
       "The parent ID references a non-existent entity.",
-    [schemaValidationErrorCodes.MissingEntityInputs]:
-      "Entity inputs are missing.",
-    [schemaValidationErrorCodes.InvalidEntityInputsFormat]:
-      "The provided entity inputs are invalid.",
-    [schemaValidationErrorCodes.UnknownEntityInputType]:
-      "The provided entity input type is unknown.",
+    [schemaValidationErrorCodes.MissingEntityAttributes]:
+      "Entity attributes are missing.",
+    [schemaValidationErrorCodes.InvalidEntityAttributesFormat]:
+      "The provided entity attributes are invalid.",
+    [schemaValidationErrorCodes.UnknownEntityAttributeType]:
+      "The provided entity attribute type is unknown.",
     [schemaValidationErrorCodes.SelfEntityReference]: "Self entity reference.",
     [schemaValidationErrorCodes.ChildNotAllowed]: "Child is not allowed.",
     [schemaValidationErrorCodes.EntityChildrenMismatch]:
@@ -73,10 +73,10 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
     [schemaValidationErrorCodes.ParentRequired]: "A parent is required.",
     [schemaValidationErrorCodes.UnreachableEntity]:
       "The entity is not in the root and has no parent ID.",
-    [schemaValidationErrorCodes.InvalidEntityInputs]:
-      "Validation has failed for some entity inputs.",
-    [schemaValidationErrorCodes.InvalidEntitiesInputs]:
-      "Validation has failed for some entities inputs.",
+    [schemaValidationErrorCodes.InvalidEntityAttributes]:
+      "Validation has failed for some entity attributes.",
+    [schemaValidationErrorCodes.InvalidEntitiesAttributes]:
+      "Validation has failed for some entities attributes.",
   };
 
 export type SchemaValidationErrorReason =
@@ -116,16 +116,16 @@ export type SchemaValidationErrorReason =
       payload: { entityId: string; entityParentId: string };
     }
   | {
-      code: typeof schemaValidationErrorCodes.MissingEntityInputs;
+      code: typeof schemaValidationErrorCodes.MissingEntityAttributes;
       payload: { entityId: string };
     }
   | {
-      code: typeof schemaValidationErrorCodes.InvalidEntityInputsFormat;
-      payload: { entityId: string; entityInputs: unknown };
+      code: typeof schemaValidationErrorCodes.InvalidEntityAttributesFormat;
+      payload: { entityId: string; entityAttributes: unknown };
     }
   | {
-      code: typeof schemaValidationErrorCodes.UnknownEntityInputType;
-      payload: { entityId: string; inputName: string };
+      code: typeof schemaValidationErrorCodes.UnknownEntityAttributeType;
+      payload: { entityId: string; attributeName: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.SelfEntityReference;
@@ -160,12 +160,12 @@ export type SchemaValidationErrorReason =
       payload: { entityId: string };
     }
   | {
-      code: typeof schemaValidationErrorCodes.InvalidEntityInputs;
-      payload: { entityId: string; inputsErrors: EntityInputsErrors };
+      code: typeof schemaValidationErrorCodes.InvalidEntityAttributes;
+      payload: { entityId: string; attributesErrors: EntityAttributesErrors };
     }
   | {
-      code: typeof schemaValidationErrorCodes.InvalidEntitiesInputs;
-      payload: { entitiesInputsErrors: EntitiesInputsErrors };
+      code: typeof schemaValidationErrorCodes.InvalidEntitiesAttributes;
+      payload: { entitiesAttributesErrors: EntitiesAttributesErrors };
     };
 
 export class SchemaValidationError extends Error {
@@ -180,8 +180,10 @@ export type BaseSchemaEntity<
 > = {
   [K in TBuilder["entities"][number]["name"]]: {
     type: K;
-    inputs: OptionalPropsIfUndefined<
-      InputsValues<Extract<TBuilder["entities"][number], { name: K }>["inputs"]>
+    attributes: OptionalPropsIfUndefined<
+      AttributesValues<
+        Extract<TBuilder["entities"][number], { name: K }>["attributes"]
+      >
     >;
     parentId?: string;
   } & TExtend;
@@ -227,64 +229,70 @@ function ensureEntityTypeHasValidFormat(entity: SchemaEntityWithId): void {
   }
 }
 
-function ensureEntityInputsHaveValidFormat(entity: SchemaEntityWithId): void {
+function ensureEntityAttributesHaveValidFormat(
+  entity: SchemaEntityWithId,
+): void {
   if (
-    typeof entity.inputs !== "object" ||
-    Array.isArray(entity.inputs) ||
-    entity.inputs === null
+    typeof entity.attributes !== "object" ||
+    Array.isArray(entity.attributes) ||
+    entity.attributes === null
   ) {
     throw new SchemaValidationError({
-      code: schemaValidationErrorCodes.InvalidEntityInputsFormat,
-      payload: { entityId: entity.id, entityInputs: entity.inputs },
+      code: schemaValidationErrorCodes.InvalidEntityAttributesFormat,
+      payload: { entityId: entity.id, entityAttributes: entity.attributes },
     });
   }
 }
 
-function ensureEntityHasInputs(entity: SchemaEntityWithId): void {
-  if (!entity.inputs) {
+function ensureEntityHasAttributes(entity: SchemaEntityWithId): void {
+  if (!entity.attributes) {
     throw new SchemaValidationError({
-      code: schemaValidationErrorCodes.MissingEntityInputs,
+      code: schemaValidationErrorCodes.MissingEntityAttributes,
       payload: { entityId: entity.id },
     });
   }
 }
 
-function ensureEntityInputIsRegistered(
+function ensureEntityAttributeIsRegistered(
   entity: SchemaEntityWithId,
-  inputName: string,
+  attributeName: string,
   builder: Builder,
 ): void {
   const entityDefinition = ensureEntityIsRegistered(entity, builder);
 
-  if (!entityDefinition?.inputs.some((input) => input.name === inputName)) {
+  if (
+    !entityDefinition?.attributes.some(
+      (attribute) => attribute.name === attributeName,
+    )
+  ) {
     throw new SchemaValidationError({
-      code: schemaValidationErrorCodes.UnknownEntityInputType,
-      payload: { entityId: entity.id, inputName: inputName },
+      code: schemaValidationErrorCodes.UnknownEntityAttributeType,
+      payload: { entityId: entity.id, attributeName: attributeName },
     });
   }
 }
 
-function ensureEntityInputsAreRegistered(
+function ensureEntityAttributesAreRegistered(
   entity: SchemaEntityWithId,
   builder: Builder,
 ): void {
-  Object.keys(entity.inputs).forEach((inputName) =>
-    ensureEntityInputIsRegistered(entity, inputName, builder),
+  Object.keys(entity.attributes).forEach((attributeName) =>
+    ensureEntityAttributeIsRegistered(entity, attributeName, builder),
   );
 }
 
-async function validateEntityInputs(
+async function validateEntityAttributes(
   entity: SchemaEntityWithId,
   builder: Builder,
   schema: Schema,
 ): Promise<void> {
   const entityDefinition = ensureEntityIsRegistered(entity, builder);
 
-  const inputsErrors: EntityInputsErrors = {};
+  const attributesErrors: EntityAttributesErrors = {};
 
-  for (const input of entityDefinition.inputs) {
+  for (const attribute of entityDefinition.attributes) {
     try {
-      await input.validate(entity.inputs[input.name], {
+      await attribute.validate(entity.attributes[attribute.name], {
         schema: schema,
         entity: {
           ...entity,
@@ -292,14 +300,14 @@ async function validateEntityInputs(
         },
       });
     } catch (error) {
-      inputsErrors[input.name] = error;
+      attributesErrors[attribute.name] = error;
     }
   }
 
-  if (Object.keys(inputsErrors).length) {
+  if (Object.keys(attributesErrors).length) {
     throw new SchemaValidationError({
-      code: schemaValidationErrorCodes.InvalidEntityInputs,
-      payload: { entityId: entity.id, inputsErrors },
+      code: schemaValidationErrorCodes.InvalidEntityAttributes,
+      payload: { entityId: entity.id, attributesErrors },
     });
   }
 }
@@ -494,11 +502,11 @@ function validateEntitySchema<TBuilder extends Builder>(
 
   ensureEntityIsRegistered(entity, builder);
 
-  ensureEntityHasInputs(entity);
+  ensureEntityHasAttributes(entity);
 
-  ensureEntityInputsHaveValidFormat(entity);
+  ensureEntityAttributesHaveValidFormat(entity);
 
-  ensureEntityInputsAreRegistered(entity, builder);
+  ensureEntityAttributesAreRegistered(entity, builder);
 
   ensureEntityOptionalParentIdHasValidReference(entity, schema.entities);
 
@@ -520,7 +528,7 @@ function validateEntitySchema<TBuilder extends Builder>(
 
   return {
     type: entity.type,
-    inputs: entity.inputs,
+    attributes: entity.attributes,
     ...(entity.parentId ? { parentId: entity.parentId } : {}),
     ...(entity.children ? { children: entity.children } : {}),
   };
@@ -674,42 +682,39 @@ export function validateSchemaIntegrity<TBuilder extends Builder>(
   }
 }
 
-export type EntityInputsErrors<TBuilder extends Builder = Builder> = Partial<
-  Record<KeyofUnion<SchemaEntity<TBuilder>["inputs"]>, unknown>
->;
+export type EntityAttributesErrors<TBuilder extends Builder = Builder> =
+  Partial<Record<KeyofUnion<SchemaEntity<TBuilder>["attributes"]>, unknown>>;
 
-export type EntitiesInputsErrors<TBuilder extends Builder = Builder> = Record<
-  string,
-  EntityInputsErrors<TBuilder>
->;
+export type EntitiesAttributesErrors<TBuilder extends Builder = Builder> =
+  Record<string, EntityAttributesErrors<TBuilder>>;
 
-async function validateEntitiesInputs<TBuilder extends Builder>(
+async function validateEntitiesAttributes<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
   builder: TBuilder,
 ): Promise<SchemValidationResult<TBuilder>> {
-  const entitiesInputsErrors: EntitiesInputsErrors = {};
+  const entitiesAttributesErrors: EntitiesAttributesErrors = {};
 
   for (const [id, entity] of Object.entries(schema.entities)) {
     try {
-      await validateEntityInputs({ ...entity, id }, builder, schema);
+      await validateEntityAttributes({ ...entity, id }, builder, schema);
     } catch (error) {
       if (
         error instanceof SchemaValidationError &&
-        error.reason.code === schemaValidationErrorCodes.InvalidEntityInputs
+        error.reason.code === schemaValidationErrorCodes.InvalidEntityAttributes
       ) {
-        entitiesInputsErrors[id] = error.reason.payload.inputsErrors;
+        entitiesAttributesErrors[id] = error.reason.payload.attributesErrors;
       } else {
         throw error;
       }
     }
   }
 
-  if (Object.keys(entitiesInputsErrors).length) {
+  if (Object.keys(entitiesAttributesErrors).length) {
     return {
       success: false,
       reason: new SchemaValidationError({
-        code: schemaValidationErrorCodes.InvalidEntitiesInputs,
-        payload: { entitiesInputsErrors },
+        code: schemaValidationErrorCodes.InvalidEntitiesAttributes,
+        payload: { entitiesAttributesErrors },
       }).reason,
     };
   }
@@ -730,5 +735,5 @@ export async function validateSchema<TBuilder extends Builder>(
     return validatedSchema;
   }
 
-  return validateEntitiesInputs(validatedSchema.data, builder);
+  return validateEntitiesAttributes(validatedSchema.data, builder);
 }

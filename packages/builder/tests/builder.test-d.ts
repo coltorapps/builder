@@ -1,6 +1,11 @@
 import { describe, expectTypeOf, it } from "vitest";
 
-import { createBuilder, createEntity, type Entity, type Input } from "../src";
+import {
+  createBuilder,
+  createEntity,
+  type Attribute,
+  type Entity,
+} from "../src";
 
 describe("builder", () => {
   it("can be created with minimal options", () => {
@@ -29,7 +34,7 @@ describe("builder", () => {
     });
 
     expectTypeOf(builder).toEqualTypeOf<{
-      entities: readonly [Entity<"test", readonly Input[], unknown>];
+      entities: readonly [Entity<"test", readonly Attribute[], unknown>];
       entityId: {
         generate: () => string;
         validate: (id: string) => void;

@@ -1,11 +1,11 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`builder store > applies only the last result of an entity input validation 1`] = `
+exports[`builder store > applies only the last result of an entity attribute validation 1`] = `
 [MockFunction spy] {
   "calls": [
     [
       {
-        "entitiesInputsErrors": {
+        "entitiesAttributesErrors": {
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
             "test": 2,
           },
@@ -13,7 +13,7 @@ exports[`builder store > applies only the last result of an entity input validat
         "schema": {
           "entities": {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-              "inputs": {
+              "attributes": {
                 "test": 1,
               },
               "type": "text",
@@ -26,24 +26,24 @@ exports[`builder store > applies only the last result of an entity input validat
       },
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "test",
             "entity": {
-              "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-              "inputs": {
+              "attributes": {
                 "test": 1,
               },
+              "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
               "type": "text",
             },
             "error": 2,
-            "inputName": "test",
           },
         },
       ],
     ],
     [
       {
-        "entitiesInputsErrors": {
+        "entitiesAttributesErrors": {
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
             "test": 0,
           },
@@ -51,7 +51,7 @@ exports[`builder store > applies only the last result of an entity input validat
         "schema": {
           "entities": {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-              "inputs": {
+              "attributes": {
                 "test": 1,
               },
               "type": "text",
@@ -64,17 +64,17 @@ exports[`builder store > applies only the last result of an entity input validat
       },
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "test",
             "entity": {
-              "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-              "inputs": {
+              "attributes": {
                 "test": 1,
               },
+              "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
               "type": "text",
             },
             "error": 0,
-            "inputName": "test",
           },
         },
       ],
@@ -95,18 +95,18 @@ exports[`builder store > applies only the last result of an entity input validat
 
 exports[`builder store > can add entities to a parent entity 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
         "children": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
         ],
-        "inputs": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
@@ -120,24 +120,24 @@ exports[`builder store > can add entities to a parent entity 1`] = `
 
 exports[`builder store > can add entities to a parent entity at a specific index 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
         "children": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
           "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
         ],
-        "inputs": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
       "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
@@ -151,15 +151,15 @@ exports[`builder store > can add entities to a parent entity at a specific index
 
 exports[`builder store > can add entities to root 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -173,15 +173,15 @@ exports[`builder store > can add entities to root 1`] = `
 
 exports[`builder store > can add entities to root at specific index 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -200,7 +200,7 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
       {
         "entities": {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            "inputs": {
+            "attributes": {
               "label": "test",
             },
             "type": "text",
@@ -214,13 +214,13 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
         "childrenAllowed": {},
         "entities": [
           {
-            "defaultValue": [Function],
-            "inputs": [
+            "attributes": [
               {
                 "name": "label",
                 "validate": [Function],
               },
             ],
+            "defaultValue": [Function],
             "isValueAllowed": false,
             "name": "text",
             "shouldBeProcessed": [Function],
@@ -242,7 +242,7 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
         "data": {
           "entities": {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              "inputs": {
+              "attributes": {
                 "label": "test",
               },
               "type": "text",
@@ -266,13 +266,13 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
     "childrenAllowed": {},
     "entities": [
       {
-        "defaultValue": [Function],
-        "inputs": [
+        "attributes": [
           {
             "name": "label",
             "validate": [Function],
           },
         ],
+        "defaultValue": [Function],
         "isValueAllowed": false,
         "name": "text",
         "shouldBeProcessed": [Function],
@@ -289,20 +289,20 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "removeEntityParentId": [Function],
-  "resetEntitiesInputsErrors": [Function],
-  "resetEntityInputError": [Function],
-  "resetEntityInputsErrors": [Function],
+  "resetEntitiesAttributesErrors": [Function],
+  "resetEntityAttributeError": [Function],
+  "resetEntityAttributesErrors": [Function],
   "setData": [Function],
-  "setEntitiesInputsErrors": [Function],
+  "setEntitiesAttributesErrors": [Function],
+  "setEntityAttribute": [Function],
+  "setEntityAttributeError": [Function],
+  "setEntityAttributesErrors": [Function],
   "setEntityIndex": [Function],
-  "setEntityInput": [Function],
-  "setEntityInputError": [Function],
-  "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
   "subscribe": [Function],
-  "validateEntitiesInputs": [Function],
-  "validateEntityInput": [Function],
-  "validateEntityInputs": [Function],
+  "validateEntitiesAttributes": [Function],
+  "validateEntityAttribute": [Function],
+  "validateEntityAttributes": [Function],
 }
 `;
 
@@ -356,20 +356,20 @@ exports[`builder store > can be created with an empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "removeEntityParentId": [Function],
-  "resetEntitiesInputsErrors": [Function],
-  "resetEntityInputError": [Function],
-  "resetEntityInputsErrors": [Function],
+  "resetEntitiesAttributesErrors": [Function],
+  "resetEntityAttributeError": [Function],
+  "resetEntityAttributesErrors": [Function],
   "setData": [Function],
-  "setEntitiesInputsErrors": [Function],
+  "setEntitiesAttributesErrors": [Function],
+  "setEntityAttribute": [Function],
+  "setEntityAttributeError": [Function],
+  "setEntityAttributesErrors": [Function],
   "setEntityIndex": [Function],
-  "setEntityInput": [Function],
-  "setEntityInputError": [Function],
-  "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
   "subscribe": [Function],
-  "validateEntitiesInputs": [Function],
-  "validateEntityInput": [Function],
-  "validateEntityInputs": [Function],
+  "validateEntitiesAttributes": [Function],
+  "validateEntityAttribute": [Function],
+  "validateEntityAttributes": [Function],
 }
 `;
 
@@ -389,47 +389,47 @@ exports[`builder store > can be created without a schema 1`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "removeEntityParentId": [Function],
-  "resetEntitiesInputsErrors": [Function],
-  "resetEntityInputError": [Function],
-  "resetEntityInputsErrors": [Function],
+  "resetEntitiesAttributesErrors": [Function],
+  "resetEntityAttributeError": [Function],
+  "resetEntityAttributesErrors": [Function],
   "setData": [Function],
-  "setEntitiesInputsErrors": [Function],
+  "setEntitiesAttributesErrors": [Function],
+  "setEntityAttribute": [Function],
+  "setEntityAttributeError": [Function],
+  "setEntityAttributesErrors": [Function],
   "setEntityIndex": [Function],
-  "setEntityInput": [Function],
-  "setEntityInputError": [Function],
-  "setEntityInputsErrors": [Function],
   "setEntityParentId": [Function],
   "subscribe": [Function],
-  "validateEntitiesInputs": [Function],
-  "validateEntityInput": [Function],
-  "validateEntityInputs": [Function],
+  "validateEntitiesAttributes": [Function],
+  "validateEntityAttribute": [Function],
+  "validateEntityAttributes": [Function],
 }
 `;
 
 exports[`builder store > can change entity's index 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
         "children": [
           "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e",
           "eedf598e-1422-469a-acb1-b2d8bfabb0f3",
         ],
-        "inputs": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
       "eedf598e-1422-469a-acb1-b2d8bfabb0f3": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
@@ -448,72 +448,72 @@ exports[`builder store > can clone entities 2`] = `
 {
   "entities": {
     "0a97c57c-7743-403c-8105-a8c09eb5ab52": {
+      "attributes": {},
       "children": [
         "4fb898fb-7207-4952-8e5e-511953a42e2c",
       ],
-      "inputs": {},
       "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
       "type": "test",
     },
     "1c2ec3a4-18a8-4785-906e-6465b9b5883b": {
-      "inputs": {},
+      "attributes": {},
       "parentId": "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
       "type": "test",
     },
     "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52": {
+      "attributes": {},
       "children": [
         "1c2ec3a4-18a8-4785-906e-6465b9b5883b",
       ],
-      "inputs": {},
       "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
       "type": "test",
     },
     "38c62f6a-634a-4b94-b0af-9b95e6c1dc82": {
-      "inputs": {},
+      "attributes": {},
       "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
       "type": "test",
     },
     "49ae95d3-84c0-4d0d-b914-66adde839572": {
+      "attributes": {},
       "children": [
         "55c0940d-7450-4b01-baf8-b84c05ea5cee",
         "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
       ],
-      "inputs": {},
       "type": "test",
     },
     "4fb898fb-7207-4952-8e5e-511953a42e2c": {
-      "inputs": {},
+      "attributes": {},
       "parentId": "0a97c57c-7743-403c-8105-a8c09eb5ab52",
       "type": "test",
     },
     "51324b32-adc3-4d17-a90e-66b5453935bd": {
+      "attributes": {},
       "children": [
         "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
         "0a97c57c-7743-403c-8105-a8c09eb5ab52",
       ],
-      "inputs": {},
       "type": "test",
     },
     "55c0940d-7450-4b01-baf8-b84c05ea5cee": {
-      "inputs": {},
+      "attributes": {},
       "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
       "type": "test",
     },
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "attributes": {},
       "children": [
         "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
         "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
       ],
-      "inputs": {},
       "type": "test",
     },
     "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b": {
-      "inputs": {},
+      "attributes": {},
       "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "type": "test",
     },
     "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d": {
-      "inputs": {},
+      "attributes": {},
       "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "type": "test",
     },
@@ -535,21 +535,21 @@ exports[`builder store > can clone entities 3`] = `
           "name": "EntityCloned",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [
                 "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
                 "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
               ],
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "entityClone": {
+              "attributes": {},
               "children": [
                 "55c0940d-7450-4b01-baf8-b84c05ea5cee",
                 "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
               ],
               "id": "49ae95d3-84c0-4d0d-b914-66adde839572",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -572,20 +572,20 @@ exports[`builder store > can clone entities 3`] = `
           "name": "EntityCloned",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [
                 "1c2ec3a4-18a8-4785-906e-6465b9b5883b",
               ],
               "id": "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
-              "inputs": {},
               "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
             "entityClone": {
+              "attributes": {},
               "children": [
                 "4fb898fb-7207-4952-8e5e-511953a42e2c",
               ],
               "id": "0a97c57c-7743-403c-8105-a8c09eb5ab52",
-              "inputs": {},
               "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
@@ -595,12 +595,12 @@ exports[`builder store > can clone entities 3`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [
                 "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
                 "0a97c57c-7743-403c-8105-a8c09eb5ab52",
               ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -623,14 +623,14 @@ exports[`builder store > can clone entities 3`] = `
 
 exports[`builder store > can delete entities and cascade delete their children 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "49e91328-02bc-4daa-ab56-619554e85cff": {},
   },
   "schema": {
     "entities": {
       "49e91328-02bc-4daa-ab56-619554e85cff": {
+        "attributes": {},
         "children": [],
-        "inputs": {},
         "type": "test",
       },
     },
@@ -650,11 +650,11 @@ exports[`builder store > can delete entities and cascade delete their children 2
           "name": "EntityDeleted",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [
                 "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
               ],
               "id": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -671,11 +671,11 @@ exports[`builder store > can delete entities and cascade delete their children 2
           "name": "EntityDeleted",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [
                 "6e0035c3-0d4c-445f-a42b-2d971225447c",
               ],
               "id": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-              "inputs": {},
               "parentId": "3dc165dd-88d4-4884-ac8a-5d107d023e54",
               "type": "test",
             },
@@ -685,8 +685,8 @@ exports[`builder store > can delete entities and cascade delete their children 2
           "name": "EntityDeleted",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "parentId": "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
               "type": "test",
             },
@@ -706,24 +706,24 @@ exports[`builder store > can delete entities and cascade delete their children 2
 
 exports[`builder store > can move an entity from root to a parent entity 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
         "children": [
           "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
         ],
-        "inputs": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
       "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
@@ -752,8 +752,8 @@ exports[`builder store > can move an entity from root to a parent entity 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
@@ -763,12 +763,12 @@ exports[`builder store > can move an entity from root to a parent entity 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [
                 "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
                 "6e0035c3-0d4c-445f-a42b-2d971225447c",
               ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -787,24 +787,24 @@ exports[`builder store > can move an entity from root to a parent entity 2`] = `
 
 exports[`builder store > can move an entity from root to a parent entity at a specific index 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
         "children": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
           "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
         ],
-        "inputs": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
       "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
@@ -833,8 +833,8 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
@@ -844,12 +844,12 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [
                 "6e0035c3-0d4c-445f-a42b-2d971225447c",
                 "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
               ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -868,24 +868,24 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
 
 exports[`builder store > can move an entity in a parent entity 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
         "children": [
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
           "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
         ],
-        "inputs": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
       "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-        "inputs": {},
+        "attributes": {},
         "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
         "type": "test",
       },
@@ -906,8 +906,8 @@ exports[`builder store > can move an entity in a parent entity 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
@@ -917,12 +917,12 @@ exports[`builder store > can move an entity in a parent entity 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [
                 "6e0035c3-0d4c-445f-a42b-2d971225447c",
                 "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
               ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -941,15 +941,15 @@ exports[`builder store > can move an entity in a parent entity 2`] = `
 
 exports[`builder store > can move an entity in root 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -963,15 +963,15 @@ exports[`builder store > can move an entity in root 1`] = `
 
 exports[`builder store > can move an entity in root 2`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -985,15 +985,15 @@ exports[`builder store > can move an entity in root 2`] = `
 
 exports[`builder store > can move an entity in root 3`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1022,8 +1022,8 @@ exports[`builder store > can move an entity in root 4`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -1044,8 +1044,8 @@ exports[`builder store > can move an entity in root 4`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -1066,8 +1066,8 @@ exports[`builder store > can move an entity in root 4`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -1094,16 +1094,16 @@ exports[`builder store > can move an entity in root 4`] = `
 
 exports[`builder store > can move an entity to root 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
         "children": [],
-        "inputs": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1124,9 +1124,9 @@ exports[`builder store > can move an entity to root 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -1143,8 +1143,8 @@ exports[`builder store > can move an entity to root 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -1163,16 +1163,16 @@ exports[`builder store > can move an entity to root 2`] = `
 
 exports[`builder store > can move an entity to root at a specific index 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
         "children": [],
-        "inputs": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1193,9 +1193,9 @@ exports[`builder store > can move an entity to root at a specific index 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "children": [],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -1212,8 +1212,8 @@ exports[`builder store > can move an entity to root at a specific index 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
           },
@@ -1230,9 +1230,9 @@ exports[`builder store > can move an entity to root at a specific index 2`] = `
 }
 `;
 
-exports[`builder store > can reset a single entity input error 1`] = `
+exports[`builder store > can reset a single entity attribute error 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "label error",
       "title": "title error",
@@ -1241,7 +1241,7 @@ exports[`builder store > can reset a single entity input error 1`] = `
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "select",
       },
     },
@@ -1252,9 +1252,9 @@ exports[`builder store > can reset a single entity input error 1`] = `
 }
 `;
 
-exports[`builder store > can reset a single entity input error 2`] = `
+exports[`builder store > can reset a single entity attribute error 2`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "title": "title error",
     },
@@ -1262,7 +1262,7 @@ exports[`builder store > can reset a single entity input error 2`] = `
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "select",
       },
     },
@@ -1273,37 +1273,37 @@ exports[`builder store > can reset a single entity input error 2`] = `
 }
 `;
 
-exports[`builder store > can reset a single entity input error 3`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`builder store > can reset a single entity attribute error 3`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`builder store > can reset a single entity input error 4`] = `"Unkown entity input \\"invalid\\"."`;
+exports[`builder store > can reset a single entity attribute error 4`] = `"Unkown entity attribute \\"invalid\\"."`;
 
-exports[`builder store > can reset a single entity input error 5`] = `
+exports[`builder store > can reset a single entity attribute error 5`] = `
 [MockFunction spy] {
   "calls": [
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "select",
             },
             "error": "label error",
-            "inputName": "label",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "title",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "select",
             },
             "error": "title error",
-            "inputName": "title",
           },
         },
       ],
@@ -1311,15 +1311,15 @@ exports[`builder store > can reset a single entity input error 5`] = `
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "select",
             },
             "error": undefined,
-            "inputName": "label",
           },
         },
       ],
@@ -1338,9 +1338,9 @@ exports[`builder store > can reset a single entity input error 5`] = `
 }
 `;
 
-exports[`builder store > can reset all inputs errors for a single entity 1`] = `
+exports[`builder store > can reset all attributes errors for a single entity 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "label error",
       "title": "title error",
@@ -1349,7 +1349,7 @@ exports[`builder store > can reset all inputs errors for a single entity 1`] = `
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1360,13 +1360,13 @@ exports[`builder store > can reset all inputs errors for a single entity 1`] = `
 }
 `;
 
-exports[`builder store > can reset all inputs errors for a single entity 2`] = `
+exports[`builder store > can reset all attributes errors for a single entity 2`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1377,35 +1377,35 @@ exports[`builder store > can reset all inputs errors for a single entity 2`] = `
 }
 `;
 
-exports[`builder store > can reset all inputs errors for a single entity 3`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`builder store > can reset all attributes errors for a single entity 3`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`builder store > can reset all inputs errors for a single entity 4`] = `
+exports[`builder store > can reset all attributes errors for a single entity 4`] = `
 [MockFunction spy] {
   "calls": [
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": "label error",
-            "inputName": "label",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "title",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": "title error",
-            "inputName": "title",
           },
         },
       ],
@@ -1413,27 +1413,27 @@ exports[`builder store > can reset all inputs errors for a single entity 4`] = `
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": undefined,
-            "inputName": "label",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "title",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": undefined,
-            "inputName": "title",
           },
         },
       ],
@@ -1452,9 +1452,9 @@ exports[`builder store > can reset all inputs errors for a single entity 4`] = `
 }
 `;
 
-exports[`builder store > can reset all inputs errors for all entities 1`] = `
+exports[`builder store > can reset all attributes errors for all entities 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "51324b32-adc3-4d17-a90e-66b5453935bd": {
       "title": "title error",
     },
@@ -1465,11 +1465,11 @@ exports[`builder store > can reset all inputs errors for all entities 1`] = `
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1481,17 +1481,17 @@ exports[`builder store > can reset all inputs errors for all entities 1`] = `
 }
 `;
 
-exports[`builder store > can reset all inputs errors for all entities 2`] = `
+exports[`builder store > can reset all attributes errors for all entities 2`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1503,33 +1503,33 @@ exports[`builder store > can reset all inputs errors for all entities 2`] = `
 }
 `;
 
-exports[`builder store > can reset all inputs errors for all entities 3`] = `
+exports[`builder store > can reset all attributes errors for all entities 3`] = `
 [MockFunction spy] {
   "calls": [
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": undefined,
-            "inputName": "label",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "title",
             "entity": {
+              "attributes": {},
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {},
               "type": "test",
             },
             "error": undefined,
-            "inputName": "title",
           },
         },
       ],
@@ -1546,7 +1546,7 @@ exports[`builder store > can reset all inputs errors for all entities 3`] = `
 
 exports[`builder store > can retrieve the data 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "Some error",
     },
@@ -1554,7 +1554,7 @@ exports[`builder store > can retrieve the data 1`] = `
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {
+        "attributes": {
           "label": "test",
         },
         "type": "text",
@@ -1569,7 +1569,7 @@ exports[`builder store > can retrieve the data 1`] = `
 
 exports[`builder store > can return the data 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "some error",
     },
@@ -1577,7 +1577,7 @@ exports[`builder store > can return the data 1`] = `
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {
+        "attributes": {
           "label": "test",
         },
         "type": "text",
@@ -1590,9 +1590,9 @@ exports[`builder store > can return the data 1`] = `
 }
 `;
 
-exports[`builder store > can set a single entity input error 1`] = `
+exports[`builder store > can set a single entity attribute error 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "Some error",
       "title": "Title error",
@@ -1601,7 +1601,7 @@ exports[`builder store > can set a single entity input error 1`] = `
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1612,25 +1612,25 @@ exports[`builder store > can set a single entity input error 1`] = `
 }
 `;
 
-exports[`builder store > can set a single entity input error 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`builder store > can set a single entity attribute error 2`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`builder store > can set a single entity input error 3`] = `"Unkown entity input \\"invalid\\"."`;
+exports[`builder store > can set a single entity attribute error 3`] = `"Unkown entity attribute \\"invalid\\"."`;
 
-exports[`builder store > can set a single entity input error 4`] = `
+exports[`builder store > can set a single entity attribute error 4`] = `
 [MockFunction spy] {
   "calls": [
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": "Some error",
-            "inputName": "label",
           },
         },
       ],
@@ -1638,15 +1638,15 @@ exports[`builder store > can set a single entity input error 4`] = `
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "title",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": "Title error",
-            "inputName": "title",
           },
         },
       ],
@@ -1665,9 +1665,9 @@ exports[`builder store > can set a single entity input error 4`] = `
 }
 `;
 
-exports[`builder store > can set all inputs errors for all entities 1`] = `
+exports[`builder store > can set all attributes errors for all entities 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "51324b32-adc3-4d17-a90e-66b5453935bd": {
       "title": "title error",
     },
@@ -1678,11 +1678,11 @@ exports[`builder store > can set all inputs errors for all entities 1`] = `
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1694,7 +1694,7 @@ exports[`builder store > can set all inputs errors for all entities 1`] = `
 }
 `;
 
-exports[`builder store > can set all inputs errors for all entities 2`] = `
+exports[`builder store > can set all attributes errors for all entities 2`] = `
 [MockFunction spy] {
   "calls": [
     [
@@ -1703,7 +1703,7 @@ exports[`builder store > can set all inputs errors for all entities 2`] = `
           "name": "DataSet",
           "payload": {
             "data": {
-              "entitiesInputsErrors": {
+              "entitiesAttributesErrors": {
                 "51324b32-adc3-4d17-a90e-66b5453935bd": {
                   "title": "title error",
                 },
@@ -1714,11 +1714,11 @@ exports[`builder store > can set all inputs errors for all entities 2`] = `
               "schema": {
                 "entities": {
                   "51324b32-adc3-4d17-a90e-66b5453935bd": {
-                    "inputs": {},
+                    "attributes": {},
                     "type": "test",
                   },
                   "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-                    "inputs": {},
+                    "attributes": {},
                     "type": "test",
                   },
                 },
@@ -1742,9 +1742,9 @@ exports[`builder store > can set all inputs errors for all entities 2`] = `
 }
 `;
 
-exports[`builder store > can set multiple input errors for a single entity 1`] = `
+exports[`builder store > can set multiple attribute errors for a single entity 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "some error",
       "title": "another error",
@@ -1753,7 +1753,7 @@ exports[`builder store > can set multiple input errors for a single entity 1`] =
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
     },
@@ -1764,37 +1764,37 @@ exports[`builder store > can set multiple input errors for a single entity 1`] =
 }
 `;
 
-exports[`builder store > can set multiple input errors for a single entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`builder store > can set multiple attribute errors for a single entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`builder store > can set multiple input errors for a single entity 3`] = `"Unkown entity input \\"invalid\\"."`;
+exports[`builder store > can set multiple attribute errors for a single entity 3`] = `"Unkown entity attribute \\"invalid\\"."`;
 
-exports[`builder store > can set multiple input errors for a single entity 4`] = `
+exports[`builder store > can set multiple attribute errors for a single entity 4`] = `
 [MockFunction spy] {
   "calls": [
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": "some error",
-            "inputName": "label",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "title",
             "entity": {
+              "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {},
               "type": "test",
             },
             "error": "another error",
-            "inputName": "title",
           },
         },
       ],
@@ -1814,7 +1814,7 @@ exports[`builder store > can set the data 1`] = `
   "calls": [
     [
       {
-        "entitiesInputsErrors": {
+        "entitiesAttributesErrors": {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
             "label": "some error",
           },
@@ -1822,7 +1822,7 @@ exports[`builder store > can set the data 1`] = `
         "schema": {
           "entities": {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              "inputs": {
+              "attributes": {
                 "label": "test",
               },
               "type": "text",
@@ -1838,7 +1838,7 @@ exports[`builder store > can set the data 1`] = `
           "name": "DataSet",
           "payload": {
             "data": {
-              "entitiesInputsErrors": {
+              "entitiesAttributesErrors": {
                 "6e0035c3-0d4c-445f-a42b-2d971225447c": {
                   "label": "some error",
                 },
@@ -1846,7 +1846,7 @@ exports[`builder store > can set the data 1`] = `
               "schema": {
                 "entities": {
                   "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-                    "inputs": {
+                    "attributes": {
                       "label": "test",
                     },
                     "type": "text",
@@ -1873,7 +1873,7 @@ exports[`builder store > can set the data 1`] = `
 
 exports[`builder store > can set the data 2`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "label": "some error",
     },
@@ -1881,7 +1881,7 @@ exports[`builder store > can set the data 2`] = `
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {
+        "attributes": {
           "label": "test",
         },
         "type": "text",
@@ -1894,19 +1894,19 @@ exports[`builder store > can set the data 2`] = `
 }
 `;
 
-exports[`builder store > can update entity inputs 1`] = `
+exports[`builder store > can update entity attributes 1`] = `
 {
-  "entitiesInputsErrors": {},
+  "entitiesAttributesErrors": {},
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {
+        "attributes": {
           "maxLength": 1,
         },
         "type": "text",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {
+        "attributes": {
           "label": "New label",
           "required": true,
         },
@@ -1921,7 +1921,7 @@ exports[`builder store > can update entity inputs 1`] = `
 }
 `;
 
-exports[`builder store > can update entity inputs 2`] = `
+exports[`builder store > can update entity attributes 2`] = `
 [MockFunction spy] {
   "calls": [
     [
@@ -1930,27 +1930,27 @@ exports[`builder store > can update entity inputs 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
-              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {
+              "attributes": {
                 "label": "New label",
                 "required": true,
               },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "select",
             },
           },
         },
         {
-          "name": "EntityInputUpdated",
+          "name": "EntityAttributeUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
-              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {
+              "attributes": {
                 "label": "New label",
                 "required": true,
               },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "select",
             },
-            "inputName": "label",
           },
         },
       ],
@@ -1961,25 +1961,25 @@ exports[`builder store > can update entity inputs 2`] = `
           "name": "EntityUpdated",
           "payload": {
             "entity": {
-              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {
+              "attributes": {
                 "maxLength": 1,
               },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "text",
             },
           },
         },
         {
-          "name": "EntityInputUpdated",
+          "name": "EntityAttributeUpdated",
           "payload": {
+            "attributeName": "maxLength",
             "entity": {
-              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {
+              "attributes": {
                 "maxLength": 1,
               },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "text",
             },
-            "inputName": "maxLength",
           },
         },
       ],
@@ -1998,9 +1998,9 @@ exports[`builder store > can update entity inputs 2`] = `
 }
 `;
 
-exports[`builder store > can validate a all inputs of a single entity 1`] = `
+exports[`builder store > can validate a all attributes of a single entity 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
       "maxLength": [ZodError: [
   {
@@ -2016,7 +2016,7 @@ exports[`builder store > can validate a all inputs of a single entity 1`] = `
   "schema": {
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {
+        "attributes": {
           "label": 1,
           "maxLength": "1",
         },
@@ -2030,22 +2030,23 @@ exports[`builder store > can validate a all inputs of a single entity 1`] = `
 }
 `;
 
-exports[`builder store > can validate a all inputs of a single entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`builder store > can validate a all attributes of a single entity 2`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`builder store > can validate a all inputs of a single entity 3`] = `
+exports[`builder store > can validate a all attributes of a single entity 3`] = `
 [MockFunction spy] {
   "calls": [
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
-              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {
+              "attributes": {
                 "label": 1,
                 "maxLength": "1",
               },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "test",
             },
             "error": [ZodError: [
@@ -2057,18 +2058,18 @@ exports[`builder store > can validate a all inputs of a single entity 3`] = `
     "message": "Expected string, received number"
   }
 ]],
-            "inputName": "label",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "maxLength",
             "entity": {
-              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {
+              "attributes": {
                 "label": 1,
                 "maxLength": "1",
               },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "test",
             },
             "error": [ZodError: [
@@ -2080,7 +2081,6 @@ exports[`builder store > can validate a all inputs of a single entity 3`] = `
     "message": "Expected number, received string"
   }
 ]],
-            "inputName": "maxLength",
           },
         },
       ],
@@ -2095,9 +2095,9 @@ exports[`builder store > can validate a all inputs of a single entity 3`] = `
 }
 `;
 
-exports[`builder store > can validate a all inputs of all entities 1`] = `
+exports[`builder store > can validate a all attributes of all entities 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "51324b32-adc3-4d17-a90e-66b5453935bd": {
       "maxLength": [ZodError: [
   {
@@ -2114,14 +2114,14 @@ exports[`builder store > can validate a all inputs of all entities 1`] = `
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {
+        "attributes": {
           "label": "test",
           "maxLength": "1",
         },
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {
+        "attributes": {
           "label": 1,
           "maxLength": 1,
         },
@@ -2136,20 +2136,21 @@ exports[`builder store > can validate a all inputs of all entities 1`] = `
 }
 `;
 
-exports[`builder store > can validate a all inputs of all entities 2`] = `
+exports[`builder store > can validate a all attributes of all entities 2`] = `
 [MockFunction spy] {
   "calls": [
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
-              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {
+              "attributes": {
                 "label": 1,
                 "maxLength": 1,
               },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "test",
             },
             "error": [ZodError: [
@@ -2161,48 +2162,48 @@ exports[`builder store > can validate a all inputs of all entities 2`] = `
     "message": "Expected string, received number"
   }
 ]],
-            "inputName": "label",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "maxLength",
             "entity": {
-              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {
+              "attributes": {
                 "label": 1,
                 "maxLength": 1,
               },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "test",
             },
             "error": undefined,
-            "inputName": "maxLength",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
-              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {
+              "attributes": {
                 "label": "test",
                 "maxLength": "1",
               },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
             "error": undefined,
-            "inputName": "label",
           },
         },
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "maxLength",
             "entity": {
-              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {
+              "attributes": {
                 "label": "test",
                 "maxLength": "1",
               },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
             "error": [ZodError: [
@@ -2214,7 +2215,6 @@ exports[`builder store > can validate a all inputs of all entities 2`] = `
     "message": "Expected number, received string"
   }
 ]],
-            "inputName": "maxLength",
           },
         },
       ],
@@ -2229,9 +2229,9 @@ exports[`builder store > can validate a all inputs of all entities 2`] = `
 }
 `;
 
-exports[`builder store > can validate a single entity input 1`] = `
+exports[`builder store > can validate a single entity attribute 1`] = `
 {
-  "entitiesInputsErrors": {
+  "entitiesAttributesErrors": {
     "51324b32-adc3-4d17-a90e-66b5453935bd": {
       "label": [ZodError: [
   {
@@ -2258,11 +2258,11 @@ exports[`builder store > can validate a single entity input 1`] = `
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "inputs": {},
+        "attributes": {},
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        "inputs": {
+        "attributes": {
           "label": 1,
         },
         "type": "test",
@@ -2276,23 +2276,24 @@ exports[`builder store > can validate a single entity input 1`] = `
 }
 `;
 
-exports[`builder store > can validate a single entity input 2`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`builder store > can validate a single entity attribute 2`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`builder store > can validate a single entity input 3`] = `"Unkown entity input \\"invalid\\"."`;
+exports[`builder store > can validate a single entity attribute 3`] = `"Unkown entity attribute \\"invalid\\"."`;
 
-exports[`builder store > can validate a single entity input 4`] = `
+exports[`builder store > can validate a single entity attribute 4`] = `
 [MockFunction spy] {
   "calls": [
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
-              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "inputs": {
+              "attributes": {
                 "label": 1,
               },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "test",
             },
             "error": [ZodError: [
@@ -2304,7 +2305,6 @@ exports[`builder store > can validate a single entity input 4`] = `
     "message": "Expected string, received number"
   }
 ]],
-            "inputName": "label",
           },
         },
       ],
@@ -2312,11 +2312,12 @@ exports[`builder store > can validate a single entity input 4`] = `
     [
       [
         {
-          "name": "EntityInputErrorUpdated",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "label",
             "entity": {
+              "attributes": {},
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
-              "inputs": {},
               "type": "test",
             },
             "error": [ZodError: [
@@ -2328,7 +2329,6 @@ exports[`builder store > can validate a single entity input 4`] = `
     "message": "Required"
   }
 ]],
-            "inputName": "label",
           },
         },
       ],
@@ -2351,7 +2351,7 @@ exports[`builder store > throws moving an entity to a non-allowed parent 1`] = `
 
 exports[`builder store > throws when adding an entity to a non-allowed parent 1`] = `"Child is not allowed."`;
 
-exports[`builder store > throws when adding an entity with a non-existent input 1`] = `"Unkown entity input \\"invalid\\"."`;
+exports[`builder store > throws when adding an entity with a non-existent attribute 1`] = `"Unkown entity attribute \\"invalid\\"."`;
 
 exports[`builder store > throws when adding an entity with an already existent ID 1`] = `"An entitiy with the ID \\"6e0035c3-0d4c-445f-a42b-2d971225447c\\" already exists."`;
 
@@ -2369,6 +2369,6 @@ exports[`builder store > throws when trying to move a non existent entity 2`] = 
 
 exports[`builder store > throws when trying to move an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`builder store > throws when updating an input of a non-existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
+exports[`builder store > throws when updating an attribute of a non-existent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
-exports[`builder store > throws when updating an non-existent input of an entity 1`] = `"Unkown entity input \\"invalid\\"."`;
+exports[`builder store > throws when updating an non-existent attribute of an entity 1`] = `"Unkown entity attribute \\"invalid\\"."`;

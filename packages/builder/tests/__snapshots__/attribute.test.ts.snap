@@ -1,17 +1,17 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`input > can be created with minimal options 1`] = `
+exports[`attribute > can be created with minimal options 1`] = `
 {
   "name": "label",
   "validate": [Function],
 }
 `;
 
-exports[`input > can be created with minimal options 2`] = `"test"`;
+exports[`attribute > can be created with minimal options 2`] = `"test"`;
 
-exports[`input > can validate values 1`] = `"valid"`;
+exports[`attribute > can validate values 1`] = `"valid"`;
 
-exports[`input > can validate values 2`] = `
+exports[`attribute > can validate values 2`] = `
 "[
   {
     \\"code\\": \\"invalid_type\\",

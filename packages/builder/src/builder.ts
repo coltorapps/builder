@@ -1,5 +1,5 @@
+import { type Attribute } from "./attribute";
 import { type Entity } from "./entity";
-import { type Input } from "./input";
 import { generateUuid, validateUuid } from "./uuid";
 
 type ChildrenAllowed<TEntities extends ReadonlyArray<Entity>> = {
@@ -87,34 +87,34 @@ export function ensureEntityIsRegistered(
   return entityDefinition;
 }
 
-export function ensureEntityInputIsRegistered(
+export function ensureEntityAttributeIsRegistered(
   entityType: string,
-  inputName: string,
+  attributeName: string,
   builder: Builder,
-): Input {
+): Attribute {
   const entityDefinition = ensureEntityIsRegistered(entityType, builder);
 
-  const input = entityDefinition.inputs.find(
-    (input) => input.name === inputName,
+  const attribute = entityDefinition.attributes.find(
+    (attribute) => attribute.name === attributeName,
   );
 
-  if (!input) {
-    throw new Error(`Unkown entity input "${inputName}".`);
+  if (!attribute) {
+    throw new Error(`Unkown entity attribute "${attributeName}".`);
   }
 
-  return input;
+  return attribute;
 }
 
-export function ensureEntityInputsAreRegistered(
+export function ensureEntityAttributesAreRegistered(
   entityType: string,
-  inputNames: Array<string>,
+  attributeNames: Array<string>,
   builder: Builder,
-): Array<Input> {
-  const inputs = inputNames.map((inputName) =>
-    ensureEntityInputIsRegistered(entityType, inputName, builder),
+): Array<Attribute> {
+  const attributes = attributeNames.map((attributeName) =>
+    ensureEntityAttributeIsRegistered(entityType, attributeName, builder),
   );
 
-  return inputs;
+  return attributes;
 }
 
 export function isEntityChildAllowed(

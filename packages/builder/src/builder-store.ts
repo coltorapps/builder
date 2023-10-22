@@ -1,8 +1,9 @@
+import { type AttributesValues } from "./attribute";
 import {
+  ensureEntityAttributeIsRegistered,
+  ensureEntityAttributesAreRegistered,
   ensureEntityCanLackParent,
   ensureEntityChildAllowed,
-  ensureEntityInputIsRegistered,
-  ensureEntityInputsAreRegistered,
   ensureEntityIsRegistered,
   type Builder,
 } from "./builder";
@@ -11,13 +12,12 @@ import {
   createDebounceManager,
   type DebounceManager,
 } from "./debounce-manager";
-import { type InputsValues } from "./input";
 import {
   SchemaValidationError,
   validateSchemaIntegrity,
   type BaseSchemaEntity,
-  type EntitiesInputsErrors,
-  type EntityInputsErrors,
+  type EntitiesAttributesErrors,
+  type EntityAttributesErrors,
   type Schema,
   type SchemaEntity,
   type SchemaEntityWithId,
@@ -41,22 +41,22 @@ type InternalBuilderStoreData<TBuilder extends Builder = Builder> = {
     entities: Map<string, InternalBuilderStoreEntity<TBuilder>>;
     root: Set<string>;
   };
-  entitiesInputsErrors: Map<string, EntityInputsErrors<TBuilder>>;
+  entitiesAttributesErrors: Map<string, EntityAttributesErrors<TBuilder>>;
 };
 
 export type BuilderStoreData<TBuilder extends Builder = Builder> = {
   schema: Schema<TBuilder>;
-  entitiesInputsErrors: EntitiesInputsErrors<TBuilder>;
+  entitiesAttributesErrors: EntitiesAttributesErrors<TBuilder>;
 };
 
 export const builderStoreEventsNames = {
   EntityAdded: "EntityAdded",
   EntityUpdated: "EntityUpdated",
-  EntityInputUpdated: "EntityInputUpdated",
+  EntityAttributeUpdated: "EntityAttributeUpdated",
   EntityDeleted: "EntityDeleted",
   EntityCloned: "EntityCloned",
   RootUpdated: "RootUpdated",
-  EntityInputErrorUpdated: "EntityInputErrorUpdated",
+  EntityAttributeErrorUpdated: "EntityAttributeErrorUpdated",
   DataSet: "DataSet",
 } as const;
 
@@ -77,10 +77,10 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
       }
     >
   | SubscriptionEvent<
-      typeof builderStoreEventsNames.EntityInputUpdated,
+      typeof builderStoreEventsNames.EntityAttributeUpdated,
       {
         entity: SchemaEntityWithId<TBuilder>;
-        inputName: KeyofUnion<SchemaEntity<TBuilder>["inputs"]>;
+        attributeName: KeyofUnion<SchemaEntity<TBuilder>["attributes"]>;
       }
     >
   | SubscriptionEvent<
@@ -103,10 +103,10 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
       }
     >
   | SubscriptionEvent<
-      typeof builderStoreEventsNames.EntityInputErrorUpdated,
+      typeof builderStoreEventsNames.EntityAttributeErrorUpdated,
       {
         entity: SchemaEntityWithId<TBuilder>;
-        inputName: KeyofUnion<SchemaEntity<TBuilder>["inputs"]>;
+        attributeName: KeyofUnion<SchemaEntity<TBuilder>["attributes"]>;
         error: unknown;
       }
     >
@@ -196,7 +196,7 @@ function deleteEntity<TBuilder extends Builder>(
 
   childrenDeletionResult.data.schema.entities.delete(entityId);
 
-  childrenDeletionResult.data.entitiesInputsErrors.delete(entityId);
+  childrenDeletionResult.data.entitiesAttributesErrors.delete(entityId);
 
   return {
     data: childrenDeletionResult.data,
@@ -204,36 +204,38 @@ function deleteEntity<TBuilder extends Builder>(
   };
 }
 
-async function validateEntityInput<TBuilder extends Builder>(
+async function validateEntityAttribute<TBuilder extends Builder>(
   entityId: string,
-  inputName: string,
+  attributeName: string,
   builder: TBuilder,
   data: InternalBuilderStoreData<TBuilder>,
   schema: Schema<TBuilder>,
-  entitiesInputsValidationDebounceManager: DebounceManager<
-    InternalBuilderStoreData<TBuilder>["entitiesInputsErrors"]
+  entitiesAttributesValidationDebounceManager: DebounceManager<
+    InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]
   >,
-): Promise<InternalBuilderStoreData<TBuilder>["entitiesInputsErrors"]> {
-  return entitiesInputsValidationDebounceManager.handle(
-    `${entityId}-${inputName}`,
+): Promise<InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]> {
+  return entitiesAttributesValidationDebounceManager.handle(
+    `${entityId}-${attributeName}`,
     async () => {
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
-      const input = ensureEntityInputIsRegistered(
+      const attribute = ensureEntityAttributeIsRegistered(
         entity.type,
-        inputName,
+        attributeName,
         builder,
       );
 
-      const newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
+      const newEntitiesAttributesErrors = new Map(
+        data.entitiesAttributesErrors,
+      );
 
-      const entityInputsErrors: EntityInputsErrors<TBuilder> = {
-        ...newEntitiesInputsErrors.get(entityId),
+      const entityAttributesErrors: EntityAttributesErrors<TBuilder> = {
+        ...newEntitiesAttributesErrors.get(entityId),
       };
 
       try {
-        await input.validate(
-          entity.inputs[input.name as keyof typeof entity.inputs],
+        await attribute.validate(
+          entity.attributes[attribute.name as keyof typeof entity.attributes],
           {
             schema: schema,
             entity: {
@@ -243,63 +245,66 @@ async function validateEntityInput<TBuilder extends Builder>(
           },
         );
 
-        delete entityInputsErrors?.[
-          inputName as keyof EntityInputsErrors<TBuilder>
+        delete entityAttributesErrors?.[
+          attributeName as keyof EntityAttributesErrors<TBuilder>
         ];
 
-        newEntitiesInputsErrors.set(entityId, entityInputsErrors);
+        newEntitiesAttributesErrors.set(entityId, entityAttributesErrors);
       } catch (error) {
-        newEntitiesInputsErrors.set(entityId, {
-          ...entityInputsErrors,
-          [inputName]: error,
+        newEntitiesAttributesErrors.set(entityId, {
+          ...entityAttributesErrors,
+          [attributeName]: error,
         });
       }
 
       if (
-        Object.keys(newEntitiesInputsErrors.get(entityId) ?? {}).length === 0
+        Object.keys(newEntitiesAttributesErrors.get(entityId) ?? {}).length ===
+        0
       ) {
-        newEntitiesInputsErrors.delete(entityId);
+        newEntitiesAttributesErrors.delete(entityId);
       }
 
-      return newEntitiesInputsErrors;
+      return newEntitiesAttributesErrors;
     },
-    () => data.entitiesInputsErrors,
+    () => data.entitiesAttributesErrors,
   );
 }
 
-function createEntityInputErrorUpdatedEvent<TBuilder extends Builder>(options: {
+function createEntityAttributeErrorUpdatedEvent<
+  TBuilder extends Builder,
+>(options: {
   entity: SchemaEntityWithId<TBuilder>;
-  inputName: string;
+  attributeName: string;
   error: unknown;
 }): Extract<
   BuilderStoreEvent<TBuilder>,
-  { name: typeof builderStoreEventsNames.EntityInputErrorUpdated }
+  { name: typeof builderStoreEventsNames.EntityAttributeErrorUpdated }
 > {
   return {
-    name: builderStoreEventsNames.EntityInputErrorUpdated,
+    name: builderStoreEventsNames.EntityAttributeErrorUpdated,
     payload: {
       entity: options.entity,
-      inputName: options.inputName as KeyofUnion<
-        SchemaEntity<TBuilder>["inputs"]
+      attributeName: options.attributeName as KeyofUnion<
+        SchemaEntity<TBuilder>["attributes"]
       >,
       error: options.error,
     },
   };
 }
 
-async function validateEntityInputs<TBuilder extends Builder>(
+async function validateEntityAttributes<TBuilder extends Builder>(
   entityId: string,
 
   data: InternalBuilderStoreData<TBuilder>,
   builder: TBuilder,
-  entitiesInputsValidationDebounceManager: DebounceManager<
-    InternalBuilderStoreData<TBuilder>["entitiesInputsErrors"]
+  entitiesAttributesValidationDebounceManager: DebounceManager<
+    InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]
   >,
 ): Promise<{
-  entityInputsErrors: EntityInputsErrors<TBuilder> | undefined;
+  entityAttributesErrors: EntityAttributesErrors<TBuilder> | undefined;
   events: Array<BuilderStoreEvent<TBuilder>>;
 }> {
-  let newEntitiesInputsErrors = new Map(data.entitiesInputsErrors);
+  let newEntitiesAttributesErrors = new Map(data.entitiesAttributesErrors);
 
   const entity = ensureEntityExists(entityId, data.schema.entities);
 
@@ -309,69 +314,71 @@ async function validateEntityInputs<TBuilder extends Builder>(
 
   const schema = serializeInternalBuilderStoreSchema(data.schema);
 
-  for (const input of entityDefinition.inputs) {
-    newEntitiesInputsErrors = await validateEntityInput(
+  for (const attribute of entityDefinition.attributes) {
+    newEntitiesAttributesErrors = await validateEntityAttribute(
       entityId,
-      input.name,
+      attribute.name,
       builder,
       data,
       schema,
-      entitiesInputsValidationDebounceManager,
+      entitiesAttributesValidationDebounceManager,
     );
 
     events.push(
-      createEntityInputErrorUpdatedEvent({
+      createEntityAttributeErrorUpdatedEvent({
         entity: {
           ...serializeInternalBuilderStoreEntity(entity),
           id: entityId,
         },
-        inputName: input.name,
+        attributeName: attribute.name,
         error:
-          newEntitiesInputsErrors.get(entityId)?.[
-            input.name as keyof EntityInputsErrors<TBuilder>
+          newEntitiesAttributesErrors.get(entityId)?.[
+            attribute.name as keyof EntityAttributesErrors<TBuilder>
           ],
       }),
     );
   }
 
   return {
-    entityInputsErrors: newEntitiesInputsErrors.get(entityId),
+    entityAttributesErrors: newEntitiesAttributesErrors.get(entityId),
     events,
   };
 }
 
-function ensureEntitiesInputsErrorsAreValid<TBuilder extends Builder>(
-  entitiesInputsErrors: EntitiesInputsErrors<TBuilder>,
+function ensureEntitiesAttributesErrorsAreValid<TBuilder extends Builder>(
+  entitiesAttributesErrors: EntitiesAttributesErrors<TBuilder>,
   entities: Schema<TBuilder>["entities"],
   builder: TBuilder,
-): EntitiesInputsErrors<TBuilder> {
+): EntitiesAttributesErrors<TBuilder> {
   if (
-    typeof entitiesInputsErrors !== "object" ||
-    Array.isArray(entitiesInputsErrors) ||
-    entitiesInputsErrors === null
+    typeof entitiesAttributesErrors !== "object" ||
+    Array.isArray(entitiesAttributesErrors) ||
+    entitiesAttributesErrors === null
   ) {
     throw new Error("Invalid errors format.");
   }
 
-  const newEntitiesInputsErrors = { ...entitiesInputsErrors };
+  const newEntitiesAttributesErrors = { ...entitiesAttributesErrors };
 
-  for (const [entityId, inputsErrors] of Object.entries(entitiesInputsErrors)) {
+  for (const [entityId, attributesErrors] of Object.entries(
+    entitiesAttributesErrors,
+  )) {
     const entity = entities[entityId];
 
     if (!entity) {
       throw new Error("Entity not found.");
     }
 
-    ensureEntityInputsAreRegistered(
+    ensureEntityAttributesAreRegistered(
       entity.type,
-      Object.keys(inputsErrors),
+      Object.keys(attributesErrors),
       builder,
     );
 
-    newEntitiesInputsErrors[entityId] = inputsErrors;
+    newEntitiesAttributesErrors[entityId] = attributesErrors;
   }
 
-  return newEntitiesInputsErrors;
+  return newEntitiesAttributesErrors;
 }
 
 function serializeInternalBuilderStoreSchemaRoot<TBuilder extends Builder>(
@@ -400,7 +407,7 @@ function serializeInternalBuilderStoreData<TBuilder extends Builder>(
 ): BuilderStoreData<TBuilder> {
   return {
     schema: serializeInternalBuilderStoreSchema(data.schema),
-    entitiesInputsErrors: Object.fromEntries(data.entitiesInputsErrors),
+    entitiesAttributesErrors: Object.fromEntries(data.entitiesAttributesErrors),
   };
 }
 
@@ -410,14 +417,14 @@ function serializeInternalBuilderStoreEntity<TBuilder extends Builder>(
   return {
     ...entity,
     ...(entity.children ? { children: Array.from(entity.children) } : {}),
-    inputs: entity.inputs,
+    attributes: entity.attributes,
   };
 }
 
-function deserializeEntitiesInputsErrors(
-  entitiesInputsErrors: EntitiesInputsErrors,
-): InternalBuilderStoreData["entitiesInputsErrors"] {
-  return new Map(Object.entries(entitiesInputsErrors));
+function deserializeEntitiesAttributesErrors(
+  entitiesAttributesErrors: EntitiesAttributesErrors,
+): InternalBuilderStoreData["entitiesAttributesErrors"] {
+  return new Map(Object.entries(entitiesAttributesErrors));
 }
 
 function deserializeBuilderStoreData<TBuilder extends Builder>(
@@ -431,15 +438,15 @@ function deserializeBuilderStoreData<TBuilder extends Builder>(
           {
             ...entity,
             ...(entity.children ? { children: new Set(entity.children) } : {}),
-            inputs:
-              entity.inputs as unknown as InternalBuilderStoreEntity<TBuilder>["inputs"],
+            attributes:
+              entity.attributes as unknown as InternalBuilderStoreEntity<TBuilder>["attributes"],
           },
         ]),
       ),
       root: new Set(data.schema.root),
     },
-    entitiesInputsErrors: deserializeEntitiesInputsErrors(
-      data.entitiesInputsErrors,
+    entitiesAttributesErrors: deserializeEntitiesAttributesErrors(
+      data.entitiesAttributesErrors,
     ),
   };
 }
@@ -454,15 +461,16 @@ function deserializeAndValidateBuilderStoreData<TBuilder extends Builder>(
     throw new SchemaValidationError(schemaValidationResult.reason);
   }
 
-  const validatedEntitiesInputsErrors = ensureEntitiesInputsErrorsAreValid(
-    data.entitiesInputsErrors,
-    schemaValidationResult.data.entities,
-    builder,
-  );
+  const validatedEntitiesAttributesErrors =
+    ensureEntitiesAttributesErrorsAreValid(
+      data.entitiesAttributesErrors,
+      schemaValidationResult.data.entities,
+      builder,
+    );
 
   return deserializeBuilderStoreData<TBuilder>({
     schema: schemaValidationResult.data,
-    entitiesInputsErrors: validatedEntitiesInputsErrors,
+    entitiesAttributesErrors: validatedEntitiesAttributesErrors,
   });
 }
 
@@ -542,14 +550,14 @@ function addEntity<TBuilder extends Builder>(
   }
 
   const newEntity: InternalBuilderStoreEntity<TBuilder> = {
-    inputs: payload.inputs,
+    attributes: payload.attributes,
     type: payload.type,
     parentId: payload?.parentId,
   };
 
-  ensureEntityInputsAreRegistered(
+  ensureEntityAttributesAreRegistered(
     newEntity.type,
-    Object.keys(newEntity.inputs),
+    Object.keys(newEntity.attributes),
     builder,
   );
 
@@ -601,15 +609,16 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
     deserializeAndValidateBuilderStoreData(
       {
         schema: options.initialData?.schema ?? { entities: {}, root: [] },
-        entitiesInputsErrors: options.initialData?.entitiesInputsErrors ?? {},
+        entitiesAttributesErrors:
+          options.initialData?.entitiesAttributesErrors ?? {},
       },
       options.builder,
     ),
   );
 
-  const entitiesInputsValidationDebounceManager =
+  const entitiesAttributesValidationDebounceManager =
     createDebounceManager<
-      InternalBuilderStoreData<TBuilder>["entitiesInputsErrors"]
+      InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]
     >();
 
   return {
@@ -889,20 +898,20 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
 
       setData(data, events);
     },
-    setEntityInput(entityId, inputName, inputValue) {
+    setEntityAttribute(entityId, attributeName, attributeValue) {
       const data = getData();
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
-      ensureEntityInputIsRegistered(
+      ensureEntityAttributeIsRegistered(
         entity.type,
-        inputName.toString(),
+        attributeName.toString(),
         options.builder,
       );
 
-      entity.inputs = {
-        ...entity.inputs,
-        [inputName]: inputValue,
+      entity.attributes = {
+        ...entity.attributes,
+        [attributeName]: attributeValue,
       };
 
       setData(
@@ -924,13 +933,13 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
             },
           },
           {
-            name: builderStoreEventsNames.EntityInputUpdated,
+            name: builderStoreEventsNames.EntityAttributeUpdated,
             payload: {
               entity: {
                 ...serializeInternalBuilderStoreEntity(entity),
                 id: entityId,
               },
-              inputName,
+              attributeName,
             },
           },
         ],
@@ -1011,16 +1020,16 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         ],
       );
     },
-    async validateEntityInput(entityId, inputName) {
+    async validateEntityAttribute(entityId, attributeName) {
       const data = getData();
 
-      const newEntitiesInputsErrors = await validateEntityInput(
+      const newEntitiesAttributesErrors = await validateEntityAttribute(
         entityId,
-        inputName,
+        attributeName,
         options.builder,
         data,
         serializeInternalBuilderStoreSchema(data.schema),
-        entitiesInputsValidationDebounceManager,
+        entitiesAttributesValidationDebounceManager,
       );
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
@@ -1028,59 +1037,59 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       setData(
         {
           ...data,
-          entitiesInputsErrors: newEntitiesInputsErrors,
+          entitiesAttributesErrors: newEntitiesAttributesErrors,
         },
         [
-          createEntityInputErrorUpdatedEvent({
+          createEntityAttributeErrorUpdatedEvent({
             entity: {
               ...serializeInternalBuilderStoreEntity(entity),
               id: entityId,
             },
-            inputName,
-            error: newEntitiesInputsErrors.get(entityId)?.[inputName],
+            attributeName,
+            error: newEntitiesAttributesErrors.get(entityId)?.[attributeName],
           }),
         ],
       );
     },
-    async validateEntityInputs(entityId) {
+    async validateEntityAttributes(entityId) {
       const data = getData();
 
-      const { entityInputsErrors, events } = await validateEntityInputs(
+      const { entityAttributesErrors, events } = await validateEntityAttributes(
         entityId,
         data,
         options.builder,
-        entitiesInputsValidationDebounceManager,
+        entitiesAttributesValidationDebounceManager,
       );
 
-      const newErrors = new Map(data.entitiesInputsErrors);
+      const newErrors = new Map(data.entitiesAttributesErrors);
 
-      newErrors.set(entityId, entityInputsErrors ?? {});
+      newErrors.set(entityId, entityAttributesErrors ?? {});
 
       setData(
         {
           ...data,
-          entitiesInputsErrors: newErrors,
+          entitiesAttributesErrors: newErrors,
         },
         events,
       );
     },
-    async validateEntitiesInputs() {
+    async validateEntitiesAttributes() {
       const data = getData();
 
-      const newErrors = new Map(data.entitiesInputsErrors);
+      const newErrors = new Map(data.entitiesAttributesErrors);
 
       let events: Array<BuilderStoreEvent<TBuilder>> = [];
 
       for (const entityId of Array.from(data.schema.entities.keys())) {
-        const { entityInputsErrors, events: nextEvents } =
-          await validateEntityInputs(
+        const { entityAttributesErrors, events: nextEvents } =
+          await validateEntityAttributes(
             entityId,
             data,
             options.builder,
-            entitiesInputsValidationDebounceManager,
+            entitiesAttributesValidationDebounceManager,
           );
 
-        newErrors.set(entityId, entityInputsErrors ?? {});
+        newErrors.set(entityId, entityAttributesErrors ?? {});
 
         events = events.concat(nextEvents);
       }
@@ -1088,99 +1097,100 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       setData(
         {
           ...data,
-          entitiesInputsErrors: newErrors,
+          entitiesAttributesErrors: newErrors,
         },
         events,
       );
     },
-    resetEntityInputError(entityId, inputName) {
+    resetEntityAttributeError(entityId, attributeName) {
       const data = getData();
 
-      const newErrors = new Map(data.entitiesInputsErrors);
+      const newErrors = new Map(data.entitiesAttributesErrors);
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
-      ensureEntityInputIsRegistered(
+      ensureEntityAttributeIsRegistered(
         entity.type,
-        inputName.toString(),
+        attributeName.toString(),
         options.builder,
       );
 
-      const entityInputsErrors = data.entitiesInputsErrors.get(entityId);
+      const entityAttributesErrors =
+        data.entitiesAttributesErrors.get(entityId);
 
-      delete entityInputsErrors?.[inputName];
+      delete entityAttributesErrors?.[attributeName];
 
-      newErrors.set(entityId, entityInputsErrors ?? {});
+      newErrors.set(entityId, entityAttributesErrors ?? {});
 
       setData(
         {
           ...data,
-          entitiesInputsErrors: newErrors,
+          entitiesAttributesErrors: newErrors,
         },
         [
-          createEntityInputErrorUpdatedEvent({
+          createEntityAttributeErrorUpdatedEvent({
             entity: {
               ...serializeInternalBuilderStoreEntity(entity),
               id: entityId,
             },
-            inputName,
+            attributeName,
             error: undefined,
           }),
         ],
       );
     },
-    setEntityInputError(entityId, inputName, error) {
+    setEntityAttributeError(entityId, attributeName, error) {
       const data = getData();
 
-      const newErrors = new Map(data.entitiesInputsErrors);
+      const newErrors = new Map(data.entitiesAttributesErrors);
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
-      ensureEntityInputIsRegistered(
+      ensureEntityAttributeIsRegistered(
         entity.type,
-        inputName.toString(),
+        attributeName.toString(),
         options.builder,
       );
 
       newErrors.set(entityId, {
-        ...data.entitiesInputsErrors.get(entityId),
-        [inputName]: error,
+        ...data.entitiesAttributesErrors.get(entityId),
+        [attributeName]: error,
       });
 
       setData(
         {
           ...data,
-          entitiesInputsErrors: newErrors,
+          entitiesAttributesErrors: newErrors,
         },
         [
-          createEntityInputErrorUpdatedEvent({
+          createEntityAttributeErrorUpdatedEvent({
             entity: {
               ...serializeInternalBuilderStoreEntity(entity),
               id: entityId,
             },
-            inputName,
+            attributeName,
             error,
           }),
         ],
       );
     },
-    resetEntityInputsErrors(entityId) {
+    resetEntityAttributesErrors(entityId) {
       const data = getData();
 
-      const newErrors = new Map(data.entitiesInputsErrors);
+      const newErrors = new Map(data.entitiesAttributesErrors);
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [];
 
-      Object.keys(newErrors.get(entityId) ?? {}).forEach((inputName) =>
+      Object.keys(newErrors.get(entityId) ?? {}).forEach((attributeName) =>
         events.push(
-          createEntityInputErrorUpdatedEvent({
+          createEntityAttributeErrorUpdatedEvent({
             entity: {
               ...serializeInternalBuilderStoreEntity(entity),
               id: entityId,
             },
-            inputName,
+            attributeName,
             error: undefined,
           }),
         ),
@@ -1191,36 +1201,36 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       setData(
         {
           ...data,
-          entitiesInputsErrors: newErrors,
+          entitiesAttributesErrors: newErrors,
         },
         events,
       );
     },
-    setEntityInputsErrors(entityId, entityInputsErrors) {
+    setEntityAttributesErrors(entityId, entityAttributesErrors) {
       const data = getData();
 
-      const newErrors = new Map(data.entitiesInputsErrors);
+      const newErrors = new Map(data.entitiesAttributesErrors);
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
-      ensureEntityInputsAreRegistered(
+      ensureEntityAttributesAreRegistered(
         entity.type,
-        Object.keys(entityInputsErrors),
+        Object.keys(entityAttributesErrors),
         options.builder,
       );
 
-      newErrors.set(entityId, entityInputsErrors);
+      newErrors.set(entityId, entityAttributesErrors);
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [];
 
-      Object.entries(entityInputsErrors).forEach(([inputName, error]) =>
+      Object.entries(entityAttributesErrors).forEach(([attributeName, error]) =>
         events.push(
-          createEntityInputErrorUpdatedEvent({
+          createEntityAttributeErrorUpdatedEvent({
             entity: {
               ...serializeInternalBuilderStoreEntity(entity),
               id: entityId,
             },
-            inputName,
+            attributeName,
             error,
           }),
         ),
@@ -1229,46 +1239,47 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       setData(
         {
           ...data,
-          entitiesInputsErrors: newErrors,
+          entitiesAttributesErrors: newErrors,
         },
         events,
       );
     },
-    resetEntitiesInputsErrors() {
+    resetEntitiesAttributesErrors() {
       const data = getData();
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [];
 
-      data.entitiesInputsErrors.forEach((entityInputsErrors, entityId) =>
-        Object.keys(entityInputsErrors).forEach((inputName) =>
-          events.push(
-            createEntityInputErrorUpdatedEvent({
-              entity: {
-                ...serializeInternalBuilderStoreEntity(
-                  ensureEntityExists(entityId, data.schema.entities),
-                ),
-                id: entityId,
-              },
-              inputName,
-              error: undefined,
-            }),
+      data.entitiesAttributesErrors.forEach(
+        (entityAttributesErrors, entityId) =>
+          Object.keys(entityAttributesErrors).forEach((attributeName) =>
+            events.push(
+              createEntityAttributeErrorUpdatedEvent({
+                entity: {
+                  ...serializeInternalBuilderStoreEntity(
+                    ensureEntityExists(entityId, data.schema.entities),
+                  ),
+                  id: entityId,
+                },
+                attributeName,
+                error: undefined,
+              }),
+            ),
           ),
-        ),
       );
 
       setData(
         {
           ...data,
-          entitiesInputsErrors: new Map(),
+          entitiesAttributesErrors: new Map(),
         },
         events,
       );
     },
-    setEntitiesInputsErrors(entitiesInputsErrors) {
+    setEntitiesAttributesErrors(entitiesAttributesErrors) {
       const newData = deserializeAndValidateBuilderStoreData(
         {
           schema: serializeInternalBuilderStoreSchema(getData().schema),
-          entitiesInputsErrors,
+          entitiesAttributesErrors,
         },
         options.builder,
       );
@@ -1363,47 +1374,47 @@ export type BuilderStore<TBuilder extends Builder = Builder> = {
   setEntityParentId(entityId: string, parentId: string, index?: number): void;
   removeEntityParentId(entityId: string, index?: number): void;
   setEntityIndex(entityId: string, index: number): void;
-  setEntityInput<
-    TInputName extends KeyofUnion<
-      InternalBuilderStoreEntity<TBuilder>["inputs"]
+  setEntityAttribute<
+    TAttributeName extends KeyofUnion<
+      InternalBuilderStoreEntity<TBuilder>["attributes"]
     >,
   >(
     entityId: string,
-    inputName: TInputName,
-    inputValue: InputsValues<
-      TBuilder["entities"][number]["inputs"]
-    >[TInputName],
+    attributeName: TAttributeName,
+    attributeValue: AttributesValues<
+      TBuilder["entities"][number]["attributes"]
+    >[TAttributeName],
   ): void;
   deleteEntity(entityId: string): void;
-  validateEntityInput<
-    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
+  validateEntityAttribute<
+    TAttributeName extends KeyofUnion<SchemaEntity<TBuilder>["attributes"]>,
   >(
     entityId: string,
-    inputName: TInputName,
+    attributeName: TAttributeName,
   ): Promise<void>;
-  validateEntityInputs(entityId: string): Promise<void>;
-  validateEntitiesInputs(): Promise<void>;
-  resetEntityInputError<
-    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
+  validateEntityAttributes(entityId: string): Promise<void>;
+  validateEntitiesAttributes(): Promise<void>;
+  resetEntityAttributeError<
+    TAttributeName extends KeyofUnion<SchemaEntity<TBuilder>["attributes"]>,
   >(
     entityId: string,
-    inputName: TInputName,
+    attributeName: TAttributeName,
   ): void;
-  setEntityInputError<
-    TInputName extends KeyofUnion<SchemaEntity<TBuilder>["inputs"]>,
+  setEntityAttributeError<
+    TAttributeName extends KeyofUnion<SchemaEntity<TBuilder>["attributes"]>,
   >(
     entityId: string,
-    inputName: TInputName,
+    attributeName: TAttributeName,
     error?: unknown,
   ): void;
-  resetEntityInputsErrors(entityId: string): void;
-  setEntityInputsErrors(
+  resetEntityAttributesErrors(entityId: string): void;
+  setEntityAttributesErrors(
     entityId: string,
-    entityInputsErrors: EntityInputsErrors<TBuilder>,
+    entityAttributesErrors: EntityAttributesErrors<TBuilder>,
   ): void;
-  resetEntitiesInputsErrors(): void;
-  setEntitiesInputsErrors(
-    entitiesInputsErrors: EntitiesInputsErrors<TBuilder>,
+  resetEntitiesAttributesErrors(): void;
+  setEntitiesAttributesErrors(
+    entitiesAttributesErrors: EntitiesAttributesErrors<TBuilder>,
   ): void;
   cloneEntity(entityId: string): void;
 };

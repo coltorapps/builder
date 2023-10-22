@@ -16,11 +16,14 @@ import {
 } from "builder";
 
 import {
+  type AttributesComponents,
+  type GenericAttributeComponent,
+} from "./attributes";
+import {
   type EntitiesComponents,
   type EntityForRender,
   type GenericEntityComponent,
 } from "./entities";
-import { type GenericInputComponent, type InputsComponents } from "./inputs";
 import { type EventsListeners } from "./utils";
 
 export function useBuilderStore<TBuilder extends BaseBuilder>(
@@ -35,7 +38,7 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
       builder,
       initialData: {
         schema: options.initialData?.schema,
-        entitiesInputsErrors: options.initialData?.entitiesInputsErrors,
+        entitiesAttributesErrors: options.initialData?.entitiesAttributesErrors,
       },
     }),
   );
@@ -78,7 +81,7 @@ export function useBuilderStoreData<TBuilder extends BaseBuilder>(
 
 const MemoizedEntity = memo(function Entity(props: {
   entityId: string;
-  entitiesComponents: EntitiesComponents;
+  components: EntitiesComponents;
   renderEntity: GenericEntityComponent;
   builderStore: BuilderStore;
 }): JSX.Element {
@@ -99,7 +102,7 @@ const MemoizedEntity = memo(function Entity(props: {
 
   const childrenIds = entity?.children ?? [];
 
-  const EntityComponent = props.entitiesComponents[entity.type];
+  const EntityComponent = props.components[entity.type];
 
   if (!EntityComponent) {
     throw new Error("Entity component not found.");
@@ -141,7 +144,7 @@ const MemoizedEntity = memo(function Entity(props: {
 
 function Entities<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
-  entitiesComponents: EntitiesComponents<TBuilder>;
+  components: EntitiesComponents<TBuilder>;
   children?: GenericEntityComponent<TBuilder>;
 }): JSX.Element[] {
   const data = useBuilderStoreData(props.builderStore, (events) =>
@@ -161,37 +164,35 @@ function Entities<TBuilder extends BaseBuilder>(props: {
       entityId={entityId}
       renderEntity={renderEntity}
       builderStore={props.builderStore}
-      entitiesComponents={
-        props.entitiesComponents as unknown as EntitiesComponents
-      }
+      components={props.components as unknown as EntitiesComponents}
     />
   ));
 }
 
-const MemoizedInput = memo(function Input(props: {
-  inputName: string;
+const MemoizedAttribute = memo(function Attribute(props: {
+  attributeName: string;
   entityId: string;
   entityType: string;
   builderStore: BuilderStore;
-  inputsComponents: InputsComponents;
-  renderInput: GenericInputComponent;
+  components: AttributesComponents;
+  renderAttribute: GenericAttributeComponent;
 }): ReactNode {
-  const InputComponent =
-    props.inputsComponents[props.entityType]?.[props.inputName];
+  const AttributeComponent =
+    props.components[props.entityType]?.[props.attributeName];
 
-  if (!InputComponent) {
-    throw new Error("Input component not found.");
+  if (!AttributeComponent) {
+    throw new Error("Attribute component not found.");
   }
 
   const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
       (event) =>
-        (event.name === builderStoreEventsNames.EntityInputUpdated &&
+        (event.name === builderStoreEventsNames.EntityAttributeUpdated &&
           event.payload.entity.id === props.entityId &&
-          event.payload.inputName === props.inputName) ||
-        (event.name === builderStoreEventsNames.EntityInputErrorUpdated &&
+          event.payload.attributeName === props.attributeName) ||
+        (event.name === builderStoreEventsNames.EntityAttributeErrorUpdated &&
           event.payload.entity.id === props.entityId &&
-          event.payload.inputName === props.inputName) ||
+          event.payload.attributeName === props.attributeName) ||
         event.name === builderStoreEventsNames.DataSet,
     ),
   );
@@ -202,15 +203,15 @@ const MemoizedInput = memo(function Input(props: {
     throw new Error("Entity not found.");
   }
 
-  const inputValue = entity.inputs[props.inputName];
+  const attributeValue = entity.attributes[props.attributeName];
 
-  const inputError =
-    data.entitiesInputsErrors[props.entityId]?.[props.inputName];
+  const attributeError =
+    data.entitiesAttributesErrors[props.entityId]?.[props.attributeName];
 
-  const input = {
-    name: props.inputName,
-    value: inputValue,
-    error: inputError,
+  const attribute = {
+    name: props.attributeName,
+    value: attributeValue,
+    error: attributeError,
   };
 
   const entityWithId = {
@@ -218,30 +219,30 @@ const MemoizedInput = memo(function Input(props: {
     id: props.entityId,
   };
 
-  return props.renderInput({
+  return props.renderAttribute({
     entity: entityWithId,
-    input,
+    attribute,
     children: (
-      <InputComponent
-        input={input}
+      <AttributeComponent
+        attribute={attribute}
         entity={entityWithId}
         setValue={(value) =>
-          props.builderStore.setEntityInput(
+          props.builderStore.setEntityAttribute(
             props.entityId,
-            props.inputName,
+            props.attributeName,
             value,
           )
         }
         validate={() =>
-          props.builderStore.validateEntityInput(
+          props.builderStore.validateEntityAttribute(
             props.entityId,
-            props.inputName,
+            props.attributeName,
           )
         }
         resetError={() =>
-          props.builderStore.resetEntityInputError(
+          props.builderStore.resetEntityAttributeError(
             props.entityId,
-            props.inputName,
+            props.attributeName,
           )
         }
       />
@@ -249,10 +250,10 @@ const MemoizedInput = memo(function Input(props: {
   });
 });
 
-function Inputs<TBuilder extends BaseBuilder>(props: {
+function Attributes<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
-  inputsComponents: InputsComponents<TBuilder>;
-  children?: GenericInputComponent<TBuilder>;
+  components: AttributesComponents<TBuilder>;
+  children?: GenericAttributeComponent<TBuilder>;
   entityId: string;
 }): JSX.Element[] {
   const entity = props.builderStore.getData().schema.entities[props.entityId];
@@ -269,17 +270,18 @@ function Inputs<TBuilder extends BaseBuilder>(props: {
     throw new Error("Entity definition not found.");
   }
 
-  const renderInput =
-    (props.children as GenericInputComponent) ?? ((props) => props.children);
+  const renderAttribute =
+    (props.children as GenericAttributeComponent) ??
+    ((props) => props.children);
 
-  return entityDefinition.inputs.map((item) => (
-    <MemoizedInput
+  return entityDefinition.attributes.map((item) => (
+    <MemoizedAttribute
       key={`${props.entityId}-${item.name}`}
-      inputName={item.name}
+      attributeName={item.name}
       entityId={props.entityId}
       entityType={entity.type}
-      inputsComponents={props.inputsComponents as unknown as InputsComponents}
-      renderInput={renderInput}
+      components={props.components as unknown as AttributesComponents}
+      renderAttribute={renderAttribute}
       builderStore={props.builderStore}
     />
   ));
@@ -313,5 +315,5 @@ export function useActiveEntityId(
 
 export const Builder = {
   Entities,
-  Inputs,
+  Attributes,
 };
