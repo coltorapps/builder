@@ -473,7 +473,7 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c"),
+      builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c"),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -510,7 +510,7 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.setEntityParentId(
+      builderStore.setEntityParent(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "51324b32-adc3-4d17-a90e-66b5453935bd",
       ),
@@ -750,21 +750,21 @@ describe("builder store", () => {
 
     builderStore.subscribe(listenerWrapper);
 
-    builderStore.removeEntityParentId(
+    builderStore.unsetEntityParent(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       0,
     );
 
     expect(builderStore.getData()).toMatchSnapshot();
 
-    builderStore.removeEntityParentId(
+    builderStore.unsetEntityParent(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       1,
     );
 
     expect(builderStore.getData()).toMatchSnapshot();
 
-    builderStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c");
+    builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     expect(builderStore.getData()).toMatchSnapshot();
 
@@ -811,7 +811,7 @@ describe("builder store", () => {
 
     builderStore.subscribe(listenerWrapper);
 
-    builderStore.removeEntityParentId("6e0035c3-0d4c-445f-a42b-2d971225447c");
+    builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     expect(builderStore.getData()).toMatchSnapshot();
 
@@ -858,7 +858,7 @@ describe("builder store", () => {
 
     builderStore.subscribe(listenerWrapper);
 
-    builderStore.removeEntityParentId(
+    builderStore.unsetEntityParent(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       0,
     );
@@ -915,7 +915,7 @@ describe("builder store", () => {
 
     builderStore.subscribe(listenerWrapper);
 
-    builderStore.setEntityParentId(
+    builderStore.setEntityParent(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     );
@@ -972,7 +972,7 @@ describe("builder store", () => {
 
     builderStore.subscribe(listenerWrapper);
 
-    builderStore.setEntityParentId(
+    builderStore.setEntityParent(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       0,
@@ -1031,7 +1031,7 @@ describe("builder store", () => {
 
     builderStore.subscribe(listenerWrapper);
 
-    builderStore.setEntityParentId(
+    builderStore.setEntityParent(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       0,
@@ -1059,11 +1059,11 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.setEntityParentId("invalid", "invalid"),
+      builderStore.setEntityParent("invalid", "invalid"),
     ).toThrowErrorMatchingSnapshot();
 
     expect(() =>
-      builderStore.removeEntityParentId("invalid"),
+      builderStore.unsetEntityParent("invalid"),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -1103,7 +1103,7 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.setEntityParentId(
+      builderStore.setEntityParent(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "invalid",
       ),
@@ -1136,7 +1136,7 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.setEntityParentId(
+      builderStore.setEntityParent(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "some id",
       ),
@@ -1191,7 +1191,7 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.setEntityParentId(
+      builderStore.setEntityParent(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "4fb898fb-7207-4952-8e5e-511953a42e2c",
       ),

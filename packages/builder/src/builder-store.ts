@@ -702,7 +702,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         events,
       );
     },
-    setEntityParentId(entityId, parentId, index) {
+    setEntityParent(entityId, parentId, index) {
       const data = getData();
 
       const newEntities = new Map(data.schema.entities);
@@ -805,7 +805,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         events,
       );
     },
-    removeEntityParentId(entityId, index) {
+    unsetEntityParent(entityId, index) {
       const data = getData();
 
       const newEntities = new Map(data.schema.entities);
@@ -1395,8 +1395,8 @@ export type BuilderStore<TBuilder extends Builder = Builder> = {
       index?: number;
     },
   ): void;
-  setEntityParentId(entityId: string, parentId: string, index?: number): void;
-  removeEntityParentId(entityId: string, index?: number): void;
+  setEntityParent(entityId: string, parentId: string, index?: number): void;
+  unsetEntityParent(entityId: string, index?: number): void;
   setEntityIndex(entityId: string, index: number): void;
   setEntityAttribute<
     TAttributeName extends KeyofUnion<
