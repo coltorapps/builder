@@ -1,5 +1,6 @@
 {
   "name": "builder",
+  "private": true,
   "version": "0.0.0",
   "main": "./dist/index.js",
   "module": "build/lib/index.mjs",

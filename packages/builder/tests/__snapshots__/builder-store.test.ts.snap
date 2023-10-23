@@ -2359,6 +2359,10 @@ exports[`builder store > throws when adding an entity without a parent when pare
 
 exports[`builder store > throws when moving an entity to the root when parent is required 1`] = `"A parent is required."`;
 
+exports[`builder store > throws when setting a parent id to the only root entity 1`] = `"The root must contain at least one entity."`;
+
+exports[`builder store > throws when setting an entity parent id to its grandchild 1`] = `"Target entity is a direct child."`;
+
 exports[`builder store > throws when trying to add an entity to a non existent parent entity 1`] = `"Entity with ID \\"invalid\\" was not found."`;
 
 exports[`builder store > throws when trying to delete non existent entity 1`] = `"Entity with ID \\"test\\" was not found."`;

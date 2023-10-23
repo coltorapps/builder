@@ -1074,6 +1074,49 @@ describe("builder store", () => {
           name: "test",
         }),
       ],
+      childrenAllowed: {
+        test: true,
+      },
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        entitiesAttributesErrors: {},
+        schema: {
+          entities: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "test",
+              attributes: {},
+            },
+            "51324b32-adc3-4d17-a90e-66b5453935bd": {
+              type: "test",
+              attributes: {},
+            },
+          },
+          root: [
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "51324b32-adc3-4d17-a90e-66b5453935bd",
+          ],
+        },
+      },
+    });
+
+    expect(() =>
+      builderStore.setEntityParentId(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "invalid",
+      ),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when setting a parent id to the only root entity", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
     });
 
     const builderStore = createBuilderStore({
@@ -1095,7 +1138,62 @@ describe("builder store", () => {
     expect(() =>
       builderStore.setEntityParentId(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "invalid",
+        "some id",
+      ),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when setting an entity parent id to its grandchild", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+        }),
+      ],
+      childrenAllowed: {
+        test: true,
+      },
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        entitiesAttributesErrors: {},
+        schema: {
+          entities: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "test",
+              attributes: {},
+              children: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+            },
+            "0a97c57c-7743-403c-8105-a8c09eb5ab52": {
+              type: "test",
+              attributes: {},
+            },
+            "51324b32-adc3-4d17-a90e-66b5453935bd": {
+              type: "test",
+              attributes: {},
+              parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              children: ["4fb898fb-7207-4952-8e5e-511953a42e2c"],
+            },
+            "4fb898fb-7207-4952-8e5e-511953a42e2c": {
+              type: "test",
+              attributes: {},
+              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+            },
+          },
+          root: [
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+          ],
+        },
+      },
+    });
+
+    expect(() =>
+      builderStore.setEntityParentId(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "4fb898fb-7207-4952-8e5e-511953a42e2c",
       ),
     ).toThrowErrorMatchingSnapshot();
   });

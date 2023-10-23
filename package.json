@@ -5,13 +5,16 @@
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install",
     "build": "turbo run build",
+    "build:packages": "turbo run build --filter='./packages/*' --parallel",
     "dev": "turbo run dev --filter='./packages/*' --parallel",
     "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md,json}\" --ignore-path .gitignore",
     "lint": "turbo lint && manypkg check",
     "lint:fix": "turbo lint:fix && manypkg fix",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "prepublishOnly": "turbo run build --filter='./packages/*' --parallel && cp packages/builder/package.json packages/builder/package.backup.json && cp packages/builder-react/package.json packages/builder-react/package.backup.json && json -I -f packages/builder/package.json -e \"this.devDependencies=undefined\" && json -I -f packages/builder-react/package.json -e \"this.devDependencies=undefined\"",
+    "postpublish": "mv packages/builder/package.backup.json packages/builder/package.json && mv packages/builder-react/package.backup.json packages/builder-react/package.json"
   },
   "dependencies": {
     "@builder/eslint-config": "0.0.0",
@@ -20,8 +23,10 @@
     "@turbo/gen": "^1.9.7",
     "@types/node": "^17.0.12",
     "@types/prettier": "^2.7.3",
+    "changeset": "^0.2.6",
     "eslint": "^8.42.0",
     "husky": "^8.0.0",
+    "json": "^11.0.0",
     "only-allow": "^1.1.1",
     "prettier": "^2.8.8",
     "turbo": "latest",

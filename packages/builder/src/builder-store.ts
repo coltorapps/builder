@@ -598,6 +598,24 @@ function addEntity<TBuilder extends Builder>(
   };
 }
 
+function ensureEntityNotGrandparent(
+  grandparentId: string,
+  entityId: string,
+  entities: InternalBuilderStoreData["schema"]["entities"],
+): boolean {
+  const entity = ensureEntityExists(entityId, entities);
+
+  if (!entity.parentId) {
+    return false;
+  }
+
+  if (grandparentId === entity.parentId) {
+    throw new Error("Target entity is a direct child.");
+  }
+
+  return ensureEntityNotGrandparent(grandparentId, entity.parentId, entities);
+}
+
 export function createBuilderStore<TBuilder extends Builder>(options: {
   builder: TBuilder;
   initialData?: Partial<BuilderStoreData<TBuilder>>;
@@ -692,6 +710,12 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       const newRoot = new Set(data.schema.root);
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      if (!entity.parentId && data.schema.root.size === 1) {
+        throw new Error("The root must contain at least one entity.");
+      }
+
+      ensureEntityNotGrandparent(entityId, parentId, data.schema.entities);
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [];
 
