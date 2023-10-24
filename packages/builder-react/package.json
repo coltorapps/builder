@@ -3,20 +3,32 @@
   "private": true,
   "version": "0.0.0",
   "main": "./dist/index.js",
-  "module": "build/lib/index.mjs",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./dist/server": {
+    "./server": {
       "types": "./dist/server.d.ts",
       "import": "./dist/server.mjs",
+      "require": "./dist/server.js",
       "default": "./dist/server.js"
     },
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/index.d.ts"
+      ],
+      "server": [
+        "./dist/server.d.ts"
+      ]
+    }
   },
   "license": "MIT",
   "scripts": {
@@ -28,7 +40,7 @@
   },
   "devDependencies": {
     "@builder/eslint-config": "0.0.0",
-    "@types/react": "^18.2.21",
+    "@types/react": "^18.2.31",
     "builder": "0.0.0",
     "eslint": "^8.42.0",
     "react": "^18.2.0",

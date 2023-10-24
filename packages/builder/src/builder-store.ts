@@ -9,10 +9,6 @@ import {
 } from "./builder";
 import { createDataManager } from "./data-manager";
 import {
-  createDebounceManager,
-  type DebounceManager,
-} from "./debounce-manager";
-import {
   SchemaValidationError,
   validateSchemaIntegrity,
   type BaseSchemaEntity,
@@ -210,64 +206,52 @@ async function validateEntityAttribute<TBuilder extends Builder>(
   builder: TBuilder,
   data: InternalBuilderStoreData<TBuilder>,
   schema: Schema<TBuilder>,
-  entitiesAttributesValidationDebounceManager: DebounceManager<
-    InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]
-  >,
 ): Promise<InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]> {
-  return entitiesAttributesValidationDebounceManager.handle(
-    `${entityId}-${attributeName}`,
-    async () => {
-      const entity = ensureEntityExists(entityId, data.schema.entities);
+  const entity = ensureEntityExists(entityId, data.schema.entities);
 
-      const attribute = ensureEntityAttributeIsRegistered(
-        entity.type,
-        attributeName,
-        builder,
-      );
-
-      const newEntitiesAttributesErrors = new Map(
-        data.entitiesAttributesErrors,
-      );
-
-      const entityAttributesErrors: EntityAttributesErrors<TBuilder> = {
-        ...newEntitiesAttributesErrors.get(entityId),
-      };
-
-      try {
-        await attribute.validate(
-          entity.attributes[attribute.name as keyof typeof entity.attributes],
-          {
-            schema: schema,
-            entity: {
-              ...serializeInternalBuilderStoreEntity(entity),
-              id: entityId,
-            },
-          },
-        );
-
-        delete entityAttributesErrors?.[
-          attributeName as keyof EntityAttributesErrors<TBuilder>
-        ];
-
-        newEntitiesAttributesErrors.set(entityId, entityAttributesErrors);
-      } catch (error) {
-        newEntitiesAttributesErrors.set(entityId, {
-          ...entityAttributesErrors,
-          [attributeName]: error,
-        });
-      }
-
-      if (
-        Object.keys(newEntitiesAttributesErrors.get(entityId) ?? {}).length ===
-        0
-      ) {
-        newEntitiesAttributesErrors.delete(entityId);
-      }
-
-      return newEntitiesAttributesErrors;
-    },
-    () => data.entitiesAttributesErrors,
+  const attribute = ensureEntityAttributeIsRegistered(
+    entity.type,
+    attributeName,
+    builder,
   );
+
+  const newEntitiesAttributesErrors = new Map(data.entitiesAttributesErrors);
+
+  const entityAttributesErrors: EntityAttributesErrors<TBuilder> = {
+    ...newEntitiesAttributesErrors.get(entityId),
+  };
+
+  try {
+    await attribute.validate(
+      entity.attributes[attribute.name as keyof typeof entity.attributes],
+      {
+        schema: schema,
+        entity: {
+          ...serializeInternalBuilderStoreEntity(entity),
+          id: entityId,
+        },
+      },
+    );
+
+    delete entityAttributesErrors?.[
+      attributeName as keyof EntityAttributesErrors<TBuilder>
+    ];
+
+    newEntitiesAttributesErrors.set(entityId, entityAttributesErrors);
+  } catch (error) {
+    newEntitiesAttributesErrors.set(entityId, {
+      ...entityAttributesErrors,
+      [attributeName]: error,
+    });
+  }
+
+  if (
+    Object.keys(newEntitiesAttributesErrors.get(entityId) ?? {}).length === 0
+  ) {
+    newEntitiesAttributesErrors.delete(entityId);
+  }
+
+  return newEntitiesAttributesErrors;
 }
 
 function createEntityAttributeErrorUpdatedEvent<
@@ -294,12 +278,8 @@ function createEntityAttributeErrorUpdatedEvent<
 
 async function validateEntityAttributes<TBuilder extends Builder>(
   entityId: string,
-
   data: InternalBuilderStoreData<TBuilder>,
   builder: TBuilder,
-  entitiesAttributesValidationDebounceManager: DebounceManager<
-    InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]
-  >,
 ): Promise<{
   entityAttributesErrors: EntityAttributesErrors<TBuilder> | undefined;
   events: Array<BuilderStoreEvent<TBuilder>>;
@@ -321,7 +301,6 @@ async function validateEntityAttributes<TBuilder extends Builder>(
       builder,
       data,
       schema,
-      entitiesAttributesValidationDebounceManager,
     );
 
     events.push(
@@ -633,11 +612,6 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       options.builder,
     ),
   );
-
-  const entitiesAttributesValidationDebounceManager =
-    createDebounceManager<
-      InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]
-    >();
 
   return {
     builder: options.builder,
@@ -1057,7 +1031,6 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         options.builder,
         data,
         serializeInternalBuilderStoreSchema(data.schema),
-        entitiesAttributesValidationDebounceManager,
       );
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
@@ -1086,7 +1059,6 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         entityId,
         data,
         options.builder,
-        entitiesAttributesValidationDebounceManager,
       );
 
       const newErrors = new Map(data.entitiesAttributesErrors);
@@ -1110,12 +1082,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
 
       for (const entityId of Array.from(data.schema.entities.keys())) {
         const { entityAttributesErrors, events: nextEvents } =
-          await validateEntityAttributes(
-            entityId,
-            data,
-            options.builder,
-            entitiesAttributesValidationDebounceManager,
-          );
+          await validateEntityAttributes(entityId, data, options.builder);
 
         newErrors.set(entityId, entityAttributesErrors ?? {});
 

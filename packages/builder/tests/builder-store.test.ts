@@ -7,7 +7,6 @@ import {
   createBuilderStore,
   createEntity,
 } from "../src";
-import * as debounceManagerExports from "../src/debounce-manager";
 import * as schemaExports from "../src/schema";
 import * as uuidExports from "../src/uuid";
 
@@ -2088,90 +2087,6 @@ describe("builder store", () => {
     });
 
     expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("applies only the last result of an entity attribute validation", async () => {
-    const createDebounceManagerMock = vi.spyOn(
-      debounceManagerExports,
-      "createDebounceManager",
-    );
-
-    let validationNumber = 0;
-
-    const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "test",
-              async validate() {
-                validationNumber++;
-
-                let error = validationNumber;
-
-                if (validationNumber === 1) {
-                  error = validationNumber;
-
-                  await new Promise((resolve) => setTimeout(resolve, 200));
-                } else {
-                  error = validationNumber;
-
-                  await new Promise((resolve) => setTimeout(resolve, 50));
-                }
-
-                throw error;
-
-                return validationNumber;
-              },
-            }),
-          ],
-        }),
-      ],
-    });
-
-    const builderStore = createBuilderStore({
-      builder,
-      initialData: {
-        schema: {
-          entities: {
-            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-              type: "text",
-              attributes: {
-                test: 1,
-              },
-            },
-          },
-          root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-        },
-        entitiesAttributesErrors: {
-          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-            test: 0,
-          },
-        },
-      },
-    });
-
-    expect(createDebounceManagerMock).toHaveBeenCalledOnce();
-
-    const listener = vi.fn();
-
-    builderStore.subscribe(listener);
-
-    await Promise.all([
-      builderStore.validateEntitiesAttributes(),
-      new Promise<void>((resolve) => {
-        // We want to make sure the second validation will get a different lock timestamp.
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          await builderStore.validateEntitiesAttributes();
-
-          resolve();
-        }, 50);
-      }),
-    ]);
 
     expect(listener).toMatchSnapshot();
   });

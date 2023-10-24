@@ -83,7 +83,7 @@ export function useInterpreterStoreData<TBuilder extends Builder>(
 
 const MemoizedEntity = memo(function Entity(props: {
   entityId: string;
-  entitiesComponents: EntitiesComponents;
+  components: EntitiesComponents;
   renderEntity: GenericEntityComponent;
   interpreterStore: InterpreterStore;
 }): JSX.Element | null {
@@ -113,21 +113,30 @@ const MemoizedEntity = memo(function Entity(props: {
     id: props.entityId,
   };
 
+  if (!entityDefinition) {
+    throw new Error("Entity definition not found.");
+  }
+
+  const EntityComponent = props.components[entity.type];
+
+  if (!EntityComponent) {
+    throw new Error("Entity component not found.");
+  }
+
   const shouldBeProcessedCache = useRef(
-    entityDefinition?.shouldBeProcessed({
+    entityDefinition.shouldBeProcessed({
       entity: entityWithId,
       entitiesValues: data.entitiesValues,
-    }) ?? true,
+    }),
   );
 
   const shouldBeProcessed = useSyncExternalStore(
     (listen) =>
       props.interpreterStore.subscribe((data) => {
-        shouldBeProcessedCache.current =
-          entityDefinition?.shouldBeProcessed({
-            entity: entityWithId,
-            entitiesValues: data.entitiesValues,
-          }) ?? true;
+        shouldBeProcessedCache.current = entityDefinition.shouldBeProcessed({
+          entity: entityWithId,
+          entitiesValues: data.entitiesValues,
+        });
 
         listen();
       }),
@@ -139,17 +148,7 @@ const MemoizedEntity = memo(function Entity(props: {
     return null;
   }
 
-  if (!entityDefinition) {
-    throw new Error("Entity definition not found.");
-  }
-
   const childrenIds = entity?.children ?? [];
-
-  const EntityComponent = props.entitiesComponents[entity.type];
-
-  if (!EntityComponent) {
-    throw new Error("Entity component not found.");
-  }
 
   const entityForRender: EntityForRender = {
     ...entityWithId,
@@ -198,12 +197,9 @@ const InterpreterContext = createContext<{
 
 export function Interpreter<TBuilder extends Builder>(props: {
   interpreterStore: InterpreterStore<TBuilder>;
-  entitiesComponents: EntitiesComponents<TBuilder>;
+  components: EntitiesComponents<TBuilder>;
   children?: GenericEntityComponent<TBuilder>;
 }): JSX.Element {
-  const renderEntity =
-    (props.children as GenericEntityComponent) ?? ((props) => props.children);
-
   return (
     <InterpreterContext.Provider
       value={{
@@ -214,11 +210,12 @@ export function Interpreter<TBuilder extends Builder>(props: {
         <MemoizedEntity
           key={entityId}
           entityId={entityId}
-          renderEntity={renderEntity}
-          interpreterStore={props.interpreterStore}
-          entitiesComponents={
-            props.entitiesComponents as unknown as EntitiesComponents
+          renderEntity={
+            (props.children as GenericEntityComponent) ??
+            ((props) => props.children)
           }
+          interpreterStore={props.interpreterStore}
+          components={props.components as unknown as EntitiesComponents}
         />
       ))}
     </InterpreterContext.Provider>

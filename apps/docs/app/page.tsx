@@ -382,7 +382,7 @@ export default function Page() {
       </div>
       <Interpreter
         interpreterStore={interpreterStore}
-        entitiesComponents={{
+        components={{
           text: textComponent,
         }}
       />
