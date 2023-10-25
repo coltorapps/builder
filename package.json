@@ -24,7 +24,6 @@
     "@turbo/gen": "^1.10.16",
     "@types/node": "^17.0.45",
     "@types/prettier": "^2.7.3",
-    "changeset": "^0.2.6",
     "eslint": "^8.52.0",
     "husky": "^8.0.3",
     "json": "^11.0.0",
@@ -34,5 +33,10 @@
     "typescript": "^5.2.2"
   },
   "npmClient": "pnpm",
-  "packageManager": "pnpm@8.6.12"
+  "packageManager": "pnpm@8.6.12",
+  "pnpm": {
+    "patchedDependencies": {
+      "@changesets/assemble-release-plan@5.2.4": "patches/@changesets__assemble-release-plan@5.2.4.patch"
+    }
+  }
 }
