@@ -29,16 +29,16 @@
     "react-dom": "^18.2.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.21.4"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^17.0.12",
-    "@types/react": "^18.2.31",
-    "@types/react-dom": "^18.2.0",
+    "@types/node": "^17.0.45",
+    "@types/react": "^18.2.32",
+    "@types/react-dom": "^18.2.14",
     "autoprefixer": "^10.4.16",
-    "eslint": "^8.42.0",
+    "eslint": "^8.52.0",
     "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.3",
-    "typescript": "^5.1.6"
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2"
   }
 }
