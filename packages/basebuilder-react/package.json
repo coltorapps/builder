@@ -27,7 +27,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
-    "@basebuilder/eslint-config": "0.0.0",
+    "@basebuilder/eslint-config": "0.1.0",
     "@types/react": "^18.2.32",
     "basebuilder": "0.1.0",
     "eslint": "^8.52.0",

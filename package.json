@@ -17,7 +17,7 @@
     "postpublish": "rm packages/basebuilder/README.md && mv packages/basebuilder/package.backup.json packages/basebuilder/package.json && mv packages/basebuilder-react/package.backup.json packages/basebuilder-react/package.json"
   },
   "dependencies": {
-    "@basebuilder/eslint-config": "0.0.0",
+    "@basebuilder/eslint-config": "0.1.0",
     "@changesets/cli": "^2.26.2",
     "@ianvs/prettier-plugin-sort-imports": "^4.1.1",
     "@manypkg/cli": "^0.21.0",
