@@ -29,6 +29,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
+    "@basebuilder/eslint-config": "0.0.0",
     "eslint": "^8.52.0",
     "tsup": "^7.2.0",
     "vitest": "^0.34.6",

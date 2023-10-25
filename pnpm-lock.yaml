@@ -141,6 +141,9 @@ importers:
 
   packages/basebuilder:
     devDependencies:
+      '@basebuilder/eslint-config':
+        specifier: 0.0.0
+        version: link:../eslint-config
       eslint:
         specifier: ^8.52.0
         version: 8.52.0
