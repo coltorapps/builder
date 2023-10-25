@@ -1,7 +1,7 @@
 {
   "name": "@basebuilder/react",
   "private": false,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "homepage": "https://basebuilder.dev/",
   "repository": {
     "type": "git",
@@ -27,16 +27,15 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
-    "@basebuilder/eslint-config": "0.0.0",
     "@types/react": "^18.2.31",
-    "basebuilder": "0.0.0",
+    "basebuilder": "0.1.0",
     "eslint": "^8.42.0",
     "react": "^18.2.0",
     "tsup": "^7.2.0",
     "vitest": "^0.34.1"
   },
   "peerDependencies": {
-    "basebuilder": "0.0.0",
+    "basebuilder": "0.1.0",
     "react": "^18.2.0"
   },
   "publishConfig": {

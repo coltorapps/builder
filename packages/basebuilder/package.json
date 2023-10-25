@@ -1,7 +1,7 @@
 {
   "name": "basebuilder",
   "private": false,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "homepage": "https://basebuilder.dev/",
   "repository": {
     "type": "git",
@@ -29,7 +29,6 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
-    "@basebuilder/eslint-config": "0.0.0",
     "eslint": "^8.42.0",
     "tsup": "^7.2.0",
     "vitest": "^0.34.1",
