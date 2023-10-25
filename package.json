@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@basebuilder/eslint-config": "0.0.0",
+    "@changesets/cli": "^2.26.2",
     "@ianvs/prettier-plugin-sort-imports": "^4.0.2",
     "@manypkg/cli": "^0.21.0",
     "@turbo/gen": "^1.9.7",

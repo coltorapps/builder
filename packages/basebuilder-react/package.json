@@ -2,6 +2,11 @@
   "name": "@basebuilder/react",
   "private": false,
   "version": "0.0.0",
+  "homepage": "https://basebuilder.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coltor-apps/basebuilder.git"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -33,5 +38,8 @@
   "peerDependencies": {
     "basebuilder": "0.0.0",
     "react": "^18.2.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

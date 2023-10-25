@@ -2,6 +2,11 @@
   "name": "basebuilder",
   "private": false,
   "version": "0.0.0",
+  "homepage": "https://basebuilder.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coltor-apps/basebuilder.git"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -29,5 +34,8 @@
     "tsup": "^7.2.0",
     "vitest": "^0.34.1",
     "zod": "^3.21.4"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
