@@ -13,8 +13,8 @@
     "test": "turbo test",
     "typecheck": "turbo typecheck",
     "clean": "turbo run clean && rm -rf node_modules",
-    "prepublishOnly": "turbo run build --filter='./packages/*' --parallel && cp packages/basebuilder/package.json packages/basebuilder/package.backup.json && cp packages/basebuilder-react/package.json packages/basebuilder-react/package.backup.json && json -I -f packages/basebuilder/package.json -e \"this.devDependencies=undefined\" && json -I -f packages/basebuilder-react/package.json -e \"this.devDependencies=undefined\"",
-    "postpublish": "mv packages/basebuilder/package.backup.json packages/basebuilder/package.json && mv packages/basebuilder-react/package.backup.json packages/basebuilder-react/package.json"
+    "prepublishOnly": "cp README.md packages/basebuilder/README.md && pnpm run build --filter='./packages/*' --parallel && cp packages/basebuilder/package.json packages/basebuilder/package.backup.json && cp packages/basebuilder-react/package.json packages/basebuilder-react/package.backup.json && json -I -f packages/basebuilder/package.json -e \"this.devDependencies=undefined\" && json -I -f packages/basebuilder-react/package.json -e \"this.devDependencies=undefined\"",
+    "postpublish": "rm packages/basebuilder/README.md && mv packages/basebuilder/package.backup.json packages/basebuilder/package.json && mv packages/basebuilder-react/package.backup.json packages/basebuilder-react/package.json"
   },
   "dependencies": {
     "@basebuilder/eslint-config": "0.0.0",
