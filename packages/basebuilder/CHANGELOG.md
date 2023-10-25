@@ -4,4 +4,4 @@
 
 ### Minor Changes
 
-- 5474b17: Initial release.
+- Initial release.

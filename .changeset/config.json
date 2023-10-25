@@ -7,5 +7,5 @@
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@basebuilder/docs"]
+  "ignore": ["@basebuilder/docs", "@basebuilder/eslint-config"]
 }

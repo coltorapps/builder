@@ -57,7 +57,7 @@ importers:
   apps/docs:
     dependencies:
       '@basebuilder/react':
-        specifier: 0.0.0
+        specifier: 0.0.1
         version: link:../../packages/basebuilder-react
       '@dnd-kit/core':
         specifier: ^6.0.8
@@ -84,7 +84,7 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2(@types/react@18.2.31)(react@18.2.0)
       basebuilder:
-        specifier: 0.0.0
+        specifier: 0.0.1
         version: link:../../packages/basebuilder
       class-variance-authority:
         specifier: ^0.7.0
@@ -114,9 +114,6 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
     devDependencies:
-      '@basebuilder/eslint-config':
-        specifier: 0.0.0
-        version: link:../../packages/eslint-config
       '@types/node':
         specifier: ^17.0.12
         version: 17.0.45
@@ -144,9 +141,6 @@ importers:
 
   packages/basebuilder:
     devDependencies:
-      '@basebuilder/eslint-config':
-        specifier: 0.0.0
-        version: link:../eslint-config
       eslint:
         specifier: ^8.42.0
         version: 8.42.0
@@ -162,14 +156,11 @@ importers:
 
   packages/basebuilder-react:
     devDependencies:
-      '@basebuilder/eslint-config':
-        specifier: 0.0.0
-        version: link:../eslint-config
       '@types/react':
         specifier: ^18.2.31
         version: 18.2.31
       basebuilder:
-        specifier: 0.0.0
+        specifier: 0.0.1
         version: link:../basebuilder
       eslint:
         specifier: ^8.42.0
