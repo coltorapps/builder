@@ -16,7 +16,7 @@ import {
   type InterpreterStoreData,
   type InterpreterStoreEvent,
   type Schema,
-} from "builder";
+} from "basebuilder";
 
 import {
   type EntitiesComponents,

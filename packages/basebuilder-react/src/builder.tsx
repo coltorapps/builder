@@ -13,7 +13,7 @@ import {
   type BuilderStore,
   type BuilderStoreData,
   type BuilderStoreEvent,
-} from "builder";
+} from "basebuilder";
 
 import {
   type AttributesComponents,

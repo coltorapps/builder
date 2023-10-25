@@ -1,7 +1,7 @@
 /** @type {import("eslint").Linter.Config} */
 const config = {
   root: true,
-  extends: ["@builder/eslint-config"],
+  extends: ["@basebuilder/eslint-config"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: "latest",

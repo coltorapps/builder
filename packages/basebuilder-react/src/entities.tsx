@@ -1,4 +1,8 @@
-import { type Builder, type Entity, type SchemaEntityWithId } from "builder";
+import {
+  type Builder,
+  type Entity,
+  type SchemaEntityWithId,
+} from "basebuilder";
 
 export type EntityForRender<TEntity extends Entity = Entity> =
   SchemaEntityWithId<Builder<[TEntity]>> & {

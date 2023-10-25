@@ -1,5 +1,5 @@
 {
-  "name": "builder-phoenix",
+  "name": "basebuilder-root",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -13,11 +13,11 @@
     "test": "turbo test",
     "typecheck": "turbo typecheck",
     "clean": "turbo run clean && rm -rf node_modules",
-    "prepublishOnly": "turbo run build --filter='./packages/*' --parallel && cp packages/builder/package.json packages/builder/package.backup.json && cp packages/builder-react/package.json packages/builder-react/package.backup.json && json -I -f packages/builder/package.json -e \"this.devDependencies=undefined\" && json -I -f packages/builder-react/package.json -e \"this.devDependencies=undefined\"",
-    "postpublish": "mv packages/builder/package.backup.json packages/builder/package.json && mv packages/builder-react/package.backup.json packages/builder-react/package.json"
+    "prepublishOnly": "turbo run build --filter='./packages/*' --parallel && cp packages/basebuilder/package.json packages/basebuilder/package.backup.json && cp packages/basebuilder-react/package.json packages/basebuilder-react/package.backup.json && json -I -f packages/basebuilder/package.json -e \"this.devDependencies=undefined\" && json -I -f packages/basebuilder-react/package.json -e \"this.devDependencies=undefined\"",
+    "postpublish": "mv packages/basebuilder/package.backup.json packages/basebuilder/package.json && mv packages/basebuilder-react/package.backup.json packages/basebuilder-react/package.json"
   },
   "dependencies": {
-    "@builder/eslint-config": "0.0.0",
+    "@basebuilder/eslint-config": "0.0.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.0.2",
     "@manypkg/cli": "^0.21.0",
     "@turbo/gen": "^1.9.7",

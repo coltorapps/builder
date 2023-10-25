@@ -1,0 +1,33 @@
+{
+  "name": "basebuilder",
+  "private": false,
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint .",
+    "lint:fix": "pnpm lint --fix",
+    "typecheck": "vitest typecheck",
+    "test": "vitest",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
+  "devDependencies": {
+    "@basebuilder/eslint-config": "0.0.0",
+    "eslint": "^8.42.0",
+    "tsup": "^7.2.0",
+    "vitest": "^0.34.1",
+    "zod": "^3.21.4"
+  }
+}

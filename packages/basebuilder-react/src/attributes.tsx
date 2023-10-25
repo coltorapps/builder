@@ -1,4 +1,8 @@
-import { type Attribute, type Builder, type SchemaEntityWithId } from "builder";
+import {
+  type Attribute,
+  type Builder,
+  type SchemaEntityWithId,
+} from "basebuilder";
 
 import { type KeyofUnion } from "./utils";
 
