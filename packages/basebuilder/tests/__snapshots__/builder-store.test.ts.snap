@@ -2016,7 +2016,6 @@ exports[`builder store > can validate a all attributes of all entities 1`] = `
   }
 ]],
     },
-    "6e0035c3-0d4c-445f-a42b-2d971225447c": {},
   },
   "schema": {
     "entities": {

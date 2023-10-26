@@ -1084,7 +1084,11 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         const { entityAttributesErrors, events: nextEvents } =
           await validateEntityAttributes(entityId, data, options.builder);
 
-        newErrors.set(entityId, entityAttributesErrors ?? {});
+        if (entityAttributesErrors) {
+          newErrors.set(entityId, entityAttributesErrors);
+        } else {
+          newErrors.delete(entityId);
+        }
 
         events = events.concat(nextEvents);
       }
