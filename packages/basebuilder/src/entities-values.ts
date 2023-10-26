@@ -102,27 +102,36 @@ export function getEligibleEntitiesIdsForValidation<TBuilder extends Builder>(
 }
 
 export async function validateEntitiesValues<TBuilder extends Builder>(
-  entitiesValues: EntitiesValues<TBuilder>,
+  entitiesValues: unknown,
   builder: TBuilder,
   schema: Schema<TBuilder>,
 ): Promise<EntitiesValuesValidationResult<TBuilder>> {
+  const computedEntitiesValues: EntitiesValues<TBuilder> =
+    typeof entitiesValues !== "object" ||
+    Array.isArray(entitiesValues) ||
+    entitiesValues === null
+      ? {}
+      : (entitiesValues as EntitiesValues<TBuilder>);
+
   const eligibleEntitiesIdsForValidation = getEligibleEntitiesIdsForValidation(
-    entitiesValues,
+    computedEntitiesValues,
     builder,
     schema,
   );
 
   const entitiesErrors: EntitiesErrors = {};
 
-  const newEntitiesValues: EntitiesValues<TBuilder> = { ...entitiesValues };
+  const newEntitiesValues: EntitiesValues<TBuilder> = {
+    ...computedEntitiesValues,
+  };
 
-  for (const entityId in newEntitiesValues) {
+  for (const entityId in schema.entities) {
     if (!eligibleEntitiesIdsForValidation.includes(entityId)) {
       delete newEntitiesValues[entityId];
-    }
-  }
 
-  for (const entityId of eligibleEntitiesIdsForValidation) {
+      continue;
+    }
+
     const validationResult = await validateEntityValue(
       entityId,
       newEntitiesValues,

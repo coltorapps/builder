@@ -472,7 +472,6 @@ describe("schema integrity validation", () => {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
               type: "text",
-              // @ts-expect-error Intentional wrong data type.
               attributes: {},
             },
           },
@@ -499,7 +498,6 @@ describe("schema integrity validation", () => {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
               type: "text",
               attributes: {},
-              // @ts-expect-error Intentional wrong data type.
               parentId: 1,
             },
           },
@@ -529,7 +527,6 @@ describe("schema integrity validation", () => {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
               type: "text",
               attributes: {},
-              // @ts-expect-error Intentional wrong data type.
               children: [1],
             },
           },
@@ -558,7 +555,6 @@ describe("schema integrity validation", () => {
               attributes: {},
             },
           },
-          // @ts-expect-error Intentional wrong data type.
           root: [1, "c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
         },
         builder,
@@ -675,14 +671,12 @@ describe("schema validation", () => {
           "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
             type: "text",
             attributes: {
-              // @ts-expect-error Intentional wrong data type
               label: 1,
             },
           },
           "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
             type: "text",
             attributes: {
-              // @ts-expect-error Intentional wrong data type
               label: 1,
             },
           },

@@ -82,5 +82,26 @@ describe("entities values validation", () => {
         schema,
       ),
     ).toMatchSnapshot();
+
+    expect(
+      await validateEntitiesValues(
+        {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "second value",
+        },
+        builder,
+        schema,
+      ),
+    ).toMatchSnapshot();
+
+    expect(
+      await validateEntitiesValues(null, builder, schema),
+    ).toMatchSnapshot();
+
+    expect(await validateEntitiesValues([], builder, schema)).toMatchSnapshot();
+
+    expect(
+      await validateEntitiesValues(new Map(), builder, schema),
+    ).toMatchSnapshot();
   });
 });

@@ -225,17 +225,19 @@ export function Interpreter<TBuilder extends Builder>(props: {
 export function useEntitiesValues(entitiesIds?: Array<string>): EntitiesValues {
   const { interpreterStore } = useContext(InterpreterContext);
 
-  const entitiesValues = useInterpreterStoreData(interpreterStore, (events) =>
-    events.some(
-      (event) =>
-        event.name === interpreterStoreEventsNames.DataSet ||
-        (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
-          entitiesIds &&
-          entitiesIds.includes(event.payload.entityId)) ||
-        (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
-          !entitiesIds),
-    ),
-  ).entitiesValues;
+  const { entitiesValues } = useInterpreterStoreData(
+    interpreterStore,
+    (events) =>
+      events.some(
+        (event) =>
+          event.name === interpreterStoreEventsNames.DataSet ||
+          (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
+            entitiesIds &&
+            entitiesIds.includes(event.payload.entityId)) ||
+          (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
+            !entitiesIds),
+      ),
+  );
 
   if (!entitiesIds) {
     return entitiesValues;

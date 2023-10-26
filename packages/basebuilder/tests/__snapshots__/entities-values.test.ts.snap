@@ -16,3 +16,91 @@ exports[`entities values validation > can validate entities 1`] = `
   "success": false,
 }
 `;
+
+exports[`entities values validation > can validate entities 2`] = `
+{
+  "data": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "value",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "second value",
+  },
+  "success": true,
+}
+`;
+
+exports[`entities values validation > can validate entities 3`] = `
+{
+  "entitiesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+  },
+  "success": false,
+}
+`;
+
+exports[`entities values validation > can validate entities 4`] = `
+{
+  "entitiesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+  },
+  "success": false,
+}
+`;
+
+exports[`entities values validation > can validate entities 5`] = `
+{
+  "entitiesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+  },
+  "success": false,
+}
+`;

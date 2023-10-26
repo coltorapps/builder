@@ -644,25 +644,27 @@ type SchemValidationResult<TBuilder extends Builder> =
   | { reason: SchemaValidationErrorReason; success: false };
 
 export function validateSchemaIntegrity<TBuilder extends Builder>(
-  schema: Schema<TBuilder>,
+  schema: unknown,
   builder: TBuilder,
 ): SchemValidationResult<TBuilder> {
+  const castedSchema = schema as Schema<TBuilder>;
+
   if (typeof schema === "undefined") {
     return { data: getEmptySchema(), success: true };
   }
 
   try {
-    ensureEntitiesHaveValidFormat(schema.entities);
+    ensureEntitiesHaveValidFormat(castedSchema.entities);
 
-    ensureRootHasValidFormat(schema.root);
+    ensureRootHasValidFormat(castedSchema.root);
 
-    ensureRootNotEmptyWhenThereAreEntities(schema);
+    ensureRootNotEmptyWhenThereAreEntities(castedSchema);
 
-    const validatedEntities = validateEntitiesSchema(schema, builder);
+    const validatedEntities = validateEntitiesSchema(castedSchema, builder);
 
     const computedSchema = {
       entities: validatedEntities,
-      root: schema.root,
+      root: castedSchema.root,
     };
 
     ensureRootIdsAreValid(computedSchema, builder);
@@ -726,7 +728,7 @@ async function validateEntitiesAttributes<TBuilder extends Builder>(
 }
 
 export async function validateSchema<TBuilder extends Builder>(
-  schema: Schema<TBuilder>,
+  schema: unknown,
   builder: TBuilder,
 ): Promise<SchemValidationResult<TBuilder>> {
   const validatedSchema = validateSchemaIntegrity(schema, builder);
