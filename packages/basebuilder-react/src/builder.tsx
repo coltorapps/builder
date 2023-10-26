@@ -2,7 +2,6 @@ import {
   memo,
   useEffect,
   useRef,
-  useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -285,32 +284,6 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
       builderStore={props.builderStore}
     />
   ));
-}
-
-export function useActiveEntityId(
-  builderStore: BuilderStore,
-  initialActiveEntityId: string | null = null,
-): [string | null, (id: string | null) => void] {
-  const [activeEntityId, setActiveEntityId] = useState<string | null>(
-    initialActiveEntityId,
-  );
-
-  useEffect(() => {
-    if (
-      activeEntityId &&
-      !builderStore.getData().schema.entities[activeEntityId]
-    ) {
-      throw new Error("Entity not found.");
-    }
-
-    return builderStore.subscribe((data) => {
-      if (activeEntityId && !data.schema.entities[activeEntityId]) {
-        setActiveEntityId(null);
-      }
-    });
-  }, [activeEntityId, builderStore]);
-
-  return [activeEntityId, setActiveEntityId];
 }
 
 export const Builder = {

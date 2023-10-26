@@ -1,9 +1,4 @@
-export {
-  Builder,
-  useActiveEntityId,
-  useBuilderStore,
-  useBuilderStoreData,
-} from "./builder";
+export { Builder, useBuilderStore, useBuilderStoreData } from "./builder";
 
 export {
   Interpreter,
