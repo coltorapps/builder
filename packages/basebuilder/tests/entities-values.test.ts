@@ -88,6 +88,7 @@ describe("entities values validation", () => {
         {
           "51324b32-adc3-4d17-a90e-66b5453935bd": "value",
           "6e0035c3-0d4c-445f-a42b-2d971225447c": "second value",
+          "2df173ee-6b88-4744-a74d-0f21d49166b3": "should be removed",
         },
         builder,
         schema,

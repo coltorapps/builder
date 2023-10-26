@@ -106,7 +106,7 @@ export async function validateEntitiesValues<TBuilder extends Builder>(
   builder: TBuilder,
   schema: Schema<TBuilder>,
 ): Promise<EntitiesValuesValidationResult<TBuilder>> {
-  const computedEntitiesValues: EntitiesValues<TBuilder> =
+  const computedEntitiesValues =
     typeof entitiesValues !== "object" ||
     Array.isArray(entitiesValues) ||
     entitiesValues === null
@@ -125,13 +125,13 @@ export async function validateEntitiesValues<TBuilder extends Builder>(
     ...computedEntitiesValues,
   };
 
-  for (const entityId in schema.entities) {
+  for (const entityId in newEntitiesValues) {
     if (!eligibleEntitiesIdsForValidation.includes(entityId)) {
       delete newEntitiesValues[entityId];
-
-      continue;
     }
+  }
 
+  for (const entityId of eligibleEntitiesIdsForValidation) {
     const validationResult = await validateEntityValue(
       entityId,
       newEntitiesValues,
