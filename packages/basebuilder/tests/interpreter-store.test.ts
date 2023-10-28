@@ -909,7 +909,7 @@ describe("interpreter store", () => {
           "51324b32-adc3-4d17-a90e-66b5453935bd",
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
           "2df173ee-6b88-4744-a74d-0f21d49166b3",
-          "e31665da-9663-4a4f-87ac-cd326760863e"
+          "e31665da-9663-4a4f-87ac-cd326760863e",
         ],
       },
       builder,
