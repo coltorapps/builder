@@ -212,6 +212,7 @@ describe("builder store", () => {
           label: "some error",
         },
       },
+      schemaError: undefined,
     });
 
     expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, builder);
@@ -1445,9 +1446,26 @@ describe("builder store", () => {
                 return z.string().parse(value);
               },
             }),
+            createAttribute({
+              name: "description",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
           ],
         }),
       ],
+      entitiesExtensions: {
+        test: {
+          attributes: {
+            description: {
+              validate(value) {
+                return z.string().min(1).parse(value);
+              },
+            },
+          },
+        },
+      },
     });
 
     const builderStore = createBuilderStore({
@@ -1465,7 +1483,9 @@ describe("builder store", () => {
             "51324b32-adc3-4d17-a90e-66b5453935bd": {
               type: "test",
               // @ts-expect-error Intentional wrong data type
-              attributes: {},
+              attributes: {
+                description: "",
+              },
             },
           },
           root: [
@@ -1496,6 +1516,11 @@ describe("builder store", () => {
         "label",
       ),
     ).resolves.toEqual(undefined);
+
+    await builderStore.validateEntityAttribute(
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "description",
+    );
 
     expect(builderStore.getData()).toMatchSnapshot();
 
@@ -1532,9 +1557,26 @@ describe("builder store", () => {
                 return z.number().parse(value);
               },
             }),
+            createAttribute({
+              name: "description",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
           ],
         }),
       ],
+      entitiesExtensions: {
+        test: {
+          attributes: {
+            description: {
+              validate(value) {
+                return z.string().min(1).parse(value);
+              },
+            },
+          },
+        },
+      },
     });
 
     const builderStore = createBuilderStore({
@@ -1549,6 +1591,7 @@ describe("builder store", () => {
                 label: 1,
                 // @ts-expect-error Intentional wrong data type
                 maxLength: "1",
+                description: "",
               },
             },
           },
@@ -1595,9 +1638,26 @@ describe("builder store", () => {
                 return z.number().parse(value);
               },
             }),
+            createAttribute({
+              name: "description",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
           ],
         }),
       ],
+      entitiesExtensions: {
+        test: {
+          attributes: {
+            description: {
+              validate(value) {
+                return z.string().min(1).parse(value);
+              },
+            },
+          },
+        },
+      },
     });
 
     const builderStore = createBuilderStore({
@@ -1611,6 +1671,7 @@ describe("builder store", () => {
                 // @ts-expect-error Intentional wrong data type
                 label: 1,
                 maxLength: 1,
+                description: "",
               },
             },
             "51324b32-adc3-4d17-a90e-66b5453935bd": {
@@ -1619,6 +1680,7 @@ describe("builder store", () => {
                 label: "test",
                 // @ts-expect-error Intentional wrong data type
                 maxLength: "1",
+                description: "1",
               },
             },
           },
@@ -1741,6 +1803,12 @@ describe("builder store", () => {
                 return value;
               },
             }),
+            createAttribute({
+              name: "description",
+              validate(value) {
+                return value;
+              },
+            }),
           ],
         }),
       ],
@@ -1758,7 +1826,11 @@ describe("builder store", () => {
           },
           root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
         },
-        entitiesAttributesErrors: {},
+        entitiesAttributesErrors: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            description: "initial error",
+          },
+        },
       },
     });
 
@@ -2043,6 +2115,12 @@ describe("builder store", () => {
                 return value;
               },
             }),
+            createAttribute({
+              name: "description",
+              validate(value) {
+                return value;
+              },
+            }),
           ],
         }),
       ],
@@ -2067,7 +2145,11 @@ describe("builder store", () => {
             "51324b32-adc3-4d17-a90e-66b5453935bd",
           ],
         },
-        entitiesAttributesErrors: {},
+        entitiesAttributesErrors: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            description: "initial error",
+          },
+        },
       },
     });
 
@@ -2192,6 +2274,152 @@ describe("builder store", () => {
     ).toThrowErrorMatchingSnapshot();
 
     expect(builderStore.getData().schema).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("can validate the schema", async () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "test",
+          attributes: [
+            createAttribute({
+              name: "label",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
+            createAttribute({
+              name: "title",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
+          ],
+        }),
+      ],
+      entitiesExtensions: {
+        test: {
+          attributes: {
+            title: {
+              validate(value) {
+                return z.string().min(1).parse(value);
+              },
+            },
+          },
+        },
+      },
+      validateSchema(schema) {
+        if (
+          Object.values(schema.entities).some(
+            (entity) => entity.attributes.title === "should fail",
+          )
+        ) {
+          throw "Title validation failed";
+        }
+
+        return schema;
+      },
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        schema: {
+          entities: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "test",
+              attributes: {
+                label: "",
+                title: "",
+              },
+            },
+            "51324b32-adc3-4d17-a90e-66b5453935bd": {
+              type: "test",
+              attributes: {
+                label: "",
+                title: "",
+              },
+            },
+          },
+          root: [
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "51324b32-adc3-4d17-a90e-66b5453935bd",
+          ],
+        },
+        entitiesAttributesErrors: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            label: "initial error",
+          },
+        },
+      },
+    });
+
+    const listener = vi.fn();
+    const listener2 = vi.fn();
+
+    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
+
+    const listenerWrapper2 = (...args: unknown[]): unknown =>
+      listener2(args[1]);
+
+    builderStore.subscribe(listenerWrapper);
+
+    await builderStore.validateSchema();
+
+    expect(builderStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+
+    builderStore.setEntityAttribute(
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "title",
+      "1",
+    );
+
+    builderStore.setEntityAttribute(
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      "title",
+      "should fail",
+    );
+
+    builderStore.subscribe(listenerWrapper2);
+
+    await builderStore.validateSchema();
+
+    expect(builderStore.getData()).toMatchSnapshot();
+
+    expect(listener2).toMatchSnapshot();
+  });
+
+  it("can set and reset the schema error", () => {
+    const builder = createBuilder({
+      entities: [],
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        schema: {
+          entities: {},
+          root: [],
+        },
+        entitiesAttributesErrors: {},
+      },
+    });
+
+    const listener = vi.fn();
+
+    builderStore.subscribe(listener);
+
+    builderStore.setSchemaError("error");
+
+    expect(builderStore.getData()).toMatchSnapshot();
+
+    builderStore.resetSchemaError();
+
+    expect(builderStore.getData()).toMatchSnapshot();
 
     expect(listener).toMatchSnapshot();
   });

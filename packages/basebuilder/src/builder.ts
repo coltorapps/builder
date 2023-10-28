@@ -1,11 +1,45 @@
-import { type Attribute } from "./attribute";
+import { type Attribute, type AttributesValues } from "./attribute";
 import { type Entity } from "./entity";
+import { type Schema, type SchemaEntityWithId } from "./schema";
 import { generateUuid, validateUuid } from "./uuid";
 
 type ChildrenAllowed<TEntities extends ReadonlyArray<Entity>> = {
   [K in TEntities[number]["name"]]?:
     | ReadonlyArray<TEntities[number]["name"]>
     | true;
+};
+
+export type EntitiesExtensions<
+  TEntities extends ReadonlyArray<Entity> = ReadonlyArray<Entity>,
+> = {
+  [K in TEntities[number]["name"]]?: {
+    attributes?: {
+      [K2 in Extract<
+        TEntities[number],
+        { name: K }
+      >["attributes"][number]["name"]]?: {
+        validate?: (
+          value: AttributesValues<
+            Extract<TEntities[number], { name: K }>["attributes"]
+          >[K2],
+          context: {
+            schema: Schema<Builder<TEntities>>;
+            entity: SchemaEntityWithId<
+              Builder<[Extract<TEntities[number], { name: K }>]>
+            >;
+          },
+        ) =>
+          | AttributesValues<
+              Extract<TEntities[number], { name: K }>["attributes"]
+            >[K2]
+          | Promise<
+              AttributesValues<
+                Extract<TEntities[number], { name: K }>["attributes"]
+              >[K2]
+            >;
+      };
+    };
+  };
 };
 
 export type Builder<
@@ -17,17 +51,48 @@ export type Builder<
   TParentRequired extends ReadonlyArray<
     TEntities[number]["name"]
   > = ReadonlyArray<string>,
+  TEntitiesExtensions extends EntitiesExtensions<TEntities> = EntitiesExtensions<
+    []
+  >,
 > = {
   entities: TEntities;
-  entityId: {
-    generate: () => string;
-    validate: (id: string) => void;
-  };
   childrenAllowed: TChildrenAllowed;
   parentRequired: TParentRequired;
+  generateEntityId(): string;
+  validateEntityId(id: string): void;
+  validateSchema(
+    schema: Schema<
+      Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions>
+    >,
+  ):
+    | Promise<
+        Schema<
+          Builder<
+            TEntities,
+            TChildrenAllowed,
+            TParentRequired,
+            TEntitiesExtensions
+          >
+        >
+      >
+    | Schema<
+        Builder<
+          TEntities,
+          TChildrenAllowed,
+          TParentRequired,
+          TEntitiesExtensions
+        >
+      >;
+  entitiesExtensions: TEntitiesExtensions;
 };
 
-type OptionalBuilderArgs = "childrenAllowed" | "parentRequired";
+type OptionalBuilderArgs =
+  | "childrenAllowed"
+  | "parentRequired"
+  | "validateSchema"
+  | "generateEntityId"
+  | "entitiesExtensions"
+  | "validateEntityId";
 
 export function createBuilder<
   const TEntities extends ReadonlyArray<Entity>,
@@ -36,28 +101,41 @@ export function createBuilder<
     never
   >,
   const TParentRequired extends ReadonlyArray<TEntities[number]["name"]> = [],
+  const TEntitiesExtensions extends EntitiesExtensions<TEntities> = EntitiesExtensions<TEntities>,
 >(
   options: Omit<
-    Builder<TEntities, TChildrenAllowed, TParentRequired>,
-    OptionalBuilderArgs | "entityId"
+    Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions>,
+    OptionalBuilderArgs
   > &
     Partial<
       Pick<
-        Builder<TEntities, TChildrenAllowed, TParentRequired>,
+        Builder<
+          TEntities,
+          TChildrenAllowed,
+          TParentRequired,
+          TEntitiesExtensions
+        >,
         OptionalBuilderArgs
       >
-    > & {
-      entityId?: Partial<
-        Builder<TEntities, TChildrenAllowed, TParentRequired>["entityId"]
-      >;
-    },
-): Builder<TEntities, TChildrenAllowed, TParentRequired> {
+    >,
+): Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions> {
+  function fallbackValidateSchema(
+    schema: Schema<
+      Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions>
+    >,
+  ): Schema<
+    Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions>
+  > {
+    return schema;
+  }
+
   return {
     ...options,
-    entityId: {
-      generate: options.entityId?.generate ?? generateUuid,
-      validate: options.entityId?.validate ?? validateUuid,
-    },
+    validateSchema: options.validateSchema ?? fallbackValidateSchema,
+    generateEntityId: options.generateEntityId ?? generateUuid,
+    validateEntityId: options.validateEntityId ?? validateUuid,
+    entitiesExtensions:
+      options.entitiesExtensions ?? ({} as TEntitiesExtensions),
     childrenAllowed: options.childrenAllowed ?? ({} as TChildrenAllowed),
     parentRequired:
       options.parentRequired ??

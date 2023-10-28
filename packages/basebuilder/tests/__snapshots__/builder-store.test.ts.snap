@@ -22,6 +22,7 @@ exports[`builder store > can add entities to a parent entity 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -53,6 +54,7 @@ exports[`builder store > can add entities to a parent entity at a specific index
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -75,6 +77,7 @@ exports[`builder store > can add entities to root 1`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -97,6 +100,7 @@ exports[`builder store > can add entities to root at specific index 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -134,11 +138,11 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
             "validate": [Function],
           },
         ],
-        "entityId": {
-          "generate": [Function],
-          "validate": [Function],
-        },
+        "entitiesExtensions": {},
+        "generateEntityId": [Function],
         "parentRequired": [],
+        "validateEntityId": [Function],
+        "validateSchema": [Function],
       },
     ],
   ],
@@ -186,11 +190,11 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
         "validate": [Function],
       },
     ],
-    "entityId": {
-      "generate": [Function],
-      "validate": [Function],
-    },
+    "entitiesExtensions": {},
+    "generateEntityId": [Function],
     "parentRequired": [],
+    "validateEntityId": [Function],
+    "validateSchema": [Function],
   },
   "cloneEntity": [Function],
   "deleteEntity": [Function],
@@ -198,6 +202,7 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
   "resetEntitiesAttributesErrors": [Function],
   "resetEntityAttributeError": [Function],
   "resetEntityAttributesErrors": [Function],
+  "resetSchemaError": [Function],
   "setData": [Function],
   "setEntitiesAttributesErrors": [Function],
   "setEntityAttribute": [Function],
@@ -205,11 +210,13 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
   "setEntityAttributesErrors": [Function],
   "setEntityIndex": [Function],
   "setEntityParent": [Function],
+  "setSchemaError": [Function],
   "subscribe": [Function],
   "unsetEntityParent": [Function],
   "validateEntitiesAttributes": [Function],
   "validateEntityAttribute": [Function],
   "validateEntityAttributes": [Function],
+  "validateSchema": [Function],
 }
 `;
 
@@ -224,11 +231,11 @@ exports[`builder store > can be created with an empty schema 1`] = `
       {
         "childrenAllowed": {},
         "entities": [],
-        "entityId": {
-          "generate": [Function],
-          "validate": [Function],
-        },
+        "entitiesExtensions": {},
+        "generateEntityId": [Function],
         "parentRequired": [],
+        "validateEntityId": [Function],
+        "validateSchema": [Function],
       },
     ],
   ],
@@ -253,11 +260,11 @@ exports[`builder store > can be created with an empty schema 2`] = `
   "builder": {
     "childrenAllowed": {},
     "entities": [],
-    "entityId": {
-      "generate": [Function],
-      "validate": [Function],
-    },
+    "entitiesExtensions": {},
+    "generateEntityId": [Function],
     "parentRequired": [],
+    "validateEntityId": [Function],
+    "validateSchema": [Function],
   },
   "cloneEntity": [Function],
   "deleteEntity": [Function],
@@ -265,6 +272,7 @@ exports[`builder store > can be created with an empty schema 2`] = `
   "resetEntitiesAttributesErrors": [Function],
   "resetEntityAttributeError": [Function],
   "resetEntityAttributesErrors": [Function],
+  "resetSchemaError": [Function],
   "setData": [Function],
   "setEntitiesAttributesErrors": [Function],
   "setEntityAttribute": [Function],
@@ -272,11 +280,13 @@ exports[`builder store > can be created with an empty schema 2`] = `
   "setEntityAttributesErrors": [Function],
   "setEntityIndex": [Function],
   "setEntityParent": [Function],
+  "setSchemaError": [Function],
   "subscribe": [Function],
   "unsetEntityParent": [Function],
   "validateEntitiesAttributes": [Function],
   "validateEntityAttribute": [Function],
   "validateEntityAttributes": [Function],
+  "validateSchema": [Function],
 }
 `;
 
@@ -286,11 +296,11 @@ exports[`builder store > can be created without a schema 1`] = `
   "builder": {
     "childrenAllowed": {},
     "entities": [],
-    "entityId": {
-      "generate": [Function],
-      "validate": [Function],
-    },
+    "entitiesExtensions": {},
+    "generateEntityId": [Function],
     "parentRequired": [],
+    "validateEntityId": [Function],
+    "validateSchema": [Function],
   },
   "cloneEntity": [Function],
   "deleteEntity": [Function],
@@ -298,6 +308,7 @@ exports[`builder store > can be created without a schema 1`] = `
   "resetEntitiesAttributesErrors": [Function],
   "resetEntityAttributeError": [Function],
   "resetEntityAttributesErrors": [Function],
+  "resetSchemaError": [Function],
   "setData": [Function],
   "setEntitiesAttributesErrors": [Function],
   "setEntityAttribute": [Function],
@@ -305,11 +316,13 @@ exports[`builder store > can be created without a schema 1`] = `
   "setEntityAttributesErrors": [Function],
   "setEntityIndex": [Function],
   "setEntityParent": [Function],
+  "setSchemaError": [Function],
   "subscribe": [Function],
   "unsetEntityParent": [Function],
   "validateEntitiesAttributes": [Function],
   "validateEntityAttribute": [Function],
   "validateEntityAttributes": [Function],
+  "validateSchema": [Function],
 }
 `;
 
@@ -346,6 +359,7 @@ exports[`builder store > can change entity's index 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -545,6 +559,7 @@ exports[`builder store > can delete entities and cascade delete their children 1
       "49e91328-02bc-4daa-ab56-619554e85cff",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -639,6 +654,7 @@ exports[`builder store > can move an entity from root to a parent entity 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -720,6 +736,7 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -801,6 +818,7 @@ exports[`builder store > can move an entity in a parent entity 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -865,6 +883,7 @@ exports[`builder store > can move an entity in root 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -887,6 +906,7 @@ exports[`builder store > can move an entity in root 2`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -909,6 +929,7 @@ exports[`builder store > can move an entity in root 3`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1019,6 +1040,7 @@ exports[`builder store > can move an entity to root 1`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1088,6 +1110,7 @@ exports[`builder store > can move an entity to root at a specific index 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1156,6 +1179,7 @@ exports[`builder store > can reset a single entity attribute error 1`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1177,6 +1201,7 @@ exports[`builder store > can reset a single entity attribute error 2`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1264,6 +1289,7 @@ exports[`builder store > can reset all attributes errors for a single entity 1`]
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1281,6 +1307,7 @@ exports[`builder store > can reset all attributes errors for a single entity 2`]
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1385,6 +1412,7 @@ exports[`builder store > can reset all attributes errors for all entities 1`] = 
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1407,6 +1435,7 @@ exports[`builder store > can reset all attributes errors for all entities 2`] = 
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1471,6 +1500,7 @@ exports[`builder store > can retrieve the data 1`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1494,6 +1524,7 @@ exports[`builder store > can return the data 1`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1516,6 +1547,7 @@ exports[`builder store > can set a single entity attribute error 1`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1598,6 +1630,7 @@ exports[`builder store > can set all attributes errors for all entities 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1607,40 +1640,120 @@ exports[`builder store > can set all attributes errors for all entities 2`] = `
     [
       [
         {
-          "name": "DataSet",
+          "name": "EntityAttributeErrorUpdated",
           "payload": {
-            "data": {
-              "entitiesAttributesErrors": {
-                "51324b32-adc3-4d17-a90e-66b5453935bd": {
-                  "title": "title error",
-                },
-                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-                  "label": "label error",
-                },
-              },
-              "schema": {
-                "entities": {
-                  "51324b32-adc3-4d17-a90e-66b5453935bd": {
-                    "attributes": {},
-                    "type": "test",
-                  },
-                  "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-                    "attributes": {},
-                    "type": "test",
-                  },
-                },
-                "root": [
-                  "6e0035c3-0d4c-445f-a42b-2d971225447c",
-                  "51324b32-adc3-4d17-a90e-66b5453935bd",
-                ],
-              },
+            "attributeName": "description",
+            "entity": {
+              "attributes": {},
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
             },
+            "error": undefined,
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "label",
+            "entity": {
+              "attributes": {},
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+            "error": "label error",
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "title",
+            "entity": {
+              "attributes": {},
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+            "error": "title error",
           },
         },
       ],
     ],
   ],
   "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can set and reset the schema error 1`] = `
+{
+  "entitiesAttributesErrors": {},
+  "schema": {
+    "entities": {},
+    "root": [],
+  },
+  "schemaError": "error",
+}
+`;
+
+exports[`builder store > can set and reset the schema error 2`] = `
+{
+  "entitiesAttributesErrors": {},
+  "schema": {
+    "entities": {},
+    "root": [],
+  },
+  "schemaError": undefined,
+}
+`;
+
+exports[`builder store > can set and reset the schema error 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesAttributesErrors": {},
+        "schema": {
+          "entities": {},
+          "root": [],
+        },
+        "schemaError": "error",
+      },
+      [
+        {
+          "name": "SchemaErrorUpdated",
+          "payload": {
+            "error": "error",
+          },
+        },
+      ],
+    ],
+    [
+      {
+        "entitiesAttributesErrors": {},
+        "schema": {
+          "entities": {},
+          "root": [],
+        },
+        "schemaError": undefined,
+      },
+      [
+        {
+          "name": "SchemaErrorUpdated",
+          "payload": {
+            "error": undefined,
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
     {
       "type": "return",
       "value": undefined,
@@ -1668,6 +1781,7 @@ exports[`builder store > can set multiple attribute errors for a single entity 1
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1680,6 +1794,18 @@ exports[`builder store > can set multiple attribute errors for a single entity 4
   "calls": [
     [
       [
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "description",
+            "entity": {
+              "attributes": {},
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+            "error": undefined,
+          },
+        },
         {
           "name": "EntityAttributeErrorUpdated",
           "payload": {
@@ -1739,6 +1865,7 @@ exports[`builder store > can set the data 1`] = `
             "6e0035c3-0d4c-445f-a42b-2d971225447c",
           ],
         },
+        "schemaError": undefined,
       },
       [
         {
@@ -1763,6 +1890,7 @@ exports[`builder store > can set the data 1`] = `
                   "6e0035c3-0d4c-445f-a42b-2d971225447c",
                 ],
               },
+              "schemaError": undefined,
             },
           },
         },
@@ -1798,6 +1926,7 @@ exports[`builder store > can set the data 2`] = `
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1825,6 +1954,7 @@ exports[`builder store > can update entity attributes 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1909,6 +2039,26 @@ exports[`builder store > can validate a all attributes of a single entity 1`] = 
 {
   "entitiesAttributesErrors": {
     "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "description": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
+      "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
       "maxLength": [ZodError: [
   {
     "code": "invalid_type",
@@ -1924,6 +2074,7 @@ exports[`builder store > can validate a all attributes of a single entity 1`] = 
     "entities": {
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "attributes": {
+          "description": "",
           "label": 1,
           "maxLength": "1",
         },
@@ -1934,6 +2085,7 @@ exports[`builder store > can validate a all attributes of a single entity 1`] = 
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -1950,6 +2102,7 @@ exports[`builder store > can validate a all attributes of a single entity 3`] = 
             "attributeName": "label",
             "entity": {
               "attributes": {
+                "description": "",
                 "label": 1,
                 "maxLength": "1",
               },
@@ -1973,6 +2126,7 @@ exports[`builder store > can validate a all attributes of a single entity 3`] = 
             "attributeName": "maxLength",
             "entity": {
               "attributes": {
+                "description": "",
                 "label": 1,
                 "maxLength": "1",
               },
@@ -1986,6 +2140,32 @@ exports[`builder store > can validate a all attributes of a single entity 3`] = 
     "received": "string",
     "path": [],
     "message": "Expected number, received string"
+  }
+]],
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "description",
+            "entity": {
+              "attributes": {
+                "description": "",
+                "label": 1,
+                "maxLength": "1",
+              },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+            "error": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
   }
 ]],
           },
@@ -2016,11 +2196,34 @@ exports[`builder store > can validate a all attributes of all entities 1`] = `
   }
 ]],
     },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "description": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
+      "label": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [],
+    "message": "Expected string, received number"
+  }
+]],
+    },
   },
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
         "attributes": {
+          "description": "1",
           "label": "test",
           "maxLength": "1",
         },
@@ -2028,6 +2231,7 @@ exports[`builder store > can validate a all attributes of all entities 1`] = `
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
         "attributes": {
+          "description": "",
           "label": 1,
           "maxLength": 1,
         },
@@ -2039,6 +2243,7 @@ exports[`builder store > can validate a all attributes of all entities 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -2053,6 +2258,7 @@ exports[`builder store > can validate a all attributes of all entities 2`] = `
             "attributeName": "label",
             "entity": {
               "attributes": {
+                "description": "",
                 "label": 1,
                 "maxLength": 1,
               },
@@ -2076,6 +2282,7 @@ exports[`builder store > can validate a all attributes of all entities 2`] = `
             "attributeName": "maxLength",
             "entity": {
               "attributes": {
+                "description": "",
                 "label": 1,
                 "maxLength": 1,
               },
@@ -2088,9 +2295,36 @@ exports[`builder store > can validate a all attributes of all entities 2`] = `
         {
           "name": "EntityAttributeErrorUpdated",
           "payload": {
+            "attributeName": "description",
+            "entity": {
+              "attributes": {
+                "description": "",
+                "label": 1,
+                "maxLength": 1,
+              },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+            "error": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
             "attributeName": "label",
             "entity": {
               "attributes": {
+                "description": "1",
                 "label": "test",
                 "maxLength": "1",
               },
@@ -2106,6 +2340,7 @@ exports[`builder store > can validate a all attributes of all entities 2`] = `
             "attributeName": "maxLength",
             "entity": {
               "attributes": {
+                "description": "1",
                 "label": "test",
                 "maxLength": "1",
               },
@@ -2121,6 +2356,22 @@ exports[`builder store > can validate a all attributes of all entities 2`] = `
     "message": "Expected number, received string"
   }
 ]],
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "description",
+            "entity": {
+              "attributes": {
+                "description": "1",
+                "label": "test",
+                "maxLength": "1",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+            "error": undefined,
           },
         },
       ],
@@ -2139,6 +2390,17 @@ exports[`builder store > can validate a single entity attribute 1`] = `
 {
   "entitiesAttributesErrors": {
     "51324b32-adc3-4d17-a90e-66b5453935bd": {
+      "description": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
       "label": [ZodError: [
   {
     "code": "invalid_type",
@@ -2164,7 +2426,9 @@ exports[`builder store > can validate a single entity attribute 1`] = `
   "schema": {
     "entities": {
       "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        "attributes": {},
+        "attributes": {
+          "description": "",
+        },
         "type": "test",
       },
       "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -2179,6 +2443,7 @@ exports[`builder store > can validate a single entity attribute 1`] = `
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     ],
   },
+  "schemaError": undefined,
 }
 `;
 
@@ -2222,7 +2487,9 @@ exports[`builder store > can validate a single entity attribute 4`] = `
           "payload": {
             "attributeName": "label",
             "entity": {
-              "attributes": {},
+              "attributes": {
+                "description": "",
+              },
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
@@ -2239,12 +2506,309 @@ exports[`builder store > can validate a single entity attribute 4`] = `
         },
       ],
     ],
+    [
+      [
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "description",
+            "entity": {
+              "attributes": {
+                "description": "",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+            "error": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
+          },
+        },
+      ],
+    ],
   ],
   "results": [
     {
       "type": "return",
       "value": undefined,
     },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can validate the schema 1`] = `
+{
+  "entitiesAttributesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": {
+      "title": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
+    },
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+      "title": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
+    },
+  },
+  "schema": {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {
+          "label": "",
+          "title": "",
+        },
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "attributes": {
+          "label": "",
+          "title": "",
+        },
+        "type": "test",
+      },
+    },
+    "root": [
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    ],
+  },
+  "schemaError": undefined,
+}
+`;
+
+exports[`builder store > can validate the schema 2`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "label",
+            "entity": {
+              "attributes": {
+                "label": "",
+                "title": "",
+              },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+            "error": undefined,
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "title",
+            "entity": {
+              "attributes": {
+                "label": "",
+                "title": "",
+              },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+            "error": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "label",
+            "entity": {
+              "attributes": {
+                "label": "",
+                "title": "",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+            "error": undefined,
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "title",
+            "entity": {
+              "attributes": {
+                "label": "",
+                "title": "",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+            "error": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`builder store > can validate the schema 3`] = `
+{
+  "entitiesAttributesErrors": {},
+  "schema": {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {
+          "label": "",
+          "title": "should fail",
+        },
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "attributes": {
+          "label": "",
+          "title": "1",
+        },
+        "type": "test",
+      },
+    },
+    "root": [
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    ],
+  },
+  "schemaError": "Title validation failed",
+}
+`;
+
+exports[`builder store > can validate the schema 4`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "label",
+            "entity": {
+              "attributes": {
+                "label": "",
+                "title": "1",
+              },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+            "error": undefined,
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "title",
+            "entity": {
+              "attributes": {
+                "label": "",
+                "title": "1",
+              },
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+            "error": undefined,
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "label",
+            "entity": {
+              "attributes": {
+                "label": "",
+                "title": "should fail",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+            "error": undefined,
+          },
+        },
+        {
+          "name": "EntityAttributeErrorUpdated",
+          "payload": {
+            "attributeName": "title",
+            "entity": {
+              "attributes": {
+                "label": "",
+                "title": "should fail",
+              },
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+            "error": undefined,
+          },
+        },
+        {
+          "name": "SchemaErrorUpdated",
+          "payload": {
+            "error": "Title validation failed",
+          },
+        },
+      ],
+    ],
+  ],
+  "results": [
     {
       "type": "return",
       "value": undefined,

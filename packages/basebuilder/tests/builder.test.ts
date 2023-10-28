@@ -19,9 +19,9 @@ describe("builder", () => {
 
     expect(builder).toMatchSnapshot();
 
-    builder.entityId.generate();
+    builder.generateEntityId();
 
-    builder.entityId.validate("6e0035c3-0d4c-445f-a42b-2d971225447c");
+    builder.validateEntityId("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     expect(generateUuidMock).toHaveBeenCalled();
 
@@ -31,25 +31,23 @@ describe("builder", () => {
   it("can be created with entity ID generator and validator", () => {
     const builder = createBuilder({
       entities: [],
-      entityId: {
-        generate() {
-          return "1";
-        },
-        validate(id) {
-          if (id !== "1") {
-            throw new Error("Not equal to 1");
-          }
-        },
+      generateEntityId() {
+        return "1";
+      },
+      validateEntityId(id) {
+        if (id !== "1") {
+          throw new Error("Not equal to 1");
+        }
       },
     });
 
     expect(builder).toMatchSnapshot();
 
-    expect(builder.entityId.generate()).toMatchSnapshot();
+    expect(builder.generateEntityId()).toMatchSnapshot();
 
-    expect(builder.entityId.validate("1")).toMatchSnapshot();
+    expect(builder.validateEntityId("1")).toMatchSnapshot();
 
-    expect(() => builder.entityId.validate("2")).toThrowErrorMatchingSnapshot();
+    expect(() => builder.validateEntityId("2")).toThrowErrorMatchingSnapshot();
   });
 
   it("can be created with entities", () => {

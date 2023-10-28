@@ -5,11 +5,11 @@ exports[`interpreter store > can be created 1`] = `
   "builder": {
     "childrenAllowed": {},
     "entities": [],
-    "entityId": {
-      "generate": [Function],
-      "validate": [Function],
-    },
+    "entitiesExtensions": {},
+    "generateEntityId": [Function],
     "parentRequired": [],
+    "validateEntityId": [Function],
+    "validateSchema": [Function],
   },
   "clearEntitiesValues": [Function],
   "clearEntityValue": [Function],
@@ -425,6 +425,7 @@ exports[`interpreter store > can set entities errors 2`] = `
   "entitiesValues": {
     "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
     "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+    "e31665da-9663-4a4f-87ac-cd326760863e": "default",
   },
 }
 `;
@@ -441,22 +442,29 @@ exports[`interpreter store > can set entities errors 3`] = `
         "entitiesValues": {
           "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
           "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+          "e31665da-9663-4a4f-87ac-cd326760863e": "default",
         },
       },
       [
         {
-          "name": "DataSet",
+          "name": "EntityErrorUpdated",
           "payload": {
-            "data": {
-              "entitiesErrors": {
-                "51324b32-adc3-4d17-a90e-66b5453935bd": "new text error",
-                "6e0035c3-0d4c-445f-a42b-2d971225447c": "new select error",
-              },
-              "entitiesValues": {
-                "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
-                "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
-              },
-            },
+            "entityId": "e31665da-9663-4a4f-87ac-cd326760863e",
+            "error": undefined,
+          },
+        },
+        {
+          "name": "EntityErrorUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "error": "new text error",
+          },
+        },
+        {
+          "name": "EntityErrorUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "error": "new select error",
           },
         },
       ],

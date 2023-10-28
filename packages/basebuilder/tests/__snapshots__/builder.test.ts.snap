@@ -15,13 +15,13 @@ exports[`builder > can be created with children and parent rules 1`] = `
       "validate": [Function],
     },
   ],
-  "entityId": {
-    "generate": [Function],
-    "validate": [Function],
-  },
+  "entitiesExtensions": {},
+  "generateEntityId": [Function],
   "parentRequired": [
     "test",
   ],
+  "validateEntityId": [Function],
+  "validateSchema": [Function],
 }
 `;
 
@@ -38,11 +38,11 @@ exports[`builder > can be created with entities 1`] = `
       "validate": [Function],
     },
   ],
-  "entityId": {
-    "generate": [Function],
-    "validate": [Function],
-  },
+  "entitiesExtensions": {},
+  "generateEntityId": [Function],
   "parentRequired": [],
+  "validateEntityId": [Function],
+  "validateSchema": [Function],
 }
 `;
 
@@ -50,11 +50,11 @@ exports[`builder > can be created with entity ID generator and validator 1`] = `
 {
   "childrenAllowed": {},
   "entities": [],
-  "entityId": {
-    "generate": [Function],
-    "validate": [Function],
-  },
+  "entitiesExtensions": {},
+  "generateEntityId": [Function],
   "parentRequired": [],
+  "validateEntityId": [Function],
+  "validateSchema": [Function],
 }
 `;
 
@@ -68,10 +68,10 @@ exports[`builder > can be created with minimal options 1`] = `
 {
   "childrenAllowed": {},
   "entities": [],
-  "entityId": {
-    "generate": [MockFunction generateUuid],
-    "validate": [MockFunction validateUuid],
-  },
+  "entitiesExtensions": {},
+  "generateEntityId": [MockFunction generateUuid],
   "parentRequired": [],
+  "validateEntityId": [MockFunction validateUuid],
+  "validateSchema": [Function],
 }
 `;

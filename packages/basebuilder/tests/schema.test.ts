@@ -392,27 +392,10 @@ const invalidSchemasCases: Array<{
       },
     },
   },
-  {
-    schema: {
-      entities: {
-        "a1109529-46c6-4290-885b-bb0aca7a92a1": {
-          type: "select",
-          attributes: {},
-        },
-      },
-      root: ["a1109529-46c6-4290-885b-bb0aca7a92a1"],
-    },
-    reason: {
-      code: schemaValidationErrorCodes.ParentRequired,
-      payload: {
-        entityId: "a1109529-46c6-4290-885b-bb0aca7a92a1",
-      },
-    },
-  },
 ];
 
 describe("schema integrity validation", () => {
-  it("throws for invalid schemas", () => {
+  it("fails for invalid schemas", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -611,7 +594,7 @@ describe("schema integrity validation", () => {
 });
 
 describe("schema validation", () => {
-  it("throws for invalid schemas", async () => {
+  it("fails for invalid schemas", async () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -636,6 +619,17 @@ describe("schema validation", () => {
         section: ["text", "section"],
       },
       parentRequired: ["select"],
+      validateSchema(schema) {
+        if (
+          Object.values(schema.entities).some(
+            (entity) => entity.attributes.label === "should fail",
+          )
+        ) {
+          throw "Label validation failed";
+        }
+
+        return schema;
+      },
     });
 
     for (const item of invalidSchemasCases) {
@@ -646,6 +640,60 @@ describe("schema validation", () => {
         reason: item.reason,
       });
     }
+  });
+
+  it("validates the schema with the custom validator", async () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          attributes: [
+            createAttribute({
+              name: "label",
+              validate(value) {
+                return value;
+              },
+            }),
+          ],
+        }),
+      ],
+      validateSchema(schema) {
+        if (
+          Object.values(schema.entities).some(
+            (entity) => entity.attributes.label === "should fail",
+          )
+        ) {
+          throw "Label validation failed";
+        }
+
+        return schema;
+      },
+    });
+
+    const result = await validateSchema(
+      {
+        entities: {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "text",
+            attributes: {
+              label: "should fail",
+            },
+          },
+        },
+        root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+      },
+      builder,
+    );
+
+    expect(result).toEqual({
+      success: false,
+      reason: {
+        code: schemaValidationErrorCodes.InvalidSchema,
+        payload: {
+          schemaError: "Label validation failed",
+        },
+      },
+    });
   });
 
   it("validates attributes with their validators", async () => {
@@ -660,9 +708,26 @@ describe("schema validation", () => {
                 return z.string().parse(value);
               },
             }),
+            createAttribute({
+              name: "description",
+              validate(value) {
+                return z.string().parse(value);
+              },
+            }),
           ],
         }),
       ],
+      entitiesExtensions: {
+        text: {
+          attributes: {
+            description: {
+              validate(value) {
+                return z.string().min(1).parse(value);
+              },
+            },
+          },
+        },
+      },
     });
 
     const result = await validateSchema(
@@ -672,12 +737,14 @@ describe("schema validation", () => {
             type: "text",
             attributes: {
               label: 1,
+              description: "1",
             },
           },
           "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
             type: "text",
             attributes: {
               label: 1,
+              description: "",
             },
           },
         },

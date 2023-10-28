@@ -57,6 +57,17 @@ exports[`schema validation > validates attributes with their validators 1`] = `
     "payload": {
       "entitiesAttributesErrors": {
         "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
+          "description": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
           "label": [ZodError: [
   {
     "code": "invalid_type",
@@ -89,6 +100,17 @@ exports[`schema validation > validates attributes with their validators 2`] = `
 {
   "entitiesAttributesErrors": {
     "4b9ed44b-0e4d-41e9-ad73-1ee70e8fefcb": {
+      "description": [ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": []
+  }
+]],
       "label": [ZodError: [
   {
     "code": "invalid_type",

@@ -4,6 +4,7 @@ import {
   isEntityChildAllowed,
   isEntityParentRequired,
   type Builder,
+  type EntitiesExtensions,
 } from "./builder";
 import { type KeyofUnion, type OptionalPropsIfUndefined } from "./utils";
 
@@ -18,6 +19,7 @@ export const schemaValidationErrorCodes = {
   MissingEntityType: "MissingEntityType",
   UnknownEntityType: "UnknownEntityType",
   InvalidChildrenFormat: "InvalidChildrenFormat",
+  InvalidSchema: "InvalidSchema",
   NonexistentEntityParent: "NonexistentEntityParent",
   MissingEntityAttributes: "MissingEntityAttributes",
   InvalidEntityAttributesFormat: "InvalidEntityAttributesFormat",
@@ -77,6 +79,8 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
       "Validation has failed for some entity attributes.",
     [schemaValidationErrorCodes.InvalidEntitiesAttributes]:
       "Validation has failed for some entities attributes.",
+    [schemaValidationErrorCodes.InvalidSchema]:
+      "Custom schema validation has failed.",
   };
 
 export type SchemaValidationErrorReason =
@@ -166,6 +170,10 @@ export type SchemaValidationErrorReason =
   | {
       code: typeof schemaValidationErrorCodes.InvalidEntitiesAttributes;
       payload: { entitiesAttributesErrors: EntitiesAttributesErrors };
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.InvalidSchema;
+      payload: { schemaError: unknown };
     };
 
 export class SchemaValidationError extends Error {
@@ -292,8 +300,20 @@ async function validateEntityAttributes(
 
   for (const attribute of entityDefinition.attributes) {
     try {
-      await attribute.validate(entity.attributes[attribute.name], {
+      const attributeValue = entity.attributes[attribute.name];
+
+      await attribute.validate(attributeValue, {
         schema: schema,
+        entity: {
+          ...entity,
+          id: entity.id,
+        },
+      });
+
+      await (builder.entitiesExtensions as EntitiesExtensions)[
+        entity.type
+      ]?.attributes?.[attribute.name]?.validate?.(attributeValue, {
+        schema,
         entity: {
           ...entity,
           id: entity.id,
@@ -412,7 +432,7 @@ function ensureChildrenIdsAreValid(
   }
 
   entity.children.forEach((childId) => {
-    builder.entityId.validate(childId);
+    builder.validateEntityId(childId);
 
     ensureEntityExists(childId, entities);
 
@@ -492,10 +512,10 @@ function validateEntitySchema<TBuilder extends Builder>(
   builder: TBuilder,
   schema: Schema<TBuilder>,
 ): SchemaEntity<TBuilder> {
-  builder.entityId.validate(entity.id);
+  builder.validateEntityId(entity.id);
 
   if (typeof entity.parentId !== "undefined") {
-    builder.entityId.validate(entity.parentId);
+    builder.validateEntityId(entity.parentId);
   }
 
   ensureEntityTypeHasValidFormat(entity);
@@ -607,7 +627,7 @@ function validateEntitiesSchema<TBuilder extends Builder>(
 
 function ensureRootIdsAreValid(schema: Schema, builder: Builder): void {
   schema.root.forEach((entityId) => {
-    builder.entityId.validate(entityId);
+    builder.validateEntityId(entityId);
 
     ensureEntityExists(entityId, schema.entities);
 
@@ -731,11 +751,38 @@ export async function validateSchema<TBuilder extends Builder>(
   schema: unknown,
   builder: TBuilder,
 ): Promise<SchemValidationResult<TBuilder>> {
-  const validatedSchema = validateSchemaIntegrity(schema, builder);
+  const schemaIntegrityValidationResult = validateSchemaIntegrity(
+    schema,
+    builder,
+  );
 
-  if (!validatedSchema.success) {
-    return validatedSchema;
+  if (!schemaIntegrityValidationResult.success) {
+    return schemaIntegrityValidationResult;
   }
 
-  return validateEntitiesAttributes(validatedSchema.data, builder);
+  const entitiesAttributesValidationResult = await validateEntitiesAttributes(
+    schemaIntegrityValidationResult.data,
+    builder,
+  );
+
+  if (!entitiesAttributesValidationResult.success) {
+    return entitiesAttributesValidationResult;
+  }
+
+  try {
+    await builder.validateSchema(entitiesAttributesValidationResult.data);
+
+    return {
+      success: true,
+      data: entitiesAttributesValidationResult.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      reason: new SchemaValidationError({
+        code: schemaValidationErrorCodes.InvalidSchema,
+        payload: { schemaError: error },
+      }).reason,
+    };
+  }
 }

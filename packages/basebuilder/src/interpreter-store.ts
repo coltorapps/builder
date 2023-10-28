@@ -542,13 +542,13 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
         events,
       );
     },
-    setEntitiesErrors(entitiesErrors) {
+    setEntitiesErrors(newEntitiesErrors) {
+      const data = getData();
+
       const newData = deserializeAndValidateInterpreterStoreData(
         {
-          entitiesValues: serializeInternalEntitiesValues(
-            getData().entitiesValues,
-          ),
-          entitiesErrors,
+          entitiesValues: serializeInternalEntitiesValues(data.entitiesValues),
+          entitiesErrors: newEntitiesErrors,
         },
         options.builder,
         schemaValidationResult.data,
@@ -560,14 +560,33 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
         options.schema,
       );
 
-      setData(newData, [
-        {
-          name: interpreterStoreEventsNames.DataSet,
+      const events: Array<InterpreterStoreEvent<TBuilder>> = [];
+
+      for (const [entityId] of data.entitiesErrors) {
+        const newEntityError = newData.entitiesErrors.get(entityId);
+
+        if (!newEntityError) {
+          events.push({
+            name: interpreterStoreEventsNames.EntityErrorUpdated,
+            payload: {
+              entityId,
+              error: undefined,
+            },
+          });
+        }
+      }
+
+      for (const [entityId, newEntityError] of newData.entitiesErrors) {
+        events.push({
+          name: interpreterStoreEventsNames.EntityErrorUpdated,
           payload: {
-            data: serializeInternalInterpreterStoreData(newData),
+            entityId,
+            error: newEntityError,
           },
-        },
-      ]);
+        });
+      }
+
+      setData(newData, events);
     },
     async validateEntity(entityId) {
       const data = getData();
