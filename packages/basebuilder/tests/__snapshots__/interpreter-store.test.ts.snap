@@ -3,7 +3,6 @@
 exports[`interpreter store > can be created 1`] = `
 {
   "builder": {
-    "childrenAllowed": {},
     "entities": [],
     "entitiesExtensions": {},
     "generateEntityId": [Function],

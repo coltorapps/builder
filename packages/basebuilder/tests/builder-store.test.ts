@@ -271,11 +271,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -349,11 +347,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -439,14 +435,12 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "section",
+          childrenAllowed: true,
         }),
         createEntity({
           name: "text",
         }),
       ],
-      childrenAllowed: {
-        section: true,
-      },
       parentRequired: ["text"],
     });
 
@@ -551,11 +545,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -591,11 +583,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -632,11 +622,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -673,11 +661,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -774,11 +760,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -821,11 +805,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -870,11 +852,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -927,11 +907,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -985,11 +963,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -1069,11 +1045,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -1145,11 +1119,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -1383,11 +1355,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
     });
 
     const builderStore = createBuilderStore({
@@ -2206,9 +2176,9 @@ describe("builder store", () => {
               },
             }),
           ],
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: { test: true },
     });
 
     const builderStore = createBuilderStore({

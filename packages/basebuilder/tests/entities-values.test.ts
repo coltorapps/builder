@@ -32,11 +32,9 @@ describe("entities values validation", () => {
           shouldBeProcessed(context) {
             return !context.entity.attributes.skip;
           },
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        section: true,
-      },
     });
 
     const schema: Schema<typeof builder> = {

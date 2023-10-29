@@ -38,7 +38,8 @@ describe("entity", () => {
     expectTypeOf(entity).toEqualTypeOf<{
       name: "text";
       attributes: readonly Attribute[];
-      isValueAllowed: boolean;
+      valueAllowed: boolean;
+      childrenAllowed: false;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
       shouldBeProcessed: (context: EntityContext) => boolean;
@@ -51,6 +52,7 @@ describe("entity", () => {
       validate(value) {
         return z.string().parse(value);
       },
+      childrenAllowed: true,
       attributes: [
         createAttribute({
           name: "label",
@@ -84,7 +86,8 @@ describe("entity", () => {
         Attribute<"label", string>,
         Attribute<"defaultValue", string | undefined>,
       ];
-      isValueAllowed: boolean;
+      valueAllowed: boolean;
+      childrenAllowed: true;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
       shouldBeProcessed: (context: EntityContext) => boolean;

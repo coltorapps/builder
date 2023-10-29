@@ -3,16 +3,11 @@ import { type Entity } from "./entity";
 import { type Schema, type SchemaEntityWithId } from "./schema";
 import { generateUuid, validateUuid } from "./uuid";
 
-type ChildrenAllowed<TEntities extends ReadonlyArray<Entity>> = {
-  [K in TEntities[number]["name"]]?:
-    | ReadonlyArray<TEntities[number]["name"]>
-    | true;
-};
-
 export type EntitiesExtensions<
   TEntities extends ReadonlyArray<Entity> = ReadonlyArray<Entity>,
 > = {
   [K in TEntities[number]["name"]]?: {
+    childrenAllowed?: boolean | ReadonlyArray<TEntities[number]["name"]>;
     attributes?: {
       [K2 in Extract<
         TEntities[number],
@@ -44,10 +39,6 @@ export type EntitiesExtensions<
 
 export type Builder<
   TEntities extends ReadonlyArray<Entity> = ReadonlyArray<Entity>,
-  TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<
-    string,
-    true | ReadonlyArray<string> | undefined
-  >,
   TParentRequired extends ReadonlyArray<
     TEntities[number]["name"]
   > = ReadonlyArray<string>,
@@ -56,38 +47,18 @@ export type Builder<
   >,
 > = {
   entities: TEntities;
-  childrenAllowed: TChildrenAllowed;
   parentRequired: TParentRequired;
   generateEntityId(): string;
   validateEntityId(id: string): void;
   validateSchema(
-    schema: Schema<
-      Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions>
-    >,
+    schema: Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>>,
   ):
-    | Promise<
-        Schema<
-          Builder<
-            TEntities,
-            TChildrenAllowed,
-            TParentRequired,
-            TEntitiesExtensions
-          >
-        >
-      >
-    | Schema<
-        Builder<
-          TEntities,
-          TChildrenAllowed,
-          TParentRequired,
-          TEntitiesExtensions
-        >
-      >;
+    | Promise<Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>>>
+    | Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>>;
   entitiesExtensions: TEntitiesExtensions;
 };
 
 type OptionalBuilderArgs =
-  | "childrenAllowed"
   | "parentRequired"
   | "validateSchema"
   | "generateEntityId"
@@ -96,36 +67,23 @@ type OptionalBuilderArgs =
 
 export function createBuilder<
   const TEntities extends ReadonlyArray<Entity>,
-  const TChildrenAllowed extends ChildrenAllowed<TEntities> = Record<
-    string,
-    never
-  >,
   const TParentRequired extends ReadonlyArray<TEntities[number]["name"]> = [],
   const TEntitiesExtensions extends EntitiesExtensions<TEntities> = EntitiesExtensions<TEntities>,
 >(
   options: Omit<
-    Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions>,
+    Builder<TEntities, TParentRequired, TEntitiesExtensions>,
     OptionalBuilderArgs
   > &
     Partial<
       Pick<
-        Builder<
-          TEntities,
-          TChildrenAllowed,
-          TParentRequired,
-          TEntitiesExtensions
-        >,
+        Builder<TEntities, TParentRequired, TEntitiesExtensions>,
         OptionalBuilderArgs
       >
     >,
-): Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions> {
+): Builder<TEntities, TParentRequired, TEntitiesExtensions> {
   function fallbackValidateSchema(
-    schema: Schema<
-      Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions>
-    >,
-  ): Schema<
-    Builder<TEntities, TChildrenAllowed, TParentRequired, TEntitiesExtensions>
-  > {
+    schema: Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>>,
+  ): Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>> {
     return schema;
   }
 
@@ -136,7 +94,6 @@ export function createBuilder<
     validateEntityId: options.validateEntityId ?? validateUuid,
     entitiesExtensions:
       options.entitiesExtensions ?? ({} as TEntitiesExtensions),
-    childrenAllowed: options.childrenAllowed ?? ({} as TChildrenAllowed),
     parentRequired:
       options.parentRequired ??
       ([] as ReadonlyArray<unknown> as TParentRequired),
@@ -198,9 +155,14 @@ export function ensureEntityAttributesAreRegistered(
 export function isEntityChildAllowed(
   entityType: string,
   childEntityType: string,
-  builder: Builder,
+  builder: Builder<ReadonlyArray<Entity>>,
 ): boolean {
-  const allowedChildren = builder.childrenAllowed[entityType];
+  const entityDefinition = ensureEntityIsRegistered(entityType, builder);
+
+  const allowedChildren =
+    (builder.entitiesExtensions as EntitiesExtensions<ReadonlyArray<Entity>>)[
+      entityType
+    ]?.childrenAllowed ?? entityDefinition.childrenAllowed;
 
   if (!allowedChildren) {
     return false;

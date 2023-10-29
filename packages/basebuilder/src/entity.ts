@@ -12,10 +12,12 @@ export type Entity<
   TName extends string = string,
   TAttributes extends ReadonlyArray<Attribute> = ReadonlyArray<Attribute>,
   TValue = unknown,
+  TChildrenAllowed extends boolean = boolean,
 > = {
   name: TName;
   attributes: TAttributes;
-  isValueAllowed: boolean;
+  valueAllowed: boolean;
+  childrenAllowed: TChildrenAllowed;
   validate: (value: unknown, context: EntityContext<TAttributes>) => TValue;
   defaultValue: (
     context: EntityContext<TAttributes>,
@@ -28,16 +30,26 @@ type OptionalEntityArgs =
   | "validate"
   | "defaultValue"
   | "shouldBeProcessed"
-  | "isValueAllowed";
+  | "childrenAllowed"
+  | "valueAllowed";
 
 export function createEntity<
   const TName extends string,
   const TAttributes extends ReadonlyArray<Attribute>,
   TValue,
+  const TChildrenAllowed extends boolean = false,
 >(
-  options: Omit<Entity<TName, TAttributes, TValue>, OptionalEntityArgs> &
-    Partial<Pick<Entity<TName, TAttributes, TValue>, OptionalEntityArgs>>,
-): Entity<TName, TAttributes, TValue> {
+  options: Omit<
+    Entity<TName, TAttributes, TValue, TChildrenAllowed>,
+    OptionalEntityArgs
+  > &
+    Partial<
+      Pick<
+        Entity<TName, TAttributes, TValue, TChildrenAllowed>,
+        OptionalEntityArgs
+      >
+    >,
+): Entity<TName, TAttributes, TValue, TChildrenAllowed> {
   const fallbackAttributes = [] as ReadonlyArray<unknown> as TAttributes;
 
   function fallbackValidator(value: unknown): TValue {
@@ -60,10 +72,12 @@ export function createEntity<
 
   return {
     ...options,
+    childrenAllowed: options.childrenAllowed ?? (false as TChildrenAllowed),
     attributes: options.attributes ?? fallbackAttributes,
-    isValueAllowed: typeof options.validate === "function",
+    valueAllowed: typeof options.validate === "function",
     validate: options.validate ?? fallbackValidator,
     defaultValue: options.defaultValue ?? fallbackDefaultValue,
     shouldBeProcessed: options.shouldBeProcessed ?? fallbackShouldBeProcessed,
   };
 }
+

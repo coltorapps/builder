@@ -60,7 +60,7 @@ function getEligibleEntitiesIdsForValidationFromEntity<
 
   let eligibleEntities: string[] = [];
 
-  if (entityDefinition.isValueAllowed && shouldBeProcessed) {
+  if (entityDefinition.valueAllowed && shouldBeProcessed) {
     eligibleEntities.push(entityId);
   }
 

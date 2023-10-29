@@ -207,7 +207,7 @@ function isEntityValueAllowed(
 ): boolean {
   const entity = ensureEntityExists(entityId, schema.entities);
 
-  return ensureEntityIsRegistered(entity.type, builder).isValueAllowed;
+  return ensureEntityIsRegistered(entity.type, builder).valueAllowed;
 }
 
 function ensureEntityValueAllowed(

@@ -19,17 +19,12 @@ describe("builder", () => {
       entities: readonly [];
       generateEntityId: () => string;
       validateEntityId: (id: string) => void;
-      childrenAllowed: {
-        [x: string]: never;
-      };
       parentRequired: [];
       validateSchema: (
-        schema: Schema<Builder<readonly [], Record<string, never>, [], object>>,
+        schema: Schema<Builder<readonly [], [], object>>,
       ) =>
-        | Schema<Builder<readonly [], Record<string, never>, [], object>>
-        | Promise<
-            Schema<Builder<readonly [], Record<string, never>, [], object>>
-          >;
+        | Schema<Builder<readonly [], [], object>>
+        | Promise<Schema<Builder<readonly [], [], object>>>;
       entitiesExtensions: EntitiesExtensions<readonly []>;
     }>();
   });
@@ -47,35 +42,28 @@ describe("builder", () => {
               },
             }),
           ],
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        test: true,
-      },
       parentRequired: ["test"],
     });
 
     type BuilderSchema = Schema<
       Builder<
         readonly [
-          Entity<"test", readonly [Attribute<"label", string>], unknown>,
+          Entity<"test", readonly [Attribute<"label", string>], unknown, true>,
         ],
-        {
-          readonly test: true;
-        },
         readonly ["test"]
       >
     >;
 
     expectTypeOf(builder).toEqualTypeOf<{
       entities: readonly [
-        Entity<"test", readonly [Attribute<"label", string>], unknown>,
+        Entity<"test", readonly [Attribute<"label", string>], unknown, true>,
       ];
       generateEntityId: () => string;
       validateEntityId: (id: string) => void;
-      childrenAllowed: {
-        readonly test: true;
-      };
+
       parentRequired: readonly ["test"];
       validateSchema: (
         schema: BuilderSchema,

@@ -122,7 +122,6 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
         ],
       },
       {
-        "childrenAllowed": {},
         "entities": [
           {
             "attributes": [
@@ -131,11 +130,12 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
                 "validate": [Function],
               },
             ],
+            "childrenAllowed": false,
             "defaultValue": [Function],
-            "isValueAllowed": false,
             "name": "text",
             "shouldBeProcessed": [Function],
             "validate": [Function],
+            "valueAllowed": false,
           },
         ],
         "entitiesExtensions": {},
@@ -174,7 +174,6 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
 {
   "addEntity": [Function],
   "builder": {
-    "childrenAllowed": {},
     "entities": [
       {
         "attributes": [
@@ -183,11 +182,12 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
             "validate": [Function],
           },
         ],
+        "childrenAllowed": false,
         "defaultValue": [Function],
-        "isValueAllowed": false,
         "name": "text",
         "shouldBeProcessed": [Function],
         "validate": [Function],
+        "valueAllowed": false,
       },
     ],
     "entitiesExtensions": {},
@@ -229,7 +229,6 @@ exports[`builder store > can be created with an empty schema 1`] = `
         "root": [],
       },
       {
-        "childrenAllowed": {},
         "entities": [],
         "entitiesExtensions": {},
         "generateEntityId": [Function],
@@ -258,7 +257,6 @@ exports[`builder store > can be created with an empty schema 2`] = `
 {
   "addEntity": [Function],
   "builder": {
-    "childrenAllowed": {},
     "entities": [],
     "entitiesExtensions": {},
     "generateEntityId": [Function],
@@ -294,7 +292,6 @@ exports[`builder store > can be created without a schema 1`] = `
 {
   "addEntity": [Function],
   "builder": {
-    "childrenAllowed": {},
     "entities": [],
     "entitiesExtensions": {},
     "generateEntityId": [Function],

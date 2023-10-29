@@ -60,10 +60,7 @@ describe("builder", () => {
 
   it("can be created with children and parent rules", () => {
     const builder = createBuilder({
-      entities: [createEntity({ name: "test" })],
-      childrenAllowed: {
-        test: true,
-      },
+      entities: [createEntity({ name: "test", childrenAllowed: true })],
       parentRequired: ["test"],
     });
 

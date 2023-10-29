@@ -8,11 +8,12 @@ exports[`entity > can be created with attributes 1`] = `
       "validate": [Function],
     },
   ],
+  "childrenAllowed": false,
   "defaultValue": [Function],
-  "isValueAllowed": true,
   "name": "text",
   "shouldBeProcessed": [Function],
   "validate": [Function],
+  "valueAllowed": true,
 }
 `;
 
@@ -21,11 +22,12 @@ exports[`entity > can be created with default value 1`] = `"test"`;
 exports[`entity > can be created with minimal options 1`] = `
 {
   "attributes": [],
+  "childrenAllowed": false,
   "defaultValue": [Function],
-  "isValueAllowed": false,
   "name": "text",
   "shouldBeProcessed": [Function],
   "validate": [Function],
+  "valueAllowed": false,
 }
 `;
 

@@ -416,10 +416,12 @@ describe("schema integrity validation", () => {
           name: "select",
         }),
       ],
-      childrenAllowed: {
-        section: ["text", "section"],
-      },
       parentRequired: ["select"],
+      entitiesExtensions: {
+        section: {
+          childrenAllowed: ["text", "section"],
+        },
+      },
     });
 
     for (const item of invalidSchemasCases) {
@@ -496,11 +498,9 @@ describe("schema integrity validation", () => {
       entities: [
         createEntity({
           name: "text",
+          childrenAllowed: true,
         }),
       ],
-      childrenAllowed: {
-        text: true,
-      },
     });
 
     expect(() =>
@@ -560,13 +560,11 @@ describe("schema integrity validation", () => {
 
     const sectionEntity = createEntity({
       name: "section",
+      childrenAllowed: true,
     });
 
     const builder = createBuilder({
       entities: [textEntity, sectionEntity],
-      childrenAllowed: {
-        section: true,
-      },
     });
 
     const schema: Schema = {
@@ -615,8 +613,10 @@ describe("schema validation", () => {
           name: "select",
         }),
       ],
-      childrenAllowed: {
-        section: ["text", "section"],
+      entitiesExtensions: {
+        section: {
+          childrenAllowed: ["text", "section"],
+        },
       },
       parentRequired: ["select"],
       validateSchema(schema) {
