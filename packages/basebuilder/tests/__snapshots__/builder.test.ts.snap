@@ -8,6 +8,7 @@ exports[`builder > can be created with children and parent rules 1`] = `
       "childrenAllowed": true,
       "defaultValue": [Function],
       "name": "test",
+      "parentRequired": true,
       "shouldBeProcessed": [Function],
       "validate": [Function],
       "valueAllowed": false,
@@ -15,9 +16,6 @@ exports[`builder > can be created with children and parent rules 1`] = `
   ],
   "entitiesExtensions": {},
   "generateEntityId": [Function],
-  "parentRequired": [
-    "test",
-  ],
   "validateEntityId": [Function],
   "validateSchema": [Function],
 }
@@ -31,6 +29,7 @@ exports[`builder > can be created with entities 1`] = `
       "childrenAllowed": false,
       "defaultValue": [Function],
       "name": "test",
+      "parentRequired": false,
       "shouldBeProcessed": [Function],
       "validate": [Function],
       "valueAllowed": false,
@@ -38,7 +37,6 @@ exports[`builder > can be created with entities 1`] = `
   ],
   "entitiesExtensions": {},
   "generateEntityId": [Function],
-  "parentRequired": [],
   "validateEntityId": [Function],
   "validateSchema": [Function],
 }
@@ -49,7 +47,6 @@ exports[`builder > can be created with entity ID generator and validator 1`] = `
   "entities": [],
   "entitiesExtensions": {},
   "generateEntityId": [Function],
-  "parentRequired": [],
   "validateEntityId": [Function],
   "validateSchema": [Function],
 }
@@ -66,7 +63,6 @@ exports[`builder > can be created with minimal options 1`] = `
   "entities": [],
   "entitiesExtensions": {},
   "generateEntityId": [MockFunction generateUuid],
-  "parentRequired": [],
   "validateEntityId": [MockFunction validateUuid],
   "validateSchema": [Function],
 }

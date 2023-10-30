@@ -40,6 +40,7 @@ describe("entity", () => {
       attributes: readonly Attribute[];
       valueAllowed: boolean;
       childrenAllowed: false;
+      parentRequired: false;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
       shouldBeProcessed: (context: EntityContext) => boolean;
@@ -53,6 +54,7 @@ describe("entity", () => {
         return z.string().parse(value);
       },
       childrenAllowed: true,
+      parentRequired: true,
       attributes: [
         createAttribute({
           name: "label",
@@ -88,6 +90,7 @@ describe("entity", () => {
       ];
       valueAllowed: boolean;
       childrenAllowed: true;
+      parentRequired: true;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
       shouldBeProcessed: (context: EntityContext) => boolean;

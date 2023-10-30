@@ -8,6 +8,8 @@ export type EntitiesExtensions<
 > = {
   [K in TEntities[number]["name"]]?: {
     childrenAllowed?: boolean | ReadonlyArray<TEntities[number]["name"]>;
+    parentRequired?: boolean;
+    allowedParents?: ReadonlyArray<TEntities[number]["name"]>;
     attributes?: {
       [K2 in Extract<
         TEntities[number],
@@ -39,27 +41,22 @@ export type EntitiesExtensions<
 
 export type Builder<
   TEntities extends ReadonlyArray<Entity> = ReadonlyArray<Entity>,
-  TParentRequired extends ReadonlyArray<
-    TEntities[number]["name"]
-  > = ReadonlyArray<string>,
   TEntitiesExtensions extends EntitiesExtensions<TEntities> = EntitiesExtensions<
     []
   >,
 > = {
   entities: TEntities;
-  parentRequired: TParentRequired;
   generateEntityId(): string;
   validateEntityId(id: string): void;
   validateSchema(
-    schema: Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>>,
+    schema: Schema<Builder<TEntities, TEntitiesExtensions>>,
   ):
-    | Promise<Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>>>
-    | Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>>;
+    | Promise<Schema<Builder<TEntities, TEntitiesExtensions>>>
+    | Schema<Builder<TEntities, TEntitiesExtensions>>;
   entitiesExtensions: TEntitiesExtensions;
 };
 
 type OptionalBuilderArgs =
-  | "parentRequired"
   | "validateSchema"
   | "generateEntityId"
   | "entitiesExtensions"
@@ -67,23 +64,14 @@ type OptionalBuilderArgs =
 
 export function createBuilder<
   const TEntities extends ReadonlyArray<Entity>,
-  const TParentRequired extends ReadonlyArray<TEntities[number]["name"]> = [],
   const TEntitiesExtensions extends EntitiesExtensions<TEntities> = EntitiesExtensions<TEntities>,
 >(
-  options: Omit<
-    Builder<TEntities, TParentRequired, TEntitiesExtensions>,
-    OptionalBuilderArgs
-  > &
-    Partial<
-      Pick<
-        Builder<TEntities, TParentRequired, TEntitiesExtensions>,
-        OptionalBuilderArgs
-      >
-    >,
-): Builder<TEntities, TParentRequired, TEntitiesExtensions> {
+  options: Omit<Builder<TEntities, TEntitiesExtensions>, OptionalBuilderArgs> &
+    Partial<Pick<Builder<TEntities, TEntitiesExtensions>, OptionalBuilderArgs>>,
+): Builder<TEntities, TEntitiesExtensions> {
   function fallbackValidateSchema(
-    schema: Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>>,
-  ): Schema<Builder<TEntities, TParentRequired, TEntitiesExtensions>> {
+    schema: Schema<Builder<TEntities, TEntitiesExtensions>>,
+  ): Schema<Builder<TEntities, TEntitiesExtensions>> {
     return schema;
   }
 
@@ -94,9 +82,6 @@ export function createBuilder<
     validateEntityId: options.validateEntityId ?? validateUuid,
     entitiesExtensions:
       options.entitiesExtensions ?? ({} as TEntitiesExtensions),
-    parentRequired:
-      options.parentRequired ??
-      ([] as ReadonlyArray<unknown> as TParentRequired),
   };
 }
 
@@ -155,7 +140,7 @@ export function ensureEntityAttributesAreRegistered(
 export function isEntityChildAllowed(
   entityType: string,
   childEntityType: string,
-  builder: Builder<ReadonlyArray<Entity>>,
+  builder: Builder,
 ): boolean {
   const entityDefinition = ensureEntityIsRegistered(entityType, builder);
 
@@ -171,11 +156,29 @@ export function isEntityChildAllowed(
   return allowedChildren === true || allowedChildren.includes(childEntityType);
 }
 
+export function isEntityParentAllowed(
+  entityType: string,
+  parentEntityType: string,
+  builder: Builder,
+): boolean {
+  const allowedParents = (
+    builder.entitiesExtensions as EntitiesExtensions<ReadonlyArray<Entity>>
+  )[entityType]?.allowedParents;
+
+  return !allowedParents || allowedParents.includes(parentEntityType);
+}
+
 export function isEntityParentRequired(
   entityType: string,
   builder: Builder,
 ): boolean {
-  return builder.parentRequired.includes(entityType);
+  const entityDefinition = ensureEntityIsRegistered(entityType, builder);
+
+  return (
+    (builder.entitiesExtensions as EntitiesExtensions<ReadonlyArray<Entity>>)[
+      entityType
+    ]?.parentRequired ?? entityDefinition.parentRequired
+  );
 }
 
 export function ensureEntityChildAllowed(
@@ -188,11 +191,28 @@ export function ensureEntityChildAllowed(
   }
 }
 
+export function ensureEntityParentAllowed(
+  entityType: string,
+  parentEntityType: string,
+  builder: Builder,
+): void {
+  if (!isEntityParentAllowed(entityType, parentEntityType, builder)) {
+    throw new Error("Parent is not allowed.");
+  }
+}
+
 export function ensureEntityCanLackParent(
   entityType: string,
   builder: Builder,
 ): void {
-  if (isEntityParentRequired(entityType, builder)) {
+  const entityDefinition = ensureEntityIsRegistered(entityType, builder);
+
+  const parentRequired =
+    (builder.entitiesExtensions as EntitiesExtensions<ReadonlyArray<Entity>>)[
+      entityType
+    ]?.parentRequired ?? entityDefinition.parentRequired;
+
+  if (parentRequired) {
     throw new Error("A parent is required.");
   }
 }

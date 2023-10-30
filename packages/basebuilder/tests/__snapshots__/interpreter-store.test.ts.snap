@@ -6,7 +6,6 @@ exports[`interpreter store > can be created 1`] = `
     "entities": [],
     "entitiesExtensions": {},
     "generateEntityId": [Function],
-    "parentRequired": [],
     "validateEntityId": [Function],
     "validateSchema": [Function],
   },

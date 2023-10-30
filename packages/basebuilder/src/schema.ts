@@ -2,6 +2,7 @@ import { type AttributesValues } from "./attribute";
 import {
   getEntityDefinition,
   isEntityChildAllowed,
+  isEntityParentAllowed,
   isEntityParentRequired,
   type Builder,
   type EntitiesExtensions,
@@ -30,6 +31,7 @@ export const schemaValidationErrorCodes = {
   ChildNotAllowed: "ChildNotAllowed",
   EntityChildrenMismatch: "EntityChildrenMismatch",
   ParentRequired: "ParentRequired",
+  ParentNotAllowed: "ParentNotAllowed",
   EntityParentMismatch: "EntityParentMismatch",
   UnreachableEntity: "UnreachableEntity",
 } as const;
@@ -73,6 +75,7 @@ const schemaValidationErrorMessages: Record<SchemaValidationErrorCode, string> =
     [schemaValidationErrorCodes.EntityParentMismatch]:
       "Parent relationship mismatch.",
     [schemaValidationErrorCodes.ParentRequired]: "A parent is required.",
+    [schemaValidationErrorCodes.ParentNotAllowed]: "Parent is not allowed.",
     [schemaValidationErrorCodes.UnreachableEntity]:
       "The entity is not in the root and has no parent ID.",
     [schemaValidationErrorCodes.InvalidEntityAttributes]:
@@ -158,6 +161,10 @@ export type SchemaValidationErrorReason =
   | {
       code: typeof schemaValidationErrorCodes.ParentRequired;
       payload: { entityId: string };
+    }
+  | {
+      code: typeof schemaValidationErrorCodes.ParentNotAllowed;
+      payload: { entityId: string; parentId: string };
     }
   | {
       code: typeof schemaValidationErrorCodes.UnreachableEntity;
@@ -483,7 +490,7 @@ function ensureEntityParentIdMatchesParentChildren(
   }
 }
 
-export function ensureEntityCanLackParent(
+function ensureEntityCanLackParent(
   entity: SchemaEntityWithId,
   builder: Builder,
 ): void {
@@ -495,7 +502,26 @@ export function ensureEntityCanLackParent(
   }
 }
 
-export function ensureEntityReachable(
+function ensureEntityParentAllowed(
+  entity: SchemaEntityWithId,
+  builder: Builder,
+  entities: Schema["entities"],
+): void {
+  if (!entity.parentId) {
+    return;
+  }
+
+  const parentEntity = ensureEntityExists(entity.parentId, entities);
+
+  if (!isEntityParentAllowed(entity.type, parentEntity.type, builder)) {
+    throw new SchemaValidationError({
+      code: schemaValidationErrorCodes.ParentNotAllowed,
+      payload: { entityId: entity.id, parentId: entity.parentId },
+    });
+  }
+}
+
+function ensureEntityReachable(
   entity: SchemaEntityWithId,
   root: Schema["root"],
 ): void {
@@ -543,6 +569,8 @@ function validateEntitySchema<TBuilder extends Builder>(
   ensureEntityParentIdMatchesParentChildren(entity, schema.entities);
 
   ensureEntityCanLackParent(entity, builder);
+
+  ensureEntityParentAllowed(entity, builder, schema.entities);
 
   ensureEntityReachable(entity, schema.root);
 

@@ -60,8 +60,13 @@ describe("builder", () => {
 
   it("can be created with children and parent rules", () => {
     const builder = createBuilder({
-      entities: [createEntity({ name: "test", childrenAllowed: true })],
-      parentRequired: ["test"],
+      entities: [
+        createEntity({
+          name: "test",
+          childrenAllowed: true,
+          parentRequired: true,
+        }),
+      ],
     });
 
     expect(builder).toMatchSnapshot();

@@ -12,12 +12,14 @@ export type Entity<
   TName extends string = string,
   TAttributes extends ReadonlyArray<Attribute> = ReadonlyArray<Attribute>,
   TValue = unknown,
+  TParentRequired extends boolean = boolean,
   TChildrenAllowed extends boolean = boolean,
 > = {
   name: TName;
   attributes: TAttributes;
   valueAllowed: boolean;
   childrenAllowed: TChildrenAllowed;
+  parentRequired: TParentRequired;
   validate: (value: unknown, context: EntityContext<TAttributes>) => TValue;
   defaultValue: (
     context: EntityContext<TAttributes>,
@@ -31,6 +33,7 @@ type OptionalEntityArgs =
   | "defaultValue"
   | "shouldBeProcessed"
   | "childrenAllowed"
+  | "parentRequired"
   | "valueAllowed";
 
 export function createEntity<
@@ -38,18 +41,19 @@ export function createEntity<
   const TAttributes extends ReadonlyArray<Attribute>,
   TValue,
   const TChildrenAllowed extends boolean = false,
+  const TParentRequired extends boolean = false,
 >(
   options: Omit<
-    Entity<TName, TAttributes, TValue, TChildrenAllowed>,
+    Entity<TName, TAttributes, TValue, TParentRequired, TChildrenAllowed>,
     OptionalEntityArgs
   > &
     Partial<
       Pick<
-        Entity<TName, TAttributes, TValue, TChildrenAllowed>,
+        Entity<TName, TAttributes, TValue, TParentRequired, TChildrenAllowed>,
         OptionalEntityArgs
       >
     >,
-): Entity<TName, TAttributes, TValue, TChildrenAllowed> {
+): Entity<TName, TAttributes, TValue, TParentRequired, TChildrenAllowed> {
   const fallbackAttributes = [] as ReadonlyArray<unknown> as TAttributes;
 
   function fallbackValidator(value: unknown): TValue {
@@ -73,6 +77,7 @@ export function createEntity<
   return {
     ...options,
     childrenAllowed: options.childrenAllowed ?? (false as TChildrenAllowed),
+    parentRequired: options.parentRequired ?? (false as TParentRequired),
     attributes: options.attributes ?? fallbackAttributes,
     valueAllowed: typeof options.validate === "function",
     validate: options.validate ?? fallbackValidator,
@@ -80,4 +85,3 @@ export function createEntity<
     shouldBeProcessed: options.shouldBeProcessed ?? fallbackShouldBeProcessed,
   };
 }
-

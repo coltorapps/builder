@@ -133,6 +133,7 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
             "childrenAllowed": false,
             "defaultValue": [Function],
             "name": "text",
+            "parentRequired": false,
             "shouldBeProcessed": [Function],
             "validate": [Function],
             "valueAllowed": false,
@@ -140,7 +141,6 @@ exports[`builder store > can be created with a non-empty schema 1`] = `
         ],
         "entitiesExtensions": {},
         "generateEntityId": [Function],
-        "parentRequired": [],
         "validateEntityId": [Function],
         "validateSchema": [Function],
       },
@@ -185,6 +185,7 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
         "childrenAllowed": false,
         "defaultValue": [Function],
         "name": "text",
+        "parentRequired": false,
         "shouldBeProcessed": [Function],
         "validate": [Function],
         "valueAllowed": false,
@@ -192,7 +193,6 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
     ],
     "entitiesExtensions": {},
     "generateEntityId": [Function],
-    "parentRequired": [],
     "validateEntityId": [Function],
     "validateSchema": [Function],
   },
@@ -232,7 +232,6 @@ exports[`builder store > can be created with an empty schema 1`] = `
         "entities": [],
         "entitiesExtensions": {},
         "generateEntityId": [Function],
-        "parentRequired": [],
         "validateEntityId": [Function],
         "validateSchema": [Function],
       },
@@ -260,7 +259,6 @@ exports[`builder store > can be created with an empty schema 2`] = `
     "entities": [],
     "entitiesExtensions": {},
     "generateEntityId": [Function],
-    "parentRequired": [],
     "validateEntityId": [Function],
     "validateSchema": [Function],
   },
@@ -295,7 +293,6 @@ exports[`builder store > can be created without a schema 1`] = `
     "entities": [],
     "entitiesExtensions": {},
     "generateEntityId": [Function],
-    "parentRequired": [],
     "validateEntityId": [Function],
     "validateSchema": [Function],
   },
@@ -2816,13 +2813,17 @@ exports[`builder store > can validate the schema 4`] = `
 
 exports[`builder store > throws moving an entity to a non-allowed parent 1`] = `"Child is not allowed."`;
 
-exports[`builder store > throws when adding an entity to a non-allowed parent 1`] = `"Child is not allowed."`;
+exports[`builder store > throws when adding an entity to a non allowed parent 1`] = `"Parent is not allowed."`;
+
+exports[`builder store > throws when adding an entity to a parent with non-allowed children 1`] = `"Child is not allowed."`;
 
 exports[`builder store > throws when adding an entity with a non-existent attribute 1`] = `"Unkown entity attribute \\"invalid\\"."`;
 
 exports[`builder store > throws when adding an entity with an already existent ID 1`] = `"An entitiy with the ID \\"6e0035c3-0d4c-445f-a42b-2d971225447c\\" already exists."`;
 
 exports[`builder store > throws when adding an entity without a parent when parent is required 1`] = `"A parent is required."`;
+
+exports[`builder store > throws when adding moving an entity to a non allowed parent 1`] = `"Parent is not allowed."`;
 
 exports[`builder store > throws when moving an entity to the root when parent is required 1`] = `"A parent is required."`;
 

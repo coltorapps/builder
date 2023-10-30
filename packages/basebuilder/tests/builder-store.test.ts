@@ -381,9 +381,9 @@ describe("builder store", () => {
       entities: [
         createEntity({
           name: "test",
+          parentRequired: true,
         }),
       ],
-      parentRequired: ["test"],
     });
 
     const builderStore = createBuilderStore({ builder });
@@ -396,7 +396,98 @@ describe("builder store", () => {
     ).toThrowErrorMatchingSnapshot();
   });
 
-  it("throws when adding an entity to a non-allowed parent", () => {
+  it("throws when adding an entity to a non allowed parent", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          parentRequired: true,
+        }),
+        createEntity({
+          name: "section",
+          childrenAllowed: true,
+        }),
+      ],
+      entitiesExtensions: {
+        text: {
+          allowedParents: ["text"],
+        },
+      },
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        schema: {
+          entities: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": {
+              type: "section",
+              attributes: {},
+            },
+          },
+          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+        },
+      },
+    });
+
+    expect(() =>
+      builderStore.addEntity({
+        type: "text",
+        attributes: {},
+        parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+      }),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when adding moving an entity to a non allowed parent", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+        }),
+        createEntity({
+          name: "section",
+          childrenAllowed: true,
+        }),
+      ],
+      entitiesExtensions: {
+        text: {
+          allowedParents: ["text"],
+        },
+      },
+    });
+
+    const builderStore = createBuilderStore({
+      builder,
+      initialData: {
+        schema: {
+          entities: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": {
+              type: "section",
+              attributes: {},
+            },
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "text",
+              attributes: {},
+            },
+          },
+          root: [
+            "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          ],
+        },
+      },
+    });
+
+    expect(() =>
+      builderStore.setEntityParent(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+      ),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when adding an entity to a parent with non-allowed children", () => {
     const builder = createBuilder({
       entities: [
         createEntity({
@@ -439,9 +530,9 @@ describe("builder store", () => {
         }),
         createEntity({
           name: "text",
+          parentRequired: true,
         }),
       ],
-      parentRequired: ["text"],
     });
 
     const builderStore = createBuilderStore({

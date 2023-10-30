@@ -15,16 +15,17 @@ describe("builder", () => {
   it("can be created with minimal options", () => {
     const builder = createBuilder({ entities: [] });
 
+    type SchemaForValidation = Schema<
+      Builder<readonly [], EntitiesExtensions<readonly []>>
+    >;
+
     expectTypeOf(builder).toEqualTypeOf<{
       entities: readonly [];
       generateEntityId: () => string;
       validateEntityId: (id: string) => void;
-      parentRequired: [];
       validateSchema: (
-        schema: Schema<Builder<readonly [], [], object>>,
-      ) =>
-        | Schema<Builder<readonly [], [], object>>
-        | Promise<Schema<Builder<readonly [], [], object>>>;
+        schema: SchemaForValidation,
+      ) => SchemaForValidation | Promise<SchemaForValidation>;
       entitiesExtensions: EntitiesExtensions<readonly []>;
     }>();
   });
@@ -43,28 +44,37 @@ describe("builder", () => {
             }),
           ],
           childrenAllowed: true,
+          parentRequired: true,
         }),
       ],
-      parentRequired: ["test"],
     });
 
     type BuilderSchema = Schema<
       Builder<
         readonly [
-          Entity<"test", readonly [Attribute<"label", string>], unknown, true>,
-        ],
-        readonly ["test"]
+          Entity<
+            "test",
+            readonly [Attribute<"label", string>],
+            unknown,
+            true,
+            true
+          >,
+        ]
       >
     >;
 
     expectTypeOf(builder).toEqualTypeOf<{
       entities: readonly [
-        Entity<"test", readonly [Attribute<"label", string>], unknown, true>,
+        Entity<
+          "test",
+          readonly [Attribute<"label", string>],
+          unknown,
+          true,
+          true
+        >,
       ];
       generateEntityId: () => string;
       validateEntityId: (id: string) => void;
-
-      parentRequired: readonly ["test"];
       validateSchema: (
         schema: BuilderSchema,
       ) => Promise<BuilderSchema> | BuilderSchema;

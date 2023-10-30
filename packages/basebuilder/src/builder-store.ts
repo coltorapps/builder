@@ -5,6 +5,7 @@ import {
   ensureEntityCanLackParent,
   ensureEntityChildAllowed,
   ensureEntityIsRegistered,
+  ensureEntityParentAllowed,
   type Builder,
   type EntitiesExtensions,
 } from "./builder";
@@ -614,6 +615,8 @@ function addEntity<TBuilder extends Builder>(
 
     ensureEntityChildAllowed(parentEntity.type, newEntity.type, builder);
 
+    ensureEntityParentAllowed(newEntity.type, parentEntity.type, builder);
+
     parentEntity.children = insertIntoSetAtIndex(
       parentEntity.children ?? new Set(),
       id,
@@ -745,6 +748,17 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         throw new Error("The root must contain at least one entity.");
       }
 
+      const newParentEntity = ensureEntityExists(
+        parentId,
+        data.schema.entities,
+      );
+
+      ensureEntityParentAllowed(
+        entity.type,
+        newParentEntity.type,
+        options.builder,
+      );
+
       ensureEntityNotGrandparent(entityId, parentId, data.schema.entities);
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [];
@@ -794,11 +808,6 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
           },
         },
       });
-
-      const newParentEntity = ensureEntityExists(
-        parentId,
-        data.schema.entities,
-      );
 
       ensureEntityChildAllowed(
         newParentEntity.type,

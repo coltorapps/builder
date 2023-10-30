@@ -392,6 +392,47 @@ const invalidSchemasCases: Array<{
       },
     },
   },
+  {
+    schema: {
+      entities: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "select",
+          attributes: {},
+        },
+      },
+      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+    },
+    reason: {
+      code: schemaValidationErrorCodes.ParentRequired,
+      payload: {
+        entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      },
+    },
+  },
+  {
+    schema: {
+      entities: {
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "select",
+          attributes: {},
+          parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+        },
+        "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
+          type: "card",
+          attributes: {},
+          children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+        },
+      },
+      root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
+    },
+    reason: {
+      code: schemaValidationErrorCodes.ParentNotAllowed,
+      payload: {
+        entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
+      },
+    },
+  },
 ];
 
 describe("schema integrity validation", () => {
@@ -413,13 +454,20 @@ describe("schema integrity validation", () => {
           name: "section",
         }),
         createEntity({
+          name: "card",
+          childrenAllowed: true,
+        }),
+        createEntity({
           name: "select",
+          parentRequired: true,
         }),
       ],
-      parentRequired: ["select"],
       entitiesExtensions: {
         section: {
           childrenAllowed: ["text", "section"],
+        },
+        select: {
+          allowedParents: ["section"],
         },
       },
     });
@@ -610,15 +658,22 @@ describe("schema validation", () => {
           name: "section",
         }),
         createEntity({
+          name: "card",
+          childrenAllowed: true,
+        }),
+        createEntity({
           name: "select",
+          parentRequired: true,
         }),
       ],
       entitiesExtensions: {
         section: {
           childrenAllowed: ["text", "section"],
         },
+        select: {
+          allowedParents: ["section"],
+        },
       },
-      parentRequired: ["select"],
       validateSchema(schema) {
         if (
           Object.values(schema.entities).some(
