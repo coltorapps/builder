@@ -3,6 +3,7 @@ import {
   memo,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useSyncExternalStore,
 } from "react";
@@ -33,19 +34,24 @@ export function useInterpreterStore<TBuilder extends Builder>(
     events?: EventsListeners<InterpreterStoreEvent<TBuilder>>;
   } = {},
 ): InterpreterStore<TBuilder> {
-  const interpreterStoreRef = useRef(
-    createInterpreterStore({
+  const interpreterStoreRef = useMemo(
+    () =>
+      createInterpreterStore(builder, schema, {
+        initialData: {
+          entitiesValues: options.initialData?.entitiesValues,
+          entitiesErrors: options.initialData?.entitiesErrors,
+        },
+      }),
+    [
       builder,
+      options.initialData?.entitiesErrors,
+      options.initialData?.entitiesValues,
       schema,
-      initialData: {
-        entitiesValues: options.initialData?.entitiesValues,
-        entitiesErrors: options.initialData?.entitiesErrors,
-      },
-    }),
+    ],
   );
 
   useEffect(() => {
-    return interpreterStoreRef.current.subscribe((_data, events) => {
+    return interpreterStoreRef.subscribe((_data, events) => {
       events.forEach((event) => {
         const listener = options.events?.[`on${event.name}`] as
           | undefined
@@ -54,9 +60,9 @@ export function useInterpreterStore<TBuilder extends Builder>(
         listener?.(event.payload);
       });
     });
-  }, [options.events]);
+  }, [interpreterStoreRef, options.events]);
 
-  return interpreterStoreRef.current;
+  return interpreterStoreRef;
 }
 
 export function useInterpreterStoreData<TBuilder extends Builder>(
@@ -186,12 +192,9 @@ const MemoizedEntity = memo(function Entity(props: {
 const InterpreterContext = createContext<{
   interpreterStore: InterpreterStore;
 }>({
-  interpreterStore: createInterpreterStore({
-    builder: createBuilder({ entities: [] }),
-    schema: {
-      entities: {},
-      root: [],
-    },
+  interpreterStore: createInterpreterStore(createBuilder({ entities: [] }), {
+    entities: {},
+    root: [],
   }),
 });
 

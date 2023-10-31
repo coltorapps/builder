@@ -250,16 +250,15 @@ function ensureEntitiesErrorsAllowed(
   }
 }
 
-export function createInterpreterStore<TBuilder extends Builder>(options: {
-  builder: TBuilder;
-  schema: Schema<TBuilder>;
-  initialData?: Partial<InterpreterStoreData<TBuilder>>;
-  initialEntitiesValuesWithDefaults?: boolean;
-}): InterpreterStore<TBuilder> {
-  const schemaValidationResult = validateSchemaIntegrity(
-    options.schema,
-    options.builder,
-  );
+export function createInterpreterStore<TBuilder extends Builder>(
+  builder: TBuilder,
+  schema: Schema<TBuilder>,
+  options?: {
+    initialData?: Partial<InterpreterStoreData<TBuilder>>;
+    initialEntitiesValuesWithDefaults?: boolean;
+  },
+): InterpreterStore<TBuilder> {
+  const schemaValidationResult = validateSchemaIntegrity(schema, builder);
 
   if (!schemaValidationResult.success) {
     throw new SchemaValidationError(schemaValidationResult.reason);
@@ -267,30 +266,22 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
 
   const initialStoreData = deserializeAndValidateInterpreterStoreData(
     {
-      entitiesValues: options.initialData?.entitiesValues ?? {},
-      entitiesErrors: options.initialData?.entitiesErrors ?? {},
+      entitiesValues: options?.initialData?.entitiesValues ?? {},
+      entitiesErrors: options?.initialData?.entitiesErrors ?? {},
     },
-    options.builder,
+    builder,
     schemaValidationResult.data,
   );
 
-  ensureEntitiesValuesAllowed(
-    initialStoreData.entitiesValues,
-    options.builder,
-    options.schema,
-  );
+  ensureEntitiesValuesAllowed(initialStoreData.entitiesValues, builder, schema);
 
-  ensureEntitiesErrorsAllowed(
-    initialStoreData.entitiesErrors,
-    options.builder,
-    options.schema,
-  );
+  ensureEntitiesErrorsAllowed(initialStoreData.entitiesErrors, builder, schema);
 
-  if (options.initialEntitiesValuesWithDefaults !== false) {
+  if (options?.initialEntitiesValuesWithDefaults !== false) {
     initialStoreData.entitiesValues = resetEntitiesValues(
       initialStoreData.entitiesValues,
-      options.schema,
-      options.builder,
+      schema,
+      builder,
       { skipAlreadySetEntitiesValues: true },
     );
   }
@@ -301,8 +292,8 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
   >(initialStoreData);
 
   return {
-    builder: options.builder,
-    schema: options.schema,
+    builder: builder,
+    schema: schema,
     subscribe(listener) {
       return subscribe((data, events) =>
         listener(serializeInternalInterpreterStoreData(data), events),
@@ -314,21 +305,13 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
     setData(data) {
       const newData = deserializeAndValidateInterpreterStoreData(
         data,
-        options.builder,
+        builder,
         schemaValidationResult.data,
       );
 
-      ensureEntitiesValuesAllowed(
-        newData.entitiesValues,
-        options.builder,
-        options.schema,
-      );
+      ensureEntitiesValuesAllowed(newData.entitiesValues, builder, schema);
 
-      ensureEntitiesErrorsAllowed(
-        newData.entitiesErrors,
-        options.builder,
-        options.schema,
-      );
+      ensureEntitiesErrorsAllowed(newData.entitiesErrors, builder, schema);
 
       setData(newData, [
         {
@@ -340,7 +323,7 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       ]);
     },
     setEntityValue(entityId, value) {
-      ensureEntityValueAllowed(entityId, options.builder, options.schema);
+      ensureEntityValueAllowed(entityId, builder, schema);
 
       const data = getData();
 
@@ -365,15 +348,15 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       );
     },
     resetEntityValue(entityId) {
-      ensureEntityValueAllowed(entityId, options.builder, options.schema);
+      ensureEntityValueAllowed(entityId, builder, schema);
 
       const data = getData();
 
       const newEntitiesValues = resetEntityValue(
         entityId,
         data.entitiesValues,
-        options.schema,
-        options.builder,
+        schema,
+        builder,
       );
 
       setData(
@@ -397,8 +380,8 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
 
       const newEntitiesValues = resetEntitiesValues(
         data.entitiesValues,
-        options.schema,
-        options.builder,
+        schema,
+        builder,
       );
 
       const events: Array<InterpreterStoreEvent<TBuilder>> = [];
@@ -422,7 +405,7 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       );
     },
     clearEntityValue(entityId) {
-      ensureEntityValueAllowed(entityId, options.builder, options.schema);
+      ensureEntityValueAllowed(entityId, builder, schema);
 
       const data = getData();
 
@@ -470,7 +453,7 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       );
     },
     setEntityError(entityId, error) {
-      ensureEntityErrorAllowed(entityId, options.builder, options.schema);
+      ensureEntityErrorAllowed(entityId, builder, schema);
 
       const data = getData();
 
@@ -495,7 +478,7 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       );
     },
     resetEntityError(entityId) {
-      ensureEntityErrorAllowed(entityId, options.builder, options.schema);
+      ensureEntityErrorAllowed(entityId, builder, schema);
 
       const data = getData();
 
@@ -550,15 +533,11 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
           entitiesValues: serializeInternalEntitiesValues(data.entitiesValues),
           entitiesErrors: newEntitiesErrors,
         },
-        options.builder,
+        builder,
         schemaValidationResult.data,
       );
 
-      ensureEntitiesErrorsAllowed(
-        newData.entitiesErrors,
-        options.builder,
-        options.schema,
-      );
+      ensureEntitiesErrorsAllowed(newData.entitiesErrors, builder, schema);
 
       const events: Array<InterpreterStoreEvent<TBuilder>> = [];
 
@@ -598,8 +577,8 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       const eligibleEntitiesIdsForValidation =
         getEligibleEntitiesIdsForValidation(
           serializedEntitiesValues,
-          options.builder,
-          options.schema,
+          builder,
+          schema,
         );
 
       if (!eligibleEntitiesIdsForValidation.includes(entityId)) {
@@ -609,8 +588,8 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       const entityValidationResult = await validateEntityValue(
         entityId,
         serializedEntitiesValues,
-        options.builder,
-        options.schema,
+        builder,
+        schema,
       );
 
       const newEntitiesErrors = new Map(data.entitiesErrors);
@@ -667,11 +646,11 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
       const eligibleEntitiesIdsForValidation =
         getEligibleEntitiesIdsForValidation(
           serializedEntitiesValues,
-          options.builder,
-          options.schema,
+          builder,
+          schema,
         );
 
-      for (const entityId of Object.keys(options.schema.entities)) {
+      for (const entityId of Object.keys(schema.entities)) {
         if (!eligibleEntitiesIdsForValidation.includes(entityId)) {
           newEntitiesErrors.delete(entityId);
 
@@ -689,8 +668,8 @@ export function createInterpreterStore<TBuilder extends Builder>(options: {
         const entityValidationResult = await validateEntityValue(
           entityId,
           serializedEntitiesValues,
-          options.builder,
-          options.schema,
+          builder,
+          schema,
         );
 
         if (!entityValidationResult.success) {

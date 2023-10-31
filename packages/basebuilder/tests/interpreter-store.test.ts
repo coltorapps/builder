@@ -22,10 +22,7 @@ describe("interpreter store", () => {
       entities: [],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema,
-      builder,
-    });
+    const interpreterStore = createInterpreterStore(builder, schema);
 
     expect(interpreterStore).toMatchSnapshot();
 
@@ -56,29 +53,26 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
-        entities: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": {
-            type: "text",
-            attributes: {},
-          },
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            type: "select",
-            attributes: {},
-          },
-          "2df173ee-6b88-4744-a74d-0f21d49166b3": {
-            type: "section",
-            attributes: {},
-          },
+    const interpreterStore = createInterpreterStore(builder, {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
         },
-        root: [
-          "51324b32-adc3-4d17-a90e-66b5453935bd",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        ],
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "select",
+          attributes: {},
+        },
+        "2df173ee-6b88-4744-a74d-0f21d49166b3": {
+          type: "section",
+          attributes: {},
+        },
       },
-      builder,
+      root: [
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "2df173ee-6b88-4744-a74d-0f21d49166b3",
+      ],
     });
 
     expect(interpreterStore.getData().entitiesValues).toMatchSnapshot();
@@ -99,9 +93,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      initialEntitiesValuesWithDefaults: false,
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -110,8 +104,10 @@ describe("interpreter store", () => {
         },
         root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      builder,
-    });
+      {
+        initialEntitiesValuesWithDefaults: false,
+      },
+    );
 
     expect(interpreterStore.getData().entitiesValues).toMatchSnapshot();
   });
@@ -131,17 +127,14 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
-        entities: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": {
-            type: "text",
-            attributes: {},
-          },
+    const interpreterStore = createInterpreterStore(builder, {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
         },
-        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
       },
-      builder,
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     });
 
     expect(interpreterStore.getData()).toMatchSnapshot();
@@ -174,8 +167,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -196,16 +190,17 @@ describe("interpreter store", () => {
           "2df173ee-6b88-4744-a74d-0f21d49166b3",
         ],
       },
-      builder,
-      initialData: {
-        entitiesValues: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
-        },
-        entitiesErrors: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "error",
+      {
+        initialData: {
+          entitiesValues: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          },
+          entitiesErrors: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "error",
+          },
         },
       },
-    });
+    );
 
     expect(interpreterStore.getData()).toMatchSnapshot();
   });
@@ -237,29 +232,26 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
-        entities: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": {
-            type: "text",
-            attributes: {},
-          },
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            type: "select",
-            attributes: {},
-          },
-          "2df173ee-6b88-4744-a74d-0f21d49166b3": {
-            type: "section",
-            attributes: {},
-          },
+    const interpreterStore = createInterpreterStore(builder, {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
         },
-        root: [
-          "51324b32-adc3-4d17-a90e-66b5453935bd",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        ],
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "select",
+          attributes: {},
+        },
+        "2df173ee-6b88-4744-a74d-0f21d49166b3": {
+          type: "section",
+          attributes: {},
+        },
       },
-      builder,
+      root: [
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "2df173ee-6b88-4744-a74d-0f21d49166b3",
+      ],
     });
 
     const listener = vi.fn();
@@ -325,8 +317,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -347,14 +340,15 @@ describe("interpreter store", () => {
           "2df173ee-6b88-4744-a74d-0f21d49166b3",
         ],
       },
-      builder,
-      initialData: {
-        entitiesValues: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+      {
+        initialData: {
+          entitiesValues: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -404,8 +398,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -426,14 +421,15 @@ describe("interpreter store", () => {
           "2df173ee-6b88-4744-a74d-0f21d49166b3",
         ],
       },
-      builder,
-      initialData: {
-        entitiesValues: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+      {
+        initialData: {
+          entitiesValues: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -474,8 +470,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -491,14 +488,15 @@ describe("interpreter store", () => {
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
         ],
       },
-      builder,
-      initialData: {
-        entitiesValues: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+      {
+        initialData: {
+          entitiesValues: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -538,8 +536,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -560,14 +559,15 @@ describe("interpreter store", () => {
           "2df173ee-6b88-4744-a74d-0f21d49166b3",
         ],
       },
-      builder,
-      initialData: {
-        entitiesValues: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+      {
+        initialData: {
+          entitiesValues: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -608,8 +608,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -625,14 +626,15 @@ describe("interpreter store", () => {
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
         ],
       },
-      builder,
-      initialData: {
-        entitiesValues: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+      {
+        initialData: {
+          entitiesValues: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -672,8 +674,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -694,14 +697,15 @@ describe("interpreter store", () => {
           "2df173ee-6b88-4744-a74d-0f21d49166b3",
         ],
       },
-      builder,
-      initialData: {
-        entitiesErrors: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+      {
+        initialData: {
+          entitiesErrors: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -751,8 +755,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -773,14 +778,15 @@ describe("interpreter store", () => {
           "2df173ee-6b88-4744-a74d-0f21d49166b3",
         ],
       },
-      builder,
-      initialData: {
-        entitiesErrors: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+      {
+        initialData: {
+          entitiesErrors: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -821,8 +827,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -838,14 +845,15 @@ describe("interpreter store", () => {
           "6e0035c3-0d4c-445f-a42b-2d971225447c",
         ],
       },
-      builder,
-      initialData: {
-        entitiesErrors: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+      {
+        initialData: {
+          entitiesErrors: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -885,8 +893,9 @@ describe("interpreter store", () => {
       ],
     });
 
-    const interpreterStore = createInterpreterStore({
-      schema: {
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
         entities: {
           "51324b32-adc3-4d17-a90e-66b5453935bd": {
             type: "text",
@@ -912,15 +921,16 @@ describe("interpreter store", () => {
           "e31665da-9663-4a4f-87ac-cd326760863e",
         ],
       },
-      builder,
-      initialData: {
-        entitiesErrors: {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
-          "e31665da-9663-4a4f-87ac-cd326760863e": "initial error",
+      {
+        initialData: {
+          entitiesErrors: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+            "e31665da-9663-4a4f-87ac-cd326760863e": "initial error",
+          },
         },
       },
-    });
+    );
 
     const listener = vi.fn();
 
@@ -986,9 +996,7 @@ describe("interpreter store", () => {
       ],
     } as const;
 
-    const interpreterStore = createInterpreterStore({
-      schema,
-      builder,
+    const interpreterStore = createInterpreterStore(builder, schema, {
       initialData: {
         entitiesValues: {
           "2df173ee-6b88-4744-a74d-0f21d49166b3": "valid",

@@ -21,7 +21,7 @@ describe("builder store", () => {
       entities: [],
     });
 
-    const builderStore = createBuilderStore({ builder });
+    const builderStore = createBuilderStore(builder);
 
     expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(
       {
@@ -56,8 +56,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -89,8 +88,7 @@ describe("builder store", () => {
       entities: [],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -139,8 +137,7 @@ describe("builder store", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     } as const;
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -178,8 +175,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -251,8 +247,7 @@ describe("builder store", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     } as const;
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {
@@ -276,8 +271,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {
           "6e0035c3-0d4c-445f-a42b-2d971225447c": {},
@@ -334,7 +328,7 @@ describe("builder store", () => {
     const builder = createBuilder({ entities: [] });
 
     expect(() =>
-      createBuilderStore({ builder }).deleteEntity("test"),
+      createBuilderStore(builder).deleteEntity("test"),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -352,8 +346,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -386,7 +379,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({ builder });
+    const builderStore = createBuilderStore(builder);
 
     expect(() =>
       builderStore.addEntity({
@@ -415,8 +408,7 @@ describe("builder store", () => {
       },
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -457,8 +449,7 @@ describe("builder store", () => {
       },
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -496,8 +487,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -535,8 +525,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -571,8 +560,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -615,7 +603,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({ builder });
+    const builderStore = createBuilderStore(builder);
 
     expect(() =>
       builderStore.addEntity({
@@ -641,8 +629,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -679,8 +666,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -718,8 +704,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -757,8 +742,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -798,8 +782,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -856,8 +839,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -901,8 +883,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -948,8 +929,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1003,8 +983,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1059,8 +1038,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1111,8 +1089,7 @@ describe("builder store", () => {
       entities: [],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1141,8 +1118,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1181,8 +1157,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1215,8 +1190,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1267,8 +1241,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1321,8 +1294,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1381,8 +1353,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1414,8 +1385,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1451,8 +1421,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
         schema: {
@@ -1529,8 +1498,7 @@ describe("builder store", () => {
       },
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -1640,8 +1608,7 @@ describe("builder store", () => {
       },
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -1721,8 +1688,7 @@ describe("builder store", () => {
       },
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -1790,8 +1756,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -1875,8 +1840,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -1964,8 +1928,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -2043,8 +2006,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -2113,8 +2075,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -2187,8 +2148,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -2272,8 +2232,7 @@ describe("builder store", () => {
       ],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -2384,8 +2343,7 @@ describe("builder store", () => {
       },
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
@@ -2459,8 +2417,7 @@ describe("builder store", () => {
       entities: [],
     });
 
-    const builderStore = createBuilderStore({
-      builder,
+    const builderStore = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {},

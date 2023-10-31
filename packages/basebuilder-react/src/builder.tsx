@@ -1,6 +1,7 @@
 import {
   memo,
   useEffect,
+  useMemo,
   useRef,
   useSyncExternalStore,
   type ReactNode,
@@ -32,18 +33,24 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
     events?: EventsListeners<BuilderStoreEvent<TBuilder>>;
   } = {},
 ): BuilderStore<TBuilder> {
-  const builderStoreRef = useRef(
-    createBuilderStore({
+  const builderStoreRef = useMemo(
+    () =>
+      createBuilderStore(builder, {
+        initialData: {
+          schema: options.initialData?.schema,
+          entitiesAttributesErrors:
+            options.initialData?.entitiesAttributesErrors,
+        },
+      }),
+    [
       builder,
-      initialData: {
-        schema: options.initialData?.schema,
-        entitiesAttributesErrors: options.initialData?.entitiesAttributesErrors,
-      },
-    }),
+      options.initialData?.entitiesAttributesErrors,
+      options.initialData?.schema,
+    ],
   );
 
   useEffect(() => {
-    return builderStoreRef.current.subscribe((_data, events) => {
+    return builderStoreRef.subscribe((_data, events) => {
       events.forEach((event) => {
         const listener = options.events?.[`on${event.name}`] as
           | undefined
@@ -52,9 +59,9 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
         listener?.(event.payload);
       });
     });
-  }, [options.events]);
+  }, [builderStoreRef, options.events]);
 
-  return builderStoreRef.current;
+  return builderStoreRef;
 }
 
 export function useBuilderStoreData<TBuilder extends BaseBuilder>(

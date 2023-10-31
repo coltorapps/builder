@@ -653,27 +653,29 @@ function ensureEntityNotGrandparent(
   return ensureEntityNotGrandparent(grandparentId, entity.parentId, entities);
 }
 
-export function createBuilderStore<TBuilder extends Builder>(options: {
-  builder: TBuilder;
-  initialData?: Partial<BuilderStoreData<TBuilder>>;
-}): BuilderStore<TBuilder> {
+export function createBuilderStore<TBuilder extends Builder>(
+  builder: TBuilder,
+  options?: {
+    initialData?: Partial<BuilderStoreData<TBuilder>>;
+  },
+): BuilderStore<TBuilder> {
   const { getData, setData, subscribe } = createDataManager<
     InternalBuilderStoreData<TBuilder>,
     BuilderStoreEvent<TBuilder>
   >(
     deserializeAndValidateBuilderStoreData(
       {
-        schema: options.initialData?.schema ?? { entities: {}, root: [] },
+        schema: options?.initialData?.schema ?? { entities: {}, root: [] },
         entitiesAttributesErrors:
-          options.initialData?.entitiesAttributesErrors ?? {},
-        schemaError: options.initialData?.schemaError,
+          options?.initialData?.entitiesAttributesErrors ?? {},
+        schemaError: options?.initialData?.schemaError,
       },
-      options.builder,
+      builder,
     ),
   );
 
   return {
-    builder: options.builder,
+    builder: builder,
     subscribe(listener) {
       return subscribe((data, events) =>
         listener(serializeInternalBuilderStoreData(data), events),
@@ -683,10 +685,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       return serializeInternalBuilderStoreData(getData());
     },
     setData(data) {
-      const newData = deserializeAndValidateBuilderStoreData(
-        data,
-        options.builder,
-      );
+      const newData = deserializeAndValidateBuilderStoreData(data, builder);
 
       setData(newData, [
         {
@@ -700,11 +699,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
     addEntity(payload) {
       const data = getData();
 
-      const { schema, entity } = addEntity(
-        payload,
-        data.schema,
-        options.builder,
-      );
+      const { schema, entity } = addEntity(payload, data.schema, builder);
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [
         {
@@ -734,6 +729,11 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         },
         events,
       );
+
+      return {
+        ...serializeInternalBuilderStoreEntity(entity),
+        id: entity.id,
+      };
     },
     setEntityParent(entityId, parentId, mutationOptions) {
       const data = getData();
@@ -753,11 +753,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         data.schema.entities,
       );
 
-      ensureEntityParentAllowed(
-        entity.type,
-        newParentEntity.type,
-        options.builder,
-      );
+      ensureEntityParentAllowed(entity.type, newParentEntity.type, builder);
 
       ensureEntityNotGrandparent(entityId, parentId, data.schema.entities);
 
@@ -809,11 +805,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
         },
       });
 
-      ensureEntityChildAllowed(
-        newParentEntity.type,
-        entity.type,
-        options.builder,
-      );
+      ensureEntityChildAllowed(newParentEntity.type, entity.type, builder);
 
       newParentEntity.children = insertIntoSetAtIndex(
         newParentEntity.children ?? new Set(),
@@ -855,7 +847,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [];
 
-      ensureEntityCanLackParent(entity.type, options.builder);
+      ensureEntityCanLackParent(entity.type, builder);
 
       if (entity.parentId) {
         const oldParentEntity = ensureEntityExists(
@@ -973,7 +965,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       ensureEntityAttributeIsRegistered(
         entity.type,
         attributeName.toString(),
-        options.builder,
+        builder,
       );
 
       entity.attributes = {
@@ -1025,11 +1017,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
           data.schema.entities,
         );
 
-        ensureEntityChildAllowed(
-          parentEntity.type,
-          entity.type,
-          options.builder,
-        );
+        ensureEntityChildAllowed(parentEntity.type, entity.type, builder);
 
         parentEntity.children?.delete(entityId);
 
@@ -1093,7 +1081,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       const newEntitiesAttributesErrors = await validateEntityAttribute(
         entityId,
         attributeName,
-        options.builder,
+        builder,
         data,
         serializeInternalBuilderStoreSchema(data.schema),
       );
@@ -1123,7 +1111,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       const { entityAttributesErrors, events } = await validateEntityAttributes(
         entityId,
         data,
-        options.builder,
+        builder,
       );
 
       const newEntitiesAttributesErrors = new Map(
@@ -1144,7 +1132,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       const data = getData();
 
       const { events, entitiesAttributesErrors } =
-        await validateEntitiesAttributes(data, options.builder);
+        await validateEntitiesAttributes(data, builder);
 
       setData(
         {
@@ -1166,7 +1154,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       ensureEntityAttributeIsRegistered(
         entity.type,
         attributeName.toString(),
-        options.builder,
+        builder,
       );
 
       const entityAttributesErrors =
@@ -1205,7 +1193,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       ensureEntityAttributeIsRegistered(
         entity.type,
         attributeName.toString(),
-        options.builder,
+        builder,
       );
 
       newEntitiesAttributesErrors.set(entityId, {
@@ -1281,7 +1269,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       ensureEntityAttributesAreRegistered(
         entity.type,
         Object.keys(newEntityAttributesErrors),
-        options.builder,
+        builder,
       );
 
       newEntitiesAttributesErrors.set(entityId, newEntityAttributesErrors);
@@ -1372,7 +1360,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
           entitiesAttributesErrors: newEntitiesAttributesErrors,
           schemaError: data.schemaError,
         },
-        options.builder,
+        builder,
       );
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [];
@@ -1442,7 +1430,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
           index: getEntityIndex(entityId, data.schema) + 1,
         },
         data.schema,
-        options.builder,
+        builder,
       );
 
       const events: Array<BuilderStoreEvent<TBuilder>> = [
@@ -1498,7 +1486,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       const {
         events: nextEvents,
         entitiesAttributesErrors: newEntitiesAttributesErrors,
-      } = await validateEntitiesAttributes(data, options.builder);
+      } = await validateEntitiesAttributes(data, builder);
 
       events = events.concat(nextEvents);
 
@@ -1517,7 +1505,7 @@ export function createBuilderStore<TBuilder extends Builder>(options: {
       let newSchemaError: unknown = undefined;
 
       try {
-        await options.builder.validateSchema(
+        await builder.validateSchema(
           serializeInternalBuilderStoreSchema(data.schema),
         );
 
@@ -1597,7 +1585,7 @@ export type BuilderStore<TBuilder extends Builder = Builder> = {
     payload: InternalBuilderStoreEntity<TBuilder> & {
       index?: number;
     },
-  ): void;
+  ): SchemaEntityWithId<TBuilder>;
   setEntityParent(
     entityId: string,
     parentId: string,
