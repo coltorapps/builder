@@ -300,16 +300,20 @@ async function validateEntityAttributes(
   entity: SchemaEntityWithId,
   builder: Builder,
   schema: Schema,
-): Promise<void> {
+): Promise<AttributesValues> {
   const entityDefinition = ensureEntityIsRegistered(entity, builder);
 
   const attributesErrors: EntityAttributesErrors = {};
 
+  const newAttributes = {
+    ...entity.attributes,
+  };
+
   for (const attribute of entityDefinition.attributes) {
     try {
-      const attributeValue = entity.attributes[attribute.name];
+      let attributeValue = entity.attributes[attribute.name];
 
-      await attribute.validate(attributeValue, {
+      attributeValue = await attribute.validate(attributeValue, {
         schema: schema,
         entity: {
           ...entity,
@@ -317,15 +321,18 @@ async function validateEntityAttributes(
         },
       });
 
-      await (builder.entitiesExtensions as EntitiesExtensions)[
-        entity.type
-      ]?.attributes?.[attribute.name]?.validate?.(attributeValue, {
-        schema,
-        entity: {
-          ...entity,
-          id: entity.id,
-        },
-      });
+      attributeValue =
+        (await (builder.entitiesExtensions as EntitiesExtensions)[
+          entity.type
+        ]?.attributes?.[attribute.name]?.validate?.(attributeValue, {
+          schema,
+          entity: {
+            ...entity,
+            id: entity.id,
+          },
+        })) ?? attributeValue;
+
+      newAttributes[attribute.name] = attributeValue;
     } catch (error) {
       attributesErrors[attribute.name] = error;
     }
@@ -337,6 +344,8 @@ async function validateEntityAttributes(
       payload: { entityId: entity.id, attributesErrors },
     });
   }
+
+  return newAttributes;
 }
 
 export function ensureEntityOptionalParentIdHasValidReference<
@@ -744,9 +753,23 @@ async function validateEntitiesAttributes<TBuilder extends Builder>(
 ): Promise<SchemValidationResult<TBuilder>> {
   const entitiesAttributesErrors: EntitiesAttributesErrors = {};
 
+  const newEntities = { ...schema.entities };
+
   for (const [id, entity] of Object.entries(schema.entities)) {
     try {
-      await validateEntityAttributes({ ...entity, id }, builder, schema);
+      const newAttributes = await validateEntityAttributes(
+        { ...entity, id },
+        builder,
+        schema,
+      );
+
+      const newEntity = newEntities[id];
+
+      if (!newEntity) {
+        throw new Error("Entity not found.");
+      }
+
+      newEntity.attributes = newAttributes as typeof entity.attributes;
     } catch (error) {
       if (
         error instanceof SchemaValidationError &&
@@ -771,7 +794,7 @@ async function validateEntitiesAttributes<TBuilder extends Builder>(
 
   return {
     success: true,
-    data: schema,
+    data: { root: schema.root, entities: newEntities },
   };
 }
 
@@ -798,11 +821,13 @@ export async function validateSchema<TBuilder extends Builder>(
   }
 
   try {
-    await builder.validateSchema(entitiesAttributesValidationResult.data);
+    const newSchema = (await builder.validateSchema(
+      entitiesAttributesValidationResult.data,
+    )) as Schema<TBuilder>;
 
     return {
       success: true,
-      data: entitiesAttributesValidationResult.data,
+      data: newSchema,
     };
   } catch (error) {
     return {

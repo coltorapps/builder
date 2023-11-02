@@ -12,6 +12,8 @@ exports[`interpreter store > can be created 1`] = `
   "clearEntitiesValues": [Function],
   "clearEntityValue": [Function],
   "getData": [Function],
+  "getEntitiesErrors": [Function],
+  "getEntitiesValues": [Function],
   "resetEntitiesErrors": [Function],
   "resetEntitiesValues": [Function],
   "resetEntityError": [Function],

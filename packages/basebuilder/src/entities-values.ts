@@ -30,12 +30,12 @@ export async function validateEntityValue<TBuilder extends Builder>(
   const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
   try {
-    await entityDefinition.validate(entitiesValues[entityId], {
+    const value = (await entityDefinition.validate(entitiesValues[entityId], {
       entity,
       entitiesValues,
-    });
+    })) as EntityValue<TBuilder>;
 
-    return { success: true, value: entitiesValues[entityId] };
+    return { success: true, value };
   } catch (error) {
     return { success: false, error };
   }
@@ -141,6 +141,8 @@ export async function validateEntitiesValues<TBuilder extends Builder>(
 
     if (!validationResult.success) {
       entitiesErrors[entityId] = validationResult.error;
+    } else {
+      newEntitiesValues[entityId] = validationResult.value;
     }
   }
 

@@ -1,5 +1,7 @@
 import {
+  createContext,
   memo,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -8,6 +10,7 @@ import {
 } from "react";
 import {
   builderStoreEventsNames,
+  createBuilder,
   createBuilderStore,
   type Builder as BaseBuilder,
   type BuilderStore,
@@ -85,13 +88,24 @@ export function useBuilderStoreData<TBuilder extends BaseBuilder>(
   );
 }
 
-const MemoizedEntity = memo(function Entity(props: {
-  entityId: string;
+const BuilderEntitiesContext = createContext<{
   components: EntitiesComponents;
   renderEntity: GenericEntityComponent;
   builderStore: BuilderStore;
+}>({
+  builderStore: createBuilderStore(createBuilder({ entities: [] })),
+  components: {},
+  renderEntity: ({ children }) => children,
+});
+
+const MemoizedEntity = memo(function Entity(props: {
+  entityId: string;
 }): JSX.Element {
-  const data = useBuilderStoreData(props.builderStore, (events) =>
+  const { components, renderEntity, builderStore } = useContext(
+    BuilderEntitiesContext,
+  );
+
+  const data = useBuilderStoreData(builderStore, (events) =>
     events.some(
       (event) =>
         (event.name === builderStoreEventsNames.EntityUpdated &&
@@ -108,7 +122,7 @@ const MemoizedEntity = memo(function Entity(props: {
 
   const childrenIds = entity?.children ?? [];
 
-  const EntityComponent = props.components[entity.type];
+  const EntityComponent = components[entity.type];
 
   if (!EntityComponent) {
     throw new Error("Entity component not found.");
@@ -119,7 +133,7 @@ const MemoizedEntity = memo(function Entity(props: {
     id: props.entityId,
   };
 
-  return props.renderEntity({
+  return renderEntity({
     entity: entityForRender,
     children: (
       <EntityComponent
@@ -152,7 +166,7 @@ function Entities<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   components: EntitiesComponents<TBuilder>;
   children?: GenericEntityComponent<TBuilder>;
-}): JSX.Element[] {
+}): JSX.Element {
   const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
       (event) =>
@@ -164,33 +178,48 @@ function Entities<TBuilder extends BaseBuilder>(props: {
   const renderEntity =
     (props.children as GenericEntityComponent) ?? ((props) => props.children);
 
-  return data.schema.root.map((entityId) => (
-    <MemoizedEntity
-      key={entityId}
-      entityId={entityId}
-      renderEntity={renderEntity}
-      builderStore={props.builderStore}
-      components={props.components as unknown as EntitiesComponents}
-    />
-  ));
+  return (
+    <BuilderEntitiesContext.Provider
+      value={{
+        renderEntity,
+        builderStore: props.builderStore,
+        components: props.components as unknown as EntitiesComponents,
+      }}
+    >
+      {data.schema.root.map((entityId) => (
+        <MemoizedEntity key={entityId} entityId={entityId} />
+      ))}
+    </BuilderEntitiesContext.Provider>
+  );
 }
+
+const BuilderAttributesContext = createContext<{
+  builderStore: BuilderStore;
+  components: AttributesComponents;
+  renderAttribute: GenericAttributeComponent;
+}>({
+  builderStore: createBuilderStore(createBuilder({ entities: [] })),
+  components: {},
+  renderAttribute: ({ children }) => children,
+});
 
 const MemoizedAttribute = memo(function Attribute(props: {
   attributeName: string;
   entityId: string;
   entityType: string;
-  builderStore: BuilderStore;
-  components: AttributesComponents;
-  renderAttribute: GenericAttributeComponent;
 }): ReactNode {
+  const { builderStore, components, renderAttribute } = useContext(
+    BuilderAttributesContext,
+  );
+
   const AttributeComponent =
-    props.components[props.entityType]?.[props.attributeName];
+    components[props.entityType]?.[props.attributeName];
 
   if (!AttributeComponent) {
     throw new Error("Attribute component not found.");
   }
 
-  const data = useBuilderStoreData(props.builderStore, (events) =>
+  const data = useBuilderStoreData(builderStore, (events) =>
     events.some(
       (event) =>
         (event.name === builderStoreEventsNames.EntityAttributeUpdated &&
@@ -225,7 +254,7 @@ const MemoizedAttribute = memo(function Attribute(props: {
     id: props.entityId,
   };
 
-  return props.renderAttribute({
+  return renderAttribute({
     entity: entityWithId,
     attribute,
     children: (
@@ -233,20 +262,20 @@ const MemoizedAttribute = memo(function Attribute(props: {
         attribute={attribute}
         entity={entityWithId}
         setValue={(value) =>
-          props.builderStore.setEntityAttribute(
+          builderStore.setEntityAttribute(
             props.entityId,
             props.attributeName,
             value,
           )
         }
         validate={() =>
-          props.builderStore.validateEntityAttribute(
+          builderStore.validateEntityAttribute(
             props.entityId,
             props.attributeName,
           )
         }
         resetError={() =>
-          props.builderStore.resetEntityAttributeError(
+          builderStore.resetEntityAttributeError(
             props.entityId,
             props.attributeName,
           )
@@ -261,7 +290,7 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
   components: AttributesComponents<TBuilder>;
   children?: GenericAttributeComponent<TBuilder>;
   entityId: string;
-}): JSX.Element[] {
+}): JSX.Element {
   const entity = props.builderStore.getData().schema.entities[props.entityId];
 
   if (!entity) {
@@ -280,17 +309,24 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
     (props.children as GenericAttributeComponent) ??
     ((props) => props.children);
 
-  return entityDefinition.attributes.map((item) => (
-    <MemoizedAttribute
-      key={`${props.entityId}-${item.name}`}
-      attributeName={item.name}
-      entityId={props.entityId}
-      entityType={entity.type}
-      components={props.components as unknown as AttributesComponents}
-      renderAttribute={renderAttribute}
-      builderStore={props.builderStore}
-    />
-  ));
+  return (
+    <BuilderAttributesContext.Provider
+      value={{
+        builderStore: props.builderStore,
+        components: props.components as unknown as AttributesComponents,
+        renderAttribute,
+      }}
+    >
+      {entityDefinition.attributes.map((item) => (
+        <MemoizedAttribute
+          key={`${props.entityId}-${item.name}`}
+          attributeName={item.name}
+          entityId={props.entityId}
+          entityType={entity.type}
+        />
+      ))}
+    </BuilderAttributesContext.Provider>
+  );
 }
 
 export const Builder = {

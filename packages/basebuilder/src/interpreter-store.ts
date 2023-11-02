@@ -703,11 +703,19 @@ export function createInterpreterStore<TBuilder extends Builder>(
         events,
       );
     },
+    getEntitiesErrors() {
+      return serializeInternalEntitiesErrors(getData().entitiesErrors);
+    },
+    getEntitiesValues() {
+      return serializeInternalEntitiesValues(getData().entitiesValues);
+    },
   };
 }
 
 export type InterpreterStore<TBuilder extends Builder = Builder> = {
   getData(): InterpreterStoreData<TBuilder>;
+  getEntitiesErrors(): InterpreterStoreData<TBuilder>["entitiesErrors"];
+  getEntitiesValues(): InterpreterStoreData<TBuilder>["entitiesValues"];
   setData(data: InterpreterStoreData<TBuilder>): void;
   subscribe(
     ...args: Parameters<

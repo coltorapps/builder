@@ -434,12 +434,23 @@ function serializeInternalBuilderStoreSchema<TBuilder extends Builder>(
   };
 }
 
+function serializeInternalBuilderStoreEntitiesAttributesErrors<
+  TBuilder extends Builder,
+>(
+  entitiesAttributesErrors: InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"],
+): BuilderStoreData<TBuilder>["entitiesAttributesErrors"] {
+  return Object.fromEntries(entitiesAttributesErrors);
+}
+
 function serializeInternalBuilderStoreData<TBuilder extends Builder>(
   data: InternalBuilderStoreData<TBuilder>,
 ): BuilderStoreData<TBuilder> {
   return {
     schema: serializeInternalBuilderStoreSchema(data.schema),
-    entitiesAttributesErrors: Object.fromEntries(data.entitiesAttributesErrors),
+    entitiesAttributesErrors:
+      serializeInternalBuilderStoreEntitiesAttributesErrors(
+        data.entitiesAttributesErrors,
+      ),
     schemaError: data.schemaError,
   };
 }
@@ -460,24 +471,30 @@ function deserializeEntitiesAttributesErrors(
   return new Map(Object.entries(entitiesAttributesErrors));
 }
 
+function deserializeSchema<TBuilder extends Builder>(
+  schema: BuilderStoreData<TBuilder>["schema"],
+): InternalBuilderStoreData<TBuilder>["schema"] {
+  return {
+    entities: new Map(
+      Object.entries(schema.entities).map(([id, entity]) => [
+        id,
+        {
+          ...entity,
+          ...(entity.children ? { children: new Set(entity.children) } : {}),
+          attributes:
+            entity.attributes as unknown as InternalBuilderStoreEntity<TBuilder>["attributes"],
+        },
+      ]),
+    ),
+    root: new Set(schema.root),
+  };
+}
+
 function deserializeBuilderStoreData<TBuilder extends Builder>(
   data: BuilderStoreData<TBuilder>,
 ): InternalBuilderStoreData<TBuilder> {
   return {
-    schema: {
-      entities: new Map(
-        Object.entries(data.schema.entities).map(([id, entity]) => [
-          id,
-          {
-            ...entity,
-            ...(entity.children ? { children: new Set(entity.children) } : {}),
-            attributes:
-              entity.attributes as unknown as InternalBuilderStoreEntity<TBuilder>["attributes"],
-          },
-        ]),
-      ),
-      root: new Set(data.schema.root),
-    },
+    schema: deserializeSchema(data.schema),
     entitiesAttributesErrors: deserializeEntitiesAttributesErrors(
       data.entitiesAttributesErrors,
     ),
@@ -1567,11 +1584,25 @@ export function createBuilderStore<TBuilder extends Builder>(
         ],
       );
     },
+    getSchema() {
+      return serializeInternalBuilderStoreSchema(getData().schema);
+    },
+    getEntitiesAttributesErrors() {
+      return serializeInternalBuilderStoreEntitiesAttributesErrors(
+        getData().entitiesAttributesErrors,
+      );
+    },
+    getSchemaError() {
+      return getData().schemaError;
+    },
   };
 }
 
 export type BuilderStore<TBuilder extends Builder = Builder> = {
   getData(): BuilderStoreData<TBuilder>;
+  getSchema(): BuilderStoreData<TBuilder>["schema"];
+  getEntitiesAttributesErrors(): BuilderStoreData<TBuilder>["entitiesAttributesErrors"];
+  getSchemaError(): BuilderStoreData<TBuilder>["schemaError"];
   setData(data: BuilderStoreData<TBuilder>): void;
   subscribe(
     ...args: Parameters<
