@@ -241,17 +241,22 @@ async function validateEntityAttribute<TBuilder extends Builder>(
       id: entityId,
     };
 
-    await attribute.validate(attributeValue, {
-      schema,
-      entity: serializedEntity,
-    });
+    const extensionValidator = (
+      builder.entitiesExtensions as EntitiesExtensions
+    )[entity.type]?.attributes?.[attributeName]?.validate;
 
-    await (builder.entitiesExtensions as EntitiesExtensions)[
-      entity.type
-    ]?.attributes?.[attributeName]?.validate?.(attributeValue, {
-      schema,
-      entity: serializedEntity,
-    });
+    if (extensionValidator) {
+      await extensionValidator?.(attributeValue, {
+        validate: attribute.validate,
+        schema,
+        entity: serializedEntity,
+      });
+    } else {
+      await attribute.validate(attributeValue, {
+        schema,
+        entity: serializedEntity,
+      });
+    }
 
     delete entityAttributesErrors?.[
       attributeName as keyof EntityAttributesErrors<TBuilder>

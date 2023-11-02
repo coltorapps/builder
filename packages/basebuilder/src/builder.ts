@@ -16,14 +16,16 @@ export type EntitiesExtensions<
         { name: K }
       >["attributes"][number]["name"]]?: {
         validate?: (
-          value: AttributesValues<
-            Extract<TEntities[number], { name: K }>["attributes"]
-          >[K2],
+          value: unknown,
           context: {
             schema: Schema<Builder<TEntities>>;
             entity: SchemaEntityWithId<
               Builder<[Extract<TEntities[number], { name: K }>]>
             >;
+            validate: Extract<
+              Extract<TEntities[number], { name: K }>["attributes"][number],
+              { name: K2 }
+            >["validate"];
           },
         ) =>
           | AttributesValues<

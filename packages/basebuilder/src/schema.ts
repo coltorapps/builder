@@ -313,24 +313,22 @@ async function validateEntityAttributes(
     try {
       let attributeValue = entity.attributes[attribute.name];
 
-      attributeValue = await attribute.validate(attributeValue, {
-        schema: schema,
-        entity: {
-          ...entity,
-          id: entity.id,
-        },
-      });
+      const extensionValidator = (
+        builder.entitiesExtensions as EntitiesExtensions
+      )[entity.type]?.attributes?.[attribute.name]?.validate;
 
-      attributeValue =
-        (await (builder.entitiesExtensions as EntitiesExtensions)[
-          entity.type
-        ]?.attributes?.[attribute.name]?.validate?.(attributeValue, {
+      if (extensionValidator) {
+        attributeValue = await extensionValidator(attributeValue, {
+          validate: attribute.validate,
           schema,
-          entity: {
-            ...entity,
-            id: entity.id,
-          },
-        })) ?? attributeValue;
+          entity,
+        });
+      } else {
+        attributeValue = await attribute.validate(attributeValue, {
+          schema: schema,
+          entity,
+        });
+      }
 
       newAttributes[attribute.name] = attributeValue;
     } catch (error) {
