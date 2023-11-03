@@ -291,7 +291,16 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
   children?: GenericAttributeComponent<TBuilder>;
   entityId: string;
 }): JSX.Element {
-  const entity = props.builderStore.getData().schema.entities[props.entityId];
+  const data = useBuilderStoreData(props.builderStore, (events) =>
+    events.some(
+      (event) =>
+        event.name === builderStoreEventsNames.EntityAdded ||
+        event.name === builderStoreEventsNames.EntityDeleted ||
+        event.name === builderStoreEventsNames.DataSet,
+    ),
+  );
+
+  const entity = data.schema.entities[props.entityId];
 
   if (!entity) {
     throw new Error("Entity not found.");
