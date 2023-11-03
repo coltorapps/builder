@@ -22,10 +22,14 @@ export type EntitiesExtensions<
             entity: SchemaEntityWithId<
               Builder<[Extract<TEntities[number], { name: K }>]>
             >;
-            validate: Extract<
-              Extract<TEntities[number], { name: K }>["attributes"][number],
-              { name: K2 }
-            >["validate"];
+            validate: (
+              value: unknown,
+            ) => ReturnType<
+              Extract<
+                Extract<TEntities[number], { name: K }>["attributes"][number],
+                { name: K2 }
+              >["validate"]
+            >;
           },
         ) =>
           | AttributesValues<

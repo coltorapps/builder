@@ -2,7 +2,11 @@ import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
 import { createAttribute, type Attribute } from "../src/attribute";
-import { createEntity } from "../src/entity";
+import {
+  createEntity,
+  type AttributesExtensions,
+  type Entity,
+} from "../src/entity";
 
 describe("entity", () => {
   it("can be created", () => {
@@ -41,6 +45,9 @@ describe("entity", () => {
       valueAllowed: boolean;
       childrenAllowed: false;
       parentRequired: false;
+      attributesExtensions?: AttributesExtensions<
+        Entity<"text", readonly Attribute[], unknown, boolean, boolean>
+      >;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
       shouldBeProcessed: (context: EntityContext) => boolean;
@@ -88,6 +95,20 @@ describe("entity", () => {
         Attribute<"label", string>,
         Attribute<"defaultValue", string | undefined>,
       ];
+      attributesExtensions?:
+        | AttributesExtensions<
+            Entity<
+              "text",
+              readonly [
+                Attribute<"label", string>,
+                Attribute<"defaultValue", string | undefined>,
+              ],
+              unknown,
+              boolean,
+              boolean
+            >
+          >
+        | undefined;
       valueAllowed: boolean;
       childrenAllowed: true;
       parentRequired: true;

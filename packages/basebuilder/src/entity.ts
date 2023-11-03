@@ -1,4 +1,6 @@
 import { type Attribute, type AttributesValues } from "./attribute";
+import { type Builder } from "./builder";
+import { type Schema, type SchemaEntityWithId } from "./schema";
 
 type EntityContext<TAttributes extends ReadonlyArray<Attribute>> = {
   entity: {
@@ -6,6 +8,25 @@ type EntityContext<TAttributes extends ReadonlyArray<Attribute>> = {
     attributes: AttributesValues<TAttributes>;
   };
   entitiesValues: Record<string, unknown>;
+};
+
+export type AttributesExtensions<TEntity extends Entity = Entity> = {
+  [K in TEntity["attributes"][number]["name"]]?: {
+    validate?: (
+      value: unknown,
+      context: {
+        schema: Schema;
+        entity: SchemaEntityWithId<Builder<[TEntity]>>;
+        validate: (
+          value: unknown,
+        ) => ReturnType<
+          Extract<TEntity["attributes"][number], { name: K }>["validate"]
+        >;
+      },
+    ) =>
+      | AttributesValues<TEntity["attributes"]>[K]
+      | Promise<AttributesValues<TEntity["attributes"]>[K]>;
+  };
 };
 
 export type Entity<
@@ -20,6 +41,7 @@ export type Entity<
   valueAllowed: boolean;
   childrenAllowed: TChildrenAllowed;
   parentRequired: TParentRequired;
+  attributesExtensions?: AttributesExtensions<Entity<TName, TAttributes>>;
   validate: (value: unknown, context: EntityContext<TAttributes>) => TValue;
   defaultValue: (
     context: EntityContext<TAttributes>,

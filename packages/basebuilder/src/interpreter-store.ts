@@ -5,6 +5,7 @@ import {
   validateEntityValue,
   type EntitiesErrors,
   type EntitiesValues,
+  type EntitiesValuesValidationResult,
   type EntityValue,
 } from "./entities-values";
 import {
@@ -702,6 +703,18 @@ export function createInterpreterStore<TBuilder extends Builder>(
         },
         events,
       );
+
+      if (newEntitiesErrors.size) {
+        return {
+          success: false,
+          entitiesErrors: serializeInternalEntitiesErrors(newEntitiesErrors),
+        };
+      }
+
+      return {
+        success: true,
+        data: serializeInternalEntitiesValues(data.entitiesValues),
+      };
     },
     getEntitiesErrors() {
       return serializeInternalEntitiesErrors(getData().entitiesErrors);
@@ -727,7 +740,7 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
   builder: TBuilder;
   schema: Schema<TBuilder>;
   validateEntity(entityId: string): Promise<void>;
-  validateEntities(): Promise<void>;
+  validateEntities(): Promise<EntitiesValuesValidationResult<TBuilder>>;
   setEntityValue(entityId: string, value: EntityValue<TBuilder>): void;
   resetEntityValue(entityId: string): void;
   resetEntitiesValues(): void;

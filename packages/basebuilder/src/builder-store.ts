@@ -12,6 +12,7 @@ import {
 import { createDataManager } from "./data-manager";
 import {
   SchemaValidationError,
+  schemaValidationErrorCodes,
   validateSchemaIntegrity,
   type BaseSchemaEntity,
   type EntitiesAttributesErrors,
@@ -19,6 +20,7 @@ import {
   type Schema,
   type SchemaEntity,
   type SchemaEntityWithId,
+  type SchemaValidationErrorReason,
 } from "./schema";
 import { type Subscribe, type SubscriptionEvent } from "./subscription-manager";
 import { insertIntoSetAtIndex, type KeyofUnion } from "./utils";
@@ -220,6 +222,8 @@ async function validateEntityAttribute<TBuilder extends Builder>(
 ): Promise<InternalBuilderStoreData<TBuilder>["entitiesAttributesErrors"]> {
   const entity = ensureEntityExists(entityId, data.schema.entities);
 
+  const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
+
   const attribute = ensureEntityAttributeIsRegistered(
     entity.type,
     attributeName,
@@ -241,21 +245,40 @@ async function validateEntityAttribute<TBuilder extends Builder>(
       id: entityId,
     };
 
-    const extensionValidator = (
-      builder.entitiesExtensions as EntitiesExtensions
-    )[entity.type]?.attributes?.[attributeName]?.validate;
+    const attributeValidationContext = {
+      schema,
+      entity: serializedEntity,
+    };
 
-    if (extensionValidator) {
-      await extensionValidator?.(attributeValue, {
-        validate: attribute.validate,
-        schema,
-        entity: serializedEntity,
+    const attributeValidator = (value: unknown) =>
+      attribute.validate(value, attributeValidationContext);
+
+    const attributeExtensionValidator = entityDefinition.attributesExtensions?.[
+      attribute.name
+    ]?.validate
+      ? (value: unknown) =>
+          entityDefinition.attributesExtensions?.[attribute.name]?.validate?.(
+            value,
+            {
+              ...attributeValidationContext,
+              validate: attributeValidator,
+            },
+          )
+      : undefined;
+
+    const entityExtensionAttributeValidator = (
+      builder.entitiesExtensions as EntitiesExtensions
+    )[entity.type]?.attributes?.[attribute.name]?.validate;
+
+    if (entityExtensionAttributeValidator) {
+      await entityExtensionAttributeValidator(attributeValue, {
+        ...attributeValidationContext,
+        validate: attributeExtensionValidator ?? attributeValidator,
       });
+    } else if (attributeExtensionValidator) {
+      await attributeExtensionValidator(attributeValue);
     } else {
-      await attribute.validate(attributeValue, {
-        schema,
-        entity: serializedEntity,
-      });
+      await attributeValidator(attributeValue);
     }
 
     delete entityAttributesErrors?.[
@@ -1184,7 +1207,14 @@ export function createBuilderStore<TBuilder extends Builder>(
 
       delete entityAttributesErrors?.[attributeName];
 
-      newEntitiesAttributesErrors.set(entityId, entityAttributesErrors ?? {});
+      if (
+        entityAttributesErrors &&
+        Object.keys(entityAttributesErrors).length
+      ) {
+        newEntitiesAttributesErrors.set(entityId, entityAttributesErrors);
+      } else {
+        newEntitiesAttributesErrors.delete(entityId);
+      }
 
       setData(
         {
@@ -1521,7 +1551,18 @@ export function createBuilderStore<TBuilder extends Builder>(
           events,
         );
 
-        return;
+        return {
+          success: false,
+          reason: {
+            code: schemaValidationErrorCodes.InvalidEntitiesAttributes,
+            payload: {
+              entitiesAttributesErrors:
+                serializeInternalBuilderStoreEntitiesAttributesErrors(
+                  newEntitiesAttributesErrors,
+                ),
+            },
+          },
+        };
       }
 
       let newSchemaError: unknown = undefined;
@@ -1556,6 +1597,23 @@ export function createBuilderStore<TBuilder extends Builder>(
         },
         events,
       );
+
+      if (newSchemaError) {
+        return {
+          success: false,
+          reason: {
+            code: schemaValidationErrorCodes.InvalidSchema,
+            payload: {
+              schemaError: newSchemaError,
+            },
+          },
+        };
+      }
+
+      return {
+        success: true,
+        data: serializeInternalBuilderStoreSchema(data.schema),
+      };
     },
     setSchemaError(schemaError) {
       setData(
@@ -1672,7 +1730,27 @@ export type BuilderStore<TBuilder extends Builder = Builder> = {
     entitiesAttributesErrors: EntitiesAttributesErrors<TBuilder>,
   ): void;
   cloneEntity(entityId: string): void;
-  validateSchema(): Promise<void>;
+  validateSchema(): Promise<
+    | { data: Schema<TBuilder>; success: true }
+    | {
+        reason: Extract<
+          SchemaValidationErrorReason,
+          {
+            code: (typeof schemaValidationErrorCodes)["InvalidSchema"];
+          }
+        >;
+        success: false;
+      }
+    | {
+        reason: Extract<
+          SchemaValidationErrorReason,
+          {
+            code: (typeof schemaValidationErrorCodes)["InvalidEntitiesAttributes"];
+          }
+        >;
+        success: false;
+      }
+  >;
   setSchemaError(error?: unknown): void;
   resetSchemaError(): void;
 };

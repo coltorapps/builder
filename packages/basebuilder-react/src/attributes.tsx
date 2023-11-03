@@ -23,7 +23,7 @@ export type AttributeComponentProps<TAttribute extends Attribute = Attribute> =
 
 export type AttributeComponent<TAttribute extends Attribute = Attribute> = (
   props: AttributeComponentProps<TAttribute>,
-) => JSX.Element;
+) => JSX.Element | null;
 
 export function createAttributeComponent<TAttribute extends Attribute>(
   _attribute: TAttribute,

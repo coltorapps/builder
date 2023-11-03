@@ -12,7 +12,7 @@ export type EntitiesValues<TBuilder extends Builder = Builder> = Record<
 
 export type EntitiesErrors = Record<string, unknown>;
 
-type EntitiesValuesValidationResult<TBuilder extends Builder> =
+export type EntitiesValuesValidationResult<TBuilder extends Builder> =
   | { data: EntitiesValues<TBuilder>; success: true }
   | { entitiesErrors: EntitiesErrors; success: false };
 

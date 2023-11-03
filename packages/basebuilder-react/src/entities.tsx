@@ -22,7 +22,7 @@ export type EntityComponentProps<TEntity extends Entity = Entity> = {
 
 export type EntityComponent<TEntity extends Entity = Entity> = (
   props: EntityComponentProps<TEntity>,
-) => JSX.Element;
+) => JSX.Element | null;
 
 export function createEntityComponent<TEntity extends Entity>(
   _entity: TEntity,
