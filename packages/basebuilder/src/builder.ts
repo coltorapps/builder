@@ -47,9 +47,8 @@ export type EntitiesExtensions<
 
 export type Builder<
   TEntities extends ReadonlyArray<Entity> = ReadonlyArray<Entity>,
-  TEntitiesExtensions extends EntitiesExtensions<TEntities> = EntitiesExtensions<
-    []
-  >,
+  TEntitiesExtensions extends
+    EntitiesExtensions<TEntities> = EntitiesExtensions<[]>,
 > = {
   entities: TEntities;
   generateEntityId(): string;
@@ -70,7 +69,8 @@ type OptionalBuilderArgs =
 
 export function createBuilder<
   const TEntities extends ReadonlyArray<Entity>,
-  const TEntitiesExtensions extends EntitiesExtensions<TEntities> = EntitiesExtensions<TEntities>,
+  const TEntitiesExtensions extends
+    EntitiesExtensions<TEntities> = EntitiesExtensions<TEntities>,
 >(
   options: Omit<Builder<TEntities, TEntitiesExtensions>, OptionalBuilderArgs> &
     Partial<Pick<Builder<TEntities, TEntitiesExtensions>, OptionalBuilderArgs>>,

@@ -26,6 +26,8 @@ const config = {
   ignorePatterns: [
     "**/*.config.js",
     "**/*.config.cjs",
+    "**/markdoc/*.js",
+    "**/markdoc/*.mjs",
     "packages/eslint-config/**",
     "dist",
     ".eslintrc.js",
