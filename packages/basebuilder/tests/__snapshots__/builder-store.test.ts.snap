@@ -488,6 +488,76 @@ exports[`builder store > can clone entities 3`] = `
             ],
           },
         },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "1c2ec3a4-18a8-4785-906e-6465b9b5883b": {
+                  "attributes": {},
+                  "parentId": "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+                  "type": "test",
+                },
+                "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52": {
+                  "attributes": {},
+                  "children": [
+                    "1c2ec3a4-18a8-4785-906e-6465b9b5883b",
+                  ],
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+                "38c62f6a-634a-4b94-b0af-9b95e6c1dc82": {
+                  "attributes": {},
+                  "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+                  "type": "test",
+                },
+                "49ae95d3-84c0-4d0d-b914-66adde839572": {
+                  "attributes": {},
+                  "children": [
+                    "55c0940d-7450-4b01-baf8-b84c05ea5cee",
+                    "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
+                  ],
+                  "type": "test",
+                },
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "children": [
+                    "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+                  ],
+                  "type": "test",
+                },
+                "55c0940d-7450-4b01-baf8-b84c05ea5cee": {
+                  "attributes": {},
+                  "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "children": [
+                    "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
+                    "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
+                  ],
+                  "type": "test",
+                },
+                "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b": {
+                  "attributes": {},
+                  "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                  "type": "test",
+                },
+                "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d": {
+                  "attributes": {},
+                  "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                  "type": "test",
+                },
+              },
+              "root": [
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "49ae95d3-84c0-4d0d-b914-66adde839572",
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
+            },
+          },
+        },
       ],
     ],
     [
@@ -526,6 +596,90 @@ exports[`builder store > can clone entities 3`] = `
               ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
+            },
+          },
+        },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "0a97c57c-7743-403c-8105-a8c09eb5ab52": {
+                  "attributes": {},
+                  "children": [
+                    "4fb898fb-7207-4952-8e5e-511953a42e2c",
+                  ],
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+                "1c2ec3a4-18a8-4785-906e-6465b9b5883b": {
+                  "attributes": {},
+                  "parentId": "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+                  "type": "test",
+                },
+                "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52": {
+                  "attributes": {},
+                  "children": [
+                    "1c2ec3a4-18a8-4785-906e-6465b9b5883b",
+                  ],
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+                "38c62f6a-634a-4b94-b0af-9b95e6c1dc82": {
+                  "attributes": {},
+                  "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+                  "type": "test",
+                },
+                "49ae95d3-84c0-4d0d-b914-66adde839572": {
+                  "attributes": {},
+                  "children": [
+                    "55c0940d-7450-4b01-baf8-b84c05ea5cee",
+                    "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
+                  ],
+                  "type": "test",
+                },
+                "4fb898fb-7207-4952-8e5e-511953a42e2c": {
+                  "attributes": {},
+                  "parentId": "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+                  "type": "test",
+                },
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "children": [
+                    "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
+                    "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+                  ],
+                  "type": "test",
+                },
+                "55c0940d-7450-4b01-baf8-b84c05ea5cee": {
+                  "attributes": {},
+                  "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "children": [
+                    "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
+                    "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
+                  ],
+                  "type": "test",
+                },
+                "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b": {
+                  "attributes": {},
+                  "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                  "type": "test",
+                },
+                "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d": {
+                  "attributes": {},
+                  "parentId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                  "type": "test",
+                },
+              },
+              "root": [
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "49ae95d3-84c0-4d0d-b914-66adde839572",
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
             },
           },
         },
@@ -617,6 +771,23 @@ exports[`builder store > can delete entities and cascade delete their children 2
             },
           },
         },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "49e91328-02bc-4daa-ab56-619554e85cff": {
+                  "attributes": {},
+                  "children": [],
+                  "type": "test",
+                },
+              },
+              "root": [
+                "49e91328-02bc-4daa-ab56-619554e85cff",
+              ],
+            },
+          },
+        },
       ],
     ],
   ],
@@ -696,6 +867,36 @@ exports[`builder store > can move an entity from root to a parent entity 2`] = `
               ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
+            },
+          },
+        },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "children": [
+                    "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+                    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                  ],
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+                  "attributes": {},
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+              },
+              "root": [
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
             },
           },
         },
@@ -781,6 +982,36 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
             },
           },
         },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "children": [
+                    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                    "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+                  ],
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+                  "attributes": {},
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+              },
+              "root": [
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
+            },
+          },
+        },
       ],
     ],
   ],
@@ -852,6 +1083,36 @@ exports[`builder store > can move an entity in a parent entity 2`] = `
               ],
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
+            },
+          },
+        },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "children": [
+                    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                    "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+                  ],
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+                  "attributes": {},
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+              },
+              "root": [
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
             },
           },
         },
@@ -959,25 +1220,24 @@ exports[`builder store > can move an entity in root 4`] = `
             },
           },
         },
-      ],
-    ],
-    [
-      [
         {
-          "name": "RootUpdated",
+          "name": "SchemaChanged",
           "payload": {
-            "root": [
-              "51324b32-adc3-4d17-a90e-66b5453935bd",
-            ],
-          },
-        },
-        {
-          "name": "EntityUpdated",
-          "payload": {
-            "entity": {
-              "attributes": {},
-              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              "type": "test",
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "type": "test",
+                },
+              },
+              "root": [
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
             },
           },
         },
@@ -1000,6 +1260,70 @@ exports[`builder store > can move an entity in root 4`] = `
               "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "test",
+            },
+          },
+        },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "type": "test",
+                },
+              },
+              "root": [
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              ],
+            },
+          },
+        },
+      ],
+    ],
+    [
+      [
+        {
+          "name": "RootUpdated",
+          "payload": {
+            "root": [
+              "51324b32-adc3-4d17-a90e-66b5453935bd",
+            ],
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "attributes": {},
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "type": "test",
+                },
+              },
+              "root": [
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              ],
             },
           },
         },
@@ -1081,6 +1405,28 @@ exports[`builder store > can move an entity to root 2`] = `
             },
           },
         },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "children": [],
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "type": "test",
+                },
+              },
+              "root": [
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              ],
+            },
+          },
+        },
       ],
     ],
   ],
@@ -1148,6 +1494,28 @@ exports[`builder store > can move an entity to root at a specific index 2`] = `
               "attributes": {},
               "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
               "type": "test",
+            },
+          },
+        },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "children": [],
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "type": "test",
+                },
+              },
+              "root": [
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
             },
           },
         },
@@ -1993,6 +2361,32 @@ exports[`builder store > can update entity attributes 2`] = `
             },
           },
         },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {
+                    "maxLength": 1,
+                  },
+                  "type": "text",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {
+                    "label": "New label",
+                    "required": true,
+                  },
+                  "type": "select",
+                },
+              },
+              "root": [
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
+            },
+          },
+        },
       ],
     ],
     [
@@ -2019,6 +2413,32 @@ exports[`builder store > can update entity attributes 2`] = `
               },
               "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "text",
+            },
+          },
+        },
+        {
+          "name": "SchemaChanged",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {
+                    "maxLength": 1,
+                  },
+                  "type": "text",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {
+                    "label": "New label",
+                    "required": true,
+                  },
+                  "type": "select",
+                },
+              },
+              "root": [
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
             },
           },
         },

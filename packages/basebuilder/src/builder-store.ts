@@ -60,6 +60,7 @@ export const builderStoreEventsNames = {
   RootUpdated: "RootUpdated",
   EntityAttributeErrorUpdated: "EntityAttributeErrorUpdated",
   SchemaErrorUpdated: "SchemaErrorUpdated",
+  SchemaChanged: "SchemaChanged",
   DataSet: "DataSet",
 } as const;
 
@@ -117,6 +118,12 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
       typeof builderStoreEventsNames.SchemaErrorUpdated,
       {
         error: unknown;
+      }
+    >
+  | SubscriptionEvent<
+      typeof builderStoreEventsNames.SchemaChanged,
+      {
+        schema: Schema<TBuilder>;
       }
     >
   | SubscriptionEvent<
@@ -767,6 +774,13 @@ export function createBuilderStore<TBuilder extends Builder>(
         });
       }
 
+      events.push({
+        name: builderStoreEventsNames.SchemaChanged,
+        payload: {
+          schema: serializeInternalBuilderStoreSchema(schema),
+        },
+      });
+
       setData(
         {
           ...data,
@@ -870,6 +884,18 @@ export function createBuilderStore<TBuilder extends Builder>(
         },
       });
 
+      const newSchema = {
+        entities: newEntities,
+        root: newRoot,
+      };
+
+      events.push({
+        name: builderStoreEventsNames.SchemaChanged,
+        payload: {
+          schema: serializeInternalBuilderStoreSchema(newSchema),
+        },
+      });
+
       setData(
         {
           ...data,
@@ -938,17 +964,22 @@ export function createBuilderStore<TBuilder extends Builder>(
         },
       });
 
+      const newSchema = {
+        entities: newEntities,
+        root: insertIntoSetAtIndex(newRoot, entityId, mutationOptions?.index),
+      };
+
+      events.push({
+        name: builderStoreEventsNames.SchemaChanged,
+        payload: {
+          schema: serializeInternalBuilderStoreSchema(newSchema),
+        },
+      });
+
       setData(
         {
           ...data,
-          schema: {
-            entities: newEntities,
-            root: insertIntoSetAtIndex(
-              newRoot,
-              entityId,
-              mutationOptions?.index,
-            ),
-          },
+          schema: newSchema,
         },
         events,
       );
@@ -1000,6 +1031,13 @@ export function createBuilderStore<TBuilder extends Builder>(
         [],
       );
 
+      events.push({
+        name: builderStoreEventsNames.SchemaChanged,
+        payload: {
+          schema: serializeInternalBuilderStoreSchema(data.schema),
+        },
+      });
+
       setData(data, events);
     },
     setEntityAttribute(entityId, attributeName, attributeValue) {
@@ -1018,13 +1056,15 @@ export function createBuilderStore<TBuilder extends Builder>(
         [attributeName]: attributeValue,
       };
 
+      const newSchema = {
+        root: data.schema.root,
+        entities: data.schema.entities.set(entityId, entity),
+      };
+
       setData(
         {
           ...data,
-          schema: {
-            root: data.schema.root,
-            entities: data.schema.entities.set(entityId, entity),
-          },
+          schema: newSchema,
         },
         [
           {
@@ -1044,6 +1084,12 @@ export function createBuilderStore<TBuilder extends Builder>(
                 id: entityId,
               },
               attributeName,
+            },
+          },
+          {
+            name: builderStoreEventsNames.SchemaChanged,
+            payload: {
+              schema: serializeInternalBuilderStoreSchema(newSchema),
             },
           },
         ],
@@ -1102,19 +1148,27 @@ export function createBuilderStore<TBuilder extends Builder>(
 
       newRoot.delete(entityId);
 
+      const newSchema = {
+        ...data.schema,
+        root: insertIntoSetAtIndex(newRoot, entityId, index),
+      };
+
       setData(
         {
           ...data,
-          schema: {
-            ...data.schema,
-            root: insertIntoSetAtIndex(newRoot, entityId, index),
-          },
+          schema: newSchema,
         },
         [
           {
             name: builderStoreEventsNames.RootUpdated,
             payload: {
               root: serializeInternalBuilderStoreSchemaRoot(newRoot),
+            },
+          },
+          {
+            name: builderStoreEventsNames.SchemaChanged,
+            payload: {
+              schema: serializeInternalBuilderStoreSchema(newSchema),
             },
           },
         ],
@@ -1521,6 +1575,13 @@ export function createBuilderStore<TBuilder extends Builder>(
           },
         });
       }
+
+      events.push({
+        name: builderStoreEventsNames.SchemaChanged,
+        payload: {
+          schema: serializeInternalBuilderStoreSchema(newSchema),
+        },
+      });
 
       setData(
         {
