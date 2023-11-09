@@ -5,12 +5,12 @@ import blurCyanImage from "@/images/blur-cyan.png";
 import blurIndigoImage from "@/images/blur-indigo.png";
 import cubeImage from "@/images/cube.png";
 import clsx from "clsx";
-import { Highlight, themes } from "prism-react-renderer";
+import { Highlight } from "prism-react-renderer";
 
-const codeLanguage = "javascript";
+const codeLanguage = "typescript";
 const code = `export const formBuilder = createBuilder({
   entities: [
-    createEnity({
+    createEntity({
       name: "text",
       validate: (value) => z.string().parse(value),
     }),
@@ -31,7 +31,7 @@ export function Hero() {
   return (
     <div className="overflow-hidden bg-neutral-950 dark:-mb-32 dark:mt-[-4.75rem] dark:pb-32 dark:pt-[4.75rem]">
       <div className="py-16 sm:px-2 lg:relative lg:px-0 lg:py-20">
-        <div className="lg:max-w-8xl mx-auto grid max-w-2xl grid-cols-1 items-center gap-x-8 gap-y-40 px-4 lg:grid-cols-2 lg:px-8 xl:gap-x-16 xl:px-12">
+        <div className="lg:max-w-8xl xl:gap-x-18 mx-auto grid max-w-2xl grid-cols-1 items-center gap-x-8 gap-y-40 px-4 md:max-w-3xl lg:grid-cols-2 lg:px-8 xl:px-12">
           <div className="relative z-10 md:text-center lg:text-left">
             <Image
               className="absolute bottom-full right-full -mb-56 -mr-72 opacity-50"
@@ -42,17 +42,19 @@ export function Hero() {
               unoptimized
               priority
             />
-            <div className="relative">
+            <div className="relative xl:pr-24">
               <p className="font-display inline bg-gradient-to-t from-slate-400 to-white bg-clip-text text-5xl tracking-tight text-transparent">
-                Form builders and beyond.
+                Build your Builders
               </p>
               <p className="mt-3 text-2xl tracking-tight text-neutral-400">
-                Headless, full-stack, typesafe, multi-platform, framework
-                agnostic, zero dependencies, unopinionated.
+                Powerful SDK for crafting your own form builders and beyond.
               </p>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">
-                <Button href="/">Get started</Button>
-                <Button href="/" variant="secondary">
+                <Button href="/docs/installation">Get started</Button>
+                <Button
+                  href="https://github.com/coltorapps/basebuilder/"
+                  variant="secondary"
+                >
                   View on GitHub
                 </Button>
               </div>
@@ -113,7 +115,7 @@ export function Hero() {
                       <Highlight
                         code={code}
                         language={codeLanguage}
-                        theme={{ ...themes.vsDark, plain: {} }}
+                        theme={{ styles: [], plain: {} }}
                       >
                         {({
                           className,

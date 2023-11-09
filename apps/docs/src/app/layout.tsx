@@ -13,7 +13,6 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-// Use local version of Lexend so that we can use OpenType features
 const lexend = localFont({
   src: "../fonts/lexend.woff2",
   display: "swap",
@@ -23,10 +22,9 @@ const lexend = localFont({
 export const metadata: Metadata = {
   title: {
     template: "%s - Docs",
-    default: "CacheAdvance - Never miss the cache again.",
+    default: "Basebuilder",
   },
-  description:
-    "Cache every single thing your app could ever do ahead of time, so your code never even has to run at all.",
+  description: "Powerful SDK for crafting your own form builders and beyond.",
 };
 
 export default function RootLayout({

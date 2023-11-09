@@ -55,8 +55,7 @@ type OptionalEntityArgs =
   | "defaultValue"
   | "shouldBeProcessed"
   | "childrenAllowed"
-  | "parentRequired"
-  | "valueAllowed";
+  | "parentRequired";
 
 export function createEntity<
   const TName extends string,
@@ -67,7 +66,7 @@ export function createEntity<
 >(
   options: Omit<
     Entity<TName, TAttributes, TValue, TParentRequired, TChildrenAllowed>,
-    OptionalEntityArgs
+    OptionalEntityArgs | "valueAllowed"
   > &
     Partial<
       Pick<

@@ -79,7 +79,7 @@ export function TableOfContents({
                       href={`#${section.id}`}
                       className={clsx(
                         isActive(section)
-                          ? "text-neutral-500"
+                          ? "text-sky-400"
                           : "font-normal text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300",
                       )}
                     >
@@ -97,7 +97,7 @@ export function TableOfContents({
                             href={`#${subSection.id}`}
                             className={
                               isActive(subSection)
-                                ? "text-neutral-500"
+                                ? "text-sky-300"
                                 : "hover:text-neutral-600 dark:hover:text-neutral-300"
                             }
                           >
