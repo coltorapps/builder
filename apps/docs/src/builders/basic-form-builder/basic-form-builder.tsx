@@ -202,7 +202,7 @@ function Preview(props: {
         Preview Form
       </Button>
       <Dialog modal open={previewVisible} onOpenChange={setPreviewVisible}>
-        <DialogContent className="top-[20%] translate-y-0">
+        <DialogContent className="sm:top-[20%] sm:translate-y-0">
           <DialogHeader>
             <DialogTitle>Preview</DialogTitle>
           </DialogHeader>
@@ -365,7 +365,7 @@ export function BasicFormBuilder() {
       ) : null}
       <div
         className={cn("grid", {
-          "mt-6 grid-cols-2 gap-8": rootEntities.length,
+          "mt-6 gap-8 sm:grid-cols-2": rootEntities.length,
         })}
       >
         {!rootEntities.length ? (
@@ -413,7 +413,7 @@ export function BasicFormBuilder() {
                       return (
                         <SortableItem id={props.entity.id}>
                           <div className="relative">
-                            <div className="absolute inset-0 -mx-4 -mb-4 -mt-2 rounded-xl bg-neutral-950" />
+                            <div className="absolute inset-0 -mx-2 -mb-4 -mt-2 rounded-xl bg-neutral-950 sm:-mx-4" />
                             <div
                               className="pointer-events-none relative"
                               tabIndex={-1}
@@ -427,7 +427,7 @@ export function BasicFormBuilder() {
                             <button
                               type="button"
                               className={cn(
-                                "absolute inset-0 -mx-4 -mb-4 -mt-2 rounded-xl border-2 transition-all",
+                                "absolute inset-0 -mx-2 -mb-4 -mt-2 rounded-xl border-2 transition-all sm:-mx-4",
                                 isActive
                                   ? "border-white"
                                   : "border-transparent hover:border-white/30",
@@ -442,7 +442,7 @@ export function BasicFormBuilder() {
                             {isActive ? (
                               <button
                                 type="button"
-                                className="absolute -right-6 -top-4 flex h-5 w-5 items-center justify-center rounded-full bg-white"
+                                className="absolute -right-3 -top-4 flex h-5 w-5 items-center justify-center rounded-full bg-white sm:-right-6"
                                 onClick={() =>
                                   builderStore.deleteEntity(props.entity.id)
                                 }
@@ -458,7 +458,7 @@ export function BasicFormBuilder() {
                 </SortableContext>
               </DndContext>
             </div>
-            <Dialog>
+            <Dialog modal>
               <div className="flex justify-center">
                 <DialogTrigger asChild>
                   <Button

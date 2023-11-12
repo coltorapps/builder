@@ -42,6 +42,8 @@ export function createAttributeComponent<TAttribute extends Attribute>(
           (event.name === builderStoreEventsNames.EntityAttributeErrorUpdated &&
             event.payload.entity.id === entityId &&
             event.payload.attributeName === attribute.name) ||
+          event.name === builderStoreEventsNames.EntityAdded ||
+          event.name === builderStoreEventsNames.EntityDeleted ||
           event.name === builderStoreEventsNames.DataSet,
       ),
     );
