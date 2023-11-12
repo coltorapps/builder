@@ -7,6 +7,8 @@ import clsx from "clsx";
 
 import "@/styles/tailwind.css";
 
+import { Toaster } from "@/components/ui/toaster";
+
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -42,6 +44,7 @@ export default function RootLayout({
         <Providers>
           <Layout>{children}</Layout>
         </Providers>
+        <Toaster />
       </body>
     </html>
   );

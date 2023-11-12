@@ -129,11 +129,13 @@ const formInterpreterStore = createInterpreterStore(
     root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
   },
   {
-    entitiesValues: {
-      "51324b32-adc3-4d17-a90e-66b5453935bd": "Alex",
-    },
-    entitiesErrors: {
-      "51324b32-adc3-4d17-a90e-66b5453935bd": "Must be Alexandru",
+    initialData: {
+      entitiesValues: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": "Alex",
+      },
+      entitiesErrors: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": "Must be Alexandru",
+      },
     },
   },
 );
@@ -141,4 +143,38 @@ const formInterpreterStore = createInterpreterStore(
 
 {% callout title="You should know!" %}
 The initial entity values and entity errors will be validated for valid entity ID references.
+{% /callout %}
+
+## Default entity values
+
+Entity values will be automatically populated with their default values during interpreter store initialization if their entity definitions have the `defaultValue` method set.
+
+To opt out of this behavior and prevent automatic default value assignment, you can set the `initialEntitiesValuesWithDefaults` flag to `false`.
+
+```typescript
+import { createInterpreterStore } from "basebuilder";
+
+import { formBuilder } from "./form-builder";
+
+const formInterpreterStore = createInterpreterStore(
+  formBuilder,
+  {
+    entities: {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        type: "textField",
+        attributes: {
+          label: "First name",
+        },
+      },
+    },
+    root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+  },
+  {
+    initialEntitiesValuesWithDefaults: false,
+  },
+);
+```
+
+{% callout title="You should know!" %}
+Default values will not be applied to entities that already have values provided in the initial data.
 {% /callout %}

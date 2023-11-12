@@ -15,8 +15,4 @@ export type {
 } from "./entities";
 
 export { createAttributeComponent } from "./attributes";
-export type {
-  GenericAttributeComponent,
-  GenericAttributeProps,
-  AttributeComponentProps,
-} from "./attributes";
+export type { AttributeComponentProps } from "./attributes";

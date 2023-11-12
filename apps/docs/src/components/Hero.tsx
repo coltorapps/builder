@@ -1,11 +1,13 @@
 import { Fragment } from "react";
 import Image from "next/image";
-import { Button } from "@/components/Button";
+import Link from "next/link";
 import blurCyanImage from "@/images/blur-cyan.png";
 import blurIndigoImage from "@/images/blur-indigo.png";
 import cubeImage from "@/images/cube.png";
 import clsx from "clsx";
 import { Highlight } from "prism-react-renderer";
+
+import { Button } from "./ui/button";
 
 const codeLanguage = "typescript";
 const code = `export const formBuilder = createBuilder({
@@ -50,12 +52,16 @@ export function Hero() {
                 Powerful SDK for crafting your own form builders and beyond.
               </p>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">
-                <Button href="/docs/installation">Get started</Button>
-                <Button
-                  href="https://github.com/coltorapps/basebuilder/"
-                  variant="secondary"
-                >
-                  View on GitHub
+                <Button asChild>
+                  <Link href="/docs/installation">Get started</Link>
+                </Button>
+                <Button variant="secondary" asChild>
+                  <Link
+                    href="https://github.com/coltorapps/basebuilder/"
+                    target="_blank"
+                  >
+                    View on GitHub
+                  </Link>
                 </Button>
               </div>
             </div>

@@ -31,12 +31,21 @@ Some key characteristics:
 - Framework agnostic: Features a core that is independent of any front-end framework.
 - Zero dependencies: Offers a streamlined, lightweight library.
 - Unopinionated: Affords you the freedom to build anything you imagine.
+- Progressively Enhanceable: Embraces web standards.
 
 Currently, Basebuilder offers support for React, with plans to extend compatibility to other front-end frameworks in the future.
 
 {% callout type="warning" title="Alpha Stage" %}
 We are successfully using Basebuilder in real-world production apps. However, it's important to note that the project is currently in the alpha stage, which means that breaking changes can occur even in minor or patch updates.
 {% /callout %}
+
+---
+
+## Live Example
+
+A simple example of what can be accomplished with Basebuilder.
+
+{% basic-form-builder /%}
 
 ---
 

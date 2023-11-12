@@ -156,7 +156,9 @@ export const formBuilder = createBuilder({
 });
 ```
 
-You also have the ability to return a transformed schema. This essentially enables you to convert the original schema into a new one as required.
+## Transforming schemas
+
+In the `validateSchema` method of a builder, you have the ability to return a transformed schema. This essentially allows you to convert the original schema into a new one as needed.
 
 ```typescript
 import { createBuilder } from "basebuilder";

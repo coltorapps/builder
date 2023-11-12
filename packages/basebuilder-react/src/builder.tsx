@@ -6,7 +6,6 @@ import {
   useMemo,
   useRef,
   useSyncExternalStore,
-  type ReactNode,
 } from "react";
 import {
   builderStoreEventsNames,
@@ -18,10 +17,6 @@ import {
   type BuilderStoreEvent,
 } from "basebuilder";
 
-import {
-  type AttributesComponents,
-  type GenericAttributeComponent,
-} from "./attributes";
 import {
   type EntitiesComponents,
   type EntityForRender,
@@ -117,7 +112,7 @@ const MemoizedEntity = memo(function Entity(props: {
   const entity = data.schema.entities[props.entityId];
 
   if (!entity) {
-    throw new Error("Entity not found.");
+    throw new Error(`The entity with ID "${props.entityId}" was not found.`);
   }
 
   const childrenIds = entity?.children ?? [];
@@ -125,7 +120,9 @@ const MemoizedEntity = memo(function Entity(props: {
   const EntityComponent = components[entity.type];
 
   if (!EntityComponent) {
-    throw new Error("Entity component not found.");
+    throw new Error(
+      `No entity component found for the entity of type "${entity.type}".`,
+    );
   }
 
   const entityForRender: EntityForRender = {
@@ -193,103 +190,20 @@ function Entities<TBuilder extends BaseBuilder>(props: {
   );
 }
 
-const BuilderAttributesContext = createContext<{
+export const BuilderAttributesContext = createContext<{
   builderStore: BuilderStore;
-  components: AttributesComponents;
-  renderAttribute: GenericAttributeComponent;
+  entityId: string;
 }>({
   builderStore: createBuilderStore(createBuilder({ entities: [] })),
-  components: {},
-  renderAttribute: ({ children }) => children,
-});
-
-const MemoizedAttribute = memo(function Attribute(props: {
-  attributeName: string;
-  entityId: string;
-  entityType: string;
-}): ReactNode {
-  const { builderStore, components, renderAttribute } = useContext(
-    BuilderAttributesContext,
-  );
-
-  const AttributeComponent =
-    components[props.entityType]?.[props.attributeName];
-
-  if (!AttributeComponent) {
-    throw new Error("Attribute component not found.");
-  }
-
-  const data = useBuilderStoreData(builderStore, (events) =>
-    events.some(
-      (event) =>
-        (event.name === builderStoreEventsNames.EntityAttributeUpdated &&
-          event.payload.entity.id === props.entityId &&
-          event.payload.attributeName === props.attributeName) ||
-        (event.name === builderStoreEventsNames.EntityAttributeErrorUpdated &&
-          event.payload.entity.id === props.entityId &&
-          event.payload.attributeName === props.attributeName) ||
-        event.name === builderStoreEventsNames.DataSet,
-    ),
-  );
-
-  const entity = data.schema.entities[props.entityId];
-
-  if (!entity) {
-    throw new Error("Entity not found.");
-  }
-
-  const attributeValue = entity.attributes[props.attributeName];
-
-  const attributeError =
-    data.entitiesAttributesErrors[props.entityId]?.[props.attributeName];
-
-  const attribute = {
-    name: props.attributeName,
-    value: attributeValue,
-    error: attributeError,
-  };
-
-  const entityWithId = {
-    ...entity,
-    id: props.entityId,
-  };
-
-  return renderAttribute({
-    entity: entityWithId,
-    attribute,
-    children: (
-      <AttributeComponent
-        attribute={attribute}
-        entity={entityWithId}
-        setValue={(value) =>
-          builderStore.setEntityAttribute(
-            props.entityId,
-            props.attributeName,
-            value,
-          )
-        }
-        validate={() =>
-          builderStore.validateEntityAttribute(
-            props.entityId,
-            props.attributeName,
-          )
-        }
-        resetError={() =>
-          builderStore.resetEntityAttributeError(
-            props.entityId,
-            props.attributeName,
-          )
-        }
-      />
-    ),
-  });
+  entityId: "",
 });
 
 function Attributes<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
-  components: AttributesComponents<TBuilder>;
-  children?: GenericAttributeComponent<TBuilder>;
   entityId: string;
+  components: {
+    [K in TBuilder["entities"][number]["name"]]: () => JSX.Element | null;
+  };
 }): JSX.Element {
   const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
@@ -303,37 +217,17 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
   const entity = data.schema.entities[props.entityId];
 
   if (!entity) {
-    throw new Error("Entity not found.");
+    throw new Error(`The entity with ID "${props.entityId}" was not found.`);
   }
-
-  const entityDefinition = props.builderStore.builder.entities.find(
-    (item) => item.name === entity.type,
-  );
-
-  if (!entityDefinition) {
-    throw new Error("Entity definition not found.");
-  }
-
-  const renderAttribute =
-    (props.children as GenericAttributeComponent) ??
-    ((props) => props.children);
 
   return (
     <BuilderAttributesContext.Provider
       value={{
         builderStore: props.builderStore,
-        components: props.components as unknown as AttributesComponents,
-        renderAttribute,
+        entityId: props.entityId,
       }}
     >
-      {entityDefinition.attributes.map((item) => (
-        <MemoizedAttribute
-          key={`${props.entityId}-${item.name}`}
-          attributeName={item.name}
-          entityId={props.entityId}
-          entityType={entity.type}
-        />
-      ))}
+      {props.components[entity.type]()}
     </BuilderAttributesContext.Provider>
   );
 }

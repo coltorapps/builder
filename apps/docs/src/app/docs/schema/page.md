@@ -101,6 +101,10 @@ In summary, `validateSchema` checks that the input schema meets several essentia
 
 Subsequently, this schema can be retrieved from the server and "interpreted" on the client side, enabling users to fill and submit the form.
 
+{% callout title="You should know!" %}
+Schema transformations will be applied when utilizing the `validateSchema` method, as indicated in [the builder documentation](/docs/builders#transforming-schemas).
+{% /callout %}
+
 ## Integrity validation
 
 To validate a schema synchronously, you can use the `validateSchemaIntegrity` method. This method performs the same validation as the `validateSchema` method but does not validate attribute values. It can be beneficial in specific scenarios.

@@ -1,3 +1,4 @@
+import { BasicFormBuilder } from "@/builders/basic-form-builder";
 import { Callout } from "@/components/Callout";
 import { QuickLink, QuickLinks } from "@/components/QuickLinks";
 
@@ -41,6 +42,10 @@ const tags = {
       icon: { type: String },
       href: { type: String },
     },
+  },
+  "basic-form-builder": {
+    render: BasicFormBuilder,
+    selfClosing: true,
   },
 };
 

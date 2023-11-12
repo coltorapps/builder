@@ -14,6 +14,7 @@ export const navigation = [
       { title: "Builders", href: "/docs/builders" },
       { title: "Schema", href: "/docs/schema" },
       { title: "Builder store", href: "/docs/builder-store" },
+      { title: "Entity Values", href: "/docs/entity-values" },
       { title: "Interpreter store", href: "/docs/interpreter-store" },
     ],
   },

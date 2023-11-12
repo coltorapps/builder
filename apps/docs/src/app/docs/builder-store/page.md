@@ -163,23 +163,25 @@ import { createBuilderStore } from "basebuilder";
 import { formBuilder } from "./form-builder";
 
 const formBuilderStore = createBuilderStore(formBuilder, {
-  schema: {
-    entities: {
-      "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        type: "textField",
-        attributes: {
-          label: "",
+  initialData: {
+    schema: {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "textField",
+          attributes: {
+            label: "",
+          },
         },
       },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
     },
-    root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-  },
-  entitiesAttributesErrors: {
-    "51324b32-adc3-4d17-a90e-66b5453935bd": {
-      label: "Must be at least one character in length",
+    entitiesAttributesErrors: {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        label: "Must be at least one character in length",
+      },
     },
+    schemaError: "Custom schema error",
   },
-  schemaError: "Custom schema error",
 });
 ```
 

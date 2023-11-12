@@ -1,10 +1,11 @@
+import { useContext } from "react";
 import {
+  builderStoreEventsNames,
   type Attribute,
-  type Builder,
   type SchemaEntityWithId,
 } from "basebuilder";
 
-import { type KeyofUnion } from "./utils";
+import { BuilderAttributesContext, useBuilderStoreData } from "./builder";
 
 export type AttributeForRender<TAttribute extends Attribute> = {
   name: TAttribute["name"];
@@ -26,41 +27,74 @@ export type AttributeComponent<TAttribute extends Attribute = Attribute> = (
 ) => JSX.Element | null;
 
 export function createAttributeComponent<TAttribute extends Attribute>(
-  _attribute: TAttribute,
+  attribute: TAttribute,
   render: AttributeComponent<TAttribute>,
-): AttributeComponent<TAttribute> {
-  return render;
-}
+): () => JSX.Element | null {
+  return () => {
+    const { builderStore, entityId } = useContext(BuilderAttributesContext);
 
-export type AttributesComponents<TBuilder extends Builder = Builder> = {
-  [K in TBuilder["entities"][number]["name"]]: {
-    [K2 in Extract<
-      TBuilder["entities"][number],
-      { name: K }
-    >["attributes"][number]["name"]]: AttributeComponent<
-      Extract<
-        Extract<
-          TBuilder["entities"][number],
-          { name: K }
-        >["attributes"][number],
-        { name: K2 }
-      >
-    >;
+    const data = useBuilderStoreData(builderStore, (events) =>
+      events.some(
+        (event) =>
+          (event.name === builderStoreEventsNames.EntityAttributeUpdated &&
+            event.payload.entity.id === entityId &&
+            event.payload.attributeName === attribute.name) ||
+          (event.name === builderStoreEventsNames.EntityAttributeErrorUpdated &&
+            event.payload.entity.id === entityId &&
+            event.payload.attributeName === attribute.name) ||
+          event.name === builderStoreEventsNames.DataSet,
+      ),
+    );
+
+    const entity = data.schema.entities[entityId];
+
+    if (!entity) {
+      throw new Error(`The entity with ID "${entityId}" was not found.`);
+    }
+
+    const entityDefinition = builderStore.builder.entities.find(
+      (item) => item.name === entity.type,
+    );
+
+    if (!entityDefinition) {
+      throw new Error("Entity definition not found.");
+    }
+
+    const attributeDefinition = entityDefinition.attributes.find(
+      (item) => item.name === attribute.name,
+    );
+
+    if (!attributeDefinition) {
+      throw new Error(
+        `The attribute "${attribute.name}" does not exist within the entity of type "${entity.type}".`,
+      );
+    }
+
+    const attributeValue = entity.attributes[attribute.name];
+
+    const attributeError =
+      data.entitiesAttributesErrors[entityId]?.[attribute.name];
+
+    const computedAttribute = {
+      name: attribute.name,
+      value: attributeValue as AttributeForRender<TAttribute>["value"],
+      error: attributeError,
+    };
+
+    const entityWithId = {
+      ...entity,
+      id: entityId,
+    };
+
+    return render({
+      attribute: computedAttribute,
+      entity: entityWithId,
+      setValue: (value) =>
+        builderStore.setEntityAttribute(entityId, attribute.name, value),
+      validate: () =>
+        builderStore.validateEntityAttribute(entityId, attribute.name),
+      resetError: () =>
+        builderStore.resetEntityAttributeError(entityId, attribute.name),
+    });
   };
-};
-
-export type GenericAttributeProps<TBuilder extends Builder = Builder> = {
-  entity: SchemaEntityWithId<TBuilder>;
-  attribute: {
-    [K in KeyofUnion<
-      SchemaEntityWithId<TBuilder>["attributes"]
-    >]: AttributeForRender<
-      Extract<TBuilder["entities"][number]["attributes"][number], { name: K }>
-    >;
-  }[KeyofUnion<SchemaEntityWithId<TBuilder>["attributes"]>];
-  children: JSX.Element;
-};
-
-export type GenericAttributeComponent<TBuilder extends Builder = Builder> = (
-  props: GenericAttributeProps<TBuilder>,
-) => JSX.Element;
+}
