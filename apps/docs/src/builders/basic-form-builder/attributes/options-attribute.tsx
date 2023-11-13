@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ValidationError } from "@/components/ui/validation-error";
+import { formatError, ValidationError } from "@/components/ui/validation-error";
+import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { createAttribute } from "basebuilder";
 import { XIcon } from "lucide-react";
 import { z } from "zod";
@@ -18,6 +19,13 @@ export const optionsAttribute = createAttribute({
 export const OptionsAttribute = createAttributeComponent(
   optionsAttribute,
   (props) => {
+    const attributeError = formatError(
+      props.attribute.value,
+      props.attribute.error,
+    )?._errors?.[0];
+
+    const buttonRef = useRefWithErrorFocus<HTMLButtonElement>(attributeError);
+
     return (
       <div>
         <div>
@@ -40,7 +48,7 @@ export const OptionsAttribute = createAttributeComponent(
 
                       void props.validate();
                     }}
-                    autoFocus
+                    autoFocus={!option}
                   />
                   <Button
                     type="submit"
@@ -59,18 +67,22 @@ export const OptionsAttribute = createAttributeComponent(
                     <XIcon className="w-3" />
                   </Button>
                 </div>
-                <ValidationError
-                  error={props.attribute.error}
-                  fieldKey={index.toString()}
-                />
+                <ValidationError>
+                  {
+                    formatError(props.attribute.value, props.attribute.error)?.[
+                      `${index}`
+                    ]?._errors?.[0]
+                  }
+                </ValidationError>
               </div>
             ))}
           </div>
         ) : null}
         <div>
-          <ValidationError error={props.attribute.error} />
+          <ValidationError>{attributeError}</ValidationError>
         </div>
         <Button
+          ref={buttonRef}
           size="sm"
           onClick={() => {
             props.setValue([...props.attribute.value, ""]);

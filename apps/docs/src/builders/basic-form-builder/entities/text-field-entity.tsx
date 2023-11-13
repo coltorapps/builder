@@ -1,7 +1,8 @@
 import { useId } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ValidationError } from "@/components/ui/validation-error";
+import { formatError, ValidationError } from "@/components/ui/validation-error";
+import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { createEntity } from "basebuilder";
 import { z } from "zod";
 
@@ -39,6 +40,8 @@ export const TextFieldEntity = createEntityComponent(
   (props) => {
     const id = useId();
 
+    const inputRef = useRefWithErrorFocus<HTMLInputElement>(props.entity.error);
+
     return (
       <div>
         <Label htmlFor={id} aria-required={props.entity.attributes.required}>
@@ -47,11 +50,7 @@ export const TextFieldEntity = createEntityComponent(
             : "Label"}
         </Label>
         <Input
-          ref={(inputElement) => {
-            if (inputElement && Boolean(props.entity.error)) {
-              inputElement.focus();
-            }
-          }}
+          ref={inputRef}
           id={id}
           name={props.entity.id}
           value={props.entity.value ?? ""}
@@ -64,7 +63,9 @@ export const TextFieldEntity = createEntityComponent(
           placeholder={props.entity.attributes.placeholder}
           required={props.entity.attributes.required}
         />
-        <ValidationError error={props.entity.error} />
+        <ValidationError>
+          {formatError(props.entity.value, props.entity.error)?._errors?.[0]}
+        </ValidationError>
       </div>
     );
   },

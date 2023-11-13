@@ -43,6 +43,7 @@ export function createAttributeComponent<TAttribute extends Attribute>(
             event.payload.entity.id === entityId &&
             event.payload.attributeName === attribute.name) ||
           event.name === builderStoreEventsNames.EntityAdded ||
+          event.name === builderStoreEventsNames.EntityCloned ||
           event.name === builderStoreEventsNames.EntityDeleted ||
           event.name === builderStoreEventsNames.DataSet,
       ),
@@ -51,7 +52,9 @@ export function createAttributeComponent<TAttribute extends Attribute>(
     const entity = data.schema.entities[entityId];
 
     if (!entity) {
-      throw new Error(`The entity with ID "${entityId}" was not found.`);
+      throw new Error(
+        `[Attribute] The entity with ID "${entityId}" was not found.`,
+      );
     }
 
     const entityDefinition = builderStore.builder.entities.find(
@@ -59,7 +62,9 @@ export function createAttributeComponent<TAttribute extends Attribute>(
     );
 
     if (!entityDefinition) {
-      throw new Error("Entity definition not found.");
+      throw new Error(
+        `[Attribute] The definition for the entity of type "${entity.type}" was not found.`,
+      );
     }
 
     const attributeDefinition = entityDefinition.attributes.find(
@@ -68,7 +73,7 @@ export function createAttributeComponent<TAttribute extends Attribute>(
 
     if (!attributeDefinition) {
       throw new Error(
-        `The attribute "${attribute.name}" does not exist within the entity of type "${entity.type}".`,
+        `[Attribute] The attribute "${attribute.name}" does not exist within the entity of type "${entity.type}".`,
       );
     }
 

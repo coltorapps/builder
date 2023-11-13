@@ -6,7 +6,7 @@ nextjs:
     description: Understanding interpreter stores.
 ---
 
-An interpreter store serves as the central component used for filling entity values based on a schema and builder definition.
+An interpreter store serves as the central component used for filling entities values based on a schema and builder definition.
 
 ---
 
@@ -16,7 +16,7 @@ The `createInterpreterStore` method is utilized to establish an interpreter stor
 
 In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize the `useInterpreterStore` from `@basebuilder/react`, which essentially creates the interpreter store for you.
 
-This store is equipped to handle tasks such as setting entity values and performing validation of entity values.
+This store is equipped to handle tasks such as setting entities values and performing validation of entities values.
 
 ```typescript
 import { createInterpreterStore } from "basebuilder";
@@ -108,7 +108,7 @@ This will produce an output similar to:
 
 ## Initial data
 
-You can create an interpreter store with initial entity values and entity errors.
+You can create an interpreter store with initial entities values and entities errors.
 
 ```typescript
 import { createBuilderStore } from "basebuilder";
@@ -142,12 +142,12 @@ const formInterpreterStore = createInterpreterStore(
 ```
 
 {% callout title="You should know!" %}
-The initial entity values and entity errors will be validated for valid entity ID references.
+The initial entities values and entities errors will be validated for valid entity ID references.
 {% /callout %}
 
-## Default entity values
+## Default entities values
 
-Entity values will be automatically populated with their default values during interpreter store initialization if their entity definitions have the `defaultValue` method set.
+Entities values will be automatically populated with their default values during interpreter store initialization if their entity definitions have the `defaultValue` method set.
 
 To opt out of this behavior and prevent automatic default value assignment, you can set the `initialEntitiesValuesWithDefaults` flag to `false`.
 

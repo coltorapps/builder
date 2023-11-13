@@ -149,13 +149,13 @@ This will produce an output similar to:
 
 - `schema`: Represents the schema containing the collection of all entity instances and their order. It can be modified using builder store methods such as `addEntity`, `deleteEntity`, `setEntityParent`, `unsetEntityParent`, `setEntityIndex`, `setEntityAttribute`, and `cloneEntity`.
 
-- `entitiesAttributesErrors`: Represents validation errors of various entity attributes. It can be modified using builder store methods such as `validateEntityAttribute`, `validateEntityAttributes`, `validateEntitiesAttributes`, `resetEntityAttributeError`, `setEntityAttributeError`, `resetEntityAttributesErrors`, `setEntityAttributesErrors`, `resetEntitiesAttributesErrors`, `setEntitiesAttributesErrors`, and `validateSchema`. When you delete an entity, its attribute errors will also be deleted.
+- `entitiesAttributesErrors`: Represents validation errors of various entity attributes. It can be modified using builder store methods such as `validateEntityAttribute`, `validateEntityAttributes`, `validateEntitiesAttributes`, `resetEntityAttributeError`, `setEntityAttributeError`, `resetEntityAttributesErrors`, `setEntityAttributesErrors`, `resetEntitiesAttributesErrors`, `setEntitiesAttributesErrors`, and `validateSchema`. When you delete an entity, its attributes errors will also be deleted.
 
 - `schemaError`: Represents a global schema validation error, which originates from the [`validateSchema` method on your builder](/docs/builders#additional-schema-validation). It can be modified using builder store methods like `validateSchema`, `setSchemaError`, and `resetSchemaError`.
 
 ## Initial data
 
-You can create a builder store with an initial schema, entity attribute errors, and schema error.
+You can create a builder store with an initial schema, entity attributes errors, and schema error.
 
 ```typescript
 import { createBuilderStore } from "basebuilder";
@@ -186,5 +186,7 @@ const formBuilderStore = createBuilderStore(formBuilder, {
 ```
 
 {% callout title="You should know!" %}
-The initial schema will be synchronously validated for integrity, and the initial attribute errors will be validated for valid entity ID references and valid attribute keys.
+The initial schema undergoes synchronous integrity validation, which does not include the validation of attributes values.
+
+Additionally, the process ensures that initial attributs errors are checked for accurate entity ID references and appropriate attribute keys.
 {% /callout %}

@@ -31,6 +31,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-toast": "^1.1.5",
+    "@radix-ui/react-toggle": "^1.0.3",
     "@sindresorhus/slugify": "^2.1.0",
     "@tailwindcss/typography": "^0.5.7",
     "@types/node": "^20.4.9",
@@ -46,6 +47,7 @@
     "fast-glob": "^3.2.12",
     "flexsearch": "^0.7.31",
     "js-yaml": "^4.1.0",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.292.0",
     "next": "14.0.1",
     "next-themes": "^0.2.1",
@@ -63,6 +65,7 @@
   },
   "devDependencies": {
     "@basebuilder/eslint-config": "0.1.0",
+    "@types/lodash": "^4.14.201",
     "eslint": "^8.52.0",
     "eslint-config-next": "^13.4.16",
     "prettier": "^3.0.3",

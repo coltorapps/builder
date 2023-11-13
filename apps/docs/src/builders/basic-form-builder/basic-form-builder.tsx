@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -15,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { DndContext, MouseSensor, useSensor } from "@dnd-kit/core";
+import { DndContext, DragOverlay, MouseSensor, useSensor } from "@dnd-kit/core";
 import {
   SortableContext,
   useSortable,
@@ -241,11 +242,13 @@ function Preview(props: {
               </ScrollArea>
             </TabsContent>
             <TabsContent value="schema">
-              <div className="max-h-96 w-full max-w-full overflow-auto rounded-md border p-4">
-                <pre className="w-1 text-xs">
-                  {JSON.stringify(schema, undefined, 2)}
-                </pre>
-              </div>
+              <Card>
+                <CardContent className="max-h-96 overflow-auto py-4">
+                  <pre className="w-1 text-xs">
+                    {JSON.stringify(schema, undefined, 2)}
+                  </pre>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </DialogContent>
@@ -309,11 +312,73 @@ function ParagraphAttributes() {
   return <ContentAttribute />;
 }
 
+function Entity(props: {
+  entityId: string;
+  children: ReactNode;
+  isActive: boolean;
+  onFocus?: () => void;
+  onDelete?: () => void;
+  builderStore: BuilderStore;
+}) {
+  const { entitiesAttributesErrors } = useBuilderStoreData(
+    props.builderStore,
+    (events) =>
+      events.some(
+        (event) =>
+          (event.name === "EntityAttributeErrorUpdated" &&
+            event.payload.entity.id === props.entityId) ||
+          event.name === "DataSet",
+      ),
+  );
+
+  return (
+    <div className="relative">
+      <div className="absolute inset-0 -mx-2 -mb-4 -mt-2 rounded-xl bg-neutral-950 sm:-mx-4" />
+      <div
+        className="pointer-events-none relative"
+        tabIndex={-1}
+        onFocusCapture={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
+        {props.children}
+      </div>
+      <button
+        type="button"
+        className={cn(
+          "absolute inset-0 -mx-2 -mb-4 -mt-2 rounded-xl border-2 transition-all sm:-mx-4",
+          props.isActive
+            ? "border-white"
+            : "border-transparent hover:border-white/30",
+          {
+            "border-destructive":
+              !props.isActive && entitiesAttributesErrors[props.entityId],
+          },
+        )}
+        onPointerDown={props.onFocus}
+      />
+      {props.isActive ? (
+        <button
+          type="button"
+          className="absolute -right-3 -top-4 flex h-5 w-5 items-center justify-center rounded-full bg-white sm:-right-6"
+          onClick={props.onDelete}
+        >
+          <XIcon className="w-3 text-black" />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function BasicFormBuilder() {
   const builderStore = useBuilderStore(basicFormBuilder, {
     events: {
       onEntityAdded(payload) {
         setActiveEntityId(payload.entity.id);
+      },
+      onEntityCloned(payload) {
+        setActiveEntityId(payload.entityClone.id);
       },
       onEntityDeleted(payload) {
         if (payload.entity.id === activeEntityId) {
@@ -342,15 +407,7 @@ export function BasicFormBuilder() {
     ),
   ).schema.root;
 
-  const { entitiesAttributesErrors } = useBuilderStoreData(
-    builderStore,
-    (events) =>
-      events.some(
-        (event) =>
-          event.name === "EntityAttributeErrorUpdated" ||
-          event.name === "DataSet",
-      ),
-  );
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   return (
     <div>
@@ -380,8 +437,15 @@ export function BasicFormBuilder() {
               <DndContext
                 id="dnd"
                 sensors={[mouseSensor]}
+                onDragStart={(e) => {
+                  if (typeof e.active.id === "string") {
+                    setDraggingId(e.active.id);
+                  }
+                }}
                 onDragEnd={(e) => {
                   const overId = e.over?.id;
+
+                  setDraggingId(null);
 
                   if (!overId || typeof e.active.id !== "string") {
                     return;
@@ -408,54 +472,53 @@ export function BasicFormBuilder() {
                     }}
                   >
                     {(props) => {
-                      const isActive = activeEntityId === props.entity.id;
-
                       return (
                         <SortableItem id={props.entity.id}>
-                          <div className="relative">
-                            <div className="absolute inset-0 -mx-2 -mb-4 -mt-2 rounded-xl bg-neutral-950 sm:-mx-4" />
-                            <div
-                              className="pointer-events-none relative"
-                              tabIndex={-1}
-                              onFocusCapture={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                            >
-                              {props.children}
-                            </div>
-                            <button
-                              type="button"
-                              className={cn(
-                                "absolute inset-0 -mx-2 -mb-4 -mt-2 rounded-xl border-2 transition-all sm:-mx-4",
-                                isActive
-                                  ? "border-white"
-                                  : "border-transparent hover:border-white/30",
-                                {
-                                  "border-destructive":
-                                    !isActive &&
-                                    entitiesAttributesErrors[props.entity.id],
-                                },
-                              )}
-                              onClick={() => setActiveEntityId(props.entity.id)}
-                            />
-                            {isActive ? (
-                              <button
-                                type="button"
-                                className="absolute -right-3 -top-4 flex h-5 w-5 items-center justify-center rounded-full bg-white sm:-right-6"
-                                onClick={() =>
-                                  builderStore.deleteEntity(props.entity.id)
-                                }
-                              >
-                                <XIcon className="w-3 text-black" />
-                              </button>
-                            ) : null}
-                          </div>
+                          <Entity
+                            builderStore={builderStore}
+                            entityId={props.entity.id}
+                            isActive={
+                              activeEntityId === props.entity.id &&
+                              draggingId !== props.entity.id
+                            }
+                            onFocus={() => setActiveEntityId(props.entity.id)}
+                            onDelete={() =>
+                              builderStore.deleteEntity(props.entity.id)
+                            }
+                          >
+                            {props.children}
+                          </Entity>
                         </SortableItem>
                       );
                     }}
                   </Builder.Entities>
                 </SortableContext>
+                <DragOverlay>
+                  {draggingId ? (
+                    <Builder.Entities
+                      builderStore={builderStore}
+                      components={{
+                        textField: TextFieldEntity,
+                        selectField: SelectFieldEntity,
+                        datePickerField: DatePickerFieldEntity,
+                        textareaField: TextareaFieldEntity,
+                        paragraph: ParagraphEntity,
+                      }}
+                    >
+                      {(props) =>
+                        props.entity.id === draggingId ? (
+                          <Entity
+                            isActive
+                            builderStore={builderStore}
+                            entityId={props.entity.id}
+                          >
+                            {props.children}
+                          </Entity>
+                        ) : null
+                      }
+                    </Builder.Entities>
+                  ) : null}
+                </DragOverlay>
               </DndContext>
             </div>
             <Dialog modal>
@@ -529,7 +592,9 @@ export function BasicFormBuilder() {
                         builderStore.addEntity({
                           type: "paragraph",
                           attributes: {
-                            content: "",
+                            content: {
+                              text: "",
+                            },
                           },
                         })
                       }

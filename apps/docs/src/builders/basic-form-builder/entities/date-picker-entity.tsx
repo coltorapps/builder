@@ -7,7 +7,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ValidationError } from "@/components/ui/validation-error";
+import { formatError, ValidationError } from "@/components/ui/validation-error";
+import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { cn } from "@/lib/utils";
 import { createEntity } from "basebuilder";
 import { format } from "date-fns";
@@ -42,6 +43,10 @@ export const DatePickerFieldEntity = createEntityComponent(
   (props) => {
     const id = useId();
 
+    const buttonRef = useRefWithErrorFocus<HTMLButtonElement>(
+      props.entity.error,
+    );
+
     return (
       <div>
         <Label htmlFor={id} aria-required={props.entity.attributes.required}>
@@ -52,11 +57,7 @@ export const DatePickerFieldEntity = createEntityComponent(
         <Popover modal>
           <PopoverTrigger asChild>
             <Button
-              ref={(inputElement) => {
-                if (inputElement && Boolean(props.entity.error)) {
-                  inputElement?.focus();
-                }
-              }}
+              ref={buttonRef}
               id={id}
               variant={"outline"}
               className={cn(
@@ -85,7 +86,9 @@ export const DatePickerFieldEntity = createEntityComponent(
             />
           </PopoverContent>
         </Popover>
-        <ValidationError error={props.entity.error} />
+        <ValidationError>
+          {formatError(props.entity.value, props.entity.error)?._errors?.[0]}
+        </ValidationError>
       </div>
     );
   },

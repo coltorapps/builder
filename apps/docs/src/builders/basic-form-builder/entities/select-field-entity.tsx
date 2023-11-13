@@ -7,7 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ValidationError } from "@/components/ui/validation-error";
+import { formatError, ValidationError } from "@/components/ui/validation-error";
+import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { createEntity } from "basebuilder";
 import { z } from "zod";
 
@@ -27,10 +28,12 @@ export const selectFieldEntity = createEntity({
     optionsAttribute,
   ],
   validate(value, context) {
-    const schema = z.string();
+    const schema = z.enum(
+      context.entity.attributes.options as [string, ...string[]],
+    );
 
     if (context.entity.attributes.required) {
-      return schema.min(1).parse(value);
+      return schema.parse(value);
     }
 
     return schema.optional().parse(value);
@@ -41,6 +44,10 @@ export const SelectFieldEntity = createEntityComponent(
   selectFieldEntity,
   (props) => {
     const id = useId();
+
+    const buttonRef = useRefWithErrorFocus<HTMLButtonElement>(
+      props.entity.error,
+    );
 
     return (
       <div>
@@ -58,14 +65,7 @@ export const SelectFieldEntity = createEntityComponent(
             void props.validate();
           }}
         >
-          <SelectTrigger
-            ref={(inputElement) => {
-              if (inputElement && Boolean(props.entity.error)) {
-                inputElement.focus();
-              }
-            }}
-            id={id}
-          >
+          <SelectTrigger ref={buttonRef} id={id}>
             <SelectValue
               placeholder={
                 props.entity.attributes.placeholder?.trim()
@@ -82,7 +82,9 @@ export const SelectFieldEntity = createEntityComponent(
             ))}
           </SelectContent>
         </Select>
-        <ValidationError error={props.entity.error} />
+        <ValidationError>
+          {formatError(props.entity.value, props.entity.error)?._errors?.[0]}
+        </ValidationError>
       </div>
     );
   },

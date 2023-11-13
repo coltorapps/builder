@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { ValidationError } from "@/components/ui/validation-error";
+import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { createAttribute } from "basebuilder";
 import { z } from "zod";
 
@@ -38,7 +38,12 @@ export const RequiredAttribute = createAttributeComponent(
             </label>
           </div>
         </div>
-        <ValidationError error={props.attribute.error} />
+        <ValidationError>
+          {
+            formatError(props.attribute.value, props.attribute.error)
+              ?._errors?.[0]
+          }
+        </ValidationError>
       </div>
     );
   },

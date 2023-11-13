@@ -6,7 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ValidationError } from "@/components/ui/validation-error";
+import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { cn } from "@/lib/utils";
 import { createAttribute } from "basebuilder";
 import { format } from "date-fns";
@@ -59,7 +59,12 @@ export const DefaultDateValueAttribute = createAttributeComponent(
             />
           </PopoverContent>
         </Popover>
-        <ValidationError error={props.attribute.error} />
+        <ValidationError>
+          {
+            formatError(props.attribute.value, props.attribute.error)
+              ?._errors?.[0]
+          }
+        </ValidationError>
       </div>
     );
   },

@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useSyncExternalStore,
+  type LazyExoticComponent,
 } from "react";
 import {
   builderStoreEventsNames,
@@ -95,7 +96,7 @@ const BuilderEntitiesContext = createContext<{
 
 const MemoizedEntity = memo(function Entity(props: {
   entityId: string;
-}): JSX.Element {
+}): JSX.Element | null {
   const { components, renderEntity, builderStore } = useContext(
     BuilderEntitiesContext,
   );
@@ -112,7 +113,9 @@ const MemoizedEntity = memo(function Entity(props: {
   const entity = data.schema.entities[props.entityId];
 
   if (!entity) {
-    throw new Error(`The entity with ID "${props.entityId}" was not found.`);
+    throw new Error(
+      `[Entity] The entity with ID "${props.entityId}" was not found.`,
+    );
   }
 
   const childrenIds = entity?.children ?? [];
@@ -121,7 +124,7 @@ const MemoizedEntity = memo(function Entity(props: {
 
   if (!EntityComponent) {
     throw new Error(
-      `No entity component found for the entity of type "${entity.type}".`,
+      `[Entity] No entity component found for the entity of type "${entity.type}".`,
     );
   }
 
@@ -202,13 +205,16 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   entityId: string;
   components: {
-    [K in TBuilder["entities"][number]["name"]]: () => JSX.Element | null;
+    [K in TBuilder["entities"][number]["name"]]:
+      | (() => JSX.Element | null)
+      | LazyExoticComponent<() => JSX.Element | null>;
   };
 }): JSX.Element {
   const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
       (event) =>
         event.name === builderStoreEventsNames.EntityAdded ||
+        event.name === builderStoreEventsNames.EntityCloned ||
         event.name === builderStoreEventsNames.EntityDeleted ||
         event.name === builderStoreEventsNames.DataSet,
     ),
@@ -217,7 +223,9 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
   const entity = data.schema.entities[props.entityId];
 
   if (!entity) {
-    throw new Error(`The entity with ID "${props.entityId}" was not found.`);
+    throw new Error(
+      `[Attributes] The entity with ID "${props.entityId}" was not found.`,
+    );
   }
 
   return (
@@ -227,7 +235,7 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
         entityId: props.entityId,
       }}
     >
-      {props.components[entity.type]()}
+      {props.components[entity.type]({})}
     </BuilderAttributesContext.Provider>
   );
 }

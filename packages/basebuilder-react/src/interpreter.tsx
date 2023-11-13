@@ -96,7 +96,9 @@ const MemoizedEntity = memo(function Entity(props: {
   const entity = interpreterStore.schema.entities[props.entityId];
 
   if (!entity) {
-    throw new Error("Entity not found.");
+    throw new Error(
+      `[Entity] The entity with ID "${props.entityId}" was not found.`,
+    );
   }
 
   const data = useInterpreterStoreData(interpreterStore, (events) =>
@@ -120,13 +122,17 @@ const MemoizedEntity = memo(function Entity(props: {
   };
 
   if (!entityDefinition) {
-    throw new Error("Entity definition not found.");
+    throw new Error(
+      `[Entity] The definition for the entity of type "${entity.type}" was not found.`,
+    );
   }
 
   const EntityComponent = components[entity.type];
 
   if (!EntityComponent) {
-    throw new Error("Entity component not found.");
+    throw new Error(
+      `[Entity] No entity component found for the entity of type "${entity.type}".`,
+    );
   }
 
   const shouldBeProcessedCache = useRef(

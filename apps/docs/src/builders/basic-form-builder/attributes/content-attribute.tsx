@@ -1,7 +1,11 @@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ValidationError } from "@/components/ui/validation-error";
+import { Toggle } from "@/components/ui/toggle";
+import { formatError, ValidationError } from "@/components/ui/validation-error";
+import { useRefWithErrorFocus } from "@/lib/error-focus";
+import { cn } from "@/lib/utils";
 import { createAttribute } from "basebuilder";
+import { Bold, Italic } from "lucide-react";
 import { z } from "zod";
 
 import { createAttributeComponent } from "@basebuilder/react";
@@ -9,32 +13,79 @@ import { createAttributeComponent } from "@basebuilder/react";
 export const contentAttribute = createAttribute({
   name: "content",
   validate(value) {
-    return z.string().min(1).max(1000).parse(value);
+    return z
+      .object({
+        text: z.string().min(1).max(1000),
+        bold: z.boolean().optional(),
+        italic: z.boolean().optional(),
+      })
+      .parse(value);
   },
 });
 
 export const ContentAttribute = createAttributeComponent(
   contentAttribute,
   (props) => {
+    const inputRef = useRefWithErrorFocus<HTMLTextAreaElement>(
+      props.attribute.error,
+    );
+
     return (
       <div>
         <Label htmlFor={props.attribute.name} aria-required>
           Content
         </Label>
-        <Textarea
-          id={props.attribute.name}
-          name={props.attribute.name}
-          value={props.attribute.value ?? ""}
-          onChange={(e) => {
-            props.setValue(e.target.value);
+        <div className="relative">
+          <div className="absolute flex h-8 w-full items-center justify-end gap-2 border-b px-1">
+            <Toggle
+              pressed={props.attribute.value.italic}
+              size="xs"
+              aria-label="Toggle italic"
+              onPressedChange={(pressed) =>
+                props.setValue({ ...props.attribute.value, italic: pressed })
+              }
+            >
+              <Italic className="h-4 w-4" />
+            </Toggle>
+            <Toggle
+              pressed={props.attribute.value.bold}
+              size="xs"
+              aria-label="Toggle bold"
+              onPressedChange={(pressed) =>
+                props.setValue({ ...props.attribute.value, bold: pressed })
+              }
+            >
+              <Bold className="h-4 w-4" />
+            </Toggle>
+          </div>
+          <Textarea
+            ref={inputRef}
+            className={cn("pt-10", {
+              "font-semibold": props.attribute.value.bold,
+              italic: props.attribute.value.italic,
+            })}
+            id={props.attribute.name}
+            name={props.attribute.name}
+            value={props.attribute.value.text ?? ""}
+            onChange={(e) => {
+              props.setValue({
+                ...props.attribute.value,
+                text: e.target.value,
+              });
 
-            void props.validate();
-          }}
-          required
-          rows={10}
-          autoFocus
-        />
-        <ValidationError error={props.attribute.error} />
+              void props.validate();
+            }}
+            required
+            rows={10}
+            autoFocus
+          />
+        </div>
+        <ValidationError>
+          {
+            formatError(props.attribute.value, props.attribute.error)?.text
+              ?._errors?.[0]
+          }
+        </ValidationError>
       </div>
     );
   },

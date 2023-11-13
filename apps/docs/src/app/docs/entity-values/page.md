@@ -6,7 +6,7 @@ nextjs:
     description: Understanding values.
 ---
 
-Entity values are the result of user input within the context of an interpreted schema.
+Entities values are the result of user input within the context of an interpreted schema.
 
 ---
 
@@ -37,7 +37,7 @@ Consider the following schema:
 }
 ```
 
-Here is a possible outcome of entity values:
+Here is a possible outcome of entities values:
 
 ```json
 {
@@ -47,12 +47,12 @@ Here is a possible outcome of entity values:
 ```
 
 {% callout title="You should know!" %}
-Entity values are always structured as a single-level flat format, mirroring the philosophy of `FormData`.
+Entities values are always structured as a single-level flat format, mirroring the philosophy of `FormData`.
 {% /callout %}
 
 ## Validation
 
-Once the user fills out a form, the entity values can be sent to the server for validation and storage in the database.
+Once the user fills out a form, the entities values can be sent to the server for validation and storage in the database.
 
 To validate a schema on the server-side, you can utilize the `validateEntitiesValues` method in conjunction with the builder you've defined for constructing the schema and the schema itself.
 

@@ -63,10 +63,10 @@ Using the above builder, we can construct the following example schema:
 
 The schema consists of two main keys: `entities` and `root`.
 
-The `entities` key contains objects representing instances supported by the builder, like text fields and sections. They are uniquely identified by an ID, and each of these objects includes:
+The `entities` key contains objects representing entities instances supported by the builder, like text fields and sections. They are uniquely identified by an ID, and each of these objects includes:
 
 - `type`: The name of the entity definition.
-- `attributes`: Attribute values.
+- `attributes`: Attributes values.
 - `parentId` (optional): Holds a reference to the ID of the parent entity.
 - `children` (optional): Represents an array of entity IDs specifying the order of children within a parent entity.
 
@@ -107,7 +107,7 @@ Schema transformations will be applied when utilizing the `validateSchema` metho
 
 ## Integrity validation
 
-To validate a schema synchronously, you can use the `validateSchemaIntegrity` method. This method performs the same validation as the `validateSchema` method but does not validate attribute values. It can be beneficial in specific scenarios.
+To validate a schema synchronously, you can use the `validateSchemaIntegrity` method. This method performs the same validation as the `validateSchema` method but does not validate attributes values. It can be beneficial in specific scenarios.
 
 ```typescript
 import { validateSchemaIntegrity } from "basebuilder";

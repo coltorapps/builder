@@ -1,3 +1,4 @@
+import { type LazyExoticComponent } from "react";
 import {
   type Builder,
   type Entity,
@@ -32,9 +33,11 @@ export function createEntityComponent<TEntity extends Entity>(
 }
 
 export type EntitiesComponents<TBuilder extends Builder = Builder> = {
-  [K in TBuilder["entities"][number]["name"]]: EntityComponent<
-    Extract<TBuilder["entities"][number], { name: K }>
-  >;
+  [K in TBuilder["entities"][number]["name"]]:
+    | EntityComponent<Extract<TBuilder["entities"][number], { name: K }>>
+    | LazyExoticComponent<
+        EntityComponent<Extract<TBuilder["entities"][number], { name: K }>>
+      >;
 };
 
 export type GenericEntityProps<TBuilder extends Builder = Builder> = {
@@ -44,4 +47,4 @@ export type GenericEntityProps<TBuilder extends Builder = Builder> = {
 
 export type GenericEntityComponent<TBuilder extends Builder = Builder> = (
   props: GenericEntityProps<TBuilder>,
-) => JSX.Element;
+) => JSX.Element | null;

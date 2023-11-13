@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ValidationError } from "@/components/ui/validation-error";
+import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { createAttribute } from "basebuilder";
 import { z } from "zod";
 
@@ -16,8 +16,6 @@ export const defaultStringValueAttribute = createAttribute({
 export const DefaultStringValueAttribute = createAttributeComponent(
   defaultStringValueAttribute,
   (props) => {
-    console.log("render default");
-
     return (
       <div>
         <Label htmlFor={props.attribute.name}>Default Value</Label>
@@ -31,7 +29,12 @@ export const DefaultStringValueAttribute = createAttributeComponent(
             void props.validate();
           }}
         />
-        <ValidationError error={props.attribute.error} />
+        <ValidationError>
+          {
+            formatError(props.attribute.value, props.attribute.error)
+              ?._errors?.[0]
+          }
+        </ValidationError>
       </div>
     );
   },

@@ -8,8 +8,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
       if (
-        (issue.code === z.ZodIssueCode.invalid_type &&
-          issue.expected === "string") ||
+        issue.code === z.ZodIssueCode.invalid_type ||
         (issue.code === z.ZodIssueCode.too_small && issue.type === "string") ||
         issue.code === z.ZodIssueCode.invalid_date
       ) {
