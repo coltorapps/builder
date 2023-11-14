@@ -476,6 +476,43 @@ exports[`builder store > can clone entities 3`] = `
               "id": "49ae95d3-84c0-4d0d-b914-66adde839572",
               "type": "test",
             },
+            "isCloneOrigin": true,
+          },
+        },
+        {
+          "name": "EntityCloned",
+          "payload": {
+            "entity": {
+              "attributes": {},
+              "id": "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
+              "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+              "type": "test",
+            },
+            "entityClone": {
+              "attributes": {},
+              "id": "55c0940d-7450-4b01-baf8-b84c05ea5cee",
+              "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+              "type": "test",
+            },
+            "isCloneOrigin": false,
+          },
+        },
+        {
+          "name": "EntityCloned",
+          "payload": {
+            "entity": {
+              "attributes": {},
+              "id": "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
+              "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+              "type": "test",
+            },
+            "entityClone": {
+              "attributes": {},
+              "id": "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
+              "parentId": "49ae95d3-84c0-4d0d-b914-66adde839572",
+              "type": "test",
+            },
+            "isCloneOrigin": false,
           },
         },
         {
@@ -583,6 +620,25 @@ exports[`builder store > can clone entities 3`] = `
               "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
               "type": "test",
             },
+            "isCloneOrigin": true,
+          },
+        },
+        {
+          "name": "EntityCloned",
+          "payload": {
+            "entity": {
+              "attributes": {},
+              "id": "1c2ec3a4-18a8-4785-906e-6465b9b5883b",
+              "parentId": "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+              "type": "test",
+            },
+            "entityClone": {
+              "attributes": {},
+              "id": "4fb898fb-7207-4952-8e5e-511953a42e2c",
+              "parentId": "0a97c57c-7743-403c-8105-a8c09eb5ab52",
+              "type": "test",
+            },
+            "isCloneOrigin": false,
           },
         },
         {

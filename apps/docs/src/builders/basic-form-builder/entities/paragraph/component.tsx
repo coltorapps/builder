@@ -1,18 +1,12 @@
 import { cn } from "@/lib/utils";
-import { createEntity } from "basebuilder";
 
 import { createEntityComponent } from "@basebuilder/react";
 
-import { contentAttribute } from "../attributes/content-attribute";
-
-export const paragraphEntity = createEntity({
-  name: "paragraph",
-  attributes: [contentAttribute],
-});
+import { paragraphEntity } from "./definition";
 
 export const ParagraphEntity = createEntityComponent(
   paragraphEntity,
-  (props) => {
+  function ParagraphEntity(props) {
     return (
       <pre
         className={cn(

@@ -10,37 +10,16 @@ import {
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { cn } from "@/lib/utils";
-import { createEntity } from "basebuilder";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { z } from "zod";
 
 import { createEntityComponent } from "@basebuilder/react";
 
-import { defaultDateValueAttribute } from "../attributes/default-date-value-attribute";
-import { labelAttribute } from "../attributes/label-attribute";
-import { requiredAttribute } from "../attributes/required-attribute";
-
-export const datePickerFieldEntity = createEntity({
-  name: "datePickerField",
-  attributes: [labelAttribute, defaultDateValueAttribute, requiredAttribute],
-  validate(value, context) {
-    const schema = z.coerce.date();
-
-    if (context.entity.attributes.required) {
-      return schema.parse(value);
-    }
-
-    return schema.optional().parse(value);
-  },
-  defaultValue(context) {
-    return context.entity.attributes.defaultValue;
-  },
-});
+import { datePickerFieldEntity } from "./definition";
 
 export const DatePickerFieldEntity = createEntityComponent(
   datePickerFieldEntity,
-  (props) => {
+  function DatePickerFieldEntity(props) {
     const id = useId();
 
     const buttonRef = useRefWithErrorFocus<HTMLButtonElement>(

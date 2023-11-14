@@ -98,6 +98,7 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
       {
         entity: SchemaEntityWithId<TBuilder>;
         entityClone: SchemaEntityWithId<TBuilder>;
+        isCloneOrigin: boolean;
       }
     >
   | SubscriptionEvent<
@@ -577,42 +578,72 @@ function getEntityIndex(
 }
 
 function cloneEntity<TBuilder extends Builder>(
-  entity: InternalBuilderStoreEntity<TBuilder> & { index?: number },
+  entityId: string,
+  entity: InternalBuilderStoreEntity<TBuilder>,
   schema: InternalBuilderStoreData<TBuilder>["schema"],
   builder: TBuilder,
+  options: {
+    index?: number;
+    isCloneOrigin: boolean;
+  },
 ): {
   schema: InternalBuilderStoreData<TBuilder>["schema"];
   entityClone: InternalBuilderStoreEntityWithId<TBuilder>;
+  events: Array<BuilderStoreEvent<TBuilder>>;
 } {
   const { schema: schemaWithNewEntity, entity: entityClone } = addEntity(
-    entity,
+    { ...entity, index: options?.index },
     schema,
     builder,
   );
 
-  if (!entity.children) {
-    return { schema: schemaWithNewEntity, entityClone };
-  }
+  let events: Array<BuilderStoreEvent<TBuilder>> = [];
 
   let newSchema = { ...schemaWithNewEntity };
 
-  entityClone.children = new Set();
+  if (entity.children) {
+    entityClone.children = new Set();
 
-  for (const childId of entity.children?.values()) {
-    const childEntity = ensureEntityExists(childId, schema.entities);
+    for (const childId of entity.children?.values()) {
+      const childEntity = ensureEntityExists(childId, schema.entities);
 
-    const childEntityCloningResult = cloneEntity(
-      { ...childEntity, parentId: entityClone.id },
-      newSchema,
-      builder,
-    );
+      const childEntityCloningResult = cloneEntity(
+        childId,
+        { ...childEntity, parentId: entityClone.id },
+        newSchema,
+        builder,
+        {
+          index: options.index,
+          isCloneOrigin: false,
+        },
+      );
 
-    newSchema = childEntityCloningResult.schema;
+      newSchema = childEntityCloningResult.schema;
 
-    entityClone.children.add(childEntityCloningResult.entityClone.id);
+      entityClone.children.add(childEntityCloningResult.entityClone.id);
+
+      events = events.concat(childEntityCloningResult.events);
+    }
   }
 
-  return { schema: newSchema, entityClone };
+  const serializedEntity = {
+    ...serializeInternalBuilderStoreEntity(entity),
+    id: entityId,
+  };
+
+  events.unshift({
+    name: builderStoreEventsNames.EntityCloned,
+    payload: {
+      entity: serializedEntity,
+      entityClone: {
+        ...serializeInternalBuilderStoreEntity(entityClone),
+        id: entityClone.id,
+      },
+      isCloneOrigin: options.isCloneOrigin,
+    },
+  });
+
+  return { schema: newSchema, entityClone, events };
 }
 
 type AddEntityPayload<TBuilder extends Builder = Builder> =
@@ -1530,30 +1561,16 @@ export function createBuilderStore<TBuilder extends Builder>(
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
-      const { schema: newSchema, entityClone } = cloneEntity(
-        {
-          ...entity,
-          index: getEntityIndex(entityId, data.schema) + 1,
-        },
+      const { schema: newSchema, events } = cloneEntity(
+        entityId,
+        entity,
         data.schema,
         builder,
-      );
-
-      const events: Array<BuilderStoreEvent<TBuilder>> = [
         {
-          name: builderStoreEventsNames.EntityCloned,
-          payload: {
-            entity: {
-              ...serializeInternalBuilderStoreEntity(entity),
-              id: entityId,
-            },
-            entityClone: {
-              ...serializeInternalBuilderStoreEntity(entityClone),
-              id: entityClone.id,
-            },
-          },
+          index: getEntityIndex(entityId, data.schema) + 1,
+          isCloneOrigin: true,
         },
-      ];
+      );
 
       if (entity.parentId) {
         events.push({

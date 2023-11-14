@@ -1,20 +1,13 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
-import { createAttribute } from "basebuilder";
-import { z } from "zod";
 
 import { createAttributeComponent } from "@basebuilder/react";
 
-export const requiredAttribute = createAttribute({
-  name: "required",
-  validate(value) {
-    return z.boolean().optional().parse(value);
-  },
-});
+import { requiredAttribute } from "./definition";
 
 export const RequiredAttribute = createAttributeComponent(
   requiredAttribute,
-  (props) => {
+  function RequiredAttribute(props) {
     return (
       <div>
         <div className="items-top flex space-x-2">

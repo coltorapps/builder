@@ -30,7 +30,7 @@ export function createAttributeComponent<TAttribute extends Attribute>(
   attribute: TAttribute,
   render: AttributeComponent<TAttribute>,
 ): () => JSX.Element | null {
-  return () => {
+  function AttributeWrapper() {
     const { builderStore, entityId } = useContext(BuilderAttributesContext);
 
     const data = useBuilderStoreData(builderStore, (events) =>
@@ -103,5 +103,9 @@ export function createAttributeComponent<TAttribute extends Attribute>(
       resetError: () =>
         builderStore.resetEntityAttributeError(entityId, attribute.name),
     });
-  };
+  }
+
+  AttributeWrapper.displayName = render.name;
+
+  return AttributeWrapper;
 }

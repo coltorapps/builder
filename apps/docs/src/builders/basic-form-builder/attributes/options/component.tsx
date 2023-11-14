@@ -3,22 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
-import { createAttribute } from "basebuilder";
 import { XIcon } from "lucide-react";
-import { z } from "zod";
 
 import { createAttributeComponent } from "@basebuilder/react";
 
-export const optionsAttribute = createAttribute({
-  name: "options",
-  validate(value) {
-    return z.array(z.string().min(1)).min(1).parse(value);
-  },
-});
+import { optionsAttribute } from "./definition";
 
 export const OptionsAttribute = createAttributeComponent(
   optionsAttribute,
-  (props) => {
+  function OptionsAttribute(props) {
     const attributeError = formatError(
       props.attribute.value,
       props.attribute.error,

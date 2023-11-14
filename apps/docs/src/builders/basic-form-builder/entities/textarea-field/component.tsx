@@ -3,41 +3,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
-import { createEntity } from "basebuilder";
-import { z } from "zod";
 
 import { createEntityComponent } from "@basebuilder/react";
 
-import { defaultStringValueAttribute } from "../attributes/default-string-value-attribute";
-import { labelAttribute } from "../attributes/label-attribute";
-import { placeholderAttribute } from "../attributes/placeholder-attribute";
-import { requiredAttribute } from "../attributes/required-attribute";
-
-export const textareaFieldEntity = createEntity({
-  name: "textareaField",
-  attributes: [
-    labelAttribute,
-    placeholderAttribute,
-    defaultStringValueAttribute,
-    requiredAttribute,
-  ],
-  validate(value, context) {
-    const schema = z.string().max(1000);
-
-    if (context.entity.attributes.required) {
-      return schema.min(1).parse(value);
-    }
-
-    return schema.optional().parse(value);
-  },
-  defaultValue(context) {
-    return context.entity.attributes.defaultValue;
-  },
-});
+import { textareaFieldEntity } from "./definition";
 
 export const TextareaFieldEntity = createEntityComponent(
   textareaFieldEntity,
-  (props) => {
+  function TextareaFieldEntity(props) {
     const id = useId();
 
     const inputRef = useRefWithErrorFocus<HTMLTextAreaElement>(

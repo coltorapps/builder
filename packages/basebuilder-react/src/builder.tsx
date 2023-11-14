@@ -94,7 +94,7 @@ const BuilderEntitiesContext = createContext<{
   renderEntity: ({ children }) => children,
 });
 
-const MemoizedEntity = memo(function Entity(props: {
+const Entity = memo(function Entity(props: {
   entityId: string;
 }): JSX.Element | null {
   const { components, renderEntity, builderStore } = useContext(
@@ -155,12 +155,14 @@ const MemoizedEntity = memo(function Entity(props: {
         }}
       >
         {childrenIds.map((entityId) => (
-          <MemoizedEntity key={entityId} {...props} />
+          <Entity key={entityId} {...props} />
         ))}
       </EntityComponent>
     ),
   });
 });
+
+Entity.displayName = "Entity";
 
 function Entities<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
@@ -187,7 +189,7 @@ function Entities<TBuilder extends BaseBuilder>(props: {
       }}
     >
       {data.schema.root.map((entityId) => (
-        <MemoizedEntity key={entityId} entityId={entityId} />
+        <Entity key={entityId} entityId={entityId} />
       ))}
     </BuilderEntitiesContext.Provider>
   );

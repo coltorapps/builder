@@ -18,6 +18,14 @@ Learn how to get started with Basebuilder through our guides. {% .lead %}
 
 ---
 
+## Live Example
+
+A simple example of what can be accomplished with Basebuilder.
+
+{% basic-form-builder /%}
+
+---
+
 ## Intro
 
 Basebuilder is a versatile TypeScript SDK designed for crafting custom form builders and much more. You can also develop website builders, dashboard builders, and any other builders you envision.
@@ -38,14 +46,6 @@ Currently, Basebuilder offers support for React, with plans to extend compatibil
 {% callout type="warning" title="Alpha Stage" %}
 We are successfully using Basebuilder in real-world production apps. However, it's important to note that the project is currently in the alpha stage, which means that breaking changes can occur even in minor or patch updates.
 {% /callout %}
-
----
-
-## Live Example
-
-A simple example of what can be accomplished with Basebuilder.
-
-{% basic-form-builder /%}
 
 ---
 

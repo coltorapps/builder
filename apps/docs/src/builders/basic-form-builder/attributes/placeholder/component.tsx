@@ -1,21 +1,14 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
-import { createAttribute } from "basebuilder";
-import { z } from "zod";
 
 import { createAttributeComponent } from "@basebuilder/react";
 
-export const placeholderAttribute = createAttribute({
-  name: "placeholder",
-  validate(value) {
-    return z.string().max(255).optional().parse(value);
-  },
-});
+import { placeholderAttribute } from "./definition";
 
 export const PlaceholderAttribute = createAttributeComponent(
   placeholderAttribute,
-  (props) => {
+  function PlaceholderAttribute(props) {
     return (
       <div>
         <Label htmlFor={props.attribute.name}>Placeholder</Label>

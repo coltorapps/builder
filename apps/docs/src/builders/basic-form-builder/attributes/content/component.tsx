@@ -4,28 +4,15 @@ import { Toggle } from "@/components/ui/toggle";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { cn } from "@/lib/utils";
-import { createAttribute } from "basebuilder";
 import { Bold, Italic } from "lucide-react";
-import { z } from "zod";
 
 import { createAttributeComponent } from "@basebuilder/react";
 
-export const contentAttribute = createAttribute({
-  name: "content",
-  validate(value) {
-    return z
-      .object({
-        text: z.string().min(1).max(1000),
-        bold: z.boolean().optional(),
-        italic: z.boolean().optional(),
-      })
-      .parse(value);
-  },
-});
+import { contentAttribute } from "./definition";
 
 export const ContentAttribute = createAttributeComponent(
   contentAttribute,
-  (props) => {
+  function ContentAttribute(props) {
     const inputRef = useRefWithErrorFocus<HTMLTextAreaElement>(
       props.attribute.error,
     );

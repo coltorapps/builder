@@ -38,7 +38,7 @@ export const ValidationError = React.forwardRef<
   return (
     <span
       ref={ref}
-      className={cn("text-xs text-red-500", className)}
+      className={cn("text-destructive text-xs", className)}
       {...props}
     >
       {children}

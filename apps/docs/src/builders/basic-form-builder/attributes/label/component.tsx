@@ -1,25 +1,26 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
-import { createAttribute } from "basebuilder";
-import { z } from "zod";
+import { useRefWithErrorFocus } from "@/lib/error-focus";
 
 import { createAttributeComponent } from "@basebuilder/react";
 
-export const defaultStringValueAttribute = createAttribute({
-  name: "defaultValue",
-  validate(value) {
-    return z.string().max(255).optional().parse(value);
-  },
-});
+import { labelAttribute } from "./definition";
 
-export const DefaultStringValueAttribute = createAttributeComponent(
-  defaultStringValueAttribute,
-  (props) => {
+export const LabelAttribute = createAttributeComponent(
+  labelAttribute,
+  function LabelAttribute(props) {
+    const inputRef = useRefWithErrorFocus<HTMLInputElement>(
+      props.attribute.error,
+    );
+
     return (
       <div>
-        <Label htmlFor={props.attribute.name}>Default Value</Label>
+        <Label htmlFor={props.attribute.name} aria-required>
+          Label
+        </Label>
         <Input
+          ref={inputRef}
           id={props.attribute.name}
           name={props.attribute.name}
           value={props.attribute.value ?? ""}
@@ -28,6 +29,8 @@ export const DefaultStringValueAttribute = createAttributeComponent(
 
             void props.validate();
           }}
+          required
+          autoFocus
         />
         <ValidationError>
           {

@@ -9,40 +9,14 @@ import {
 } from "@/components/ui/select";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
-import { createEntity } from "basebuilder";
-import { z } from "zod";
 
 import { createEntityComponent } from "@basebuilder/react";
 
-import { labelAttribute } from "../attributes/label-attribute";
-import { optionsAttribute } from "../attributes/options-attribute";
-import { placeholderAttribute } from "../attributes/placeholder-attribute";
-import { requiredAttribute } from "../attributes/required-attribute";
-
-export const selectFieldEntity = createEntity({
-  name: "selectField",
-  attributes: [
-    labelAttribute,
-    placeholderAttribute,
-    requiredAttribute,
-    optionsAttribute,
-  ],
-  validate(value, context) {
-    const schema = z.enum(
-      context.entity.attributes.options as [string, ...string[]],
-    );
-
-    if (context.entity.attributes.required) {
-      return schema.parse(value);
-    }
-
-    return schema.optional().parse(value);
-  },
-});
+import { selectFieldEntity } from "./definition";
 
 export const SelectFieldEntity = createEntityComponent(
   selectFieldEntity,
-  (props) => {
+  function SelectFieldEntity(props) {
     const id = useId();
 
     const buttonRef = useRefWithErrorFocus<HTMLButtonElement>(

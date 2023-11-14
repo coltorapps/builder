@@ -8,23 +8,16 @@ import {
 } from "@/components/ui/popover";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { cn } from "@/lib/utils";
-import { createAttribute } from "basebuilder";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { z } from "zod";
 
 import { createAttributeComponent } from "@basebuilder/react";
 
-export const defaultDateValueAttribute = createAttribute({
-  name: "defaultValue",
-  validate(value) {
-    return z.coerce.date().optional().parse(value);
-  },
-});
+import { defaultDateValueAttribute } from "./definition";
 
 export const DefaultDateValueAttribute = createAttributeComponent(
   defaultDateValueAttribute,
-  (props) => {
+  function DefaultDateValueAttribute(props) {
     return (
       <div>
         <Label htmlFor={props.attribute.name}>Default Value</Label>

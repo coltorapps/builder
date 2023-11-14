@@ -1,1 +1,1 @@
-export { BasicFormBuilder, basicFormBuilder } from "./basic-form-builder";
+export { BasicFormBuilder } from "./builder/component";
