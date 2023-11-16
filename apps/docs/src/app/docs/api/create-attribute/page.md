@@ -6,9 +6,9 @@ nextjs:
     description: API Reference of createAttribute.
 ---
 
-This method creates an attribute definition that can be subsequently referenced in multiple entities' definitions.
+This function creates an attribute definition that can be subsequently referenced in multiple entities' definitions.
 
-By an attribute definition, we simply mean an object with specific properties. The method itself serves primarily as a type safety helper and doesn't perform any underlying logic.
+By an attribute definition, we simply mean an object with specific properties. The function itself serves primarily as a type safety helper and doesn't perform any underlying logic.
 
 ## Reference
 
@@ -35,11 +35,16 @@ export const labelAttribute = createAttribute({
 
 `createAttribute` accepts a single parameter, which should be an object containing the following properties:
 
-- `name` {% badge content="string" /%}: The attribute's name, which appears as the `type` property on entities instances within the schema.
-- `validate` {% badge content="function" /%}: A validation function for checking attribute values during schema validation. It can be asynchronous, and any exceptions it raises will be automatically caught and provided to you during schema validation. The function accepts two parameters: the attribute's value and a context object, which includes the following properties:
-  - `schema` {% badge content="object" /%}: The current schema, including all entities instances, against which the attribute is validated.
-  - `entity` {% badge content="object" /%}: The entity instance that owns the attribute.
+- `name` {% badge content="string" /%}: The attribute's name.
+- `validate` {% badge content="function" /%}: A validation function for checking attribute values during schema validation. It can be asynchronous, and any exceptions it raises will be automatically caught and provided to you during schema validation. The method receives two arguments: the attribute's value and the [context object](#context).
 
 ### Returns
 
 The `createAttribute` function essentially forwards the provided `options` parameter as the returned object.
+
+## Context
+
+The `context` object is passed as an argument to the `validate` method within the `createAttribute` function, and it contains the following properties:
+
+- `schema` {% badge content="object" /%}: The current generic schema, including all generic entities instances, against which the attribute is validated.
+- `entity` {% badge content="object" /%}: The generic entity instance that owns the attribute.

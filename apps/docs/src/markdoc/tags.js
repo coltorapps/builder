@@ -1,6 +1,7 @@
 import { BasicFormBuilder } from "@/builders/basic-form-builder";
 import { Callout } from "@/components/Callout";
 import { QuickLink, QuickLinks } from "@/components/QuickLinks";
+import { cn } from "@/lib/utils";
 
 const tags = {
   callout: {
@@ -49,7 +50,18 @@ const tags = {
   },
   badge: {
     render: ({ content }) => (
-      <span className="mr-px rounded-md border bg-neutral-900 px-2 py-px text-sm font-medium tracking-wide text-neutral-200">
+      <span
+        className={cn(
+          "mr-px rounded-md border bg-neutral-900 border-neutral-700 px-2 py-px text-sm font-medium tracking-wide text-neutral-200",
+          {
+            "border-sky-600/50 bg-sky-500/20": content === "array",
+            "border-yellow-600/50 bg-yellow-500/20": content === "string",
+            "border-orange-600/50 bg-orange-500/20": content === "object",
+            "border-pink-600/50 bg-pink-500/20": content === "function",
+            "border-green-600/50 bg-green-500/20": content === "boolean",
+          },
+        )}
+      >
         {content}
       </span>
     ),

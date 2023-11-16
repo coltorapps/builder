@@ -64,10 +64,7 @@ export const textFieldEntity = createEntity({
 
 ## Entity context
 
-Every entity method, such as `validate`, `defaultValue`, and `shouldBeProcessed`, receives the context object as an argument. It includes the following properties:
-
-- `entity` {% badge content="object" /%}: Represents the current entity instance.
-- `entitiesValues` {% badge content="object" /%}: Contains the values of all entities instances.
+Every entity method, such as `validate`, `defaultValue`, and `shouldBeProcessed`, receives the context object as an argument. You can find more details about the context in the [API reference](/docs/api/create-entity#context).
 
 ## Using attributes during validation
 
@@ -146,7 +143,7 @@ export const textFieldEntity = createEntity({
           throw "Must be equal to or less than the max length";
         }
 
-        return validatedValue;
+        return minLength;
       },
     },
     maxLength: {
@@ -157,7 +154,7 @@ export const textFieldEntity = createEntity({
           throw "Must be equal to or greater than the min length";
         }
 
-        return validatedValue;
+        return maxLength;
       },
     },
   },

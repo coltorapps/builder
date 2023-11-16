@@ -20,6 +20,9 @@ export const navigation = [
   },
   {
     title: "Core API Reference",
-    links: [{ title: "createAttribute", href: "/docs/api/create-attribute" }],
+    links: [
+      { title: "createAttribute", href: "/docs/api/create-attribute" },
+      { title: "createEntity", href: "/docs/api/create-entity" },
+    ],
   },
 ];

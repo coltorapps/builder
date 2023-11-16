@@ -61,12 +61,9 @@ export const labelAttribute = createAttribute({
 
 ## Attribute context
 
-The `validate` method of an attribute receives the context object as the second argument. It includes the following properties:
+The `validate` method of an attribute receives the context object as the second argument. You can find more details about the context in the [API reference](/docs/api/create-attribute#context).
 
-- `schema` {% badge content="object" /%}: The current schema, including all entities instances, against which the attribute is validated.
-- `entity` {% badge content="object" /%}: The entity instance that owns the attribute.
-
-Both the entity object and the schema are generic and not inherently type-safe because at this level, we cannot have this type of knowledge. However, you may still find the context useful on occasion.
+The context object is generic and not inherently type-safe because at the attribute level, we don't have any knowledge of the entities that will use the attribute or the future schema. However, you may still find the context useful on occasion.
 
 ## Transforming values
 
@@ -79,9 +76,9 @@ import { z } from "zod";
 export const labelAttribute = createAttribute({
   name: "label",
   validate(value) {
-    const validatedValue = z.string().min(1).parse(value);
+    const label = z.string().min(1).parse(value);
 
-    return `Cool Label: ${validatedValue}`;
+    return `Cool Label: ${label}`;
   },
 });
 ```
