@@ -33,6 +33,8 @@ describe("entity", () => {
         attributes: {
           [x: string]: unknown;
         };
+        children?: Array<string>;
+        parentId?: string;
       };
       entitiesValues: {
         [x: string]: unknown;
@@ -85,6 +87,8 @@ describe("entity", () => {
       entity: {
         id: string;
         attributes: { label: string; defaultValue: string | undefined };
+        children?: Array<string>;
+        parentId?: string;
       };
       entitiesValues: Record<string, unknown>;
     };

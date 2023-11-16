@@ -1,6 +1,6 @@
 import { type Schema, type SchemaEntityWithId } from "./schema";
 
-type AttributeContext = {
+export type AttributeContext = {
   schema: Schema;
   entity: SchemaEntityWithId;
 };

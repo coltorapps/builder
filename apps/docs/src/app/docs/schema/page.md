@@ -6,7 +6,7 @@ nextjs:
     description: Understanding schemas.
 ---
 
-A schema is essentially a JSON structure created through a specific builder, which contains a collection of all entity instances and their order.
+A schema is essentially a JSON structure created through a specific builder, which contains a collection of entities instances and their order.
 
 ---
 
@@ -67,8 +67,8 @@ The `entities` key contains objects representing entities instances supported by
 
 - `type`: The name of the entity definition.
 - `attributes`: Attributes values.
-- `parentId` (optional): Holds a reference to the ID of the parent entity.
-- `children` (optional): Represents an array of entity IDs specifying the order of children within a parent entity.
+- `parentId` {% badge content="optional" /%}: Holds a reference to the ID of the parent entity.
+- `children` {% badge content="optional" /%}: Represents an array of entities IDs specifying the order of children within a parent entity.
 
 The `root` key is an array that holds the top-level entities in the hierarchy, determining their order.
 
@@ -92,7 +92,8 @@ export async function validateFormSchema(schema: unknown) {
     // The result.data contains a valid schema
     // that can be stored in the database.
   } else {
-    // The result.reason holds the reason for validation failure.
+    // The result.reason holds the reason for
+    // validation failure.
   }
 }
 ```
@@ -118,7 +119,8 @@ if (result.success) {
   // The result.data contains a valid schema
   // that can be stored in the database.
 } else {
-  // The result.reason holds the reason for validation failure.
+  // The result.reason holds the reason for
+  // validation failure.
 }
 ```
 

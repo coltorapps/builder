@@ -6,6 +6,8 @@ type EntityContext<TAttributes extends ReadonlyArray<Attribute>> = {
   entity: {
     id: string;
     attributes: AttributesValues<TAttributes>;
+    children?: Array<string>;
+    parentId?: string;
   };
   entitiesValues: Record<string, unknown>;
 };

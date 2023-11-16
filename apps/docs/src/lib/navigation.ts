@@ -18,4 +18,8 @@ export const navigation = [
       { title: "Interpreter store", href: "/docs/interpreter-store" },
     ],
   },
+  {
+    title: "Core API Reference",
+    links: [{ title: "createAttribute", href: "/docs/api/create-attribute" }],
+  },
 ];

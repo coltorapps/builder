@@ -27,6 +27,8 @@ export function Prose<T extends React.ElementType = "div">({
         "prose-pre:rounded-xl prose-pre:bg-neutral-900 prose-pre:shadow-lg dark:prose-pre:bg-neutral-800/60 dark:prose-pre:shadow-none dark:prose-pre:ring-1 dark:prose-pre:ring-neutral-300/10",
         // hr
         "dark:prose-hr:border-neutral-800",
+        // tables
+        "dark:prose-th:border-b dark:prose-td:border-t",
       )}
       {...props}
     />

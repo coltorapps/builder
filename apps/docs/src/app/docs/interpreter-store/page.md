@@ -6,7 +6,7 @@ nextjs:
     description: Understanding interpreter stores.
 ---
 
-An interpreter store serves as the central component used for filling entities values based on a schema and builder definition.
+An interpreter store is responsible for filling entities values based on a schema and builder definition.
 
 ---
 

@@ -147,7 +147,7 @@ This will produce an output similar to:
 }
 ```
 
-- `schema`: Represents the schema containing the collection of all entity instances and their order. It can be modified using builder store methods such as `addEntity`, `deleteEntity`, `setEntityParent`, `unsetEntityParent`, `setEntityIndex`, `setEntityAttribute`, and `cloneEntity`.
+- `schema`: Represents the schema containing the collection of all entities instances and their order. It can be modified using builder store methods such as `addEntity`, `deleteEntity`, `setEntityParent`, `unsetEntityParent`, `setEntityIndex`, `setEntityAttribute`, and `cloneEntity`.
 
 - `entitiesAttributesErrors`: Represents validation errors of various entity attributes. It can be modified using builder store methods such as `validateEntityAttribute`, `validateEntityAttributes`, `validateEntitiesAttributes`, `resetEntityAttributeError`, `setEntityAttributeError`, `resetEntityAttributesErrors`, `setEntityAttributesErrors`, `resetEntitiesAttributesErrors`, `setEntitiesAttributesErrors`, and `validateSchema`. When you delete an entity, its attributes errors will also be deleted.
 

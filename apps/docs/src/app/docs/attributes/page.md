@@ -36,7 +36,7 @@ Validations can also be asynchronous, in which case the inferred value will be t
 
 ## Throwing validation errors
 
-You can throw errors, strings, objects, and virtually anything in the `validate` method of an attribute in case of an invalid value. The thrown error will be propagated all the way up to your UI components, where you can handle and display it in any way you prefer.
+You can throw errors, strings, objects, and virtually anything in the `validate` method of an attribute in case of an invalid value. The thrown exceptions will be automatically caught and provided to you during schema validation.
 
 ```typescript
 import { createAttribute } from "basebuilder";
@@ -59,9 +59,12 @@ export const labelAttribute = createAttribute({
 
 ## Attribute context
 
-The `validate` method of an attribute receives the context as the second argument.
+The `validate` method of an attribute receives the context object as the second argument. It includes the following properties:
 
-The context includes the current attribute's owner entity instance, as well as the schema with all of the entities instances. Both the entity object and the schema are generic and not inherently type-safe because at this level, we cannot have this type of knowledge. However, you may still find the context useful on occasion. This aspect will become clearer to you as you continue exploring examples and guides throughout the documentation.
+- `schema` {% badge content="object" /%}: The current schema, including all entities instances, against which the attribute's owning entity is validated.
+- `entity` {% badge content="object" /%}: The entity instance that owns the attribute.
+
+Both the entity object and the schema are generic and not inherently type-safe because at this level, we cannot have this type of knowledge. However, you may still find the context useful on occasion.
 
 ## Transforming values
 

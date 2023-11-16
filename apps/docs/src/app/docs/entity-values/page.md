@@ -90,7 +90,8 @@ export async function validateFormSubmission(values: FormData, formId: string) {
     // The result.data contains valid values
     // that can be stored in the database.
   } else {
-    // The result.reason holds the reason for validation failure.
+    // The result.reason holds the reason for
+    // validation failure.
   }
 }
 ```
@@ -100,5 +101,5 @@ In summary, `validateEntitiesValues` ensures that the values are valid according
 {% callout title="You should know!" %}
 Value transformations will be applied when utilizing the `validateEntitiesValues` method, as indicated in [the entities documentation](/docs/entities#transforming-values).
 
-Additionally, entities that are not processable will be excluded from validation, along with their children, as explained in [the entities documentation](/docs/entities#conditional-processing).
+Additionally, entities that are not processable will be excluded from validation and filtered out, along with their children, as explained in [the entities documentation](/docs/entities#conditional-processing).
 {% /callout %}

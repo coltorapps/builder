@@ -39,7 +39,7 @@ Validations can also be asynchronous, in which case the inferred value will be t
 
 ## Throwing validation errors
 
-You can throw errors, strings, objects, and virtually anything in the `validate` method of an entity in case of an invalid value. The thrown error will be propagated all the way up to your UI components, where you can handle and display it in any way you prefer.
+You can throw errors, strings, objects, and virtually anything in the `validate` method of an entity in case of an invalid value. The thrown exceptions will be automatically caught and provided to you during schema validation.
 
 ```typescript
 import { createEntity } from "basebuilder";
@@ -62,9 +62,10 @@ export const textFieldEntity = createEntity({
 
 ## Entity context
 
-Every entity method, such as `validate`, `defaultValue`, and `shouldBeProcessed`, receives the context as an argument.
+Every entity method, such as `validate`, `defaultValue`, and `shouldBeProcessed`, receives the context object as an argument. It includes the following properties:
 
-The context includes the current entity instance, as well as the values of all other entity instances during interpretation. This aspect will become clearer to you as you continue exploring examples and guides throughout the documentation.
+- `entity` {% badge content="object" /%}: Represents the current entity instance.
+- `entitiesValues` {% badge content="object" /%}: Contains the values of all entities instances.
 
 ## Using attributes during validation
 
@@ -221,7 +222,7 @@ export const textFieldEntity = createEntity({
 We have defined a default value attribute for the text field entity, and its value is accessed by the `defaultValue` method through the context.
 
 {% callout title="You should know!" %}
-The return type of the `defaultValue` method must match the return type of the `validate` method, but it can also be `undefined`.
+The return type of the `defaultValue` method must match the return type of the `validate` method, but it can also return `undefined`.
 {% /callout %}
 
 ## Conditional processing

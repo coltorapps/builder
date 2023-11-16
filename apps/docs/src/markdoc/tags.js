@@ -47,6 +47,16 @@ const tags = {
     render: BasicFormBuilder,
     selfClosing: true,
   },
+  badge: {
+    render: ({ content }) => (
+      <span className="mr-px rounded-md border bg-neutral-900 px-2 py-px text-sm font-medium tracking-wide text-neutral-200">
+        {content}
+      </span>
+    ),
+    attributes: {
+      content: { type: String },
+    },
+  },
 };
 
 export default tags;

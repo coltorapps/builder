@@ -40,7 +40,7 @@ export const formBuilder = createBuilder({
   entities: [sectionEntity, textFieldEntity],
   entitiesExtensions: {
     section: {
-      childrenAllowed: ["textField"],
+      childrenAllowed: ["textField"], // Set to `true` to allow any type.
     },
   },
 });
@@ -60,7 +60,7 @@ export const formBuilder = createBuilder({
   entities: [sectionEntity, textFieldEntity],
   entitiesExtensions: {
     section: {
-      childrenAllowed: true,
+      childrenAllowed: ["textField"],
     },
     textField: {
       allowedParents: ["section"],
@@ -72,7 +72,7 @@ export const formBuilder = createBuilder({
 
 Summary of the example above:
 
-- Sections can have any kind of children.
+- Sections can have only text field children.
 - Text fields require a parent.
 - Only sections are permitted as parents for text fields.
 
@@ -86,7 +86,7 @@ import { createBuilder } from "basebuilder";
 import { someEntity } from "./some-entity";
 
 export const formBuilder = createBuilder({
-  entities: [someEntityEntity],
+  entities: [someEntity],
   entitiesExtensions: {
     someEntity: {
       attributes: {
@@ -94,7 +94,7 @@ export const formBuilder = createBuilder({
           validate(value, context) {
             const validatedValue = context.validate(value);
 
-            // Some custom logic using context.schema and context.entity
+            // Some custom logic using context.schema or context.entity
 
             return validatedValue;
           },
@@ -113,7 +113,7 @@ When extending an attribute's validation at the builder level, the return type o
 
 ## Custom entities IDs
 
-By default, when you add entities to a schema, UUIDs are created for entity IDs using the `crypto` module. However, this module may not be supported in certain environments. If needed, you can replace the default ID generation and validation processes with your own tailored logic.
+By default, when you add entities instances to a schema, UUIDs are created for entity IDs using the `crypto` module. However, this module may not be supported in certain environments. If needed, you can replace the default ID generation and validation processes with your own tailored logic.
 
 ```typescript
 import { createBuilder } from "basebuilder";
@@ -140,7 +140,6 @@ After a schema has been successfully validated, you have the option to perform a
 
 ```typescript
 import { createBuilder } from "basebuilder";
-import { v4 as generateUUID, validate as validateUUID } from "uuid";
 
 import { textFieldEntity } from "./text-field-entity";
 
@@ -162,7 +161,6 @@ In the `validateSchema` method of a builder, you have the ability to return a tr
 
 ```typescript
 import { createBuilder } from "basebuilder";
-import { v4 as generateUUID, validate as validateUUID } from "uuid";
 
 import { textFieldEntity } from "./text-field-entity";
 
