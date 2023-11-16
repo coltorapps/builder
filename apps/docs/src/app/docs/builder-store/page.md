@@ -12,7 +12,7 @@ A builder store serves as the central component used for constructing a schema b
 
 ## Creating a builder store
 
-The `createBuilderStore` method is utilized to establish a builder store based on one of your custom builders.
+The `createBuilderStore` method is utilized to create a builder store based on one of your custom builders.
 
 In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize the `useBuilderStore` from `@basebuilder/react`, which essentially creates the builder store for you.
 

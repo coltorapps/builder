@@ -12,6 +12,8 @@ Think of entities with attributes as components with props. For instance, you ca
 
 ## Creating an entity
 
+You can use the `createEntity` function to create an entity definition.
+
 For illustrative purposes, we're going to use [Zod](https://zod.dev/) for validation, but you're free to use any other validation library or even manually validate inputs as per your requirements.
 
 ```typescript

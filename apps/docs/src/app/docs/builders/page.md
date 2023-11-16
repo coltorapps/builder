@@ -12,6 +12,8 @@ Think of builders as collections of supported entities. For example, you can hav
 
 ## Creating a builder
 
+You can use the `createBuilder` function to create a builder.
+
 Let's define a form builder that exclusively supports text fields.
 
 ```typescript

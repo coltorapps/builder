@@ -12,7 +12,7 @@ An interpreter store is responsible for filling entities values based on a schem
 
 ## Creating an interpreter store
 
-The `createInterpreterStore` method is utilized to establish an interpreter store based on one of your custom builders and a schema.
+The `createInterpreterStore` method is utilized to create an interpreter store based on one of your custom builders and a schema.
 
 In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize the `useInterpreterStore` from `@basebuilder/react`, which essentially creates the interpreter store for you.
 

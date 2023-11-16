@@ -12,6 +12,8 @@ Think of attributes as the props of your entities. For instance, a text field ma
 
 ## Creating an attribute
 
+You can use the `createAttribute` function to create an attribute definition.
+
 For illustrative purposes, we're going to use [Zod](https://zod.dev/) for validation, but you're free to use any other validation library or even manually validate inputs as per your requirements.
 
 ```typescript
@@ -61,7 +63,7 @@ export const labelAttribute = createAttribute({
 
 The `validate` method of an attribute receives the context object as the second argument. It includes the following properties:
 
-- `schema` {% badge content="object" /%}: The current schema, including all entities instances, against which the attribute's owning entity is validated.
+- `schema` {% badge content="object" /%}: The current schema, including all entities instances, against which the attribute is validated.
 - `entity` {% badge content="object" /%}: The entity instance that owns the attribute.
 
 Both the entity object and the schema are generic and not inherently type-safe because at this level, we cannot have this type of knowledge. However, you may still find the context useful on occasion.
