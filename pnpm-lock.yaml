@@ -56,14 +56,14 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
-  apps/docs:
+  docs:
     dependencies:
       '@algolia/autocomplete-core':
         specifier: ^1.9.2
         version: 1.9.2(@algolia/client-search@4.20.0)(algoliasearch@4.20.0)(search-insights@2.9.0)
       '@basebuilder/react':
         specifier: ^0.1.0
-        version: link:../../packages/basebuilder-react
+        version: link:../packages/basebuilder-react
       '@dnd-kit/core':
         specifier: ^6.1.0
         version: 6.1.0(react-dom@18.2.0)(react@18.2.0)
@@ -141,7 +141,7 @@ importers:
         version: 10.4.16(postcss@8.4.31)
       basebuilder:
         specifier: ^0.1.0
-        version: link:../../packages/basebuilder
+        version: link:../packages/basebuilder
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -211,7 +211,7 @@ importers:
     devDependencies:
       '@basebuilder/eslint-config':
         specifier: 0.1.0
-        version: link:../../packages/eslint-config
+        version: link:../packages/eslint-config
       '@types/lodash':
         specifier: ^4.14.201
         version: 4.14.201

@@ -5,6 +5,7 @@ exports[`builder > can be created with children and parent rules 1`] = `
   "entities": [
     {
       "attributes": [],
+      "attributesExtensions": {},
       "childrenAllowed": true,
       "defaultValue": [Function],
       "name": "test",
@@ -26,6 +27,7 @@ exports[`builder > can be created with entities 1`] = `
   "entities": [
     {
       "attributes": [],
+      "attributesExtensions": {},
       "childrenAllowed": false,
       "defaultValue": [Function],
       "name": "test",

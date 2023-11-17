@@ -43,7 +43,7 @@ export type Entity<
   valueAllowed: boolean;
   childrenAllowed: TChildrenAllowed;
   parentRequired: TParentRequired;
-  attributesExtensions?: AttributesExtensions<Entity<TName, TAttributes>>;
+  attributesExtensions: AttributesExtensions<Entity<TName, TAttributes>>;
   validate: (value: unknown, context: EntityContext<TAttributes>) => TValue;
   defaultValue: (
     context: EntityContext<TAttributes>,
@@ -57,6 +57,7 @@ type OptionalEntityArgs =
   | "defaultValue"
   | "shouldBeProcessed"
   | "childrenAllowed"
+  | "attributesExtensions"
   | "parentRequired";
 
 export function createEntity<
@@ -103,6 +104,7 @@ export function createEntity<
     parentRequired: options.parentRequired ?? (false as TParentRequired),
     attributes: options.attributes ?? fallbackAttributes,
     valueAllowed: typeof options.validate === "function",
+    attributesExtensions: options.attributesExtensions ?? {},
     validate: options.validate ?? fallbackValidator,
     defaultValue: options.defaultValue ?? fallbackDefaultValue,
     shouldBeProcessed: options.shouldBeProcessed ?? fallbackShouldBeProcessed,

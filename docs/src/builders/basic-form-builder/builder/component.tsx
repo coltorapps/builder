@@ -332,7 +332,7 @@ export function BasicFormBuilder() {
           </div>
         </div>
         {activeEntityId ? (
-          <div className="rounded-xl border-l bg-neutral-900/50 p-4 pb-8">
+          <div className="rounded-xl border-l bg-neutral-900/60 p-4 pb-8">
             <div className="sticky top-24 grid gap-8">
               <Builder.Attributes
                 entityId={activeEntityId}

@@ -47,7 +47,7 @@ describe("entity", () => {
       valueAllowed: boolean;
       childrenAllowed: false;
       parentRequired: false;
-      attributesExtensions?: AttributesExtensions<
+      attributesExtensions: AttributesExtensions<
         Entity<"text", readonly Attribute[], unknown, boolean, boolean>
       >;
       validate: (value: unknown, context: EntityContext) => string;
@@ -99,20 +99,18 @@ describe("entity", () => {
         Attribute<"label", string>,
         Attribute<"defaultValue", string | undefined>,
       ];
-      attributesExtensions?:
-        | AttributesExtensions<
-            Entity<
-              "text",
-              readonly [
-                Attribute<"label", string>,
-                Attribute<"defaultValue", string | undefined>,
-              ],
-              unknown,
-              boolean,
-              boolean
-            >
-          >
-        | undefined;
+      attributesExtensions: AttributesExtensions<
+        Entity<
+          "text",
+          readonly [
+            Attribute<"label", string>,
+            Attribute<"defaultValue", string | undefined>,
+          ],
+          unknown,
+          boolean,
+          boolean
+        >
+      >;
       valueAllowed: boolean;
       childrenAllowed: true;
       parentRequired: true;

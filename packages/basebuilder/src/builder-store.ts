@@ -261,11 +261,11 @@ async function validateEntityAttribute<TBuilder extends Builder>(
     const attributeValidator = (value: unknown) =>
       attribute.validate(value, attributeValidationContext);
 
-    const attributeExtensionValidator = entityDefinition.attributesExtensions?.[
+    const attributeExtensionValidator = entityDefinition.attributesExtensions[
       attribute.name
     ]?.validate
       ? (value: unknown) =>
-          entityDefinition.attributesExtensions?.[attribute.name]?.validate?.(
+          entityDefinition.attributesExtensions[attribute.name]?.validate?.(
             value,
             {
               ...attributeValidationContext,

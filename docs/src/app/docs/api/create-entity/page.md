@@ -39,43 +39,33 @@ export const textFieldEntity = createEntity({
 `createEntity` accepts a single parameter, which should be an object containing the following properties:
 
 - `name` {% badge content="string" /%}: The entity's name, which appears as the `type` property on entities instances within the schema.
-- `attributes` {% badge content="optional" /%} {% badge content="array" /%}: The array of attributes definitions.
-- `validate` {% badge content="optional" /%} {% badge content="function" /%}: An optional validation function for checking entity values during schema validation. It can be asynchronous, and any exceptions it raises will be automatically caught and provided to you during values validation. The method receives two arguments: the entity's value and the [context object](#context). Not defining this method implies that the entity cannot have a value.
+- `attributes` {% badge content="optional" /%} {% badge content="array" /%}: An optional array of attributes definitions. Defaults to `[]`.
+- `validate` {% badge content="optional" /%} {% badge content="function" /%}: An optional validation function for checking entity values during schema validation. It can be asynchronous, and any exceptions it raises will be automatically caught and provided to you during values validation. The method receives two arguments: the entity's value and the [context object](#context).
+
+  Not defining this method implies that the entity cannot have a value. Defaults to `() => undefined`.
+
 - `childrenAllowed` {% badge content="optional" /%} {% badge content="boolean" /%}: An optional flag for determining whether the entity can or cannot have any child entities. Defaults to `false`.
 - `parentRequired` {% badge content="optional" /%} {% badge content="boolean" /%}: An optional flag for indicating whether the entity must always have a parent entity. Defaults to `false`.
 - `defaultValue` {% badge content="optional" /%} {% badge content="function" /%}: An optional function for populating the entity's value with a default during the interpreter store initialization. It receives the [context object](#context) as an argument. The return type of this method must match the return type of the `validate` method, but it can also return `undefined`. This method has no effect when the `validate` method is not defined. Defaults to `() => undefined`.
-- `shouldBeProcessed` {% badge content="optional" /%} {% badge content="function" /%}: An optional function that should return either `true` or `false`, indicating whether both the entity and all its child entities should be displayed and validated or not. Defaults to `() => true`.
-- `attributesExtensions` {% badge content="optional" /%} {% badge content="object" /%}: An optional object for extending or overriding attributes validations. The `validate` method in an attribute's extension receives the same arguments as the base `validate` method of the attribute. You can fully override the attribute's validation by not calling `context.validate()`. The return type of the new validation must match the return type of the attribute's base `validate` method. Example:
 
-```typescript
-import { createEntity } from "basebuilder";
+- `shouldBeProcessed` {% badge content="optional" /%} {% badge content="function" /%}: An optional function that should return either `true` or `false`, indicating whether both the entity and all its child entities should be displayed and validated or not. It receives the [context object](#context) as an argument. Defaults to `() => true`.
+- `attributesExtensions` {% badge content="optional" /%} {% badge content="object" /%}: An optional object for extending or overriding attribute validations, of the following shape:
 
-import { titleAttribute } from "./title-attribute";
+  ```typescript
+  {
+    attributeName?: {
+      validate?: (value, context) => TValue
+    }
+  }
+  ```
 
-export const sectionEntity = createEntity({
-  name: "section",
-  attributes: [titleAttribute],
-  attributesExtensions: {
-    title: {
-      validate(value, context) {
-        const title = context.validate(value);
-
-        if (title.length < 5) {
-          throw new Error(
-            "The title must be greater than or equal to 5 characters in length.",
-          );
-        }
-
-        return title;
-      },
-    },
-  },
-});
-```
+  The `validate` method in an attribute's extension receives the same arguments as the base `validate` method of the attribute, except the [context object](/docs/api/create-attribute#context) also includes an additional `context.validate()` method, which essentially represents the base validation of the attribute. Invoking it is optional, allowing you to entirely replace the validation with custom logic. The return type of the new validation must match the return type of the attribute's base `validate` method. Defaults to `{}`.
 
 ### Returns
 
-The `createEntity` function essentially forwards the provided `options` parameter as the returned object.
+The `createEntity` function essentially forwards the provided `options` parameter as the returned object, with optional parameters falling back to the defaults described above when not provided. However, the resulting object will include one more property:
+
+- `valueAllowed` {% badge content="boolean" /%}: A flag that indicates whether the entity is allowed to have values. It is set to `true` only when the `validate` method was provided when creating the entity.
 
 ## Context
 

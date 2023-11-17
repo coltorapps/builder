@@ -8,6 +8,7 @@ exports[`entity > can be created with attributes 1`] = `
       "validate": [Function],
     },
   ],
+  "attributesExtensions": {},
   "childrenAllowed": false,
   "defaultValue": [Function],
   "name": "text",
@@ -23,6 +24,7 @@ exports[`entity > can be created with default value 1`] = `"test"`;
 exports[`entity > can be created with minimal options 1`] = `
 {
   "attributes": [],
+  "attributesExtensions": {},
   "childrenAllowed": false,
   "defaultValue": [Function],
   "name": "text",

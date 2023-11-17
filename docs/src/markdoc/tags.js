@@ -52,7 +52,7 @@ const tags = {
     render: ({ content }) => (
       <span
         className={cn(
-          "mr-px rounded-md border bg-neutral-900 border-neutral-700 px-2 py-px text-sm font-medium tracking-wide text-neutral-200",
+          "mr-px rounded-md border border-neutral-700 bg-neutral-900 px-2 py-px text-sm font-medium tracking-wide text-neutral-200",
           {
             "border-sky-600/50 bg-sky-500/20": content === "array",
             "border-yellow-600/50 bg-yellow-500/20": content === "string",
