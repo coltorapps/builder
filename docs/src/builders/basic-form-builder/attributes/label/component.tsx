@@ -30,7 +30,6 @@ export const LabelAttribute = createAttributeComponent(
             void props.validate();
           }}
           required
-          autoFocus
         />
         <ValidationError>
           {
