@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { Providers } from "@/app/providers";
 import { Layout } from "@/components/Layout";
+import { Analytics } from "@vercel/analytics/react";
 import clsx from "clsx";
 
 import "@/styles/tailwind.css";
@@ -45,6 +46,7 @@ export default function RootLayout({
           <Layout>{children}</Layout>
         </Providers>
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
