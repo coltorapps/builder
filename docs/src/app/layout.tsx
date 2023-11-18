@@ -28,6 +28,10 @@ export const metadata: Metadata = {
     default: "Basebuilder",
   },
   description: "Powerful SDK for crafting your own form builders and beyond.",
+  openGraph: {
+    title: "Basebuilder",
+    description: "Powerful SDK for crafting your own form builders and beyond.",
+  },
 };
 
 export default function RootLayout({
