@@ -23,6 +23,7 @@ const lexend = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://basebuilder.coltorapps.com"),
   title: {
     template: "%s - Docs",
     default: "Basebuilder",
