@@ -2,7 +2,7 @@ import { type Attribute, type AttributesValues } from "./attribute";
 import { type Builder } from "./builder";
 import { type Schema, type SchemaEntityWithId } from "./schema";
 
-type EntityContext<TAttributes extends ReadonlyArray<Attribute>> = {
+export type EntityContext<TAttributes extends ReadonlyArray<Attribute>> = {
   entity: {
     id: string;
     attributes: AttributesValues<TAttributes>;

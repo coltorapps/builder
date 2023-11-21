@@ -13,22 +13,27 @@ import {
   SchemaValidationError,
   validateSchemaIntegrity,
   type Schema,
+  type SchemaEntityWithId,
 } from "./schema";
 import { type Subscribe, type SubscriptionEvent } from "./subscription-manager";
 
 type InternalInterpreterStoreData<TBuilder extends Builder = Builder> = {
   entitiesValues: Map<string, EntityValue<TBuilder>>;
   entitiesErrors: Map<string, unknown>;
+  unprocessableEntitiesIds: Set<string>;
 };
 
 export type InterpreterStoreData<TBuilder extends Builder = Builder> = {
   entitiesValues: EntitiesValues<TBuilder>;
   entitiesErrors: EntitiesErrors;
+  unprocessableEntitiesIds: Array<string>;
 };
 
 export const interpreterStoreEventsNames = {
   EntityValueUpdated: "EntityValueUpdated",
   EntityErrorUpdated: "EntityErrorUpdated",
+  EntityUnprocessable: "EntityUnprocessable",
+  EntityProcessable: "EntityProcessable",
   DataSet: "DataSet",
 } as const;
 
@@ -48,6 +53,18 @@ export type InterpreterStoreEvent<TBuilder extends Builder = Builder> =
       {
         entityId: string;
         error: unknown;
+      }
+    >
+  | SubscriptionEvent<
+      typeof interpreterStoreEventsNames.EntityUnprocessable,
+      {
+        entityId: string;
+      }
+    >
+  | SubscriptionEvent<
+      typeof interpreterStoreEventsNames.EntityProcessable,
+      {
+        entityId: string;
       }
     >
   | SubscriptionEvent<
@@ -105,6 +122,7 @@ function deserializeInterpreterStoreData<TBuilder extends Builder>(
   return {
     entitiesValues: new Map(Object.entries(data.entitiesValues)),
     entitiesErrors: new Map(Object.entries(data.entitiesErrors)),
+    unprocessableEntitiesIds: new Set(),
   };
 }
 
@@ -120,18 +138,28 @@ function serializeInternalEntitiesErrors<TBuilder extends Builder>(
   return Object.fromEntries(entitiesErrors);
 }
 
+function serializeInternalUnprocessableEntitiesIds<TBuilder extends Builder>(
+  unprocessableEntitiesIds: InternalInterpreterStoreData<TBuilder>["unprocessableEntitiesIds"],
+): InterpreterStoreData<TBuilder>["unprocessableEntitiesIds"] {
+  return Array.from(unprocessableEntitiesIds);
+}
+
 function serializeInternalInterpreterStoreData<TBuilder extends Builder>(
   data: InternalInterpreterStoreData<TBuilder>,
 ): InterpreterStoreData<TBuilder> {
   return {
     entitiesValues: serializeInternalEntitiesValues(data.entitiesValues),
     entitiesErrors: serializeInternalEntitiesErrors(data.entitiesErrors),
+    unprocessableEntitiesIds: serializeInternalUnprocessableEntitiesIds(
+      data.unprocessableEntitiesIds,
+    ),
   };
 }
 
-function deserializeAndValidateInterpreterStoreData<TBuilder extends Builder>(
-  data: InterpreterStoreData<TBuilder>,
-  builder: TBuilder,
+export function deserializeAndValidateInterpreterStoreData<
+  TBuilder extends Builder,
+>(
+  data: Omit<InterpreterStoreData<TBuilder>, "unprocessableEntitiesIds">,
   schema: Schema<TBuilder>,
 ): InternalInterpreterStoreData<TBuilder> {
   const validatedEntitiesValues = ensureEntitiesValuesAreValid(
@@ -147,6 +175,7 @@ function deserializeAndValidateInterpreterStoreData<TBuilder extends Builder>(
   return deserializeInterpreterStoreData<TBuilder>({
     entitiesValues: validatedEntitiesValues,
     entitiesErrors: validatedEntitiesErrors,
+    unprocessableEntitiesIds: [],
   });
 }
 
@@ -251,11 +280,142 @@ function ensureEntitiesErrorsAllowed(
   }
 }
 
+function getRecurringChildrenIds(
+  entityId: string,
+  schema: Schema,
+): Array<string> {
+  const entity = ensureEntityExists(entityId, schema.entities);
+
+  const result: Array<string> = [];
+
+  if (entity.children) {
+    for (const childId of entity.children) {
+      result.push(childId);
+
+      result.concat(getRecurringChildrenIds(childId, schema));
+    }
+  }
+
+  return result;
+}
+
+function computeEntityProcessability<TBuilder extends Builder>(
+  entity: SchemaEntityWithId<TBuilder>,
+  schema: Schema<TBuilder>,
+  data: InternalInterpreterStoreData<TBuilder>,
+  builder: TBuilder,
+): {
+  unprocessableEntitiesIds: InternalInterpreterStoreData<TBuilder>["unprocessableEntitiesIds"];
+  events: Array<InterpreterStoreEvent<TBuilder>>;
+} {
+  let newUnprocessableEntitiesIds = new Set(data.unprocessableEntitiesIds);
+
+  const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
+
+  const shouldBeProcessed = entityDefinition.shouldBeProcessed({
+    entitiesValues: serializeInternalEntitiesValues(data.entitiesValues),
+    entity,
+  });
+
+  if (!shouldBeProcessed) {
+    newUnprocessableEntitiesIds.add(entity.id);
+
+    const recurringChildrenIds = getRecurringChildrenIds(entity.id, schema);
+
+    recurringChildrenIds.forEach((id) =>
+      newUnprocessableEntitiesIds.delete(id),
+    );
+
+    return {
+      unprocessableEntitiesIds: newUnprocessableEntitiesIds,
+      events: [
+        {
+          name: interpreterStoreEventsNames.EntityUnprocessable,
+          payload: {
+            entityId: entity.id,
+          },
+        },
+      ],
+    };
+  }
+
+  let events: Array<InterpreterStoreEvent<TBuilder>> = [];
+
+  if (newUnprocessableEntitiesIds.has(entity.id)) {
+    newUnprocessableEntitiesIds.delete(entity.id);
+
+    events.push({
+      name: interpreterStoreEventsNames.EntityProcessable,
+      payload: {
+        entityId: entity.id,
+      },
+    });
+  }
+
+  if (entity.children) {
+    for (const childId of entity.children) {
+      const childEntity = ensureEntityExists(childId, schema.entities);
+
+      const childEntityProcessability = computeEntityProcessability(
+        childEntity,
+        schema,
+        { ...data, unprocessableEntitiesIds: newUnprocessableEntitiesIds },
+        builder,
+      );
+
+      events = events.concat(childEntityProcessability.events);
+
+      newUnprocessableEntitiesIds =
+        childEntityProcessability.unprocessableEntitiesIds;
+    }
+  }
+
+  return {
+    unprocessableEntitiesIds: newUnprocessableEntitiesIds,
+    events,
+  };
+}
+
+export function computeUnprocessableEntities<TBuilder extends Builder>(
+  schema: Schema<TBuilder>,
+  data: InternalInterpreterStoreData<TBuilder>,
+  builder: TBuilder,
+): {
+  unprocessableEntitiesIds: InternalInterpreterStoreData<TBuilder>["unprocessableEntitiesIds"];
+  events: Array<InterpreterStoreEvent<TBuilder>>;
+} {
+  let newUnprocessableEntitiesIds = new Set(data.unprocessableEntitiesIds);
+
+  let events: Array<InterpreterStoreEvent<TBuilder>> = [];
+
+  for (const entityId of schema.root) {
+    const entity = ensureEntityExists(entityId, schema.entities);
+
+    const entityProcessability = computeEntityProcessability(
+      entity,
+      schema,
+      { ...data, unprocessableEntitiesIds: newUnprocessableEntitiesIds },
+      builder,
+    );
+
+    newUnprocessableEntitiesIds = entityProcessability.unprocessableEntitiesIds;
+
+    events = events.concat(entityProcessability.events);
+  }
+
+  return {
+    unprocessableEntitiesIds: newUnprocessableEntitiesIds,
+    events,
+  };
+}
+
 export function createInterpreterStore<TBuilder extends Builder>(
   builder: TBuilder,
   schema: Schema<TBuilder>,
   options?: {
-    initialData?: Partial<InterpreterStoreData<TBuilder>>;
+    initialData?: Partial<
+      Omit<InterpreterStoreData<TBuilder>, "unprocessableEntitiesIds">
+    >;
     initialEntitiesValuesWithDefaults?: boolean;
   },
 ): InterpreterStore<TBuilder> {
@@ -270,7 +430,6 @@ export function createInterpreterStore<TBuilder extends Builder>(
       entitiesValues: options?.initialData?.entitiesValues ?? {},
       entitiesErrors: options?.initialData?.entitiesErrors ?? {},
     },
-    builder,
     schemaValidationResult.data,
   );
 
@@ -286,6 +445,12 @@ export function createInterpreterStore<TBuilder extends Builder>(
       { skipAlreadySetEntitiesValues: true },
     );
   }
+
+  initialStoreData.unprocessableEntitiesIds = computeUnprocessableEntities(
+    schema,
+    initialStoreData,
+    builder,
+  ).unprocessableEntitiesIds;
 
   const { getData, setData, subscribe } = createDataManager<
     InternalInterpreterStoreData<TBuilder>,
@@ -306,7 +471,6 @@ export function createInterpreterStore<TBuilder extends Builder>(
     setData(data) {
       const newData = deserializeAndValidateInterpreterStoreData(
         data,
-        builder,
         schemaValidationResult.data,
       );
 
@@ -314,14 +478,27 @@ export function createInterpreterStore<TBuilder extends Builder>(
 
       ensureEntitiesErrorsAllowed(newData.entitiesErrors, builder, schema);
 
-      setData(newData, [
+      newData.unprocessableEntitiesIds = getData().unprocessableEntitiesIds;
+
+      const entitiesProcessability = computeUnprocessableEntities(
+        schema,
+        newData,
+        builder,
+      );
+
+      newData.unprocessableEntitiesIds =
+        entitiesProcessability.unprocessableEntitiesIds;
+
+      const events: Array<InterpreterStoreEvent<TBuilder>> = [
         {
           name: interpreterStoreEventsNames.DataSet,
           payload: {
             data: serializeInternalInterpreterStoreData(newData),
           },
         },
-      ]);
+      ];
+
+      setData(newData, events.concat(entitiesProcessability.events));
     },
     setEntityValue(entityId, value) {
       ensureEntityValueAllowed(entityId, builder, schema);
@@ -332,20 +509,34 @@ export function createInterpreterStore<TBuilder extends Builder>(
 
       newEntitiesValues.set(entityId, value);
 
+      const newData = {
+        ...data,
+        entitiesValues: newEntitiesValues,
+      };
+
+      const entitiesProcessability = computeUnprocessableEntities(
+        schema,
+        newData,
+        builder,
+      );
+
+      const events: Array<InterpreterStoreEvent<TBuilder>> = [
+        {
+          name: interpreterStoreEventsNames.EntityValueUpdated,
+          payload: {
+            entityId,
+            value,
+          },
+        },
+      ];
+
       setData(
         {
-          ...data,
-          entitiesValues: newEntitiesValues,
+          ...newData,
+          unprocessableEntitiesIds:
+            entitiesProcessability.unprocessableEntitiesIds,
         },
-        [
-          {
-            name: interpreterStoreEventsNames.EntityValueUpdated,
-            payload: {
-              entityId,
-              value,
-            },
-          },
-        ],
+        events.concat(entitiesProcessability.events),
       );
     },
     resetEntityValue(entityId) {
@@ -360,20 +551,34 @@ export function createInterpreterStore<TBuilder extends Builder>(
         builder,
       );
 
+      const newData = {
+        ...data,
+        entitiesValues: newEntitiesValues,
+      };
+
+      const entitiesProcessability = computeUnprocessableEntities(
+        schema,
+        newData,
+        builder,
+      );
+
+      const events: Array<InterpreterStoreEvent<TBuilder>> = [
+        {
+          name: interpreterStoreEventsNames.EntityValueUpdated,
+          payload: {
+            entityId,
+            value: newEntitiesValues.get(entityId),
+          },
+        },
+      ];
+
       setData(
         {
-          ...data,
-          entitiesValues: newEntitiesValues,
+          ...newData,
+          unprocessableEntitiesIds:
+            entitiesProcessability.unprocessableEntitiesIds,
         },
-        [
-          {
-            name: interpreterStoreEventsNames.EntityValueUpdated,
-            payload: {
-              entityId,
-              value: newEntitiesValues.get(entityId),
-            },
-          },
-        ],
+        events.concat(entitiesProcessability.events),
       );
     },
     resetEntitiesValues() {
@@ -397,12 +602,24 @@ export function createInterpreterStore<TBuilder extends Builder>(
         });
       }
 
+      const newData = {
+        ...data,
+        entitiesValues: newEntitiesValues,
+      };
+
+      const entitiesProcessability = computeUnprocessableEntities(
+        schema,
+        newData,
+        builder,
+      );
+
       setData(
         {
-          ...data,
-          entitiesValues: newEntitiesValues,
+          ...newData,
+          unprocessableEntitiesIds:
+            entitiesProcessability.unprocessableEntitiesIds,
         },
-        events,
+        events.concat(entitiesProcessability.events),
       );
     },
     clearEntityValue(entityId) {
@@ -414,20 +631,34 @@ export function createInterpreterStore<TBuilder extends Builder>(
 
       newEntitiesValues.delete(entityId);
 
+      const events: Array<InterpreterStoreEvent<TBuilder>> = [
+        {
+          name: interpreterStoreEventsNames.EntityValueUpdated,
+          payload: {
+            entityId,
+            value: undefined,
+          },
+        },
+      ];
+
+      const newData = {
+        ...data,
+        entitiesValues: newEntitiesValues,
+      };
+
+      const entitiesProcessability = computeUnprocessableEntities(
+        schema,
+        newData,
+        builder,
+      );
+
       setData(
         {
-          ...data,
-          entitiesValues: newEntitiesValues,
+          ...newData,
+          unprocessableEntitiesIds:
+            entitiesProcessability.unprocessableEntitiesIds,
         },
-        [
-          {
-            name: interpreterStoreEventsNames.EntityValueUpdated,
-            payload: {
-              entityId,
-              value: undefined,
-            },
-          },
-        ],
+        events.concat(entitiesProcessability.events),
       );
     },
     clearEntitiesValues() {
@@ -445,12 +676,24 @@ export function createInterpreterStore<TBuilder extends Builder>(
         });
       }
 
+      const newData = {
+        ...data,
+        entitiesValues: new Map(),
+      };
+
+      const entitiesProcessability = computeUnprocessableEntities(
+        schema,
+        newData,
+        builder,
+      );
+
       setData(
         {
-          ...data,
-          entitiesValues: new Map(),
+          ...newData,
+          unprocessableEntitiesIds:
+            entitiesProcessability.unprocessableEntitiesIds,
         },
-        events,
+        events.concat(entitiesProcessability.events),
       );
     },
     setEntityError(entityId, error) {
@@ -534,7 +777,6 @@ export function createInterpreterStore<TBuilder extends Builder>(
           entitiesValues: serializeInternalEntitiesValues(data.entitiesValues),
           entitiesErrors: newEntitiesErrors,
         },
-        builder,
         schemaValidationResult.data,
       );
 
@@ -722,6 +964,14 @@ export function createInterpreterStore<TBuilder extends Builder>(
     getEntitiesValues() {
       return serializeInternalEntitiesValues(getData().entitiesValues);
     },
+    getUnprocessableEntitiesIds() {
+      return serializeInternalUnprocessableEntitiesIds(
+        getData().unprocessableEntitiesIds,
+      );
+    },
+    isEntityProcessable(entityId) {
+      return !getData().unprocessableEntitiesIds.has(entityId);
+    },
   };
 }
 
@@ -729,7 +979,10 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
   getData(): InterpreterStoreData<TBuilder>;
   getEntitiesErrors(): InterpreterStoreData<TBuilder>["entitiesErrors"];
   getEntitiesValues(): InterpreterStoreData<TBuilder>["entitiesValues"];
-  setData(data: InterpreterStoreData<TBuilder>): void;
+  getUnprocessableEntitiesIds(): InterpreterStoreData<TBuilder>["unprocessableEntitiesIds"];
+  setData(
+    data: Omit<InterpreterStoreData<TBuilder>, "unprocessableEntitiesIds">,
+  ): void;
   subscribe(
     ...args: Parameters<
       Subscribe<InterpreterStoreData<TBuilder>, InterpreterStoreEvent<TBuilder>>
@@ -752,4 +1005,5 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
   setEntitiesErrors(
     entitiesErrors: InterpreterStoreData<TBuilder>["entitiesErrors"],
   ): void;
+  isEntityProcessable(entityId: string): boolean;
 };

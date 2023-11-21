@@ -2,10 +2,10 @@ export { createBuilder } from "./builder";
 export type { Builder } from "./builder";
 
 export { createEntity } from "./entity";
-export type { Entity } from "./entity";
+export type { Entity, EntityContext } from "./entity";
 
 export { createAttribute } from "./attribute";
-export type { Attribute } from "./attribute";
+export type { Attribute, AttributeContext } from "./attribute";
 
 export type { SubscriptionEvent } from "./subscription-manager";
 

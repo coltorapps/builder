@@ -3,7 +3,11 @@ import { z } from "zod";
 
 import { createBuilder, createEntity } from "../src";
 import * as entitiesValuesExports from "../src/entities-values";
-import { createInterpreterStore } from "../src/interpreter-store";
+import {
+  computeUnprocessableEntities,
+  createInterpreterStore,
+  deserializeAndValidateInterpreterStoreData,
+} from "../src/interpreter-store";
 import * as schemaExports from "../src/schema";
 
 describe("interpreter store", () => {
@@ -1084,5 +1088,516 @@ describe("interpreter store", () => {
       builder,
       schema,
     );
+  });
+
+  it("computes entities processability when created", () => {
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+        },
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          attributes: {},
+        },
+      },
+      root: [
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      ],
+    } as const;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: (context) =>
+            context.entity.id === "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(builder, schema);
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    expect(
+      interpreterStore.isEntityProcessable(
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+      ),
+    ).toMatchSnapshot();
+
+    expect(
+      interpreterStore.isEntityProcessable(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      ),
+    ).toMatchSnapshot();
+  });
+
+  it("computes entities processability when updating values", () => {
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+        },
+      },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+    } as const;
+
+    let processable = true;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: () => processable,
+          validate: () => {
+            return;
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(builder, schema);
+
+    const listener = vi.fn();
+
+    interpreterStore.subscribe(listener);
+
+    processable = false;
+
+    interpreterStore.setEntityValue(
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      undefined,
+    );
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    processable = true;
+
+    interpreterStore.setEntityValue(
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      undefined,
+    );
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("computes entities processability when resetting values", () => {
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+        },
+      },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+    } as const;
+
+    let processable = true;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: () => processable,
+          validate: () => {
+            return;
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(builder, schema);
+
+    const listener = vi.fn();
+
+    interpreterStore.subscribe(listener);
+
+    processable = false;
+
+    interpreterStore.resetEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd");
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    processable = true;
+
+    interpreterStore.resetEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd");
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("computes entities processability when resetting values of all entities", () => {
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+        },
+      },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+    } as const;
+
+    let processable = true;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: () => processable,
+          validate: () => {
+            return;
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(builder, schema);
+
+    const listener = vi.fn();
+
+    interpreterStore.subscribe(listener);
+
+    processable = false;
+
+    interpreterStore.resetEntitiesValues();
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    processable = true;
+
+    interpreterStore.resetEntitiesValues();
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("computes entities processability when clearing values", () => {
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+        },
+      },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+    } as const;
+
+    let processable = true;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: () => processable,
+          validate: () => {
+            return;
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(builder, schema);
+
+    const listener = vi.fn();
+
+    interpreterStore.subscribe(listener);
+
+    processable = false;
+
+    interpreterStore.clearEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd");
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    processable = true;
+
+    interpreterStore.clearEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd");
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("computes entities processability when clearing values of all entities", () => {
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+        },
+      },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+    } as const;
+
+    let processable = true;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: () => processable,
+          validate: () => {
+            return;
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(builder, schema);
+
+    const listener = vi.fn();
+
+    interpreterStore.subscribe(listener);
+
+    processable = false;
+
+    interpreterStore.clearEntitiesValues();
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    processable = true;
+
+    interpreterStore.clearEntitiesValues();
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
+  it("computes entities processability when setting data", () => {
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+        },
+      },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+    } as const;
+
+    let processable = true;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: () => processable,
+          validate: () => {
+            return "string";
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(builder, schema);
+
+    const listener = vi.fn();
+
+    interpreterStore.subscribe(listener);
+
+    processable = false;
+
+    interpreterStore.setData({
+      entitiesValues: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": "string",
+      },
+      entitiesErrors: {},
+    });
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    processable = true;
+
+    interpreterStore.setData({
+      entitiesValues: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": "string",
+      },
+      entitiesErrors: {},
+    });
+
+    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+});
+
+describe("unprocessable entities computation", () => {
+  it("computes the unprocessable entities and events", () => {
+    const schema = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+        },
+      },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+    } as const;
+
+    let processable = true;
+
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: () => processable,
+          validate: () => {
+            return "string";
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(builder, schema);
+
+    expect(
+      computeUnprocessableEntities(
+        schema,
+        deserializeAndValidateInterpreterStoreData(
+          interpreterStore.getData(),
+          schema,
+        ),
+        builder,
+      ),
+    ).toMatchSnapshot();
+
+    processable = false;
+
+    expect(
+      computeUnprocessableEntities(
+        schema,
+        deserializeAndValidateInterpreterStoreData(
+          interpreterStore.getData(),
+          schema,
+        ),
+        builder,
+      ),
+    ).toMatchSnapshot();
+
+    processable = true;
+
+    expect(
+      computeUnprocessableEntities(
+        schema,
+        {
+          entitiesValues: new Map(),
+          entitiesErrors: new Map(),
+          unprocessableEntitiesIds: new Set([
+            "51324b32-adc3-4d17-a90e-66b5453935bd",
+          ]),
+        },
+        builder,
+      ),
+    ).toMatchSnapshot();
+  });
+
+  it("computes the unprocessable entities recursively", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          shouldBeProcessed: (context) =>
+            context.entitiesValues[context.entity.id] === "process",
+          validate: () => {
+            return "string";
+          },
+          childrenAllowed: true,
+        }),
+      ],
+    });
+
+    const schema: schemaExports.Schema<typeof builder> = {
+      entities: {
+        "51324b32-adc3-4d17-a90e-66b5453935bd": {
+          type: "text",
+          attributes: {},
+          children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+        },
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          attributes: {},
+          children: ["2df173ee-6b88-4744-a74d-0f21d49166b3"],
+          parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
+        },
+        "2df173ee-6b88-4744-a74d-0f21d49166b3": {
+          type: "text",
+          attributes: {},
+          parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        },
+      },
+      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+    };
+
+    expect(
+      computeUnprocessableEntities(
+        schema,
+        {
+          entitiesValues: new Map(),
+          entitiesErrors: new Map(),
+          unprocessableEntitiesIds: new Set([
+            "2df173ee-6b88-4744-a74d-0f21d49166b3",
+          ]),
+        },
+        builder,
+      ),
+    ).toMatchSnapshot();
+
+    expect(
+      computeUnprocessableEntities(
+        schema,
+        {
+          entitiesValues: new Map([
+            ["51324b32-adc3-4d17-a90e-66b5453935bd", "process"],
+          ]),
+          entitiesErrors: new Map(),
+          unprocessableEntitiesIds: new Set([
+            "2df173ee-6b88-4744-a74d-0f21d49166b3",
+          ]),
+        },
+        builder,
+      ),
+    ).toMatchSnapshot();
+
+    expect(
+      computeUnprocessableEntities(
+        schema,
+        {
+          entitiesValues: new Map([
+            ["51324b32-adc3-4d17-a90e-66b5453935bd", "process"],
+            ["6e0035c3-0d4c-445f-a42b-2d971225447c", "process"],
+          ]),
+          entitiesErrors: new Map(),
+          unprocessableEntitiesIds: new Set([
+            "2df173ee-6b88-4744-a74d-0f21d49166b3",
+          ]),
+        },
+        builder,
+      ),
+    ).toMatchSnapshot();
+
+    expect(
+      computeUnprocessableEntities(
+        schema,
+        {
+          entitiesValues: new Map([
+            ["51324b32-adc3-4d17-a90e-66b5453935bd", "process"],
+            ["6e0035c3-0d4c-445f-a42b-2d971225447c", "process"],
+            ["2df173ee-6b88-4744-a74d-0f21d49166b3", "process"],
+          ]),
+          entitiesErrors: new Map(),
+          unprocessableEntitiesIds: new Set([
+            "2df173ee-6b88-4744-a74d-0f21d49166b3",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          ]),
+        },
+        builder,
+      ),
+    ).toMatchSnapshot();
   });
 });

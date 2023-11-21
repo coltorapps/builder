@@ -54,7 +54,7 @@ function getEligibleEntitiesIdsForValidationFromEntity<
   const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
   const shouldBeProcessed = entityDefinition.shouldBeProcessed({
-    entity: { ...entity, id: entityId },
+    entity,
     entitiesValues,
   });
 

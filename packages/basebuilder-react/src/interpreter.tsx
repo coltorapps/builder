@@ -135,28 +135,34 @@ const MemoizedEntity = memo(function Entity(props: {
     );
   }
 
-  const shouldBeProcessedCache = useRef(
-    entityDefinition.shouldBeProcessed({
-      entity: entityWithId,
-      entitiesValues: data.entitiesValues,
-    }),
+  const isUnprocessableCache = useRef(
+    interpreterStore.isEntityProcessable(props.entityId),
   );
 
-  const shouldBeProcessed = useSyncExternalStore(
+  const isUnprocessable = useSyncExternalStore(
     (listen) =>
-      interpreterStore.subscribe((data) => {
-        shouldBeProcessedCache.current = entityDefinition.shouldBeProcessed({
-          entity: entityWithId,
-          entitiesValues: data.entitiesValues,
-        });
+      interpreterStore.subscribe((_data, events) => {
+        if (
+          events.some(
+            (event) =>
+              (event.name === interpreterStoreEventsNames.EntityProcessable ||
+                event.name ===
+                  interpreterStoreEventsNames.EntityUnprocessable) &&
+              event.payload.entityId === props.entityId,
+          )
+        ) {
+          isUnprocessableCache.current = interpreterStore.isEntityProcessable(
+            props.entityId,
+          );
 
-        listen();
+          listen();
+        }
       }),
-    () => shouldBeProcessedCache.current,
-    () => shouldBeProcessedCache.current,
+    () => isUnprocessableCache.current,
+    () => isUnprocessableCache.current,
   );
 
-  if (!shouldBeProcessed) {
+  if (!isUnprocessable) {
     return null;
   }
 
