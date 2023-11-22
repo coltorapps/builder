@@ -18,8 +18,6 @@ export const DefaultStringValueAttribute = createAttributeComponent(
           value={props.attribute.value ?? ""}
           onChange={(e) => {
             props.setValue(e.target.value);
-
-            void props.validate();
           }}
         />
         <ValidationError>

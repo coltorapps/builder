@@ -148,6 +148,12 @@ export function BasicFormBuilder() {
           setActiveEntityId(null);
         }
       },
+      onEntityAttributeUpdated(payload) {
+        void builderStore.validateEntityAttribute(
+          payload.entity.id,
+          payload.attributeName,
+        );
+      },
     },
     initialData: {
       schema: initialSchema,

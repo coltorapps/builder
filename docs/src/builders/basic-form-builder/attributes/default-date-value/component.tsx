@@ -45,8 +45,6 @@ export const DefaultDateValueAttribute = createAttributeComponent(
               selected={props.attribute.value}
               onSelect={(value) => {
                 props.setValue(value);
-
-                void props.validate();
               }}
               initialFocus
             />

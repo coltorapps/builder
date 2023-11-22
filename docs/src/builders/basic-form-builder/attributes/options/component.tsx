@@ -38,8 +38,6 @@ export const OptionsAttribute = createAttributeComponent(
                           itemIndex === index ? e.target.value : item,
                         ),
                       );
-
-                      void props.validate();
                     }}
                     autoFocus={!option}
                   />
@@ -53,8 +51,6 @@ export const OptionsAttribute = createAttributeComponent(
                           (_item, itemIndex) => itemIndex !== index,
                         ),
                       );
-
-                      void props.validate();
                     }}
                   >
                     <XIcon className="w-3" />
@@ -81,7 +77,6 @@ export const OptionsAttribute = createAttributeComponent(
             props.setValue([...props.attribute.value, ""]);
 
             if (props.attribute.error) {
-              void props.validate();
             }
           }}
           variant="outline"

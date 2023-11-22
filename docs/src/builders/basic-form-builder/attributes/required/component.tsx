@@ -17,8 +17,6 @@ export const RequiredAttribute = createAttributeComponent(
             onCheckedChange={(checked) => {
               if (typeof checked === "boolean") {
                 props.setValue(checked);
-
-                void props.validate();
               }
             }}
           />

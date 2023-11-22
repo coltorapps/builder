@@ -59,8 +59,6 @@ export const ContentAttribute = createAttributeComponent(
                 ...props.attribute.value,
                 text: e.target.value,
               });
-
-              void props.validate();
             }}
             required
             rows={10}
