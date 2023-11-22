@@ -26,13 +26,4 @@ export const textFieldEntity = createEntity({
   defaultValue(context) {
     return context.entity.attributes.defaultValue;
   },
-  shouldBeProcessed(context) {
-    if (context.entity.id === "a68836dc-1478-435f-bdee-ca7aff098993") {
-      return true;
-    }
-
-    return (
-      context.entitiesValues["a68836dc-1478-435f-bdee-ca7aff098993"] === "o"
-    );
-  },
 });

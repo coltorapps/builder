@@ -56,11 +56,7 @@ export const DatePickerFieldEntity = createEntityComponent(
             <Calendar
               mode="single"
               selected={props.entity.value}
-              onSelect={(value) => {
-                props.setValue(value);
-
-                void props.validate();
-              }}
+              onSelect={props.setValue}
               initialFocus
             />
           </PopoverContent>

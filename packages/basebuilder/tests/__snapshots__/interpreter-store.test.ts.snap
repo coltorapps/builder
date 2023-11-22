@@ -746,15 +746,9 @@ exports[`interpreter store > can validate entities 2`] = `
 }
 `;
 
-exports[`interpreter store > computes entities processability when clearing values 1`] = `
-[
-  "51324b32-adc3-4d17-a90e-66b5453935bd",
-]
-`;
+exports[`interpreter store > computes entities processability when clearing values 1`] = `[]`;
 
-exports[`interpreter store > computes entities processability when clearing values 2`] = `[]`;
-
-exports[`interpreter store > computes entities processability when clearing values 3`] = `
+exports[`interpreter store > computes entities processability when clearing values 2`] = `
 [MockFunction spy] {
   "calls": [
     [
@@ -769,7 +763,7 @@ exports[`interpreter store > computes entities processability when clearing valu
         {
           "name": "EntityValueUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
             "value": undefined,
           },
         },
@@ -798,7 +792,7 @@ exports[`interpreter store > computes entities processability when clearing valu
         {
           "name": "EntityValueUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
             "value": undefined,
           },
         },
@@ -810,8 +804,28 @@ exports[`interpreter store > computes entities processability when clearing valu
         },
       ],
     ],
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {},
+        "unprocessableEntitiesIds": [],
+      },
+      [
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "value": undefined,
+          },
+        },
+      ],
+    ],
   ],
   "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
     {
       "type": "return",
       "value": undefined,
@@ -905,21 +919,17 @@ exports[`interpreter store > computes entities processability when created 2`] =
 
 exports[`interpreter store > computes entities processability when created 3`] = `true`;
 
-exports[`interpreter store > computes entities processability when resetting values 1`] = `
-[
-  "51324b32-adc3-4d17-a90e-66b5453935bd",
-]
-`;
+exports[`interpreter store > computes entities processability when resetting values 1`] = `[]`;
 
-exports[`interpreter store > computes entities processability when resetting values 2`] = `[]`;
-
-exports[`interpreter store > computes entities processability when resetting values 3`] = `
+exports[`interpreter store > computes entities processability when resetting values 2`] = `
 [MockFunction spy] {
   "calls": [
     [
       {
         "entitiesErrors": {},
-        "entitiesValues": {},
+        "entitiesValues": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
+        },
         "unprocessableEntitiesIds": [
           "51324b32-adc3-4d17-a90e-66b5453935bd",
         ],
@@ -928,7 +938,7 @@ exports[`interpreter store > computes entities processability when resetting val
         {
           "name": "EntityValueUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
             "value": undefined,
           },
         },
@@ -951,7 +961,7 @@ exports[`interpreter store > computes entities processability when resetting val
       {
         "entitiesErrors": {},
         "entitiesValues": {
-          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
         },
         "unprocessableEntitiesIds": [],
       },
@@ -959,7 +969,7 @@ exports[`interpreter store > computes entities processability when resetting val
         {
           "name": "EntityValueUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
             "value": undefined,
           },
         },
@@ -971,8 +981,31 @@ exports[`interpreter store > computes entities processability when resetting val
         },
       ],
     ],
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
+        },
+        "unprocessableEntitiesIds": [],
+      },
+      [
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "value": undefined,
+          },
+        },
+      ],
+    ],
   ],
   "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
     {
       "type": "return",
       "value": undefined,
@@ -1155,21 +1188,17 @@ exports[`interpreter store > computes entities processability when setting data 
 }
 `;
 
-exports[`interpreter store > computes entities processability when updating values 1`] = `
-[
-  "51324b32-adc3-4d17-a90e-66b5453935bd",
-]
-`;
+exports[`interpreter store > computes entities processability when updating values 1`] = `[]`;
 
-exports[`interpreter store > computes entities processability when updating values 2`] = `[]`;
-
-exports[`interpreter store > computes entities processability when updating values 3`] = `
+exports[`interpreter store > computes entities processability when updating values 2`] = `
 [MockFunction spy] {
   "calls": [
     [
       {
         "entitiesErrors": {},
-        "entitiesValues": {},
+        "entitiesValues": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "test",
+        },
         "unprocessableEntitiesIds": [
           "51324b32-adc3-4d17-a90e-66b5453935bd",
         ],
@@ -1178,8 +1207,8 @@ exports[`interpreter store > computes entities processability when updating valu
         {
           "name": "EntityValueUpdated",
           "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "value": "test",
           },
         },
         {
@@ -1201,7 +1230,32 @@ exports[`interpreter store > computes entities processability when updating valu
       {
         "entitiesErrors": {},
         "entitiesValues": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "test",
+        },
+        "unprocessableEntitiesIds": [],
+      },
+      [
+        {
+          "name": "EntityValueUpdated",
+          "payload": {
+            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+            "value": "test",
+          },
+        },
+        {
+          "name": "EntityProcessable",
+          "payload": {
+            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+          },
+        },
+      ],
+    ],
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
           "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "test",
         },
         "unprocessableEntitiesIds": [],
       },
@@ -1213,16 +1267,14 @@ exports[`interpreter store > computes entities processability when updating valu
             "value": undefined,
           },
         },
-        {
-          "name": "EntityProcessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
       ],
     ],
   ],
   "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
     {
       "type": "return",
       "value": undefined,
@@ -1399,21 +1451,7 @@ exports[`unprocessable entities computation > computes the unprocessable entitie
       "2df173ee-6b88-4744-a74d-0f21d49166b3",
     },
   },
-  "events": [
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        "value": undefined,
-      },
-    },
-  ],
+  "events": [],
 }
 `;
 

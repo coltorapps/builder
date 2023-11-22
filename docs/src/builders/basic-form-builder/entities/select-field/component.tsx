@@ -33,11 +33,7 @@ export const SelectFieldEntity = createEntityComponent(
         <Select
           value={props.entity.value ?? ""}
           required={props.entity.attributes.required}
-          onValueChange={(value) => {
-            props.setValue(value);
-
-            void props.validate();
-          }}
+          onValueChange={props.setValue}
         >
           <SelectTrigger ref={buttonRef} id={id}>
             <SelectValue

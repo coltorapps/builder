@@ -27,11 +27,7 @@ export const TextFieldEntity = createEntityComponent(
           id={id}
           name={props.entity.id}
           value={props.entity.value ?? ""}
-          onChange={(e) => {
-            props.setValue(e.target.value);
-
-            void props.validate();
-          }}
+          onChange={(e) => props.setValue(e.target.value)}
           defaultValue={props.entity.attributes.defaultValue}
           placeholder={props.entity.attributes.placeholder}
           required={props.entity.attributes.required}

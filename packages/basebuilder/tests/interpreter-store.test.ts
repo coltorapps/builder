@@ -1142,8 +1142,15 @@ describe("interpreter store", () => {
           type: "text",
           attributes: {},
         },
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          attributes: {},
+        },
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+      root: [
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      ],
     } as const;
 
     let processable = true;
@@ -1152,8 +1159,10 @@ describe("interpreter store", () => {
       entities: [
         createEntity({
           name: "text",
-          shouldBeProcessed: () => processable,
-          validate: () => {
+          shouldBeProcessed: (context) =>
+            context.entity.id === "6e0035c3-0d4c-445f-a42b-2d971225447c" ||
+            processable,
+          validate: (): string | undefined => {
             return;
           },
         }),
@@ -1169,13 +1178,16 @@ describe("interpreter store", () => {
     processable = false;
 
     interpreterStore.setEntityValue(
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-      undefined,
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "test",
     );
 
-    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
-
     processable = true;
+
+    interpreterStore.setEntityValue(
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "test",
+    );
 
     interpreterStore.setEntityValue(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
@@ -1194,8 +1206,15 @@ describe("interpreter store", () => {
           type: "text",
           attributes: {},
         },
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          attributes: {},
+        },
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+      root: [
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      ],
     } as const;
 
     let processable = true;
@@ -1204,7 +1223,9 @@ describe("interpreter store", () => {
       entities: [
         createEntity({
           name: "text",
-          shouldBeProcessed: () => processable,
+          shouldBeProcessed: (context) =>
+            context.entity.id === "6e0035c3-0d4c-445f-a42b-2d971225447c" ||
+            processable,
           validate: () => {
             return;
           },
@@ -1220,11 +1241,11 @@ describe("interpreter store", () => {
 
     processable = false;
 
-    interpreterStore.resetEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd");
-
-    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+    interpreterStore.resetEntityValue("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     processable = true;
+
+    interpreterStore.resetEntityValue("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     interpreterStore.resetEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd");
 
@@ -1286,8 +1307,15 @@ describe("interpreter store", () => {
           type: "text",
           attributes: {},
         },
+        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+          type: "text",
+          attributes: {},
+        },
       },
-      root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+      root: [
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      ],
     } as const;
 
     let processable = true;
@@ -1296,7 +1324,9 @@ describe("interpreter store", () => {
       entities: [
         createEntity({
           name: "text",
-          shouldBeProcessed: () => processable,
+          shouldBeProcessed: (context) =>
+            context.entity.id === "6e0035c3-0d4c-445f-a42b-2d971225447c" ||
+            processable,
           validate: () => {
             return;
           },
@@ -1312,11 +1342,11 @@ describe("interpreter store", () => {
 
     processable = false;
 
-    interpreterStore.clearEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd");
-
-    expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
+    interpreterStore.clearEntityValue("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     processable = true;
+
+    interpreterStore.clearEntityValue("6e0035c3-0d4c-445f-a42b-2d971225447c");
 
     interpreterStore.clearEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd");
 

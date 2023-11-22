@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -30,6 +30,7 @@ import { basicFormBuilder } from "./definition";
 function Form(props: {
   interpreterStore: InterpreterStore<typeof basicFormBuilder>;
   onSubmit: () => void;
+  onValidationFail: () => void;
 }) {
   const { toast } = useToast();
 
@@ -47,6 +48,8 @@ function Form(props: {
           </span>
         ),
       });
+    } else {
+      props.onValidationFail();
     }
   }
 
@@ -106,9 +109,20 @@ export function Preview(props: {
 
   const [schema, setSchema] = useState<Schema<typeof basicFormBuilder>>();
 
+  const submitAttemptedRef = useRef(false);
+
   const interpreterStore = useInterpreterStore(
     basicFormBuilder,
     schema ?? { entities: {}, root: [] },
+    {
+      events: {
+        onEntityValueUpdated(payload) {
+          if (submitAttemptedRef.current) {
+            void interpreterStore.validateEntity(payload.entityId);
+          }
+        },
+      },
+    },
   );
 
   async function openPreview() {
@@ -177,6 +191,7 @@ export function Preview(props: {
                 <Form
                   interpreterStore={interpreterStore}
                   onSubmit={() => setPreviewVisible(false)}
+                  onValidationFail={() => (submitAttemptedRef.current = true)}
                 />
               </ScrollArea>
             </TabsContent>

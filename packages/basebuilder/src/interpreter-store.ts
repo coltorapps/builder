@@ -322,6 +322,13 @@ function computeEntityProcessability<TBuilder extends Builder>(
   let events: Array<InterpreterStoreEvent<TBuilder>> = [];
 
   if (!shouldBeProcessed) {
+    if (newUnprocessableEntitiesIds.has(entity.id)) {
+      return {
+        data,
+        events,
+      };
+    }
+
     events.push({
       name: interpreterStoreEventsNames.EntityUnprocessable,
       payload: {
@@ -465,6 +472,22 @@ export function computeUnprocessableEntities<TBuilder extends Builder>(
   };
 }
 
+function isEntityProcessable(
+  entityId: string,
+  data: InternalInterpreterStoreData,
+) {
+  return !data.unprocessableEntitiesIds.has(entityId);
+}
+
+function ensureEntityProcessable(
+  entityId: string,
+  data: InternalInterpreterStoreData,
+) {
+  if (!isEntityProcessable(entityId, data)) {
+    throw new Error("Entity not processable.");
+  }
+}
+
 export function createInterpreterStore<TBuilder extends Builder>(
   builder: TBuilder,
   schema: Schema<TBuilder>,
@@ -560,6 +583,8 @@ export function createInterpreterStore<TBuilder extends Builder>(
 
       const data = getData();
 
+      ensureEntityProcessable(entityId, data);
+
       const newEntitiesValues = new Map(data.entitiesValues);
 
       newEntitiesValues.set(entityId, value);
@@ -593,6 +618,8 @@ export function createInterpreterStore<TBuilder extends Builder>(
       ensureEntityValueAllowed(entityId, builder, schema);
 
       const data = getData();
+
+      ensureEntityProcessable(entityId, data);
 
       const newEntitiesValues = resetEntityValue(
         entityId,
@@ -666,6 +693,8 @@ export function createInterpreterStore<TBuilder extends Builder>(
       ensureEntityValueAllowed(entityId, builder, schema);
 
       const data = getData();
+
+      ensureEntityProcessable(entityId, data);
 
       const newEntitiesValues = new Map(data.entitiesValues);
 
@@ -1000,7 +1029,7 @@ export function createInterpreterStore<TBuilder extends Builder>(
       );
     },
     isEntityProcessable(entityId) {
-      return !getData().unprocessableEntitiesIds.has(entityId);
+      return isEntityProcessable(entityId, getData());
     },
   };
 }
