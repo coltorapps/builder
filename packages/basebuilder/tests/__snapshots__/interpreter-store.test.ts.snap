@@ -14,6 +14,8 @@ exports[`interpreter store > can be created 1`] = `
   "getData": [Function],
   "getEntitiesErrors": [Function],
   "getEntitiesValues": [Function],
+  "getEntityError": [Function],
+  "getEntityValue": [Function],
   "getUnprocessableEntitiesIds": [Function],
   "isEntityProcessable": [Function],
   "resetEntitiesErrors": [Function],
@@ -327,6 +329,10 @@ exports[`interpreter store > can reset an entity value 3`] = `
   ],
 }
 `;
+
+exports[`interpreter store > can retrieve an entity value and error 1`] = `"value"`;
+
+exports[`interpreter store > can retrieve an entity value and error 2`] = `"error"`;
 
 exports[`interpreter store > can return the data 1`] = `
 {

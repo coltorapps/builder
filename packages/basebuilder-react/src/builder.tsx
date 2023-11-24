@@ -32,7 +32,7 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
     events?: EventsListeners<BuilderStoreEvent<TBuilder>>;
   } = {},
 ): BuilderStore<TBuilder> {
-  const builderStoreRef = useMemo(
+  const builderStore = useMemo(
     () =>
       createBuilderStore(builder, {
         initialData: {
@@ -49,7 +49,7 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
   );
 
   useEffect(() => {
-    return builderStoreRef.subscribe((_data, events) => {
+    return builderStore.subscribe((_data, events) => {
       events.forEach((event) => {
         const listener = options.events?.[`on${event.name}`] as
           | undefined
@@ -58,9 +58,9 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
         listener?.(event.payload);
       });
     });
-  }, [builderStoreRef, options.events]);
+  }, [builderStore, options.events]);
 
-  return builderStoreRef;
+  return builderStore;
 }
 
 export function useBuilderStoreData<TBuilder extends BaseBuilder>(

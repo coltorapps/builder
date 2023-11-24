@@ -34,7 +34,7 @@ export function useInterpreterStore<TBuilder extends Builder>(
     events?: EventsListeners<InterpreterStoreEvent<TBuilder>>;
   } = {},
 ): InterpreterStore<TBuilder> {
-  const interpreterStoreRef = useMemo(
+  const interpreterStore = useMemo(
     () =>
       createInterpreterStore(builder, schema, {
         initialData: {
@@ -51,7 +51,7 @@ export function useInterpreterStore<TBuilder extends Builder>(
   );
 
   useEffect(() => {
-    return interpreterStoreRef.subscribe((_data, events) => {
+    return interpreterStore.subscribe((_data, events) => {
       events.forEach((event) => {
         const listener = options.events?.[`on${event.name}`] as
           | undefined
@@ -60,9 +60,9 @@ export function useInterpreterStore<TBuilder extends Builder>(
         listener?.(event.payload);
       });
     });
-  }, [interpreterStoreRef, options.events]);
+  }, [interpreterStore, options.events]);
 
-  return interpreterStoreRef;
+  return interpreterStore;
 }
 
 export function useInterpreterStoreData<TBuilder extends Builder>(

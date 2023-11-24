@@ -1456,6 +1456,50 @@ describe("interpreter store", () => {
 
     expect(listener).toMatchSnapshot();
   });
+
+  it("can retrieve an entity value and error", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+          validate() {
+            return "";
+          },
+        }),
+      ],
+    });
+
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "text",
+            attributes: {},
+          },
+        },
+        root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
+      },
+      {
+        initialData: {
+          entitiesValues: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "value",
+          },
+          entitiesErrors: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "error",
+          },
+        },
+      },
+    );
+
+    expect(
+      interpreterStore.getEntityValue("51324b32-adc3-4d17-a90e-66b5453935bd"),
+    ).toMatchSnapshot();
+
+    expect(
+      interpreterStore.getEntityError("51324b32-adc3-4d17-a90e-66b5453935bd"),
+    ).toMatchSnapshot();
+  });
 });
 
 describe("unprocessable entities computation", () => {

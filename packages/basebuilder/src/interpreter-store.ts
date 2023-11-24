@@ -1031,6 +1031,12 @@ export function createInterpreterStore<TBuilder extends Builder>(
     isEntityProcessable(entityId) {
       return isEntityProcessable(entityId, getData());
     },
+    getEntityValue(entityId) {
+      return getData().entitiesValues.get(entityId);
+    },
+    getEntityError(entityId) {
+      return getData().entitiesErrors.get(entityId);
+    },
   };
 }
 
@@ -1065,4 +1071,6 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
     entitiesErrors: InterpreterStoreData<TBuilder>["entitiesErrors"],
   ): void;
   isEntityProcessable(entityId: string): boolean;
+  getEntityValue(entityId: string): EntityValue<TBuilder> | undefined;
+  getEntityError(entityId: string): unknown;
 };

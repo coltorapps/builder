@@ -2441,4 +2441,33 @@ describe("builder store", () => {
 
     expect(listener).toMatchSnapshot();
   });
+
+  it("can retrieve an entity", () => {
+    const builder = createBuilder({
+      entities: [
+        createEntity({
+          name: "text",
+        }),
+      ],
+    });
+
+    const builderStore = createBuilderStore(builder, {
+      initialData: {
+        entitiesAttributesErrors: {},
+        schema: {
+          entities: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "text",
+              attributes: {},
+            },
+          },
+          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+        },
+      },
+    });
+
+    expect(
+      builderStore.getEntity("6e0035c3-0d4c-445f-a42b-2d971225447c"),
+    ).toMatchSnapshot();
+  });
 });

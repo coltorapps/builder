@@ -1166,13 +1166,15 @@ export function createBuilderStore<TBuilder extends Builder>(
 
         newEntities.set(entity.parentId, parentEntity);
 
+        const newSchema = {
+          ...data.schema,
+          entities: newEntities,
+        };
+
         setData(
           {
             ...data,
-            schema: {
-              ...data.schema,
-              entities: newEntities,
-            },
+            schema: newSchema,
           },
           [
             {
@@ -1182,6 +1184,12 @@ export function createBuilderStore<TBuilder extends Builder>(
                   ...serializeInternalBuilderStoreEntity(parentEntity),
                   id: entity.parentId,
                 },
+              },
+            },
+            {
+              name: builderStoreEventsNames.SchemaChanged,
+              payload: {
+                schema: serializeInternalBuilderStoreSchema(newSchema),
               },
             },
           ],
@@ -1751,6 +1759,16 @@ export function createBuilderStore<TBuilder extends Builder>(
     getSchemaError() {
       return getData().schemaError;
     },
+    getEntity(entityId) {
+      const entity = getData().schema.entities.get(entityId);
+
+      return entity
+        ? {
+            ...serializeInternalBuilderStoreEntity(entity),
+            id: entityId,
+          }
+        : null;
+    },
   };
 }
 
@@ -1846,4 +1864,5 @@ export type BuilderStore<TBuilder extends Builder = Builder> = {
   >;
   setSchemaError(error?: unknown): void;
   resetSchemaError(): void;
+  getEntity(entityId: string): SchemaEntityWithId<TBuilder> | null;
 };

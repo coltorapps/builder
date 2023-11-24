@@ -202,6 +202,7 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getEntitiesAttributesErrors": [Function],
+  "getEntity": [Function],
   "getSchema": [Function],
   "getSchemaError": [Function],
   "resetEntitiesAttributesErrors": [Function],
@@ -271,6 +272,7 @@ exports[`builder store > can be created with an empty schema 2`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getEntitiesAttributesErrors": [Function],
+  "getEntity": [Function],
   "getSchema": [Function],
   "getSchemaError": [Function],
   "resetEntitiesAttributesErrors": [Function],
@@ -308,6 +310,7 @@ exports[`builder store > can be created without a schema 1`] = `
   "deleteEntity": [Function],
   "getData": [Function],
   "getEntitiesAttributesErrors": [Function],
+  "getEntity": [Function],
   "getSchema": [Function],
   "getSchemaError": [Function],
   "resetEntitiesAttributesErrors": [Function],
@@ -1906,6 +1909,14 @@ exports[`builder store > can reset all attributes errors for all entities 3`] = 
       "value": undefined,
     },
   ],
+}
+`;
+
+exports[`builder store > can retrieve an entity 1`] = `
+{
+  "attributes": {},
+  "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  "type": "text",
 }
 `;
 
