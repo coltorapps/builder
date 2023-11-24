@@ -803,6 +803,21 @@ export function createBuilderStore<TBuilder extends Builder>(
             root: serializeInternalBuilderStoreSchemaRoot(schema.root),
           },
         });
+      } else {
+        const parentEntity = ensureEntityExists(
+          payload.parentId,
+          schema.entities,
+        );
+
+        events.push({
+          name: builderStoreEventsNames.EntityUpdated,
+          payload: {
+            entity: {
+              ...serializeInternalBuilderStoreEntity(parentEntity),
+              id: payload.parentId,
+            },
+          },
+        });
       }
 
       events.push({

@@ -155,7 +155,7 @@ const Entity = memo(function Entity(props: {
         }}
       >
         {childrenIds.map((entityId) => (
-          <Entity key={entityId} {...props} />
+          <Entity key={entityId} entityId={entityId} />
         ))}
       </EntityComponent>
     ),

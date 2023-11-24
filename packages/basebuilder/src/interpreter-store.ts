@@ -286,13 +286,13 @@ function getRecurringChildrenIds(
 ): Array<string> {
   const entity = ensureEntityExists(entityId, schema.entities);
 
-  const result: Array<string> = [];
+  let result: Array<string> = [];
 
   if (entity.children) {
     for (const childId of entity.children) {
       result.push(childId);
 
-      result.concat(getRecurringChildrenIds(childId, schema));
+      result = result.concat(getRecurringChildrenIds(childId, schema));
     }
   }
 

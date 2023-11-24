@@ -1392,6 +1392,19 @@ exports[`unprocessable entities computation > computes the unprocessable entitie
         "value": undefined,
       },
     },
+    {
+      "name": "EntityUnprocessable",
+      "payload": {
+        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
+      },
+    },
+    {
+      "name": "EntityValueUpdated",
+      "payload": {
+        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
+        "value": undefined,
+      },
+    },
   ],
 }
 `;
