@@ -5,7 +5,7 @@ import { createAttribute, createBuilder, createEntity } from "../src";
 import {
   schemaValidationErrorCodes,
   validateSchema,
-  validateSchemaIntegrity,
+  validateSchemaShape,
   type Schema,
   type SchemaValidationErrorReason,
 } from "../src/schema";
@@ -435,7 +435,7 @@ const invalidSchemasCases: Array<{
   },
 ];
 
-describe("schema integrity validation", () => {
+describe("schema shape validation", () => {
   it("fails for invalid schemas", () => {
     const builder = createBuilder({
       entities: [
@@ -473,7 +473,7 @@ describe("schema integrity validation", () => {
     });
 
     for (const item of invalidSchemasCases) {
-      const result = validateSchemaIntegrity(item.schema as Schema, builder);
+      const result = validateSchemaShape(item.schema as Schema, builder);
 
       expect(result).toEqual({
         success: false,
@@ -500,7 +500,7 @@ describe("schema integrity validation", () => {
     });
 
     expect(
-      validateSchemaIntegrity(
+      validateSchemaShape(
         {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -525,7 +525,7 @@ describe("schema integrity validation", () => {
     });
 
     expect(() =>
-      validateSchemaIntegrity(
+      validateSchemaShape(
         {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -552,7 +552,7 @@ describe("schema integrity validation", () => {
     });
 
     expect(() =>
-      validateSchemaIntegrity(
+      validateSchemaShape(
         {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -578,7 +578,7 @@ describe("schema integrity validation", () => {
     });
 
     expect(() =>
-      validateSchemaIntegrity(
+      validateSchemaShape(
         {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -635,7 +635,7 @@ describe("schema integrity validation", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     };
 
-    expect(validateSchemaIntegrity(schema, builder)).toMatchSnapshot();
+    expect(validateSchemaShape(schema, builder)).toMatchSnapshot();
   });
 });
 

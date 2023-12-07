@@ -12,9 +12,9 @@ import * as schemaExports from "../src/schema";
 
 describe("interpreter store", () => {
   it("can be created", () => {
-    const validateSchemaIntegrityMock = vi.spyOn(
+    const validateSchemaShapeMock = vi.spyOn(
       schemaExports,
-      "validateSchemaIntegrity",
+      "validateSchemaShape",
     );
 
     const schema = {
@@ -30,7 +30,7 @@ describe("interpreter store", () => {
 
     expect(interpreterStore).toMatchSnapshot();
 
-    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, builder);
+    expect(validateSchemaShapeMock).toHaveBeenCalledWith(schema, builder);
   });
 
   it("resets entities values when created", () => {

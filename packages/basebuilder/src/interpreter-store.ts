@@ -11,7 +11,7 @@ import {
 import {
   ensureEntityExists,
   SchemaValidationError,
-  validateSchemaIntegrity,
+  validateSchemaShape,
   type Schema,
   type SchemaEntityWithId,
 } from "./schema";
@@ -498,7 +498,7 @@ export function createInterpreterStore<TBuilder extends Builder>(
     initialEntitiesValuesWithDefaults?: boolean;
   },
 ): InterpreterStore<TBuilder> {
-  const schemaValidationResult = validateSchemaIntegrity(schema, builder);
+  const schemaValidationResult = validateSchemaShape(schema, builder);
 
   if (!schemaValidationResult.success) {
     throw new SchemaValidationError(schemaValidationResult.reason);

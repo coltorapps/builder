@@ -106,14 +106,14 @@ Subsequently, this schema can be retrieved from the server and "interpreted" on 
 Schema transformations will be applied when utilizing the `validateSchema` method, as indicated in [the builder documentation](/docs/builders#transforming-schemas).
 {% /callout %}
 
-## Integrity validation
+## Shape validation
 
-To validate a schema synchronously, you can use the `validateSchemaIntegrity` method. This method performs the same validation as the `validateSchema` method but does not validate attributes values. It can be beneficial in specific scenarios.
+To validate a schema's shape synchronously, you can use the `validateSchemaShape` method. This method performs the same validation as the `validateSchema` method but does not validate attributes values. It can be beneficial in specific scenarios.
 
 ```typescript
-import { validateSchemaIntegrity } from "basebuilder";
+import { validateSchemaShape } from "basebuilder";
 
-const result = validateSchemaIntegrity(schema, formBuilder);
+const result = validateSchemaShape(schema, formBuilder);
 
 if (result.success) {
   // The result.data contains a valid schema
@@ -125,5 +125,5 @@ if (result.success) {
 ```
 
 {% callout title="You should know!" %}
-Schemas are consistently validated synchronously for integrity when instantiating both builder stores and interpreter stores under the hood.
+Schema's shape is consistently validated synchronously under the hood when instantiating both builder stores and interpreter stores.
 {% /callout %}

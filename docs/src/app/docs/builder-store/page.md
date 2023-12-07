@@ -186,7 +186,7 @@ const formBuilderStore = createBuilderStore(formBuilder, {
 ```
 
 {% callout title="You should know!" %}
-The initial schema undergoes synchronous integrity validation, which does not include the validation of attributes values.
+The initial schema undergoes synchronous shape validation, which does not include the validation of attributes values.
 
 Additionally, the process ensures that initial attributs errors are checked for accurate entity ID references and appropriate attribute keys.
 {% /callout %}

@@ -32,7 +32,7 @@ export {
   SchemaValidationError,
   schemaValidationErrorCodes,
   validateSchema,
-  validateSchemaIntegrity,
+  validateSchemaShape,
 } from "./schema";
 export type {
   EntitiesAttributesErrors,

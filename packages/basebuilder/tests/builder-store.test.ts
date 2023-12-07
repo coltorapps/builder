@@ -12,9 +12,9 @@ import * as uuidExports from "../src/uuid";
 
 describe("builder store", () => {
   it("can be created without a schema", () => {
-    const validateSchemaIntegrityMock = vi.spyOn(
+    const validateSchemaShapeMock = vi.spyOn(
       schemaExports,
-      "validateSchemaIntegrity",
+      "validateSchemaShape",
     );
 
     const builder = createBuilder({
@@ -23,7 +23,7 @@ describe("builder store", () => {
 
     const builderStore = createBuilderStore(builder);
 
-    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(
+    expect(validateSchemaShapeMock).toHaveBeenCalledWith(
       {
         entities: {},
         root: [],
@@ -35,9 +35,9 @@ describe("builder store", () => {
   });
 
   it("can be created with a non-empty schema", () => {
-    const validateSchemaIntegrityMock = vi.spyOn(
+    const validateSchemaShapeMock = vi.spyOn(
       schemaExports,
-      "validateSchemaIntegrity",
+      "validateSchemaShape",
     );
 
     const builder = createBuilder({
@@ -73,15 +73,15 @@ describe("builder store", () => {
       },
     });
 
-    expect(validateSchemaIntegrityMock).toMatchSnapshot();
+    expect(validateSchemaShapeMock).toMatchSnapshot();
 
     expect(builderStore).toMatchSnapshot();
   });
 
   it("can be created with an empty schema", () => {
-    const validateSchemaIntegrityMock = vi.spyOn(
+    const validateSchemaShapeMock = vi.spyOn(
       schemaExports,
-      "validateSchemaIntegrity",
+      "validateSchemaShape",
     );
 
     const builder = createBuilder({
@@ -98,15 +98,15 @@ describe("builder store", () => {
       },
     });
 
-    expect(validateSchemaIntegrityMock).toMatchSnapshot();
+    expect(validateSchemaShapeMock).toMatchSnapshot();
 
     expect(builderStore).toMatchSnapshot();
   });
 
   it("can retrieve the data", () => {
-    const validateSchemaIntegrityMock = vi.spyOn(
+    const validateSchemaShapeMock = vi.spyOn(
       schemaExports,
-      "validateSchemaIntegrity",
+      "validateSchemaShape",
     );
 
     const builder = createBuilder({
@@ -150,13 +150,13 @@ describe("builder store", () => {
 
     expect(builderStore.getData()).toMatchSnapshot();
 
-    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, builder);
+    expect(validateSchemaShapeMock).toHaveBeenCalledWith(schema, builder);
   });
 
   it("can set the data", () => {
-    const validateSchemaIntegrityMock = vi.spyOn(
+    const validateSchemaShapeMock = vi.spyOn(
       schemaExports,
-      "validateSchemaIntegrity",
+      "validateSchemaShape",
     );
 
     const builder = createBuilder({
@@ -211,7 +211,7 @@ describe("builder store", () => {
       schemaError: undefined,
     });
 
-    expect(validateSchemaIntegrityMock).toHaveBeenCalledWith(schema, builder);
+    expect(validateSchemaShapeMock).toHaveBeenCalledWith(schema, builder);
 
     expect(listener).toMatchSnapshot();
 

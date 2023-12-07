@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`schema integrity validation > returns clean data for valid schemas 1`] = `
+exports[`schema shape validation > returns clean data for valid schemas 1`] = `
 {
   "data": {
     "entities": {
@@ -27,7 +27,7 @@ exports[`schema integrity validation > returns clean data for valid schemas 1`] 
 }
 `;
 
-exports[`schema integrity validation > returns the validated schema 1`] = `
+exports[`schema shape validation > returns the validated schema 1`] = `
 {
   "data": {
     "entities": {
@@ -44,11 +44,11 @@ exports[`schema integrity validation > returns the validated schema 1`] = `
 }
 `;
 
-exports[`schema integrity validation > throws for invalid children ids 1`] = `"The entity id '1' is invalid."`;
+exports[`schema shape validation > throws for invalid children ids 1`] = `"The entity id '1' is invalid."`;
 
-exports[`schema integrity validation > throws for invalid parent id 1`] = `"The entity id '1' is invalid."`;
+exports[`schema shape validation > throws for invalid parent id 1`] = `"The entity id '1' is invalid."`;
 
-exports[`schema integrity validation > throws for invalid root ids 1`] = `"The entity id '1' is invalid."`;
+exports[`schema shape validation > throws for invalid root ids 1`] = `"The entity id '1' is invalid."`;
 
 exports[`schema validation > validates attributes with their validators 1`] = `
 {

@@ -105,7 +105,7 @@ exports[`builder store > can add entities to root at specific index 1`] = `
 `;
 
 exports[`builder store > can be created with a non-empty schema 1`] = `
-[MockFunction validateSchemaIntegrity] {
+[MockFunction validateSchemaShape] {
   "calls": [
     [
       {
@@ -227,7 +227,7 @@ exports[`builder store > can be created with a non-empty schema 2`] = `
 `;
 
 exports[`builder store > can be created with an empty schema 1`] = `
-[MockFunction validateSchemaIntegrity] {
+[MockFunction validateSchemaShape] {
   "calls": [
     [
       {

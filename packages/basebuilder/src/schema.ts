@@ -720,7 +720,7 @@ type SchemValidationResult<TBuilder extends Builder> =
   | { data: Schema<TBuilder>; success: true }
   | { reason: SchemaValidationErrorReason; success: false };
 
-export function validateSchemaIntegrity<TBuilder extends Builder>(
+export function validateSchemaShape<TBuilder extends Builder>(
   schema: unknown,
   builder: TBuilder,
 ): SchemValidationResult<TBuilder> {
@@ -822,10 +822,7 @@ export async function validateSchema<TBuilder extends Builder>(
   schema: unknown,
   builder: TBuilder,
 ): Promise<SchemValidationResult<TBuilder>> {
-  const schemaIntegrityValidationResult = validateSchemaIntegrity(
-    schema,
-    builder,
-  );
+  const schemaIntegrityValidationResult = validateSchemaShape(schema, builder);
 
   if (!schemaIntegrityValidationResult.success) {
     return schemaIntegrityValidationResult;

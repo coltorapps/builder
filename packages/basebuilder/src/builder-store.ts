@@ -13,7 +13,7 @@ import { createDataManager } from "./data-manager";
 import {
   SchemaValidationError,
   schemaValidationErrorCodes,
-  validateSchemaIntegrity,
+  validateSchemaShape,
   type BaseSchemaEntity,
   type EntitiesAttributesErrors,
   type EntityAttributesErrors,
@@ -542,7 +542,7 @@ function deserializeAndValidateBuilderStoreData<TBuilder extends Builder>(
   data: BuilderStoreData<TBuilder>,
   builder: TBuilder,
 ): InternalBuilderStoreData<TBuilder> {
-  const schemaValidationResult = validateSchemaIntegrity(data.schema, builder);
+  const schemaValidationResult = validateSchemaShape(data.schema, builder);
 
   if (!schemaValidationResult.success) {
     throw new SchemaValidationError(schemaValidationResult.reason);
