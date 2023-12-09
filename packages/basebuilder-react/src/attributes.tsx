@@ -1,7 +1,8 @@
-import { useContext } from "react";
+import { useContext, type LazyExoticComponent } from "react";
 import {
   builderStoreEventsNames,
   type Attribute,
+  type Builder,
   type SchemaEntityWithId,
 } from "basebuilder";
 
@@ -25,6 +26,12 @@ export type AttributeComponentProps<TAttribute extends Attribute = Attribute> =
 export type AttributeComponent<TAttribute extends Attribute = Attribute> = (
   props: AttributeComponentProps<TAttribute>,
 ) => JSX.Element | null;
+
+export type EntitiesAttributesComponents<TBuilder extends Builder = Builder> = {
+  [K in TBuilder["entities"][number]["name"]]:
+    | (() => JSX.Element | null)
+    | LazyExoticComponent<() => JSX.Element | null>;
+};
 
 export function createAttributeComponent<TAttribute extends Attribute>(
   attribute: TAttribute,

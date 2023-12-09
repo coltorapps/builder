@@ -5,7 +5,11 @@ export { createEntity } from "./entity";
 export type { Entity, EntityContext } from "./entity";
 
 export { createAttribute } from "./attribute";
-export type { Attribute, AttributeContext } from "./attribute";
+export type {
+  Attribute,
+  AttributeContext,
+  AttributesValues,
+} from "./attribute";
 
 export type { SubscriptionEvent } from "./subscription-manager";
 

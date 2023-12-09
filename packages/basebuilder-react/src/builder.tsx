@@ -6,7 +6,6 @@ import {
   useMemo,
   useRef,
   useSyncExternalStore,
-  type LazyExoticComponent,
 } from "react";
 import {
   builderStoreEventsNames,
@@ -18,6 +17,7 @@ import {
   type BuilderStoreEvent,
 } from "basebuilder";
 
+import { type EntitiesAttributesComponents } from "./attributes";
 import {
   type EntitiesComponents,
   type EntityForRender,
@@ -206,11 +206,7 @@ export const BuilderAttributesContext = createContext<{
 function Attributes<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   entityId: string;
-  components: {
-    [K in TBuilder["entities"][number]["name"]]:
-      | (() => JSX.Element | null)
-      | LazyExoticComponent<() => JSX.Element | null>;
-  };
+  components: EntitiesAttributesComponents<TBuilder>;
 }): JSX.Element {
   const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
