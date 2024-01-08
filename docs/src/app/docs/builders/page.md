@@ -42,7 +42,8 @@ export const formBuilder = createBuilder({
   entities: [sectionEntity, textFieldEntity],
   entitiesExtensions: {
     section: {
-      childrenAllowed: ["textField"], // Set to `true` to allow any type.
+      // Can also be set to `true` to allow any children.
+      childrenAllowed: ["textField"],
     },
   },
 });
@@ -50,7 +51,7 @@ export const formBuilder = createBuilder({
 
 In the example provided, we enable section entities to have only text fields as their children. Sections cannot contain other sections.
 
-Additionally, we can specify allowed parents for entities using the `allowedParents` attribute in an entity extension.
+Additionally, we can specify allowed parents for entities using the `allowedParents` property in an entity extension.
 
 ```typescript
 import { createBuilder } from "basebuilder";
@@ -96,7 +97,7 @@ export const formBuilder = createBuilder({
           validate(value, context) {
             const validatedValue = context.validate(value);
 
-            // Some custom logic using context.schema or context.entity
+            // Some custom logic using context.schema or context.entity.
 
             return validatedValue;
           },
@@ -115,7 +116,7 @@ When extending an attribute's validation at the builder level, the return type o
 
 ## Custom entities IDs
 
-By default, when you add entities instances to a schema, UUIDs are created for entity IDs using the `crypto` module. However, this module may not be supported in certain environments. If needed, you can replace the default ID generation and validation processes with your own tailored logic.
+By default, when you add entities instances to a schema, UUIDs are created for entity IDs using the `node:crypto` module or the global `crypto` module when possible. However, these modules may not be supported in certain environments. If needed, you can replace the default ID generation and validation processes with your own tailored logic.
 
 ```typescript
 import { createBuilder } from "basebuilder";

@@ -23,6 +23,7 @@ export const navigation = [
     links: [
       { title: "createAttribute", href: "/docs/api/create-attribute" },
       { title: "createEntity", href: "/docs/api/create-entity" },
+      { title: "createBuilder", href: "/docs/api/create-builder" },
     ],
   },
 ];

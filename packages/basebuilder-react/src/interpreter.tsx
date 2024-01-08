@@ -34,20 +34,14 @@ export function useInterpreterStore<TBuilder extends Builder>(
     events?: EventsListeners<InterpreterStoreEvent<TBuilder>>;
   } = {},
 ): InterpreterStore<TBuilder> {
+  const initialData = useRef(options.initialData);
+
   const interpreterStore = useMemo(
     () =>
       createInterpreterStore(builder, schema, {
-        initialData: {
-          entitiesValues: options.initialData?.entitiesValues,
-          entitiesErrors: options.initialData?.entitiesErrors,
-        },
+        initialData: initialData.current,
       }),
-    [
-      builder,
-      options.initialData?.entitiesErrors,
-      options.initialData?.entitiesValues,
-      schema,
-    ],
+    [builder, schema],
   );
 
   useEffect(() => {

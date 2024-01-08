@@ -32,20 +32,14 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
     events?: EventsListeners<BuilderStoreEvent<TBuilder>>;
   } = {},
 ): BuilderStore<TBuilder> {
+  const initialData = useRef(options.initialData);
+
   const builderStore = useMemo(
     () =>
       createBuilderStore(builder, {
-        initialData: {
-          schema: options.initialData?.schema,
-          entitiesAttributesErrors:
-            options.initialData?.entitiesAttributesErrors,
-        },
+        initialData: initialData.current,
       }),
-    [
-      builder,
-      options.initialData?.entitiesAttributesErrors,
-      options.initialData?.schema,
-    ],
+    [builder],
   );
 
   useEffect(() => {
