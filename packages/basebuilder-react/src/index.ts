@@ -1,4 +1,9 @@
-export { Builder, useBuilderStore, useBuilderStoreData } from "./builder";
+export {
+  Entities,
+  EntityAttributes,
+  useBuilderStore,
+  useBuilderStoreData,
+} from "./builder";
 
 export {
   Interpreter,

@@ -531,7 +531,7 @@ exports[`builder store > can clone entities 3`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -661,7 +661,7 @@ exports[`builder store > can clone entities 3`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -833,7 +833,7 @@ exports[`builder store > can delete entities and cascade delete their children 2
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -932,7 +932,7 @@ exports[`builder store > can move an entity from root to a parent entity 2`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -1044,7 +1044,7 @@ exports[`builder store > can move an entity from root to a parent entity at a sp
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -1148,7 +1148,7 @@ exports[`builder store > can move an entity in a parent entity 2`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -1282,7 +1282,7 @@ exports[`builder store > can move an entity in root 4`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -1325,7 +1325,7 @@ exports[`builder store > can move an entity in root 4`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -1368,7 +1368,7 @@ exports[`builder store > can move an entity in root 4`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -1467,7 +1467,7 @@ exports[`builder store > can move an entity to root 2`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -1559,7 +1559,7 @@ exports[`builder store > can move an entity to root at a specific index 2`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -2431,7 +2431,7 @@ exports[`builder store > can update entity attributes 2`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {
@@ -2486,7 +2486,7 @@ exports[`builder store > can update entity attributes 2`] = `
           },
         },
         {
-          "name": "SchemaChanged",
+          "name": "SchemaUpdated",
           "payload": {
             "schema": {
               "entities": {

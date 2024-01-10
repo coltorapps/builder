@@ -144,7 +144,7 @@ const Entity = memo(function Entity(props: {
         clearValue={() => {
           return;
         }}
-        validate={() => {
+        validateValue={() => {
           return new Promise((resolve) => resolve());
         }}
       >
@@ -158,7 +158,7 @@ const Entity = memo(function Entity(props: {
 
 Entity.displayName = "Entity";
 
-function Entities<TBuilder extends BaseBuilder>(props: {
+export function Entities<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   components: EntitiesComponents<TBuilder>;
   children?: GenericEntityComponent<TBuilder>;
@@ -197,7 +197,7 @@ export const BuilderAttributesContext = createContext<{
   entityId: "",
 });
 
-function Attributes<TBuilder extends BaseBuilder>(props: {
+export function EntityAttributes<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   entityId: string;
   components: EntitiesAttributesComponents<TBuilder>;
@@ -232,7 +232,3 @@ function Attributes<TBuilder extends BaseBuilder>(props: {
   );
 }
 
-export const Builder = {
-  Entities,
-  Attributes,
-};

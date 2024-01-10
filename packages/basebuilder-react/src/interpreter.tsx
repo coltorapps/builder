@@ -176,7 +176,7 @@ const MemoizedEntity = memo(function Entity(props: {
         setValue={(value) =>
           interpreterStore.setEntityValue(props.entityId, value)
         }
-        validate={() => interpreterStore.validateEntity(props.entityId)}
+        validateValue={() => interpreterStore.validateEntityValue(props.entityId)}
         resetError={() => interpreterStore.resetEntityError(props.entityId)}
         resetValue={() => interpreterStore.resetEntityValue(props.entityId)}
         clearValue={() => interpreterStore.clearEntityValue(props.entityId)}

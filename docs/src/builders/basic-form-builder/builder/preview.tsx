@@ -35,7 +35,7 @@ function Form(props: {
   const { toast } = useToast();
 
   async function handleSubmit() {
-    const result = await props.interpreterStore.validateEntities();
+    const result = await props.interpreterStore.validateEntitiesValues();
 
     if (result.success) {
       props.onSubmit();
@@ -118,7 +118,7 @@ export function Preview(props: {
       events: {
         onEntityValueUpdated(payload) {
           if (submitAttemptedRef.current) {
-            void interpreterStore.validateEntity(payload.entityId);
+            void interpreterStore.validateEntityValue(payload.entityId);
           }
         },
       },

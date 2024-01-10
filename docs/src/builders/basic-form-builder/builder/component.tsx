@@ -13,14 +13,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { type BuilderStore } from "basebuilder";
-import { InfoIcon, XIcon } from "lucide-react";
-
 import {
-  Builder,
+  Entities,
+  EntityAttributes,
   useBuilderStore,
   useBuilderStoreData,
 } from "@basebuilder/react";
+import { type BuilderStore } from "basebuilder";
+import { InfoIcon, XIcon } from "lucide-react";
 
 import { DatePickerFieldAttributes } from "../entities/date-picker/attributes-component";
 import { DatePickerFieldEntity } from "../entities/date-picker/component";
@@ -204,7 +204,7 @@ export function BasicFormBuilder() {
               <DndContainer
                 builderStore={builderStore}
                 dragOverlay={({ draggingId }) => (
-                  <Builder.Entities
+                  <Entities
                     builderStore={builderStore}
                     components={entitiesComponents}
                   >
@@ -220,11 +220,11 @@ export function BasicFormBuilder() {
                         </Entity>
                       ) : null
                     }
-                  </Builder.Entities>
+                  </Entities>
                 )}
               >
                 {({ draggingId }) => (
-                  <Builder.Entities
+                  <Entities
                     builderStore={builderStore}
                     components={entitiesComponents}
                   >
@@ -247,7 +247,7 @@ export function BasicFormBuilder() {
                         </Entity>
                       </DndItem>
                     )}
-                  </Builder.Entities>
+                  </Entities>
                 )}
               </DndContainer>
             </div>
@@ -340,7 +340,7 @@ export function BasicFormBuilder() {
         {activeEntityId ? (
           <div className="rounded-xl border-l bg-neutral-900/60 p-4 pb-8">
             <div className="sticky top-24 grid gap-8">
-              <Builder.Attributes
+              <EntityAttributes
                 entityId={activeEntityId}
                 builderStore={builderStore}
                 components={entitiesAttributesComponents}

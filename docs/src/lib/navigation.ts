@@ -24,6 +24,9 @@ export const navigation = [
       { title: "createAttribute", href: "/docs/api/create-attribute" },
       { title: "createEntity", href: "/docs/api/create-entity" },
       { title: "createBuilder", href: "/docs/api/create-builder" },
+      { title: "createBuilderStore", href: "/docs/api/create-builder-store" },
+      { title: "createInterpreterStore", href: "/docs/api/create-interpreter-store" },
+      { title: "validateSchema", href: "/docs/api/validate-schema" },
     ],
   },
 ];

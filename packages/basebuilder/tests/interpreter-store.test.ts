@@ -1015,15 +1015,15 @@ describe("interpreter store", () => {
 
     interpreterStore.subscribe(listener);
 
-    await interpreterStore.validateEntity(
+    await interpreterStore.validateEntityValue(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
     );
 
-    await interpreterStore.validateEntity(
+    await interpreterStore.validateEntityValue(
       "2df173ee-6b88-4744-a74d-0f21d49166b3",
     );
 
-    await interpreterStore.validateEntities();
+    await interpreterStore.validateEntitiesValues();
 
     expect(interpreterStore.getData()).toMatchSnapshot();
 

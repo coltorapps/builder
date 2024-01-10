@@ -23,7 +23,7 @@ import { createInterpreterStore } from "basebuilder";
 
 import { formBuilder } from "./form-builder";
 
-const formInterpreterStore = createInterpreterStore(formBuilder, {
+const formSchema = {
   entities: {
     "51324b32-adc3-4d17-a90e-66b5453935bd": {
       type: "textField",
@@ -33,7 +33,9 @@ const formInterpreterStore = createInterpreterStore(formBuilder, {
     },
   },
   root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-});
+};
+
+const formInterpreterStore = createInterpreterStore(formBuilder, formSchema);
 ```
 
 In the example above, we've hardcoded the schema, but typically, you would retrieve it from a database, for instance.
@@ -104,7 +106,7 @@ This will produce an output similar to:
 
 - `entitiesValues`: Represents the values of entities. It can be modified using interpreter store methods such as `setEntityValue`, `resetEntityValue`, `resetEntitiesValues`, `clearEntityValue`, and `clearEntitiesValues`.
 
-- `entitiesErrors`: Represents validation errors for various entities. It can be modified using builder store methods such as `validateEntity`, `validateEntities`, `setEntityError`, `resetEntityError`, `resetEntitiesErrors`, and `setEntitiesErrors`.
+- `entitiesErrors`: Represents validation errors for various entities. It can be modified using builder store methods such as `validateEntityValue`, `validateEntitiesValues`, `setEntityError`, `resetEntityError`, `resetEntitiesErrors`, and `setEntitiesErrors`.
 
 ## Initial data
 

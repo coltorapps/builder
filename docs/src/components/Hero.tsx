@@ -13,7 +13,7 @@ const codeLanguage = "typescript";
 const code = `export const formBuilder = createBuilder({
   entities: [
     createEntity({
-      name: "text",
+      name: "textField",
       validate: (value) => z.string().parse(value),
     }),
   ],

@@ -869,7 +869,7 @@ export function createInterpreterStore<TBuilder extends Builder>(
 
       setData(newData, events);
     },
-    async validateEntity(entityId) {
+    async validateEntityValue(entityId) {
       const data = getData();
 
       const serializedEntitiesValues = serializeInternalEntitiesValues(
@@ -934,7 +934,7 @@ export function createInterpreterStore<TBuilder extends Builder>(
         );
       }
     },
-    async validateEntities() {
+    async validateEntitiesValues() {
       const data = getData();
 
       const newEntitiesErrors = new Map(data.entitiesErrors);
@@ -1057,8 +1057,8 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
   >;
   builder: TBuilder;
   schema: Schema<TBuilder>;
-  validateEntity(entityId: string): Promise<void>;
-  validateEntities(): Promise<EntitiesValuesValidationResult<TBuilder>>;
+  validateEntityValue(entityId: string): Promise<void>;
+  validateEntitiesValues(): Promise<EntitiesValuesValidationResult<TBuilder>>;
   setEntityValue(entityId: string, value: EntityValue<TBuilder>): void;
   resetEntityValue(entityId: string): void;
   resetEntitiesValues(): void;

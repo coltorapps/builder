@@ -31,8 +31,8 @@ exports[`interpreter store > can be created 1`] = `
   "setEntityError": [Function],
   "setEntityValue": [Function],
   "subscribe": [Function],
-  "validateEntities": [Function],
-  "validateEntity": [Function],
+  "validateEntitiesValues": [Function],
+  "validateEntityValue": [Function],
 }
 `;
 

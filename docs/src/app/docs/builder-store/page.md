@@ -151,7 +151,7 @@ This will produce an output similar to:
 
 - `entitiesAttributesErrors`: Represents validation errors of various entity attributes. It can be modified using builder store methods such as `validateEntityAttribute`, `validateEntityAttributes`, `validateEntitiesAttributes`, `resetEntityAttributeError`, `setEntityAttributeError`, `resetEntityAttributesErrors`, `setEntityAttributesErrors`, `resetEntitiesAttributesErrors`, `setEntitiesAttributesErrors`, and `validateSchema`. When you delete an entity, its attributes errors will also be deleted.
 
-- `schemaError`: Represents a global schema validation error, which originates from the [`validateSchema` method on your builder](/docs/builders#additional-schema-validation). It can be modified using builder store methods like `validateSchema`, `setSchemaError`, and `resetSchemaError`.
+- `schemaError`: Represents the schema validation error, which originates from the [`validateSchema` method on your builder](/docs/builders#additional-schema-validation). It can be modified using builder store methods like `validateSchema`, `setSchemaError`, and `resetSchemaError`.
 
 ## Initial data
 
@@ -188,5 +188,5 @@ const formBuilderStore = createBuilderStore(formBuilder, {
 {% callout title="You should know!" %}
 The initial schema undergoes synchronous shape validation, which does not include the validation of attributes values.
 
-Additionally, the process ensures that initial attributs errors are checked for accurate entity ID references and appropriate attribute keys.
+Additionally, the process ensures that initial attributes errors are checked for accurate entity ID references and appropriate attribute keys.
 {% /callout %}

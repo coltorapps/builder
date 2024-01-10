@@ -15,7 +15,7 @@ export type EntityComponentProps<TEntity extends Entity = Entity> = {
   entity: EntityForRender<TEntity>;
   children?: JSX.Element[];
   setValue: (value?: Awaited<ReturnType<TEntity["validate"]>>) => void;
-  validate: () => Promise<void>;
+  validateValue: () => Promise<void>;
   resetError: () => void;
   resetValue: () => void;
   clearValue: () => void;
