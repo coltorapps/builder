@@ -231,4 +231,3 @@ export function EntityAttributes<TBuilder extends BaseBuilder>(props: {
     </BuilderAttributesContext.Provider>
   );
 }
-
