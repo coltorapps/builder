@@ -18,7 +18,7 @@ export type AttributeComponentProps<TAttribute extends Attribute = Attribute> =
   {
     attribute: AttributeForRender<TAttribute>;
     entity: SchemaEntityWithId;
-    validate: () => Promise<void>;
+    validateValue: () => Promise<void>;
     resetError: () => void;
     setValue: (value: Awaited<ReturnType<TAttribute["validate"]>>) => void;
   };
@@ -105,7 +105,7 @@ export function createAttributeComponent<TAttribute extends Attribute>(
       entity: entityWithId,
       setValue: (value) =>
         builderStore.setEntityAttribute(entityId, attribute.name, value),
-      validate: () =>
+      validateValue: () =>
         builderStore.validateEntityAttribute(entityId, attribute.name),
       resetError: () =>
         builderStore.resetEntityAttributeError(entityId, attribute.name),
