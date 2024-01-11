@@ -1,30 +1,36 @@
 ---
-title: validateSchema
+title: validateSchemaShape
 nextjs:
   metadata:
-    title: validateSchema
-    description: API Reference of validateSchema.
+    title: validateSchemaShape
+    description: API Reference of validateSchemaShape.
 ---
 
-This async function validates that the input schema meets several essential requirements based on the provided builder, such as having a valid structure, correct references in relationships, proper relationship constraints, valid attributes, accurate entity types, and valid IDs.
+This function validates that the input schema meets several essential requirements based on the provided builder, such as having a valid structure, correct references in relationships, proper relationship constraints, accurate entity types, and valid IDs.
 
-In most cases, you'll call this function on the server side to validate the incoming built schema from the client.
+It performs all the tasks of [validateSchema](/docs/api/validate-schema), except it skips attributes values and custom schema validations, making this function synchronous.
+
+In most cases, you wouldn't typically use this method, as it doesn't validate attributes values. However, you may find it useful occasionally.
+
+{% callout title="You should know!" %}
+Schema's shape is consistently validated synchronously under the hood when instantiating both builder stores and interpreter stores.
+{% /callout %}
 
 ## Reference
 
-### `validateSchema(options)`
+### `validateSchemaShape(options)`
 
-Use the `validateSchema` function to validate the input schema:
+Use the `validateSchemaShape` function to validate the input schema:
 
 ```typescript
 "use server";
 
-import { validateSchema } from "basebuilder";
+import { validateSchemaShape } from "basebuilder";
 
 import { formBuilder } from "./form-builder";
 
 export async function validateFormSchema(schema: unknown) {
-  const result = await validateSchema(schema, formBuilder);
+  const result = validateSchemaShape(schema, formBuilder);
 
   if (result.success) {
     // The result.data contains a valid schema
@@ -38,7 +44,7 @@ export async function validateFormSchema(schema: unknown) {
 
 ### Parameters
 
-`validateSchema` accepts two parameters:
+`validateSchemaShape` accepts two parameters:
 
 | Property  | Type                          | Description                                                                  |
 | --------- | ----------------------------- | ---------------------------------------------------------------------------- |
@@ -47,7 +53,7 @@ export async function validateFormSchema(schema: unknown) {
 
 ### Returns
 
-`validateSchema` returns a union of two possible objects, depending on the validation outcome. This function never throws errors, meaning that you only need to narrow down its result based on the value of the `success` key.
+`validateSchemaShape` returns a union of two possible objects, depending on the validation outcome. This function never throws errors, meaning that you only need to narrow down its result based on the value of the `success` key.
 
 In case of successful validation, you receive the following object:
 
@@ -97,7 +103,3 @@ In case of a failed validation, the failure reason `code` can be one of the foll
 | `ParentRequired`                | A parent is required.                                   |
 | `ParentNotAllowed`              | Parent is not allowed.                                  |
 | `UnreachableEntity`             | The entity is not in the root and has no parent ID.     |
-| `InvalidEntitiesAttributes`     | Validation has failed for some entities attributes.     |
-| `InvalidSchema`                 | Custom schema validation has failed.                    |
-
-Most of the time, when validating your schema on the server side, you will likely want to address `InvalidEntitiesAttributes` and, if applicable, `InvalidSchema`.

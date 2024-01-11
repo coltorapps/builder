@@ -108,7 +108,7 @@ Schema transformations will be applied when utilizing the `validateSchema` metho
 
 ## Shape validation
 
-To validate a schema's shape synchronously, you can use the `validateSchemaShape` method. This method performs the same validation as the `validateSchema` method but does not validate attributes values. It can be beneficial in specific scenarios.
+To validate a schema's shape synchronously, you can use the `validateSchemaShape` method. This method performs the same validation as the `validateSchema` method but does not validate attributes values and skips the custom schema validation. It can be beneficial in specific scenarios.
 
 ```typescript
 import { validateSchemaShape } from "basebuilder";

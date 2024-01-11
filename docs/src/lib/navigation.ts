@@ -30,6 +30,8 @@ export const navigation = [
         href: "/docs/api/create-interpreter-store",
       },
       { title: "validateSchema", href: "/docs/api/validate-schema" },
+      { title: "validateSchemaShape", href: "/docs/api/validate-schema-shape" },
+      { title: "validateEntitiesValues", href: "/docs/api/validate-entities-values" },
     ],
   },
 ];

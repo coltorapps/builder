@@ -90,8 +90,8 @@ export async function validateFormSubmission(values: FormData, formId: string) {
     // The result.data contains valid values
     // that can be stored in the database.
   } else {
-    // The result.reason holds the reason for
-    // validation failure.
+    // The result.entitiesErrors holds the reason 
+    // for validation failure.
   }
 }
 ```

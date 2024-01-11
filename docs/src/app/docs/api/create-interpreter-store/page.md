@@ -42,11 +42,11 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 `createInterpreterStore` accepts three parameters:
 
-| Parameter | Type                                                          | Description                                                      |
-| --------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `builder` | {% badge content="object" /%}                                 | The builder definition.                                          |
-| `schema`  | {% badge content="object" /%}                                 | The schema that was built using the provided builder definition. |
-| `options` | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with initialization options.          |
+| Parameter | Type                                                          | Description                                                                                  |
+| --------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `builder` | {% badge content="object" /%}                                 | The [builder definition](/docs/api/create-builder).                                          |
+| `schema`  | {% badge content="object" /%}                                 | The schema that was built using the provided [builder definition](/docs/api/create-builder). |
+| `options` | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with initialization options.                                      |
 
 The `options` parameter properties:
 
@@ -81,7 +81,7 @@ The `options` parameter properties:
 | `isEntityProcessable`         | {% badge content="function" /%} | Returns a boolean indicating whether an entity is processable or not.                             |
 | `getEntityValue`              | {% badge content="function" /%} | Retrieves the value of a specific entity.                                                         |
 | `getEntityError`              | {% badge content="function" /%} | Retrieves the validation error of a specific entity.                                              |
-| `builder`                     | {% badge content="object" /%}   | The builder definition used to instantiate the store.                                             |
+| `builder`                     | {% badge content="object" /%}   | The [builder definition](/docs/api/create-builder) used to instantiate the store.                 |
 | `schema`                      | {% badge content="object" /%}   | The schema used to instantiate the store.                                                         |
 
 ## Data

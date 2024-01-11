@@ -30,7 +30,7 @@ export const builderStore = createBuilderStore(formBuilder);
 
 | Parameter | Type                                                          | Description                                             |
 | --------- | ------------------------------------------------------------- | ------------------------------------------------------- |
-| `builder` | {% badge content="object" /%}                                 | The builder definition.                                 |
+| `builder` | {% badge content="object" /%}                                 | The [builder definition](/docs/api/create-builder).     |
 | `options` | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with initialization options. |
 
 The `options` parameter properties:
@@ -71,7 +71,7 @@ The `options` parameter properties:
 | `resetSchemaError`              | {% badge content="function" /%} | Removes the schema's error.                                                                                                          |
 | `cloneEntity`                   | {% badge content="function" /%} | Clones an entity along with all its children.                                                                                        |
 | `getEntity`                     | {% badge content="function" /%} | Retrieves a specific entity.                                                                                                         |
-| `builder`                       | {% badge content="object" /%}   | The builder definition used to instantiate the store.                                                                                |
+| `builder`                       | {% badge content="object" /%}   | The [builder definition](/docs/api/create-builder) used to instantiate the store.                                                    |
 
 ## Data
 
