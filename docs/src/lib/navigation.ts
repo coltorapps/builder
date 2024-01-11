@@ -31,7 +31,20 @@ export const navigation = [
       },
       { title: "validateSchema", href: "/docs/api/validate-schema" },
       { title: "validateSchemaShape", href: "/docs/api/validate-schema-shape" },
-      { title: "validateEntitiesValues", href: "/docs/api/validate-entities-values" },
+      {
+        title: "validateEntitiesValues",
+        href: "/docs/api/validate-entities-values",
+      },
+    ],
+  },
+  {
+    title: "React API Reference",
+    links: [
+      { title: "useBuilderStore", href: "/docs/api/use-builder-store" },
+      {
+        title: "useBuilderStoreData",
+        href: "/docs/api/use-builder-store-data",
+      },
     ],
   },
 ];

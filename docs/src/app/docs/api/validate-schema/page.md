@@ -12,7 +12,7 @@ In most cases, you'll call this function on the server side to validate the inco
 
 ## Reference
 
-### `validateSchema(options)`
+### `validateSchema(schema, builder)`
 
 Use the `validateSchema` function to validate the input schema:
 
@@ -40,7 +40,7 @@ export async function validateFormSchema(schema: unknown) {
 
 `validateSchema` accepts two parameters:
 
-| Property  | Type                          | Description                                                                  |
+| Parameter | Type                          | Description                                                                  |
 | --------- | ----------------------------- | ---------------------------------------------------------------------------- |
 | `schema`  | {% badge content="object" /%} | The schema that needs to be validated.                                       |
 | `builder` | {% badge content="object" /%} | The [builder definition](/docs/api/create-builder) used to build the schema. |

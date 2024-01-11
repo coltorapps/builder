@@ -10,7 +10,7 @@ This function ensures that the input values are valid in conjunction with the bu
 
 ## Reference
 
-### `validateEntitiesValues(options)`
+### `validateEntitiesValues(values, builder, schema)`
 
 Use the `validateEntitiesValues` function to validate the input values:
 
@@ -56,7 +56,7 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 `validateEntitiesValues` accepts three parameters:
 
-| Property  | Type                          | Description                                                                  |
+| Parameter | Type                          | Description                                                                  |
 | --------- | ----------------------------- | ---------------------------------------------------------------------------- |
 | `values`  | {% badge content="object" /%} | The values that need to be validated.                                        |
 | `builder` | {% badge content="object" /%} | The [builder definition](/docs/api/create-builder) used to build the schema. |

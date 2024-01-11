@@ -18,7 +18,7 @@ Schema's shape is consistently validated synchronously under the hood when insta
 
 ## Reference
 
-### `validateSchemaShape(options)`
+### `validateSchemaShape(schema, builder)`
 
 Use the `validateSchemaShape` function to validate the input schema:
 
@@ -46,7 +46,7 @@ export async function validateFormSchema(schema: unknown) {
 
 `validateSchemaShape` accepts two parameters:
 
-| Property  | Type                          | Description                                                                  |
+| Parameter | Type                          | Description                                                                  |
 | --------- | ----------------------------- | ---------------------------------------------------------------------------- |
 | `schema`  | {% badge content="object" /%} | The schema that needs to be validated.                                       |
 | `builder` | {% badge content="object" /%} | The [builder definition](/docs/api/create-builder) used to build the schema. |

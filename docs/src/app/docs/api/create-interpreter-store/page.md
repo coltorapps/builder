@@ -12,7 +12,7 @@ In most cases, you won't need to use the `createInterpreterStore` method directl
 
 ## Reference
 
-### `createInterpreterStore(options)`
+### `createInterpreterStore(builder, schema, options?)`
 
 Use the `createInterpreterStore` function to instantiate an interpreter store.
 

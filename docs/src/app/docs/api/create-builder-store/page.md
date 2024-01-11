@@ -12,7 +12,7 @@ In most cases, you won't need to use the `createBuilderStore` method directly. I
 
 ## Reference
 
-### `createBuilderStore(options)`
+### `createBuilderStore(builder, options?)`
 
 Use the `createBuilderStore` function to instantiate a builder store.
 
