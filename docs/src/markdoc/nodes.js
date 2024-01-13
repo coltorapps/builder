@@ -7,6 +7,14 @@ import yaml from "js-yaml";
 let documentSlugifyMap = new Map();
 
 const nodes = {
+  table: {
+    ...defaultNodes.table,
+    render: (props) => (
+      <div className="overflow-auto">
+        <table>{props.children}</table>
+      </div>
+    ),
+  },
   document: {
     ...defaultNodes.document,
     render: DocsLayout,

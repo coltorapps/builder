@@ -39,7 +39,7 @@ export function App() {
 | Prop           | Type                                                            | Description                                                                                                                                                |
 | -------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `builderStore` | {% badge content="object" /%}                                   | The [builder store](/docs/api/create-builder-store).                                                                                                       |
-| `components`   | {% badge content="object" /%}                                   | An object mapping of entities components defined with [createEntityComponent](/docs/api/react/create-entity-component).                                    |
+| `components`   | {% badge content="object" /%}                                   | An object mapping of [entities components](/docs/api/react/create-entity-component) for each defined entity type in the builder.                           |
 | `children`     | {% badge content="function" /%} {% badge content="optional" /%} | A function intended to wrap each rendered arbitrary entity with additional rendering. It receives both the rendered entity and the entity instance object. |
 
 ### Returns

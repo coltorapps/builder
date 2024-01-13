@@ -79,3 +79,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+table td:nth-child(3n) {
+  min-width: 15rem;
+}

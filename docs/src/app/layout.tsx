@@ -6,7 +6,7 @@ import { Layout } from "@/components/Layout";
 import { Analytics } from "@vercel/analytics/react";
 import clsx from "clsx";
 
-import "@/styles/tailwind.css";
+import "@/styles/global.css";
 
 import { Toaster } from "@/components/ui/toaster";
 
