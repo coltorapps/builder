@@ -6,7 +6,7 @@ nextjs:
     description: API Reference of useBuilderStore.
 ---
 
-This React hook creates a [builder store](/docs/api/create-builder-store) under the hood and conveniently allows subscribing to events.
+This React hook creates a [builder store](/docs/api/create-builder-store).
 
 ## Reference
 
@@ -17,14 +17,16 @@ Use the `useBuilderStore` function to create a [builder store](/docs/api/create-
 ```typescript
 import { useBuilderStore } from "@basebuilder/react";
 
+import { formBuilder } from "./form-builder";
+
 export function App() {
-  const builderStore = useBuilderStore();
+  const builderStore = useBuilderStore(formBuilder);
 }
 ```
 
 ### Parameters
 
-`useBuilderStore` accepts a two parameters:
+`useBuilderStore` accepts two parameters:
 
 | Parameter | Type                                                          | Description                                             |
 | --------- | ------------------------------------------------------------- | ------------------------------------------------------- |

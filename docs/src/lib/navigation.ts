@@ -7,7 +7,7 @@ export const navigation = [
     ],
   },
   {
-    title: "Core concepts",
+    title: "Core Concepts",
     links: [
       { title: "Attributes", href: "/docs/attributes" },
       { title: "Entities", href: "/docs/entities" },
@@ -40,10 +40,26 @@ export const navigation = [
   {
     title: "React API Reference",
     links: [
-      { title: "useBuilderStore", href: "/docs/api/use-builder-store" },
+      { title: "useBuilderStore", href: "/docs/api/react/use-builder-store" },
       {
         title: "useBuilderStoreData",
-        href: "/docs/api/use-builder-store-data",
+        href: "/docs/api/react/use-builder-store-data",
+      },
+      {
+        title: "createEntityComponent",
+        href: "/docs/api/react/create-entity-component",
+      },
+      {
+        title: "<Entities />",
+        href: "/docs/api/react/entities",
+      },
+      {
+        title: "createAttributeComponent",
+        href: "/docs/api/react/create-attribute-component",
+      },
+      {
+        title: "<EntityAttributes />",
+        href: "/docs/api/react/entity-attributes",
       },
     ],
   },

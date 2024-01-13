@@ -44,8 +44,9 @@ export async function validateFormSubmission(values: FormData) {
     // The result.data contains valid values
     // that can be stored in the database.
   } else {
-    // The result.entitiesErrors holds the reason
-    // for validation failure.
+    // The result.entitiesErrors object
+    // contains validation errors corresponding
+    // to invalid entities values.
   }
 }
 ```
@@ -75,7 +76,7 @@ In case of successful validation, you receive the following object:
 
 In case of failed validation, you receive the following object:
 
-| Property         | Type                           | Description                                                   |
-| ---------------- | ------------------------------ | ------------------------------------------------------------- |
-| `success`        | {% badge content="boolean" /%} | Set to `false`, indicating that the validation failed.        |
-| `entitiesErrors` | {% badge content="object" /%}  | An object that contains the errors thrown by your validators. |
+| Property         | Type                           | Description                                                                                                    |
+| ---------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `success`        | {% badge content="boolean" /%} | Set to `false`, indicating that the validation failed.                                                         |
+| `entitiesErrors` | {% badge content="object" /%}  | An object that contains validation errors thrown by your validators, corresponding to invalid entities values. |

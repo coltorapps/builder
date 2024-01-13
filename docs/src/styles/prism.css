@@ -114,7 +114,7 @@
 }
 
 .token.class-name,
-.token.maybe-class-name {
+.token.maybe-class-name, .token.tag.class-name {
 	color: #4ec9b0;
 }
 
@@ -122,7 +122,7 @@
 	color: #9cdcfe;
 }
 
-.token.parameter {
+.token.parameter, .token.tag.script.language-javascript:not(.punctuation), .token.maybe-class-name.imports {
 	color: #9cdcfe;
 }
 

@@ -96,10 +96,10 @@ This will produce an output similar to:
 ```json
 {
   "entitiesValues": {
-    "51324b32-adc3-4d17-a90e-66b5453935bd": ""
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "Alex"
   },
   "entitiesErrors": {
-    "51324b32-adc3-4d17-a90e-66b5453935bd": "This field is required"
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "Username taken"
   }
 }
 ```

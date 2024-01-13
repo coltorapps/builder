@@ -35,7 +35,7 @@ Some key characteristics:
 - Headless: Bring your own components and design the user experience as you want.
 - Full-stack: Provides comprehensive tools for building both the interface and validate schemas on the back-end.
 - Typesafe: Ensures full type safety by default in every aspect.
-- Multi-platform: Runs on web, mobile, servers, serverless environments, and edge computing.
+- Multi-platform: Runs on web, mobile, servers, serverless, and workers.
 - Framework agnostic: Features a core that is independent of any front-end framework.
 - Zero dependencies: Offers a streamlined, lightweight library.
 - Unopinionated: Affords you the freedom to build anything you imagine.

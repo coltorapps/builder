@@ -17,8 +17,10 @@ Use the `useBuilderStoreData` function to get the [builder store's](/docs/api/cr
 ```typescript
 import { useBuilderStore, useBuilderStoreData } from "@basebuilder/react";
 
+import { formBuilder } from "./form-builder";
+
 export function App() {
-  const builderStore = useBuilderStore();
+  const builderStore = useBuilderStore(formBuilder);
 
   const data = useBuilderStoreData(builderStore);
 }
@@ -26,13 +28,12 @@ export function App() {
 
 ### Parameters
 
-`useBuilderStoreData` accepts a two parameters:
+`useBuilderStoreData` accepts two parameters:
 
 | Parameter      | Type                                                            | Description                                                                                                                                                                                                                                                                                                    |
 | -------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `builderStore` | {% badge content="object" /%}                                   | The [builder store](/docs/api/create-builder-store).                                                                                                                                                                                                                                                           |
 | `shouldUpdate` | {% badge content="function" /%} {% badge content="optional" /%} | An optional function that must return a boolean to determine whether or not to trigger a rerender. It receives an array of [events](/docs/api/create-builder-store#events) emitted by the store after a mutation. Defaults to `() => true`, meaning it will trigger rerenders on each data changes by default. |
-|  |
 
 ### Returns
 
