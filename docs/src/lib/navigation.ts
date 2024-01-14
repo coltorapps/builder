@@ -61,6 +61,22 @@ export const navigation = [
         title: "<EntityAttributes />",
         href: "/docs/api/react/entity-attributes",
       },
+      {
+        title: "useInterpreterStore",
+        href: "/docs/api/react/use-interpreter-store",
+      },
+      {
+        title: "useInterpreterStoreData",
+        href: "/docs/api/react/use-interpreter-store-data",
+      },
+      {
+        title: "<Interpreter />",
+        href: "/docs/api/react/interpreter",
+      },
+      {
+        title: "useEntitiesValues",
+        href: "/docs/api/react/use-entities-values",
+      },
     ],
   },
 ];

@@ -35,10 +35,10 @@ export function App() {
 
 The `options` parameter properties:
 
-| Property      | Type                                                          | Description                                                                               |
-| ------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `initialData` | {% badge content="object" /%} {% badge content="optional" /%} | The optional partial initial data of the [builder store](/docs/api/create-builder-store). |
-| `events`      | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with [events callbacks](#events-callbacks).                    |
+| Property      | Type                                                          | Description                                                                                    |
+| ------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `initialData` | {% badge content="object" /%} {% badge content="optional" /%} | The optional partial initial data of the [builder store](/docs/api/create-builder-store#data). |
+| `events`      | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with [events callbacks](#events-callbacks).                         |
 
 ### Returns
 

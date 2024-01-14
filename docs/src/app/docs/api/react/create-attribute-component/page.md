@@ -8,7 +8,7 @@ nextjs:
 
 This function defines an attribute component for later use within the [`<EntityAttributes />`](/docs/api/react/entity-attributes) component.
 
-The function is not just a type safety helper compared to [createEntityComponent](/docs/api/react/create-entity-component), because it consumes data from an internal context.
+The function is not just a type safety helper compared to [createEntityComponent](/docs/api/react/create-entity-component), because it consumes data from an internal context behind the scenes.
 
 ## Reference
 

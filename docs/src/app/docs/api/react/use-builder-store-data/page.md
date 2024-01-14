@@ -6,13 +6,13 @@ nextjs:
     description: API Reference of useBuilderStoreData.
 ---
 
-This React hook accepts a [builder store](/docs/api/create-builder-store) and returns its current data. It allows fine-grained control over when to refresh its output and trigger a rerender.
+This React hook accepts a [builder store](/docs/api/react/use-builder-store) and returns its current data. It allows fine-grained control over when to refresh its output and trigger a rerender.
 
 ## Reference
 
 ### `useBuilderStoreData(builderStore, shouldUpdate?)`
 
-Use the `useBuilderStoreData` function to get the [builder store's](/docs/api/create-builder-store) data and automatically trigger rerenders when mutation events are emitted by the store.
+Use the `useBuilderStoreData` function to get the [builder store's](/docs/api/react/use-builder-store) data and automatically trigger rerenders when mutation events are emitted by the store.
 
 ```typescript
 import { useBuilderStore, useBuilderStoreData } from "@basebuilder/react";
@@ -32,7 +32,7 @@ export function App() {
 
 | Parameter      | Type                                                            | Description                                                                                                                                                                                                                                                                                                    |
 | -------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builderStore` | {% badge content="object" /%}                                   | The [builder store](/docs/api/create-builder-store).                                                                                                                                                                                                                                                           |
+| `builderStore` | {% badge content="object" /%}                                   | The [builder store](/docs/api/react/use-builder-store).                                                                                                                                                                                                                                                           |
 | `shouldUpdate` | {% badge content="function" /%} {% badge content="optional" /%} | An optional function that must return a boolean to determine whether or not to trigger a rerender. It receives an array of [events](/docs/api/create-builder-store#events) emitted by the store after a mutation. Defaults to `() => true`, meaning it will trigger rerenders on each data changes by default. |
 
 ### Returns
