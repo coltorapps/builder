@@ -41,12 +41,16 @@ export async function validateFormSubmission(values: FormData) {
   );
 
   if (result.success) {
-    // The result.data contains valid values
-    // that can be stored in the database.
+    /*
+    | The `result.data` contains valid values
+    | that can be stored in the database.
+    */
   } else {
-    // The result.entitiesErrors object
-    // contains validation errors corresponding
-    // to invalid entities values.
+    /*
+    | The `result.entitiesErrors` object contains
+    | validation errors corresponding to invalid
+    | entities values.
+    */
   }
 }
 ```
@@ -57,7 +61,7 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 `validateEntitiesValues` accepts three parameters:
 
-| Parameter | Type                          | Description                                                                  |
+| Parameter | Type                          | Description {% class="api-description" %}                                    |
 | --------- | ----------------------------- | ---------------------------------------------------------------------------- |
 | `values`  | {% badge content="object" /%} | The values that need to be validated.                                        |
 | `builder` | {% badge content="object" /%} | The [builder definition](/docs/api/create-builder) used to build the schema. |
@@ -69,14 +73,14 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 In case of successful validation, you receive the following object:
 
-| Property  | Type                           | Description                                                   |
+| Property  | Type                           | Description {% class="api-description" %}                     |
 | --------- | ------------------------------ | ------------------------------------------------------------- |
 | `success` | {% badge content="boolean" /%} | Set to `true`, indicating that the validation was successful. |
 | `data`    | {% badge content="object" /%}  | The validated values.                                         |
 
 In case of failed validation, you receive the following object:
 
-| Property         | Type                           | Description                                                                                                    |
+| Property         | Type                           | Description {% class="api-description" %}                                                                      |
 | ---------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
 | `success`        | {% badge content="boolean" /%} | Set to `false`, indicating that the validation failed.                                                         |
 | `entitiesErrors` | {% badge content="object" /%}  | An object that contains validation errors thrown by your validators, corresponding to invalid entities values. |

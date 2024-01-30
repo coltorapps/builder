@@ -38,7 +38,7 @@ Validations can also be asynchronous, in which case the inferred value will be t
 
 ## Throwing validation errors
 
-You can throw errors, strings, objects, and virtually anything in the `validate` method of an attribute in case of an invalid value. The thrown exceptions will be automatically caught and provided to you during schema validation.
+You can throw errors, strings, objects, and virtually anything (however, as a programming best practice, we recommend throwing error instances) in the `validate` method of an attribute in case of an invalid value. The thrown exceptions will be automatically caught and provided to you during schema validation.
 
 ```typescript
 import { createAttribute } from "basebuilder";
@@ -47,7 +47,7 @@ export const labelAttribute = createAttribute({
   name: "label",
   validate(value) {
     if (typeof value !== "string") {
-      throw "Must be a string";
+      throw new Error("Must be a string");
     }
 
     if (value.length === 0) {

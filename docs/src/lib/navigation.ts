@@ -7,13 +7,21 @@ export const navigation = [
     ],
   },
   {
+    title: "Guides",
+    links: [
+      { title: "Form builder", href: "/docs/guides/form-builder" },
+      { title: "Factory pattern", href: "/docs/guides/factory-pattern" },
+      { title: "Drag & Drop", href: "/docs/guides/drag-and-drop" },
+    ],
+  },
+  {
     title: "Core Concepts",
     links: [
       { title: "Attributes", href: "/docs/attributes" },
       { title: "Entities", href: "/docs/entities" },
       { title: "Builders", href: "/docs/builders" },
       { title: "Schema", href: "/docs/schema" },
-      { title: "Entities Values", href: "/docs/entities-values" },
+      { title: "Entities values", href: "/docs/entities-values" },
       { title: "Builder store", href: "/docs/builder-store" },
       { title: "Interpreter store", href: "/docs/interpreter-store" },
     ],

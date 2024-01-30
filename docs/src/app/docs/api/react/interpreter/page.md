@@ -50,7 +50,7 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 The `Interpreter` component accepts three props:
 
-| Prop               | Type                                                            | Description                                                                                                                                                |
+| Prop               | Type                                                            | Description {% class="api-description" %}                                                                                                                  |
 | ------------------ | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `interpreterStore` | {% badge content="object" /%}                                   | The [interpreter store](/docs/api/react/use-interpreter-store).                                                                                            |
 | `components`       | {% badge content="object" /%}                                   | An object mapping of [entities components](/docs/api/react/create-entity-component) for each defined entity type in the builder.                           |

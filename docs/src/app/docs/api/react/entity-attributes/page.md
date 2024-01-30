@@ -54,9 +54,9 @@ If a matched component from the `components` prop attempts to render an [attribu
 
 `EntityAttributes` accepts three props:
 
-| Prop           | Type                          | Description                                                                                                                                                                                                |
+| Prop           | Type                          | Description {% class="api-description" %}                                                                                                                                                                  |
 | -------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builderStore` | {% badge content="object" /%} | The [builder store](/docs/api/react/use-builder-store).                                                                                                                                                       |
+| `builderStore` | {% badge content="object" /%} | The [builder store](/docs/api/react/use-builder-store).                                                                                                                                                    |
 | `components`   | {% badge content="object" /%} | An object mapping of raw components for each defined entity type in the builder. Typically, inside each raw component you will render [attributes components](/docs/api/react/create-attribute-component). |
 | `entityId`     | {% badge content="string" /%} | The ID of an entity from the schema.                                                                                                                                                                       |
 

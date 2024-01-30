@@ -41,7 +41,7 @@ Validations can also be asynchronous, in which case the inferred value will be t
 
 ## Throwing validation errors
 
-You can throw errors, strings, objects, and virtually anything in the `validate` method of an entity in case of an invalid value. The thrown exceptions will be automatically caught and provided to you during schema validation.
+You can throw errors, strings, objects, and virtually anything (however, as a programming best practice, we recommend throwing error instances) in the `validate` method of an entity in case of an invalid value. The thrown exceptions will be automatically caught and provided to you during schema validation.
 
 ```typescript
 import { createEntity } from "basebuilder";
@@ -50,7 +50,7 @@ export const textFieldEntity = createEntity({
   name: "textField",
   validate(value) {
     if (typeof value !== "string") {
-      throw "Must be a string";
+      throw new Error("Must be a string");
     }
 
     if (value.length === 0) {
@@ -140,7 +140,7 @@ export const textFieldEntity = createEntity({
         const minLength = context.validate(value); // valid number
 
         if (minLength > context.entity.attributes.maxLength) {
-          throw "Must be equal to or less than the max length";
+          throw new Error("Must be equal to or less than the max length");
         }
 
         return minLength;
@@ -151,7 +151,7 @@ export const textFieldEntity = createEntity({
         const maxLength = context.validate(value); // valid number
 
         if (maxLength < context.entity.attributes.minLength) {
-          throw "Must be equal to or greater than the min length";
+          throw new Error("Must be equal to or greater than the min length");
         }
 
         return maxLength;
@@ -244,11 +244,11 @@ export const referenceEntityIdAttribute = createAttribute({
     }
 
     if (!context.schema.entities[referenceId]) {
-      throw "Must reference an existing entity";
+      throw new Error("Must reference an existing entity");
     }
 
     if (referenceId === context.entity.id) {
-      throw "Self-referencing not allowed";
+      throw new Error("Self-referencing not allowed");
     }
 
     return referenceId;

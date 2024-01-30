@@ -8,7 +8,7 @@ nextjs:
 
 This function instantiates a builder store, used for building and operating with schemas based on a specific builder definition.
 
-In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize the `useBuilderStore` from `@basebuilder/react`, which essentially creates the builder store for you.
+In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize [`useBuilderStore`](/docs/api/react/use-builder-store) from `@basebuilder/react`, which essentially creates the builder store for you.
 
 ## Reference
 
@@ -28,22 +28,22 @@ export const builderStore = createBuilderStore(formBuilder);
 
 `createBuilderStore` accepts two parameters:
 
-| Parameter | Type                                                          | Description                                             |
+| Parameter | Type                                                          | Description {% class="api-description" %}               |
 | --------- | ------------------------------------------------------------- | ------------------------------------------------------- |
 | `builder` | {% badge content="object" /%}                                 | The [builder definition](/docs/api/create-builder).     |
 | `options` | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with initialization options. |
 
 The `options` parameter properties:
 
-| Property      | Type                                                          | Description                        |
-| ------------- | ------------------------------------------------------------- | ---------------------------------- |
-| `initialData` | {% badge content="object" /%} {% badge content="optional" /%} | The optional partial initial data. |
+| Property      | Type                                                          | Description {% class="api-description" %} |
+| ------------- | ------------------------------------------------------------- | ----------------------------------------- |
+| `initialData` | {% badge content="object" /%} {% badge content="optional" /%} | The optional partial initial data.        |
 
 ### Returns
 
 `createBuilderStore` instantiates a builder store, providing a set of methods to operate with the store.
 
-| Property                        | Type                            | Description                                                                                                                          |
+| Property                        | Type                            | Description {% class="api-description" %}                                                                                            |
 | ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `getData`                       | {% badge content="function" /%} | Retrieves the [store's data](#data).                                                                                                 |
 | `getSchema`                     | {% badge content="function" /%} | Retrieves the schema from the [store's data](#data).                                                                                 |
@@ -77,7 +77,7 @@ The `options` parameter properties:
 
 The data of the builder store is an object containing the following properties:
 
-| Property                   | Type                           | Description                                                                                     |
+| Property                   | Type                           | Description {% class="api-description" %}                                                       |
 | -------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
 | `schema`                   | {% badge content="object" /%}  | Represents the schema, which contains the collection of all entities instances and their order. |
 | `entitiesAttributesErrors` | {% badge content="object" /%}  | Represents the validation errors of various entity attributes.                                  |
@@ -87,15 +87,15 @@ The data of the builder store is an object containing the following properties:
 
 The builder store emits various events after mutations to subscribed listeners, with different payloads based on the event. A mutation might cause the store to emit multiple events simultaneously. These events can be emitted by the store:
 
-| Event                         | Description                              |
-| ----------------------------- | ---------------------------------------- |
-| `EntityAdded`                 | An entity was added.                     |
-| `EntityUpdated`               | An entity was updated.                   |
-| `EntityAttributeUpdated`      | An entity's attribute was updated.       |
-| `EntityDeleted`               | An entity was deleted.                   |
-| `EntityCloned`                | An entity was cloned.                    |
-| `RootUpdated`                 | The root was updated.                    |
-| `EntityAttributeErrorUpdated` | An entity's attribute error was updated. |
-| `SchemaErrorUpdated`          | The schema's error was updated.          |
-| `SchemaUpdated`               | The schema was updated.                  |
-| `DataSet`                     | The data was manually set.               |
+| Event                         | Description {% class="api-description" %} |
+| ----------------------------- | ----------------------------------------- |
+| `EntityAdded`                 | An entity was added.                      |
+| `EntityUpdated`               | An entity was updated.                    |
+| `EntityAttributeUpdated`      | An entity's attribute was updated.        |
+| `EntityDeleted`               | An entity was deleted.                    |
+| `EntityCloned`                | An entity was cloned.                     |
+| `RootUpdated`                 | The root was updated.                     |
+| `EntityAttributeErrorUpdated` | An entity's attribute error was updated.  |
+| `SchemaErrorUpdated`          | The schema's error was updated.           |
+| `SchemaUpdated`               | The schema was updated.                   |
+| `DataSet`                     | The data was manually set.                |

@@ -8,7 +8,7 @@ nextjs:
 
 This function instantiates an interpreter store, used for for filling entities values based on a schema and builder definition.
 
-In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize the `useInterpreterStore` from `@basebuilder/react`, which essentially creates the interpreter store for you.
+In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize [`useInterpreterStore`](/docs/api/react/use-interpreter-store) from `@basebuilder/react`, which essentially creates the interpreter store for you.
 
 ## Reference
 
@@ -42,7 +42,7 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 `createInterpreterStore` accepts three parameters:
 
-| Parameter | Type                                                          | Description                                                                                  |
+| Parameter | Type                                                          | Description {% class="api-description" %}                                                    |
 | --------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `builder` | {% badge content="object" /%}                                 | The [builder definition](/docs/api/create-builder).                                          |
 | `schema`  | {% badge content="object" /%}                                 | The schema that was built using the provided [builder definition](/docs/api/create-builder). |
@@ -50,7 +50,7 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 The `options` parameter properties:
 
-| Property                            | Type                                                           | Description                                                                    |
+| Property                            | Type                                                           | Description {% class="api-description" %}                                      |
 | ----------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `initialData`                       | {% badge content="object" /%} {% badge content="optional" /%}  | The optional partial initial data.                                             |
 | `initialEntitiesValuesWithDefaults` | {% badge content="boolean" /%} {% badge content="optional" /%} | A flag to disable the automatic setting of default values. Defaults to `true`. |
@@ -59,7 +59,7 @@ The `options` parameter properties:
 
 `createInterpreterStore` instantiates an interpreter store, providing a set of methods to operate with the store.
 
-| Method                        | Type                            | Description                                                                                       |
+| Method                        | Type                            | Description {% class="api-description" %}                                                         |
 | ----------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `getData`                     | {% badge content="function" /%} | Retrieves the [store's data](#data).                                                              |
 | `getEntitiesErrors`           | {% badge content="function" /%} | Retrieves the entities' validation errors from the [store's data](#data).                         |
@@ -88,7 +88,7 @@ The `options` parameter properties:
 
 The data of the interpreter store is an object containing the following properties:
 
-| Property                   | Type                          | Description                                           |
+| Property                   | Type                          | Description {% class="api-description" %}             |
 | -------------------------- | ----------------------------- | ----------------------------------------------------- |
 | `entitiesValues`           | {% badge content="object" /%} | Represents the values of entities.                    |
 | `entitiesErrors`           | {% badge content="object" /%} | Represents the validation errors of entities.         |
@@ -98,7 +98,7 @@ The data of the interpreter store is an object containing the following properti
 
 The interpreter store emits various events after mutations to subscribed listeners, with different payloads based on the event. A mutation might cause the store to emit multiple events simultaneously. These events can be emitted by the store:
 
-| Event                 | Description                               |
+| Event                 | Description {% class="api-description" %} |
 | --------------------- | ----------------------------------------- |
 | `EntityValueUpdated`  | An entity's value was updated.            |
 | `EntityErrorUpdated`  | An entity's validation error was updated. |

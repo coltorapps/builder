@@ -31,7 +31,7 @@ export const TextFieldEntity = createEntityComponent(
 
 `useEntitiesValues` accepts a single parameter:
 
-| Parameter     | Type                         | Description                                                |
+| Parameter     | Type                         | Description {% class="api-description" %}                  |
 | ------------- | ---------------------------- | ---------------------------------------------------------- |
 | `entitiesIds` | {% badge content="array" /%} | An optional array of entity IDs to retrieve the values of. |
 

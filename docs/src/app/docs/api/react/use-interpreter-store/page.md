@@ -42,7 +42,7 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 `useInterpreterStore` accepts three parameters:
 
-| Parameter | Type                                                          | Description                                                                                  |
+| Parameter | Type                                                          | Description {% class="api-description" %}                                                    |
 | --------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `builder` | {% badge content="object" /%}                                 | The [builder definition](/docs/api/create-builder).                                          |
 | `schema`  | {% badge content="object" /%}                                 | The schema that was built using the provided [builder definition](/docs/api/create-builder). |
@@ -50,7 +50,7 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 The `options` parameter properties:
 
-| Property      | Type                                                          | Description                                                                                            |
+| Property      | Type                                                          | Description {% class="api-description" %}                                                              |
 | ------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `initialData` | {% badge content="object" /%} {% badge content="optional" /%} | The optional partial initial data of the [interpreter store](/docs/api/create-interpreter-store#data). |
 | `events`      | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with [events callbacks](#events-callbacks).                                 |
@@ -63,7 +63,7 @@ The `useInterpreterStore` function essentially creates and returns an [interpret
 
 Each [event](/docs/api/create-interpreter-store#events) emitted by the builder store is available as a callback within the `events` key of the `options` parameter. Every callback receives a specific payload based on the event.
 
-| Callback                | Description                               |
+| Callback                | Description {% class="api-description" %} |
 | ----------------------- | ----------------------------------------- |
 | `onEntityValueUpdated`  | An entity's value was updated.            |
 | `onEntityErrorUpdated`  | An entity's validation error was updated. |

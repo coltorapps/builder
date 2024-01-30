@@ -80,6 +80,6 @@
   }
 }
 
-table td:nth-child(3n) {
+table thead tr th.api-description {
   min-width: 15rem;
 }

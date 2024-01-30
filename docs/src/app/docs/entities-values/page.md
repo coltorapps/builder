@@ -47,7 +47,7 @@ Here is a possible outcome of entities values:
 ```
 
 {% callout title="You should know!" %}
-Entities values are always structured as a single-level flat format, mirroring the philosophy of `FormData`.
+Entities values are always structured as a single-level flat format, mirroring the format of `FormData`.
 {% /callout %}
 
 ## Validation
@@ -87,12 +87,16 @@ export async function validateFormSubmission(values: FormData, formId: string) {
   );
 
   if (result.success) {
-    // The result.data contains valid values
-    // that can be stored in the database.
+    /*
+    | The `result.data` contains valid values
+    | that can be stored in the database.
+    */
   } else {
-    // The result.entitiesErrors object 
-    // contains validation errors corresponding 
-    // to invalid entities values.
+    /*
+    | The `result.entitiesErrors` object contains
+    | validation errors corresponding to invalid
+    | entities values.
+    */
   }
 }
 ```

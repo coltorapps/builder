@@ -24,7 +24,7 @@ import { labelAttribute } from "./label-attribute";
 export const LabelAttribute = createAttributeComponent(
   labelAttribute,
   (props) => {
-    const id = `${props.attribute.name}-${props.entity.id}`;
+    const id = `${props.entity.id}-${props.attribute.name}`;
 
     return (
       <div>
@@ -50,7 +50,7 @@ export const LabelAttribute = createAttributeComponent(
 
 `createAttributeComponent` accepts two parameters:
 
-| Parameter   | Type                            | Description                                                                                                                                                                                            |
+| Parameter   | Type                            | Description {% class="api-description" %}                                                                                                                                                              |
 | ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `attribute` | {% badge content="object" /%}   | The [attribute definition](/docs/api/create-attribute).                                                                                                                                                |
 | `render`    | {% badge content="function" /%} | The render function of the component, which receives the attribute and arbitrary entity instance, along with a set of methods to interact with the [builder store](/docs/api/react/use-builder-store). |

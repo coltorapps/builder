@@ -15,8 +15,7 @@ To begin, simply install the necessary dependencies.
 Install `basebuilder` and `@basebuilder/react` via your preferred package manager.
 
 ```shell
-pnpm install basebuilder
-pnpm install @basebuilder/react
+pnpm install basebuilder @basebuilder/react
 ```
 
 While our documentation often assumes you're using a full-stack framework such as Next.js for illustrative purposes, you can replicate these setups within a monorepo structure, maintaining decoupled client and server apps.

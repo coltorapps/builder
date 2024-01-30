@@ -89,11 +89,15 @@ export async function validateFormSchema(schema: unknown) {
   const result = await validateSchema(schema, formBuilder);
 
   if (result.success) {
-    // The result.data contains a valid schema
-    // that can be stored in the database.
+    /*
+    | The `result.data` contains a valid schema
+    | that can be stored in the database.
+    */
   } else {
-    // The result.reason holds the reason for
-    // validation failure.
+    /*
+    | The `result.reason` holds the reason for
+    | validation failure.
+    */
   }
 }
 ```

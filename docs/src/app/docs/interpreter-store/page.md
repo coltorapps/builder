@@ -1,8 +1,8 @@
 ---
-title: Interpreter Store
+title: Interpreter store
 nextjs:
   metadata:
-    title: Interpreter Store
+    title: Interpreter store
     description: Understanding interpreter stores.
 ---
 
@@ -14,7 +14,7 @@ An interpreter store is responsible for filling entities values based on a schem
 
 The `createInterpreterStore` method is utilized to create an interpreter store based on one of your custom builders and a schema.
 
-In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize the `useInterpreterStore` from `@basebuilder/react`, which essentially creates the interpreter store for you.
+In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize [`useInterpreterStore`](/docs/api/react/use-interpreter-store) from `@basebuilder/react`, which essentially creates the interpreter store for you.
 
 This store is equipped to handle tasks such as setting entities values and performing validation of entities values.
 
@@ -104,9 +104,9 @@ This will produce an output similar to:
 }
 ```
 
-- `entitiesValues`: Represents the values of entities. It can be modified using interpreter store methods such as `setEntityValue`, `resetEntityValue`, `resetEntitiesValues`, `clearEntityValue`, and `clearEntitiesValues`.
+- `entitiesValues`: Represents the values of entities. It can be mutated by interpreter store methods such as `setEntityValue`, `resetEntityValue`, `resetEntitiesValues`, `clearEntityValue`, and `clearEntitiesValues`.
 
-- `entitiesErrors`: Represents validation errors for various entities. It can be modified using builder store methods such as `validateEntityValue`, `validateEntitiesValues`, `setEntityError`, `resetEntityError`, `resetEntitiesErrors`, and `setEntitiesErrors`.
+- `entitiesErrors`: Represents validation errors for various entities. It can be mutated by interpreter store methods such as `validateEntityValue`, `validateEntitiesValues`, `setEntityError`, `resetEntityError`, `resetEntitiesErrors`, and `setEntitiesErrors`.
 
 ## Initial data
 
@@ -149,7 +149,7 @@ The initial entities values and entities errors will be validated for valid enti
 
 ## Default entities values
 
-Entities values will be automatically populated with their default values during interpreter store initialization if their entity definitions have the `defaultValue` method set.
+Entities values will be automatically populated with their default values during interpreter store initialization if their entity definitions have the [`defaultValue`](/docs/entities#default-value) method set.
 
 To opt out of this behavior and prevent automatic default value assignment, you can set the `initialEntitiesValuesWithDefaults` flag to `false`.
 

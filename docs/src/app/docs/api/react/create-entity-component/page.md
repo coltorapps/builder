@@ -47,7 +47,7 @@ export const TextFieldEntity = createEntityComponent(
 
 `createEntityComponent` accepts two parameters:
 
-| Parameter | Type                            | Description                                                                                                                                                                    |
+| Parameter | Type                            | Description {% class="api-description" %}                                                                                                                                      |
 | --------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `entity`  | {% badge content="object" /%}   | The [entity definition](/docs/api/create-entity).                                                                                                                              |
 | `render`  | {% badge content="function" /%} | The render function of the component, which receives the entity instance and a set of methods to interact with the [interpreter store](/docs/api/react/use-interpreter-store). |

@@ -33,11 +33,15 @@ export async function validateFormSchema(schema: unknown) {
   const result = validateSchemaShape(schema, formBuilder);
 
   if (result.success) {
-    // The result.data contains a valid schema
-    // that can be stored in the database.
+    /*
+    | The `result.data` contains a valid schema
+    | that can be stored in the database.
+    */
   } else {
-    // The result.reason holds the reason for
-    // validation failure.
+    /*
+    | The `result.reason` holds the reason for
+    | validation failure.
+    */
   }
 }
 ```
@@ -46,7 +50,7 @@ export async function validateFormSchema(schema: unknown) {
 
 `validateSchemaShape` accepts two parameters:
 
-| Parameter | Type                          | Description                                                                  |
+| Parameter | Type                          | Description {% class="api-description" %}                                    |
 | --------- | ----------------------------- | ---------------------------------------------------------------------------- |
 | `schema`  | {% badge content="object" /%} | The schema that needs to be validated.                                       |
 | `builder` | {% badge content="object" /%} | The [builder definition](/docs/api/create-builder) used to build the schema. |
@@ -57,21 +61,21 @@ export async function validateFormSchema(schema: unknown) {
 
 In case of successful validation, you receive the following object:
 
-| Property  | Type                           | Description                                                   |
+| Property  | Type                           | Description {% class="api-description" %}                     |
 | --------- | ------------------------------ | ------------------------------------------------------------- |
 | `success` | {% badge content="boolean" /%} | Set to `true`, indicating that the validation was successful. |
 | `data`    | {% badge content="object" /%}  | The validated schema.                                         |
 
 In case of failed validation, you receive the following object:
 
-| Property  | Type                           | Description                                            |
+| Property  | Type                           | Description {% class="api-description" %}              |
 | --------- | ------------------------------ | ------------------------------------------------------ |
 | `success` | {% badge content="boolean" /%} | Set to `false`, indicating that the validation failed. |
 | `reason`  | {% badge content="object" /%}  | An object describing the failure's reason.             |
 
 The `reason` object will contain the following properties:
 
-| Property  | Type                                                          | Description                                                               |
+| Property  | Type                                                          | Description {% class="api-description" %}                                 |
 | --------- | ------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | `code`    | {% badge content="string" /%}                                 | An enum of possible [error codes](#error-codes) describing the reason.    |
 | `payload` | {% badge content="object" /%} {% badge content="optional" /%} | An optional object containing additional information based on the `code`. |
@@ -80,7 +84,7 @@ The `reason` object will contain the following properties:
 
 In case of a failed validation, the failure reason `code` can be one of the following:
 
-| Error Code                      | Description                                             |
+| Error Code                      | Description {% class="api-description" %}               |
 | ------------------------------- | ------------------------------------------------------- |
 | `InvalidRootFormat`             | The root must be an array of strings.                   |
 | `DuplicateRootId`               | Duplicate IDs detected in the root.                     |

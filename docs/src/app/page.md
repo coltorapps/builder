@@ -6,13 +6,13 @@ Learn how to get started with Basebuilder through our guides. {% .lead %}
 
 {% quick-links %}
 
-{% quick-link title="Installation" icon="installation" href="/docs/installation" description="Step-by-step guides for setting up and using the SDK." /%}
+{% quick-link title="Installation" icon="installation" href="/docs/installation" description="Step-by-step guides for setting up and using the library." /%}
 
-{% quick-link title="Architecture guide" icon="presets" href="/" description="Learn how the internals work to better understand the SDK." /%}
+{% quick-link title="Core concepts" icon="presets" href="/docs/attributes" description="Learn the core concepts to better understand the library." /%}
 
-{% quick-link title="Examples" icon="plugins" href="/" description="Explore our examples to spark your inspiration." /%}
+{% quick-link title="Guides" icon="plugins" href="/docs/guides/form-builder" description="Explore our guides to spark your inspiration." /%}
 
-{% quick-link title="API reference" icon="theming" href="/" description="Dive into the API Reference for detailed guidance." /%}
+{% quick-link title="API reference" icon="theming" href="/docs/api/create-attribute" description="Dive into the API Reference for detailed guidance." /%}
 
 {% /quick-links %}
 
@@ -28,7 +28,7 @@ A simple example of what can be accomplished with Basebuilder.
 
 ## Intro
 
-Basebuilder is a versatile TypeScript SDK designed for crafting custom form builders and much more. You can also develop website builders, dashboard builders, and any other builders you envision.
+Basebuilder is a versatile TypeScript library designed for crafting custom form builders and much more. You can also develop website builders, dashboard builders, and any other builders you envision.
 
 Some key characteristics:
 

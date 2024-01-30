@@ -1,8 +1,8 @@
 ---
-title: Builder Store
+title: Builder store
 nextjs:
   metadata:
-    title: Builder Store
+    title: Builder store
     description: Understanding builder stores.
 ---
 
@@ -14,7 +14,7 @@ A builder store serves as the central component used for constructing a schema b
 
 The `createBuilderStore` method is utilized to create a builder store based on one of your custom builders.
 
-In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize the `useBuilderStore` from `@basebuilder/react`, which essentially creates the builder store for you.
+In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize [`useBuilderStore`](/docs/api/react/use-builder-store) from `@basebuilder/react`, which essentially creates the builder store for you.
 
 This store is equipped to handle tasks such as adding entities, removing entities, reordering entities, and performing entity validation, among other functions.
 
@@ -149,9 +149,9 @@ This will produce an output similar to:
 
 - `schema`: Represents the schema containing the collection of all entities instances and their order. It can be modified using builder store methods such as `addEntity`, `deleteEntity`, `setEntityParent`, `unsetEntityParent`, `setEntityIndex`, `setEntityAttribute`, and `cloneEntity`.
 
-- `entitiesAttributesErrors`: Represents validation errors of various entity attributes. It can be modified using builder store methods such as `validateEntityAttribute`, `validateEntityAttributes`, `validateEntitiesAttributes`, `resetEntityAttributeError`, `setEntityAttributeError`, `resetEntityAttributesErrors`, `setEntityAttributesErrors`, `resetEntitiesAttributesErrors`, `setEntitiesAttributesErrors`, and `validateSchema`. When you delete an entity, its attributes errors will also be deleted.
+- `entitiesAttributesErrors`: Represents validation errors of various entity attributes. It can be mutated by builder store methods such as `validateEntityAttribute`, `validateEntityAttributes`, `validateEntitiesAttributes`, `resetEntityAttributeError`, `setEntityAttributeError`, `resetEntityAttributesErrors`, `setEntityAttributesErrors`, `resetEntitiesAttributesErrors`, `setEntitiesAttributesErrors`, and `validateSchema`. When you delete an entity, its attributes errors will also be deleted.
 
-- `schemaError`: Represents the schema validation error, which originates from the [`validateSchema` method on your builder](/docs/builders#additional-schema-validation). It can be modified using builder store methods like `validateSchema`, `setSchemaError`, and `resetSchemaError`.
+- `schemaError`: Represents the schema validation error, which originates from the [`validateSchema`](/docs/builders#additional-schema-validation) method on your builder. It can be mutated by builder store methods like `validateSchema`, `setSchemaError`, and `resetSchemaError`.
 
 ## Initial data
 

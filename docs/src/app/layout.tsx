@@ -28,7 +28,8 @@ export const metadata: Metadata = {
     template: "%s - Docs",
     default: "Basebuilder",
   },
-  description: "Powerful SDK for crafting your own form builders and beyond.",
+  description:
+    "Powerful library for crafting your own form builders and beyond.",
 };
 
 export default function RootLayout({

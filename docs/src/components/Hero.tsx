@@ -49,7 +49,7 @@ export function Hero() {
                 Build your Builders
               </p>
               <p className="mt-3 text-2xl tracking-tight text-neutral-400">
-                Powerful SDK for crafting your own form builders and beyond.
+                Powerful library for crafting your own form builders and beyond.
               </p>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">
                 <Button asChild>
