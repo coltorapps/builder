@@ -103,7 +103,7 @@ export function Hero() {
                   <div className="absolute -top-px left-20 right-11 h-px bg-gradient-to-r from-slate-300/0 via-slate-300/70 to-slate-300/0" />
                   <div className="absolute -bottom-px left-11 right-20 h-px bg-gradient-to-r from-neutral-400/0 via-neutral-400 to-neutral-400/0" />
                   <div className="pl-4 pt-4">
-                    <TrafficLightsIcon className="h-2.5 w-auto stroke-neutral-500/30" />
+                    <TrafficLightsIcon className="h-2.5 w-auto stroke-neutral-500/60" />
                     <div className="mt-6 flex items-start px-1 text-sm">
                       <div
                         aria-hidden="true"

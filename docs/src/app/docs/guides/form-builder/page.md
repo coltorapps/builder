@@ -262,11 +262,9 @@ export default function FormBuilderPage() {
           <div className="relative">
             {/* This represents each rendered arbitrary entity. */}
             {props.children}
-            {/*
-            | A delete button is rendered next to each entity and
-            | also an entity is marked as active when clicked.
-            */}
+            {/* A delete button is rendered next to each entity. */}
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
 
@@ -280,12 +278,14 @@ export default function FormBuilderPage() {
             | it is marked as active, and they can edit its attributes.
             */}
             <button
+              type="button"
               className="absolute inset-0"
               onClick={() => setActiveEntityId(props.entity.id)}
             />
           </div>
         )}
       </Entities>
+      {/* A button to add new text fields. */}
       <button
         type="button"
         onClick={() =>
@@ -385,7 +385,7 @@ Once a form schema has been created, it can be retrieved and "interpreted" on th
 ```tsx
 "use server";
 
-import { getForm } from "get-form";
+import { getForm } from "./get-form";
 
 export default async function FormPage() {
   // Retrieve the form schema from your storage of choice.
@@ -464,6 +464,7 @@ Let's define a server action that will receive the submitted schema.
 import { validateSchema } from "basebuilder";
 
 import { formBuilder } from "./form-builder";
+import { getForm } from "./get-form";
 
 export async function saveSubmission(values: FormData) {
   // Retrieve the form schema from your storage of choice.

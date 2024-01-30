@@ -37,11 +37,11 @@ export function createFormBuilder(options?: {
   });
 
   const formBuilder = createBuilder({
-    entities: [textFieldEntity],
+    entities: [emailFieldEntity],
   });
 
   return {
-    textFieldEntity,
+    emailFieldEntity,
     formBuilder,
   };
 }
@@ -91,9 +91,9 @@ import { createEntityComponent, useBuilderStore } from "@basebuilder/react";
 
 import { createFormBuilder } from "./form-builder";
 
-const { formBuilder, textFieldEntity } = createFormBuilder();
+const { formBuilder, emailFieldEntity } = createFormBuilder();
 
-const TextFieldEntity = createEntityComponent(textFieldEntity, () => {
+const EmailFieldEntity = createEntityComponent(emailFieldEntity, () => {
   // ...
 });
 
