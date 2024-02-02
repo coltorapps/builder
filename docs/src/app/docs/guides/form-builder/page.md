@@ -259,33 +259,40 @@ export default function FormBuilderPage() {
         | rendering.
         */}
         {(props) => (
-          <div className="relative">
+          <div>
             {/* This represents each rendered arbitrary entity. */}
             {props.children}
-            {/* A delete button is rendered next to each entity. */}
+            {/*
+            | A button that marks the arbitrary entity as active,
+            | allowing the user to edit its attributes.
+            */}
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-
+              onClick={() => {
+                setActiveEntityId(props.entity.id);
+              }}
+            >
+              Select
+            </button>
+            {/*
+            | A delete button is rendered next to each entity,
+            | that removes the entity from the store's schema.
+            */}
+            <button
+              type="button"
+              onClick={() => {
                 builderStore.deleteEntity(props.entity.id);
               }}
             >
               Delete
             </button>
-            {/*
-            | Every time the user clicks on an arbitrary entity,
-            | it is marked as active, and they can edit its attributes.
-            */}
-            <button
-              type="button"
-              className="absolute inset-0"
-              onClick={() => setActiveEntityId(props.entity.id)}
-            />
           </div>
         )}
       </Entities>
-      {/* A button to add new text fields. */}
+      {/*
+      | A button that adds a new text field type entity
+      | to the store's schema.
+      */}
       <button
         type="button"
         onClick={() =>
