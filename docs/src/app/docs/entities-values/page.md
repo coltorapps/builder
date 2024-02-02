@@ -59,7 +59,7 @@ To validate a schema on the server-side, you can utilize the `validateEntitiesVa
 ```typescript
 "use server";
 
-import { validateEntitiesValues, validateSchema } from "basebuilder";
+import { validateEntitiesValues, validateSchema } from "@coltorapps/builder";
 
 import db from "./db";
 import { formBuilder } from "./form-builder";

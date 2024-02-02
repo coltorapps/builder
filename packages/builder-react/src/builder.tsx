@@ -7,6 +7,7 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
+
 import {
   builderStoreEventsNames,
   createBuilder,
@@ -15,7 +16,7 @@ import {
   type BuilderStore,
   type BuilderStoreData,
   type BuilderStoreEvent,
-} from "basebuilder";
+} from "@coltorapps/builder";
 
 import { type EntitiesAttributesComponents } from "./attributes";
 import {

@@ -18,7 +18,7 @@ Use the `useInterpreterStoreData` function to get the [interpreter store's](/doc
 import {
   useInterpreterStore,
   useInterpreterStoreData,
-} from "@basebuilder/react";
+} from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 

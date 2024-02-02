@@ -17,7 +17,7 @@ By an attribute definition, we simply mean an object with specific properties. T
 Use the `createAttribute` function to create an attribute definition.
 
 ```typescript
-import { createAttribute } from "basebuilder";
+import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
   name: "label",

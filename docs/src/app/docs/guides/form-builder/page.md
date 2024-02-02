@@ -18,10 +18,10 @@ Note that in this guide, we won't be discussing progressive enhancement of forms
 
 ## Prerequisites
 
-To get started with Basebuilder, all you need to do is install the dependencies in your project.
+To get started with Builder, all you need to do is install the dependencies in your project.
 
 ```shell
-pnpm install basebuilder @basebuilder/react
+pnpm install @coltorapps/builder @coltorapps/builder-react
 ```
 
 ## Summary
@@ -45,8 +45,9 @@ We'll begin with a simple label attribute definition for now, but later we'll ad
 For illustrative purposes, we're going to use [Zod](https://zod.dev/) for validation, but you're free to use any other validation library or even manually validate inputs as per your requirements.
 
 ```typescript
-import { createAttribute } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
   name: "label",
@@ -65,8 +66,9 @@ Think of entities with attributes as components with props. For example, you can
 Now let's create a text field entity definition.
 
 ```typescript
-import { createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createEntity } from "@coltorapps/builder";
 
 import { labelAttribute } from "./label-attribute";
 
@@ -86,7 +88,7 @@ In the example above, we've created a text field entity with a label attribute. 
 Think of builders as collections of supported entities. For example, you can have a form builder that allows adding text and select fields to a form, but also another landing page builder that allows adding hero sections and feature sections to a landing page. For now, we're going to focus solely on the form builder.
 
 ```typescript
-import { createBuilder } from "basebuilder";
+import { createBuilder } from "@coltorapps/builder";
 
 import { textFieldEntity } from "./text-field-entity";
 
@@ -104,7 +106,7 @@ Now that we have defined a label attribute, let's create a component for it. Thi
 ```tsx
 import { ZodError } from "zod";
 
-import { createAttributeComponent } from "@basebuilder/react";
+import { createAttributeComponent } from "@coltorapps/builder-react";
 
 import { labelAttribute } from "./label-attribute";
 
@@ -143,7 +145,7 @@ Now that we have defined a text field entity, let's create a component for it. T
 ```tsx
 import { ZodError } from "zod";
 
-import { createEntityComponent } from "@basebuilder/react";
+import { createEntityComponent } from "@coltorapps/builder-react";
 
 import { textFieldEntity } from "./text-field-entity";
 
@@ -179,7 +181,7 @@ Now that we have our text field and label components in place, we can proceed to
 ```tsx
 "use client";
 
-import { Entities, useBuilderStore } from "@basebuilder/react";
+import { Entities, useBuilderStore } from "@coltorapps/builder-react";
 
 import { LabelAttribute, TextFieldEntity } from "./components";
 import { formBuilder } from "./form-builder";
@@ -334,7 +336,7 @@ Let's define a server action that will receive the built form schema.
 ```typescript
 "use server";
 
-import { validateSchema } from "basebuilder";
+import { validateSchema } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 
@@ -405,9 +407,8 @@ export default async function FormPage() {
 ```tsx
 "use client";
 
-import { type Schema } from "basebuilder";
-
-import { Interpreter, useInterpreterStore } from "@basebuilder/react";
+import { type Schema } from "@coltorapps/builder";
+import { Interpreter, useInterpreterStore } from "@coltorapps/builder-react";
 
 import { TextFieldEntity } from "./components";
 import { formBuilder } from "./form-builder";
@@ -468,7 +469,7 @@ Let's define a server action that will receive the submitted schema.
 ```typescript
 "use server";
 
-import { validateSchema } from "basebuilder";
+import { validateSchema } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 import { getForm } from "./get-form";
@@ -541,8 +542,9 @@ Now that we have our form builder system in place, let's expand the functionalit
 First, create the attribute definition.
 
 ```typescript
-import { createAttribute } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute } from "@coltorapps/builder";
 
 export const requiredAttribute = createAttribute({
   name: "required",
@@ -555,8 +557,9 @@ export const requiredAttribute = createAttribute({
 Attach the attribute definition to the text field entity definition.
 
 ```typescript
-import { createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createEntity } from "@coltorapps/builder";
 
 import { labelAttribute } from "./label-attribute";
 import { requiredAttribute } from "./required-attribute";
@@ -585,7 +588,7 @@ Create the visual component of the attribute.
 ```tsx
 import { ZodError } from "zod";
 
-import { createAttributeComponent } from "@basebuilder/react";
+import { createAttributeComponent } from "@coltorapps/builder-react";
 
 import { requiredAttribute } from "./required-attribute";
 

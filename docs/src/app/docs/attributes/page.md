@@ -17,8 +17,9 @@ You can use the `createAttribute` function to create an attribute definition.
 For illustrative purposes, we're going to use [Zod](https://zod.dev/) for validation, but you're free to use any other validation library or even manually validate inputs as per your requirements.
 
 ```typescript
-import { createAttribute } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
   name: "label",
@@ -41,7 +42,7 @@ Validations can also be asynchronous, in which case the inferred value will be t
 You can throw errors, strings, objects, and virtually anything (however, as a programming best practice, we recommend throwing error instances) in the `validate` method of an attribute in case of an invalid value. The thrown exceptions will be automatically caught and provided to you during schema validation.
 
 ```typescript
-import { createAttribute } from "basebuilder";
+import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
   name: "label",
@@ -70,8 +71,9 @@ The context object is generic and not inherently type-safe because at the attrib
 In the `validate` method of an attribute, you have the ability to return transformed values. This essentially allows you to convert the original value into a new one as needed.
 
 ```typescript
-import { createAttribute } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
   name: "label",
@@ -84,5 +86,5 @@ export const labelAttribute = createAttribute({
 ```
 
 {% callout title="You should know!" %}
-Transformations are always applied exclusively when using the `validateSchema` method from the `basebuilder` package. They are intentionally not applied when validating attributes or schema via the builder store, in order to ensure a clear user experience.
+Transformations are always applied exclusively when using the `validateSchema` method from the `@coltorapps/builder` package. They are intentionally not applied when validating attributes or schema via the builder store, in order to ensure a clear user experience.
 {% /callout %}

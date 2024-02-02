@@ -12,7 +12,7 @@ const styles = {
     container:
       "bg-amber-50 dark:bg-neutral-800/60 dark:ring-1 dark:ring-neutral-300/10",
     title: "text-amber-900 dark:text-amber-500",
-    body: "text-amber-800 [--tw-prose-underline:theme(colors.amber.400)] [--tw-prose-background:theme(colors.amber.50)] prose-a:text-amber-900 prose-code:text-amber-900 dark:text-neutral-300 dark:[--tw-prose-underline:theme(colors.sky.700)] dark:prose-code:text-neutral-300",
+    body: "text-amber-800 prose-strong:text-white [--tw-prose-underline:theme(colors.amber.400)] [--tw-prose-background:theme(colors.amber.50)] prose-a:text-amber-900 prose-code:text-amber-900 dark:text-neutral-300 dark:[--tw-prose-underline:theme(colors.sky.700)] dark:prose-code:text-neutral-300",
   },
 };
 

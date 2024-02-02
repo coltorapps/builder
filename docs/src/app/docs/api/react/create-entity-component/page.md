@@ -17,7 +17,7 @@ The function itself serves primarily as a type safety helper and doesn't perform
 Use the `createEntityComponent` function to define the visual component for your entity:
 
 ```tsx
-import { createEntityComponent } from "@basebuilder/react";
+import { createEntityComponent } from "@coltorapps/builder-react";
 
 import { textFieldEntity } from "./text-field-entity";
 

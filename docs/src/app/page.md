@@ -2,7 +2,7 @@
 title: Getting started
 ---
 
-Learn how to get started with Basebuilder through our guides. {% .lead %}
+Learn how to get started with Builder through our guides. {% .lead %}
 
 {% quick-links %}
 
@@ -20,7 +20,7 @@ Learn how to get started with Basebuilder through our guides. {% .lead %}
 
 ## Live Example
 
-A simple example of what can be accomplished with Basebuilder.
+A simple example of what can be accomplished with Builder.
 
 {% basic-form-builder /%}
 
@@ -28,7 +28,7 @@ A simple example of what can be accomplished with Basebuilder.
 
 ## Intro
 
-Basebuilder is a versatile TypeScript library designed for crafting custom form builders and much more. You can also develop website builders, dashboard builders, and any other builders you envision.
+**Builder** is a versatile TypeScript library designed for crafting custom form builders and much more. You can also develop website builders, dashboard builders, and any other builders you envision.
 
 Some key characteristics:
 
@@ -41,10 +41,10 @@ Some key characteristics:
 - Unopinionated: Affords you the freedom to build anything you imagine.
 - Progressively Enhanceable: Embraces web standards.
 
-Currently, Basebuilder offers support for React, with plans to extend compatibility to other front-end frameworks in the future.
+Currently, **Builder** offers support for React, with plans to extend compatibility to other front-end frameworks in the future.
 
 {% callout type="warning" title="Alpha Stage" %}
-We are successfully using Basebuilder in real-world production apps. However, it's important to note that the project is currently in the alpha stage, which means that breaking changes can occur even in minor or patch updates.
+We are successfully using **Builder** in real-world production apps. However, it's important to note that the project is currently in the alpha stage, which means that breaking changes can occur even in minor or patch updates.
 {% /callout %}
 
 ---
@@ -55,15 +55,15 @@ You're welcome to join our community, engage in discussions, open issues, contri
 
 ### Submit an issue
 
-If you encounter any issues or bugs, we encourage you to report them on our [GitHub Issues page](https://github.com/coltorapps/basebuilder/issues).
+If you encounter any issues or bugs, we encourage you to report them on our [GitHub Issues page](https://github.com/coltorapps/builder/issues).
 
-Before submitting a new issue, please check if there is a solution or question posted on our [GitHub Issues page](https://github.com/coltorapps/basebuilder/issues) already.
+Before submitting a new issue, please check if there is a solution or question posted on our [GitHub Issues page](https://github.com/coltorapps/builder/issues) already.
 
-When opening a new issue, please be as explicit as possible, preferrably by following our [Bug Report Template](https://github.com/coltorapps/basebuilder/blob/main/.github/ISSUE_TEMPLATE/bug_report.yml).
+When opening a new issue, please be as explicit as possible, preferrably by following our [Bug Report Template](https://github.com/coltorapps/builder/blob/main/.github/ISSUE_TEMPLATE/bug_report.yml).
 
 ### Join the community
 
-For sharing ideas and engaging in discussions, our [GitHub Discussions](https://github.com/coltorapps/basebuilder/discussions) forum is the perfect place.
+For sharing ideas and engaging in discussions, our [GitHub Discussions](https://github.com/coltorapps/builder/discussions) forum is the perfect place.
 
 We are open to considering any ideas that provide real value to other developers and fall within the scope of the project.
 

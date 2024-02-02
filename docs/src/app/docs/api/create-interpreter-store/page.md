@@ -8,7 +8,7 @@ nextjs:
 
 This function instantiates an interpreter store, used for for filling entities values based on a schema and builder definition.
 
-In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize [`useInterpreterStore`](/docs/api/react/use-interpreter-store) from `@basebuilder/react`, which essentially creates the interpreter store for you.
+In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize [`useInterpreterStore`](/docs/api/react/use-interpreter-store) from `@coltorapps/builder-react`, which essentially creates the interpreter store for you.
 
 ## Reference
 
@@ -17,7 +17,7 @@ In most cases, you won't need to use the `createInterpreterStore` method directl
 Use the `createInterpreterStore` function to instantiate an interpreter store.
 
 ```typescript
-import { createInterpreterStore } from "basebuilder";
+import { createInterpreterStore } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 

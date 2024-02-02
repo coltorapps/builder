@@ -14,12 +14,12 @@ A builder store serves as the central component used for constructing a schema b
 
 The `createBuilderStore` method is utilized to create a builder store based on one of your custom builders.
 
-In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize [`useBuilderStore`](/docs/api/react/use-builder-store) from `@basebuilder/react`, which essentially creates the builder store for you.
+In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize [`useBuilderStore`](/docs/api/react/use-builder-store) from `@coltorapps/builder-react`, which essentially creates the builder store for you.
 
 This store is equipped to handle tasks such as adding entities, removing entities, reordering entities, and performing entity validation, among other functions.
 
 ```typescript
-import { createBuilderStore } from "basebuilder";
+import { createBuilderStore } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 
@@ -158,7 +158,7 @@ This will produce an output similar to:
 You can create a builder store with an initial schema, entity attributes errors, and schema error.
 
 ```typescript
-import { createBuilderStore } from "basebuilder";
+import { createBuilderStore } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 

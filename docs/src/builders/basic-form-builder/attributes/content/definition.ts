@@ -1,5 +1,6 @@
-import { createAttribute } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute } from "@coltorapps/builder";
 
 export const contentAttribute = createAttribute({
   name: "content",

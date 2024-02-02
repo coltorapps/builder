@@ -1,10 +1,11 @@
 import { useContext, type LazyExoticComponent } from "react";
+
 import {
   builderStoreEventsNames,
   type Attribute,
   type Builder,
   type SchemaEntityWithId,
-} from "basebuilder";
+} from "@coltorapps/builder";
 
 import { BuilderAttributesContext, useBuilderStoreData } from "./builder";
 

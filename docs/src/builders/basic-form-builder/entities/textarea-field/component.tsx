@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
 
-import { createEntityComponent } from "@basebuilder/react";
+import { createEntityComponent } from "@coltorapps/builder-react";
 
 import { textareaFieldEntity } from "./definition";
 

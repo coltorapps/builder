@@ -7,6 +7,7 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
+
 import {
   createBuilder,
   createInterpreterStore,
@@ -17,7 +18,7 @@ import {
   type InterpreterStoreData,
   type InterpreterStoreEvent,
   type Schema,
-} from "basebuilder";
+} from "@coltorapps/builder";
 
 import {
   type EntitiesComponents,

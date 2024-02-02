@@ -15,7 +15,7 @@ A schema is essentially a JSON structure created through a specific builder, whi
 Consider the following builder:
 
 ```typescript
-import { createBuilder } from "basebuilder";
+import { createBuilder } from "@coltorapps/builder";
 
 import { sectionEntity } from "./section-entity";
 import { textFieldEntity } from "./text-field-entity";
@@ -81,7 +81,7 @@ To validate a schema on the server-side, you can utilize the `validateSchema` me
 ```typescript
 "use server";
 
-import { validateSchema } from "basebuilder";
+import { validateSchema } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 
@@ -115,7 +115,7 @@ Schema transformations will be applied when utilizing the `validateSchema` metho
 To validate a schema's shape synchronously, you can use the `validateSchemaShape` method. This method performs the same validation as the `validateSchema` method but does not validate attributes values and skips the custom schema validation. It can be beneficial in specific scenarios.
 
 ```typescript
-import { validateSchemaShape } from "basebuilder";
+import { validateSchemaShape } from "@coltorapps/builder";
 
 const result = validateSchemaShape(schema, formBuilder);
 

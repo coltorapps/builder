@@ -13,15 +13,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { type BuilderStore } from "basebuilder";
 import { InfoIcon, XIcon } from "lucide-react";
 
+import { type BuilderStore } from "@coltorapps/builder";
 import {
   Entities,
   EntityAttributes,
   useBuilderStore,
   useBuilderStoreData,
-} from "@basebuilder/react";
+} from "@coltorapps/builder-react";
 
 import { DatePickerFieldAttributes } from "../entities/date-picker/attributes-component";
 import { DatePickerFieldEntity } from "../entities/date-picker/component";

@@ -8,7 +8,7 @@ nextjs:
 
 This function instantiates a builder store, used for building and operating with schemas based on a specific builder definition.
 
-In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize [`useBuilderStore`](/docs/api/react/use-builder-store) from `@basebuilder/react`, which essentially creates the builder store for you.
+In most cases, you won't need to use the `createBuilderStore` method directly. Instead, you will mostly utilize [`useBuilderStore`](/docs/api/react/use-builder-store) from `@coltorapps/builder-react`, which essentially creates the builder store for you.
 
 ## Reference
 
@@ -17,7 +17,7 @@ In most cases, you won't need to use the `createBuilderStore` method directly. I
 Use the `createBuilderStore` function to instantiate a builder store.
 
 ```typescript
-import { createBuilderStore } from "basebuilder";
+import { createBuilderStore } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 

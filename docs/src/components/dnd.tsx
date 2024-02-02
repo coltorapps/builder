@@ -7,9 +7,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { type BuilderStore } from "basebuilder";
 
-import { useBuilderStoreData } from "@basebuilder/react";
+import { type BuilderStore } from "@coltorapps/builder";
+import { useBuilderStoreData } from "@coltorapps/builder-react";
 
 export function DndItem(props: { id: string; children: ReactNode }) {
   const {

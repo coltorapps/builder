@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-import { createEntityComponent } from "@basebuilder/react";
+import { createEntityComponent } from "@coltorapps/builder-react";
 
 import { paragraphEntity } from "./definition";
 

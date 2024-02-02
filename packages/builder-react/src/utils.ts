@@ -1,4 +1,4 @@
-import { type SubscriptionEvent } from "basebuilder";
+import { type SubscriptionEvent } from "@coltorapps/builder";
 
 export type KeyofUnion<T> = T extends unknown ? keyof T : never;
 

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
-import { createAttributeComponent } from "@basebuilder/react";
+import { createAttributeComponent } from "@coltorapps/builder-react";
 
 import { defaultDateValueAttribute } from "./definition";
 

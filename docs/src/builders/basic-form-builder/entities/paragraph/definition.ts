@@ -1,4 +1,4 @@
-import { createEntity } from "basebuilder";
+import { createEntity } from "@coltorapps/builder";
 
 import { contentAttribute } from "../../attributes/content/definition";
 

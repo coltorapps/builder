@@ -17,7 +17,7 @@ By an entity definition, we simply mean an object with specific properties. The 
 Use the `createEntity` function to create an entity definition.
 
 ```typescript
-import { createEntity } from "basebuilder";
+import { createEntity } from "@coltorapps/builder";
 
 import { labelAttribute } from "./label-attribute";
 

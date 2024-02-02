@@ -5,7 +5,7 @@ import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { XIcon } from "lucide-react";
 
-import { createAttributeComponent } from "@basebuilder/react";
+import { createAttributeComponent } from "@coltorapps/builder-react";
 
 import { optionsAttribute } from "./definition";
 

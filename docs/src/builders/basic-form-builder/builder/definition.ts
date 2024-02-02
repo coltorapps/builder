@@ -1,4 +1,4 @@
-import { createBuilder } from "basebuilder";
+import { createBuilder } from "@coltorapps/builder";
 
 import { datePickerFieldEntity } from "../entities/date-picker/definition";
 import { paragraphEntity } from "../entities/paragraph/definition";

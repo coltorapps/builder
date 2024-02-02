@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
-import { createEntityComponent } from "@basebuilder/react";
+import { createEntityComponent } from "@coltorapps/builder-react";
 
 import { datePickerFieldEntity } from "./definition";
 

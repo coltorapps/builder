@@ -17,7 +17,7 @@ Use the `validateEntitiesValues` function to validate the input values:
 ```typescript
 "use server";
 
-import { validateEntitiesValues } from "basebuilder";
+import { validateEntitiesValues } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 

@@ -1,5 +1,6 @@
-import { createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createEntity } from "@coltorapps/builder";
 
 import { defaultDateValueAttribute } from "../../attributes/default-date-value/definition";
 import { labelAttribute } from "../../attributes/label/definition";

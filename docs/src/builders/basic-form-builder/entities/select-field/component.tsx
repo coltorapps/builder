@@ -10,7 +10,7 @@ import {
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
 
-import { createEntityComponent } from "@basebuilder/react";
+import { createEntityComponent } from "@coltorapps/builder-react";
 
 import { selectFieldEntity } from "./definition";
 

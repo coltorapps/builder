@@ -15,7 +15,7 @@ This React component is used to render the entities tree of a schema within the 
 Use the `Entities` component to render the entities tree.
 
 ```tsx
-import { Entities, useBuilderStore } from "@basebuilder/react";
+import { Entities, useBuilderStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { TextFieldEntity } from "./text-field-entity";
@@ -51,7 +51,7 @@ The `Entities` component essentially renders an entities tree.
 The `children` prop of the `Entities` component must be a function, which is used to wrap each rendered arbitrary entity with additional rendering. This can be useful, for instance, to render a delete button alongside each entity.
 
 ```tsx
-import { Entities, useBuilderStore } from "@basebuilder/react";
+import { Entities, useBuilderStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { TextFieldEntity } from "./text-field-entity";

@@ -55,7 +55,7 @@ function Header() {
       </div>
       <div className="relative flex basis-0 justify-end gap-6 sm:gap-8 md:flex-grow">
         <Link
-          href="https://github.com/coltorapps/basebuilder"
+          href="https://github.com/coltorapps/builder"
           target="_blank"
           className="group"
           aria-label="GitHub"

@@ -13,12 +13,12 @@ importers:
 
   .:
     dependencies:
-      '@basebuilder/eslint-config':
-        specifier: 0.1.0
-        version: link:packages/eslint-config
       '@changesets/cli':
         specifier: ^2.26.2
         version: 2.26.2
+      '@coltorapps/eslint-config':
+        specifier: 0.1.0
+        version: link:packages/eslint-config
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.1.1
         version: 4.1.1(prettier@3.0.3)
@@ -61,9 +61,12 @@ importers:
       '@algolia/autocomplete-core':
         specifier: ^1.9.2
         version: 1.9.2(@algolia/client-search@4.20.0)(algoliasearch@4.20.0)(search-insights@2.9.0)
-      '@basebuilder/react':
-        specifier: ^0.1.0
-        version: link:../packages/basebuilder-react
+      '@coltorapps/builder':
+        specifier: ^0.1.1
+        version: link:../packages/builder
+      '@coltorapps/builder-react':
+        specifier: ^0.1.1
+        version: link:../packages/builder-react
       '@dnd-kit/core':
         specifier: ^6.1.0
         version: 6.1.0(react-dom@18.2.0)(react@18.2.0)
@@ -142,9 +145,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.12
         version: 10.4.16(postcss@8.4.31)
-      basebuilder:
-        specifier: ^0.1.0
-        version: link:../packages/basebuilder
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -212,7 +212,7 @@ importers:
         specifier: ^3.22.4
         version: 3.22.4
     devDependencies:
-      '@basebuilder/eslint-config':
+      '@coltorapps/eslint-config':
         specifier: 0.1.0
         version: link:../packages/eslint-config
       '@types/lodash':
@@ -234,9 +234,9 @@ importers:
         specifier: ^0.32.0
         version: 0.32.0
 
-  packages/basebuilder:
+  packages/builder:
     devDependencies:
-      '@basebuilder/eslint-config':
+      '@coltorapps/eslint-config':
         specifier: 0.1.0
         version: link:../eslint-config
       eslint:
@@ -252,17 +252,17 @@ importers:
         specifier: ^3.22.4
         version: 3.22.4
 
-  packages/basebuilder-react:
+  packages/builder-react:
     devDependencies:
-      '@basebuilder/eslint-config':
+      '@coltorapps/builder':
+        specifier: 0.1.1
+        version: link:../builder
+      '@coltorapps/eslint-config':
         specifier: 0.1.0
         version: link:../eslint-config
       '@types/react':
         specifier: ^18.2.32
         version: 18.2.32
-      basebuilder:
-        specifier: 0.1.0
-        version: link:../basebuilder
       eslint:
         specifier: ^8.52.0
         version: 8.52.0

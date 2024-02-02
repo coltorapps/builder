@@ -1,5 +1,6 @@
-import { createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createEntity } from "@coltorapps/builder";
 
 import { labelAttribute } from "../../attributes/label/definition";
 import { optionsAttribute } from "../../attributes/options/definition";

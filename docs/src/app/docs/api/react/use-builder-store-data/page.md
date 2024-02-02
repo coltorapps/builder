@@ -15,7 +15,10 @@ This React hook accepts a [builder store](/docs/api/react/use-builder-store) and
 Use the `useBuilderStoreData` function to get the [builder store's](/docs/api/react/use-builder-store) data and automatically trigger rerenders when mutation events are emitted by the store.
 
 ```typescript
-import { useBuilderStore, useBuilderStoreData } from "@basebuilder/react";
+import {
+  useBuilderStore,
+  useBuilderStoreData,
+} from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 

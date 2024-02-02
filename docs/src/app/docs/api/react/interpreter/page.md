@@ -15,7 +15,7 @@ This React component is used to render the entities tree within the context of a
 Use the `Interpreter` component to render the entities tree.
 
 ```tsx
-import { Interpreter, useInterpreterStore } from "@basebuilder/react";
+import { Interpreter, useInterpreterStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { TextFieldEntity } from "./text-field-entity";
@@ -65,7 +65,7 @@ The `Interpreter` component essentially renders an entities tree.
 The `children` prop of the `Interpreter` component must be a function, which is used to wrap each rendered arbitrary entity with additional rendering.
 
 ```tsx
-import { Interpreter, useInterpreterStore } from "@basebuilder/react";
+import { Interpreter, useInterpreterStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { TextFieldEntity } from "./text-field-entity";

@@ -2,12 +2,12 @@
   "$schema": "https://unpkg.com/@changesets/config@2.3.1/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [["basebuilder"], ["@basebuilder/react"]],
+  "fixed": [["@coltorapps/builder"], ["@coltorapps/builder-react"]],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@basebuilder/docs"],
+  "ignore": ["@coltorapps/builder-docs"],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
   }

@@ -19,8 +19,9 @@ A factory pattern is a design pattern that provides a way to produce objects bas
 We will create a factory that creates our form builder, enabling us to extend the validation of the email field entity.
 
 ```typescript
-import { createBuilder, createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createBuilder, createEntity } from "@coltorapps/builder";
 
 export function createFormBuilder(options?: {
   validateEmailField?: (email: string) => Promise<void>;
@@ -54,7 +55,7 @@ We will create an instance of our form builder on the server using the defined f
 ```typescript
 "use server";
 
-import { validateSchema } from "basebuilder";
+import { validateSchema } from "@coltorapps/builder";
 
 import { db } from "./db";
 import { createFormBuilder } from "./form-builder";
@@ -87,7 +88,10 @@ As you may have noticed above, the `options` parameter of our factory is optiona
 ```typescript
 "use client";
 
-import { createEntityComponent, useBuilderStore } from "@basebuilder/react";
+import {
+  createEntityComponent,
+  useBuilderStore,
+} from "@coltorapps/builder-react";
 
 import { createFormBuilder } from "./form-builder";
 

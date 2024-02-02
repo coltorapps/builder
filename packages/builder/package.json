@@ -1,11 +1,11 @@
 {
-  "name": "basebuilder",
+  "name": "@coltorapps/builder",
   "private": false,
-  "version": "0.1.0",
-  "homepage": "https://basebuilder.dev/",
+  "version": "0.1.1",
+  "homepage": "https://builder.coltorapps.com/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/coltor-apps/basebuilder.git"
+    "url": "https://github.com/coltorapps/builder.git"
   },
   "license": "MIT",
   "main": "./dist/index.js",
@@ -34,7 +34,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
-    "@basebuilder/eslint-config": "0.1.0",
+    "@coltorapps/eslint-config": "0.1.0",
     "eslint": "^8.52.0",
     "tsup": "^7.2.0",
     "vitest": "^0.34.6",

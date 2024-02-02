@@ -1,5 +1,6 @@
-import { createAttribute } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute } from "@coltorapps/builder";
 
 export const requiredAttribute = createAttribute({
   name: "required",

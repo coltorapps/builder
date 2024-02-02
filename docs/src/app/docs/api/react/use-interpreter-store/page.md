@@ -15,7 +15,7 @@ This React hook creates an [interpreter store](/docs/api/create-interpreter-stor
 Use the `useInterpreterStore` function to create an [interpreter store](/docs/api/create-interpreter-store).
 
 ```typescript
-import { useInterpreterStore } from "@basebuilder/react";
+import { useInterpreterStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 

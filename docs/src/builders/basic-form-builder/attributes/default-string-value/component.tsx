@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 
-import { createAttributeComponent } from "@basebuilder/react";
+import { createAttributeComponent } from "@coltorapps/builder-react";
 
 import { defaultStringValueAttribute } from "./definition";
 

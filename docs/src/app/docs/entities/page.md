@@ -17,8 +17,9 @@ You can use the `createEntity` function to create an entity definition.
 For illustrative purposes, we're going to use [Zod](https://zod.dev/) for validation, but you're free to use any other validation library or even manually validate inputs as per your requirements.
 
 ```typescript
-import { createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createEntity } from "@coltorapps/builder";
 
 import { labelAttribute } from "./label-attribute";
 
@@ -44,7 +45,7 @@ Validations can also be asynchronous, in which case the inferred value will be t
 You can throw errors, strings, objects, and virtually anything (however, as a programming best practice, we recommend throwing error instances) in the `validate` method of an entity in case of an invalid value. The thrown exceptions will be automatically caught and provided to you during schema validation.
 
 ```typescript
-import { createEntity } from "basebuilder";
+import { createEntity } from "@coltorapps/builder";
 
 export const textFieldEntity = createEntity({
   name: "textField",
@@ -73,8 +74,9 @@ Since entities are configurable via attributes, most of the time, the validation
 Let's define a `required` attribute for the text field entity and validate the entity's value depending on this attribute's value from the context.
 
 ```typescript
-import { createAttribute, createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute, createEntity } from "@coltorapps/builder";
 
 export const requiredAttribute = createAttribute({
   name: "required",
@@ -107,8 +109,9 @@ Sometimes, we want the validation of an attribute's value to depend on the value
 For example, let's consider a text field with min and max length attributes. We want to ensure that the min length is less than the max length, and the max length is greater than the min length.
 
 ```typescript
-import { createAttribute, createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute, createEntity } from "@coltorapps/builder";
 
 export const minLengthAttribute = createAttribute({
   name: "minLength",
@@ -172,7 +175,7 @@ When extending an attribute's validation at the entity level, the return type of
 We can enforce that an entity must always have a parent using the `parentRequired` attribute. For example, we want the text field entity to always be a child of another entity and never exist at the root level of the entity hierarchy.
 
 ```typescript
-import { createEntity } from "basebuilder";
+import { createEntity } from "@coltorapps/builder";
 
 export const textFieldEntity = createEntity({
   name: "textField",
@@ -183,7 +186,7 @@ export const textFieldEntity = createEntity({
 If we want to allow an entity to have child entities, we can achieve this using the `childrenAllowed` attribute. For example, we may want to create section entities that can contain fields within them.
 
 ```typescript
-import { createEntity } from "basebuilder";
+import { createEntity } from "@coltorapps/builder";
 
 export const sectionEntity = createEntity({
   name: "section",
@@ -196,8 +199,9 @@ export const sectionEntity = createEntity({
 We can compute a default value for an entity by utilizing the `defaultValue` method, which has access to the context and, consequently, to all attributes. For example, we want to allow the user to specify the default value of a text field.
 
 ```typescript
-import { createAttribute, createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute, createEntity } from "@coltorapps/builder";
 
 export const defaultValueAttribute = createAttribute({
   name: "defaultValue",
@@ -231,8 +235,9 @@ An entity can be conditionally hidden from the UI and excluded from all validati
 This method can be useful for establishing conditional entities that depend on other entities. For instance, you may want to display a text field only when another text field has been filled.
 
 ```typescript
-import { createAttribute, createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createAttribute, createEntity } from "@coltorapps/builder";
 
 export const referenceEntityIdAttribute = createAttribute({
   name: "referenceEntityId",
@@ -288,8 +293,9 @@ If the `shouldBeProcessed` method of a parent entity returns `false`, and it con
 In the `validate` method of an entity, you have the ability to return transformed values. This essentially allows you to convert the original value into a new one as needed.
 
 ```typescript
-import { createEntity } from "basebuilder";
 import { z } from "zod";
+
+import { createEntity } from "@coltorapps/builder";
 
 export const textFieldEntity = createEntity({
   name: "textField",
@@ -302,5 +308,5 @@ export const textFieldEntity = createEntity({
 ```
 
 {% callout title="You should know!" %}
-Transformations are always applied exclusively when using the `validateEntitiesValues` method from the `basebuilder` package. They are intentionally not applied when validating entities values via the interpreter store, in order to ensure a clear user experience.
+Transformations are always applied exclusively when using the `validateEntitiesValues` method from the `@coltorapps/builder` package. They are intentionally not applied when validating entities values via the interpreter store, in order to ensure a clear user experience.
 {% /callout %}

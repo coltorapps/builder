@@ -15,7 +15,10 @@ This React hook retrieves the values of all entities or the selected ones within
 Use the `useEntitiesValues` function to retrieve the values of all entities or the selected ones.
 
 ```tsx
-import { createEntityComponent, useEntitiesValues } from "@basebuilder/react";
+import {
+  createEntityComponent,
+  useEntitiesValues,
+} from "@coltorapps/builder-react";
 
 import { textFieldEntity } from "./text-field-entity";
 

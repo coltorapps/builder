@@ -1,9 +1,10 @@
 import { type LazyExoticComponent } from "react";
+
 import {
   type Builder,
   type Entity,
   type SchemaEntityWithId,
-} from "basebuilder";
+} from "@coltorapps/builder";
 
 export type EntityForRender<TEntity extends Entity = Entity> =
   SchemaEntityWithId<Builder<[TEntity]>> & {

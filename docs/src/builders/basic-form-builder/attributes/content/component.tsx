@@ -6,7 +6,7 @@ import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { cn } from "@/lib/utils";
 import { Bold, Italic } from "lucide-react";
 
-import { createAttributeComponent } from "@basebuilder/react";
+import { createAttributeComponent } from "@coltorapps/builder-react";
 
 import { contentAttribute } from "./definition";
 

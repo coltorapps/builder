@@ -15,7 +15,7 @@ This React component is used to render the attributes of a specific entity insta
 Use the `EntityAttributes` component to render the attributes of a specific entity.
 
 ```tsx
-import { EntityAttributes, useBuilderStore } from "@basebuilder/react";
+import { EntityAttributes, useBuilderStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { LabelAttribute, RequiredAttribute } from "./label-attribute";

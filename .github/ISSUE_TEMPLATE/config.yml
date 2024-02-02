@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: 🤔 Feature Requests & Questions 
-    url: https://github.com/coltor-apps/basebuilder/discussions
+    url: https://github.com/coltorapps/builder/discussions
   - name: 💬 New Updates (X)
     url: https://twitter.com/sandulat
-    about: Stay up to date with Basebuilder news on X
+    about: Stay up to date with Builder news on X

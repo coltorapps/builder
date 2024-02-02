@@ -15,7 +15,7 @@ This React hook creates a [builder store](/docs/api/create-builder-store).
 Use the `useBuilderStore` function to create a [builder store](/docs/api/create-builder-store).
 
 ```typescript
-import { useBuilderStore } from "@basebuilder/react";
+import { useBuilderStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 

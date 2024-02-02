@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 
-import { createAttributeComponent } from "@basebuilder/react";
+import { createAttributeComponent } from "@coltorapps/builder-react";
 
 import { requiredAttribute } from "./definition";
 

@@ -62,7 +62,7 @@ import {
   Entities,
   useBuilderStore,
   useBuilderStoreData,
-} from "@basebuilder/react";
+} from "@coltorapps/builder-react";
 
 import {
   DatePickerFieldEntity,

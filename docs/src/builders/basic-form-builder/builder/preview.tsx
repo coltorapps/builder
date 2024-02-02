@@ -10,15 +10,15 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { AlertCircle, CheckCircle2, EyeIcon } from "lucide-react";
+
 import {
   type BuilderStore,
   type EntitiesValues,
   type InterpreterStore,
   type Schema,
-} from "basebuilder";
-import { AlertCircle, CheckCircle2, EyeIcon } from "lucide-react";
-
-import { Interpreter, useInterpreterStore } from "@basebuilder/react";
+} from "@coltorapps/builder";
+import { Interpreter, useInterpreterStore } from "@coltorapps/builder-react";
 
 import { DatePickerFieldEntity } from "../entities/date-picker/component";
 import { ParagraphEntity } from "../entities/paragraph/component";

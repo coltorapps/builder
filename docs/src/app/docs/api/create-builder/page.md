@@ -17,7 +17,7 @@ By a builder definition, we simply mean an object with specific properties. The 
 Use the `createBuilder` function to create a builder definition.
 
 ```typescript
-import { createBuilder } from "basebuilder";
+import { createBuilder } from "@coltorapps/builder";
 
 import { selectFieldEntity, textFieldEntity } from "./entities";
 

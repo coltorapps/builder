@@ -25,7 +25,7 @@ Use the `validateSchemaShape` function to validate the input schema:
 ```typescript
 "use server";
 
-import { validateSchemaShape } from "basebuilder";
+import { validateSchemaShape } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 

@@ -57,7 +57,7 @@ export function Hero() {
                 </Button>
                 <Button variant="secondary" asChild>
                   <Link
-                    href="https://github.com/coltorapps/basebuilder/"
+                    href="https://github.com/coltorapps/builder/"
                     target="_blank"
                   >
                     View on GitHub

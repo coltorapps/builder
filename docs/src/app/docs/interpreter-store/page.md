@@ -14,12 +14,12 @@ An interpreter store is responsible for filling entities values based on a schem
 
 The `createInterpreterStore` method is utilized to create an interpreter store based on one of your custom builders and a schema.
 
-In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize [`useInterpreterStore`](/docs/api/react/use-interpreter-store) from `@basebuilder/react`, which essentially creates the interpreter store for you.
+In most cases, you won't need to use the `createInterpreterStore` method directly. Instead, you will mostly utilize [`useInterpreterStore`](/docs/api/react/use-interpreter-store) from `@coltorapps/builder-react`, which essentially creates the interpreter store for you.
 
 This store is equipped to handle tasks such as setting entities values and performing validation of entities values.
 
 ```typescript
-import { createInterpreterStore } from "basebuilder";
+import { createInterpreterStore } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 
@@ -113,7 +113,7 @@ This will produce an output similar to:
 You can create an interpreter store with initial entities values and entities errors.
 
 ```typescript
-import { createBuilderStore } from "basebuilder";
+import { createBuilderStore } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 
@@ -154,7 +154,7 @@ Entities values will be automatically populated with their default values during
 To opt out of this behavior and prevent automatic default value assignment, you can set the `initialEntitiesValuesWithDefaults` flag to `false`.
 
 ```typescript
-import { createInterpreterStore } from "basebuilder";
+import { createInterpreterStore } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 
