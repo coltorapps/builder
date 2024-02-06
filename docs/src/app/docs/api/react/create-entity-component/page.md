@@ -14,7 +14,7 @@ The function itself serves primarily as a type safety helper and doesn't perform
 
 ### `createEntityComponent(entity, render)`
 
-Use the `createEntityComponent` function to define the visual component for your entity:
+Use the `createEntityComponent` function to define the component for your entity:
 
 ```tsx
 import { createEntityComponent } from "@coltorapps/builder-react";

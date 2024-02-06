@@ -46,7 +46,7 @@ export function Hero() {
             />
             <div className="relative xl:pr-24">
               <p className="font-display inline bg-gradient-to-t from-slate-400 to-white bg-clip-text text-5xl tracking-tight text-transparent">
-                Build your Builders
+                Builders made easy
               </p>
               <p className="mt-3 text-2xl tracking-tight text-neutral-400">
                 Powerful library for crafting your own form builders and beyond.
@@ -57,10 +57,28 @@ export function Hero() {
                 </Button>
                 <Button variant="secondary" asChild>
                   <Link
-                    href="https://github.com/coltorapps/builder/"
+                    href="https://www.youtube.com/watch?v=n6kTcHkjj_8"
                     target="_blank"
                   >
-                    View on GitHub
+                    Watch Intro
+                    <svg
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="h-6 w-6 ml-1"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z"
+                      />
+                    </svg>
                   </Link>
                 </Button>
               </div>

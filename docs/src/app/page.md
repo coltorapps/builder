@@ -16,6 +16,8 @@ Learn how to get started with Builder through our guides. {% .lead %}
 
 {% /quick-links %}
 
+{% youtube-video /%}
+
 ---
 
 ## Live Example
@@ -26,7 +28,7 @@ A simple example of what can be accomplished with Builder.
 
 ---
 
-## Intro
+## Introduction
 
 **Builder** is a versatile TypeScript library designed for crafting custom form builders and much more. You can also develop website builders, dashboard builders, and any other builders you envision.
 

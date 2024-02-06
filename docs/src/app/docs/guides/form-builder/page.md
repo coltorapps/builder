@@ -29,8 +29,8 @@ pnpm install @coltorapps/builder @coltorapps/builder-react
 1. Create a label attribute definition by using the `createAttribute` method.
 2. Create a text field entity definition by using the `createEntity` method and attach the label attribute to it.
 3. Create a form builder definition by using the `createBuilder` method and attach the text field entity to it.
-4. Create a visual component for the label attribute by using the `createAttributeComponent` method.
-5. Create a visual component for the text field entity by using the `createEntityComponent` method.
+4. Create an editor component for the label attribute by using the `createAttributeComponent` method.
+5. Create a component for the text field entity by using the `createEntityComponent` method.
 6. Instantiate a builder store using the `useBuilderStore` hook. Utilize the `Entities` component to render the entities from the store's schema, and use the `Attributes` component to display the attributes of a selected entity.
 7. Implement a server action for validating incoming form schemas by using the `validateSchema` method and persisting them in the database. Use this server action to submit the form schema from the client.
 8. Retrieve the built form schema and instantiate an interpreter store with the `useInterpreterStore` hook. Utilize the `Interpreter` component to render the entities from the store's schema.
@@ -583,7 +583,7 @@ export const textFieldEntity = createEntity({
 });
 ```
 
-Create the visual component of the attribute.
+Create the editor component of the attribute.
 
 ```tsx
 import { ZodError } from "zod";

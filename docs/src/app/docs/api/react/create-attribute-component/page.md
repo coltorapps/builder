@@ -14,7 +14,7 @@ The function is not just a type safety helper compared to [createEntityComponent
 
 ### `createAttributeComponent(attribute, render)`
 
-Use the `createAttributeComponent` function to define the visual component for your entity:
+Use the `createAttributeComponent` function to define the editor component for your attribute:
 
 ```tsx
 import { createAttributeComponent } from "@coltorapps/builder-react";

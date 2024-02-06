@@ -1,6 +1,7 @@
 import { BasicFormBuilder } from "@/builders/basic-form-builder";
 import { Callout } from "@/components/Callout";
 import { QuickLink, QuickLinks } from "@/components/QuickLinks";
+import { YoutubeVideo } from "@/components/YoutubeVideo";
 import { cn } from "@/lib/utils";
 
 const tags = {
@@ -30,6 +31,10 @@ const tags = {
         <figcaption>{caption}</figcaption>
       </figure>
     ),
+  },
+  "youtube-video": {
+    render: YoutubeVideo,
+    selfClosing: true,
   },
   "quick-links": {
     render: QuickLinks,

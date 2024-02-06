@@ -8,6 +8,8 @@
 <a href="https://github.com/coltorapps/builder">GitHub</a>
 <span> · </span>
 <a href="https://twitter.com/sandulat">Twitter (X)</a>
+<span> · </span>
+<a href="https://www.youtube.com/watch?v=n6kTcHkjj_8">Watch Intro ►</a>
 </div>
 <br />
 <div align="center">
@@ -32,6 +34,16 @@ Some key characteristics:
 
 Currently, **Builder** offers support for React, with plans to extend compatibility to other front-end frameworks in the future.
 
+Click the thumbnail below to watch the library's intro video.
+
+<div>
+<a href="https://www.youtube.com/watch?v=n6kTcHkjj_8">
+<img src="https://raw.githubusercontent.com/coltorapps/builder/main/assets/youtube-thumbnail.png" alt="drawing" width="400"/>
+</a>
+</div>
+
+<br />
+
 > We are successfully using **Builder** in real-world production apps. However, it's important to note that the project is currently in the alpha stage, which means that breaking changes can occur even in minor or patch updates.
 
 ## Install
@@ -49,8 +61,9 @@ pnpm install @coltorapps/builder @coltorapps/builder-react
 Think of attributes as the props of your entities. For instance, a text field may include attributes such as a label, a requirement flag, a maximum length, and others. Attributes are atomic, enabling their reuse across various entities.
 
 ```ts
-import { createAttribute } from "@coltorapps/builder";
 import { z } from "zod";
+
+import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
   name: "label",
@@ -65,8 +78,9 @@ export const labelAttribute = createAttribute({
 Think of entities with attributes as components with props. For example, you can define a text field entity, and users can later add multiple instances of text fields to a form.
 
 ```ts
-import { createEntity } from "@coltorapps/builder";
 import { z } from "zod";
+
+import { createEntity } from "@coltorapps/builder";
 
 import { labelAttribute } from "./label-attribute";
 
@@ -109,6 +123,12 @@ pnpm install
 
 ```sh
 pnpm dev
+```
+
+#### Run the tests
+
+```sh
+pnpm test
 ```
 
 ## Authors
