@@ -1,12 +1,8 @@
-import cryptoNative from "node:crypto";
-
 export function generateUuid(): string {
-  if (cryptoNative.randomUUID) {
-    return cryptoNative.randomUUID();
-  }
+  const cryptoModule = crypto as Crypto | undefined;
 
-  if (crypto.randomUUID) {
-    return crypto.randomUUID();
+  if (cryptoModule?.randomUUID) {
+    return cryptoModule.randomUUID();
   }
 
   throw new Error("Failed to generate a random UUID.");
