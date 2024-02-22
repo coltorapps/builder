@@ -116,7 +116,7 @@ When extending an attribute's validation at the builder level, the return type o
 
 ## Custom entities IDs
 
-By default, when you add entities instances to a schema, UUIDs are created for entity IDs using the `node:crypto` module or the global `crypto` module when possible. However, these modules may not be supported in certain environments. If needed, you can replace the default ID generation and validation processes with your own tailored logic.
+By default, when you add entities instances to a schema, UUIDs are created for entity IDs using the `crypto` module when possible. However, this module may not be supported in certain environments. If needed, you can replace the default ID generation and validation processes with your own tailored logic.
 
 ```typescript
 import { v4 as generateUUID, validate as validateUUID } from "uuid";

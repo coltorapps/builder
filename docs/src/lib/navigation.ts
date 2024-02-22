@@ -58,16 +58,16 @@ export const navigation = [
         href: "/docs/api/react/create-entity-component",
       },
       {
-        title: "<Entities />",
-        href: "/docs/api/react/entities",
+        title: "<BuilderEntities />",
+        href: "/docs/api/react/builder-entities",
       },
       {
         title: "createAttributeComponent",
         href: "/docs/api/react/create-attribute-component",
       },
       {
-        title: "<EntityAttributes />",
-        href: "/docs/api/react/entity-attributes",
+        title: "<BuilderEntityAttributes />",
+        href: "/docs/api/react/builder-entity-attributes",
       },
       {
         title: "useInterpreterStore",

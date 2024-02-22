@@ -1,21 +1,21 @@
 ---
-title: Entities
+title: BuilderEntities
 nextjs:
   metadata:
-    title: Entities
-    description: API Reference of Entities.
+    title: BuilderEntities
+    description: API Reference of BuilderEntities.
 ---
 
 This React component is used to render the entities tree of a schema within the context of a [builder store](/docs/api/react/use-builder-store).
 
 ## Reference
 
-### `<Entities builderStore components children? />`
+### `<BuilderEntities builderStore components children? />`
 
-Use the `Entities` component to render the entities tree.
+Use the `BuilderEntities` component to render the entities tree.
 
 ```tsx
-import { Entities, useBuilderStore } from "@coltorapps/builder-react";
+import { BuilderEntities, useBuilderStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { TextFieldEntity } from "./text-field-entity";
@@ -24,7 +24,7 @@ export function App() {
   const builderStore = useBuilderStore(formBuilder);
 
   return (
-    <Entities
+    <BuilderEntities
       builderStore={builderStore}
       components={{ textField: TextFieldEntity }}
     />
@@ -34,7 +34,7 @@ export function App() {
 
 ### Props
 
-The `Entities` component accepts three props:
+The `BuilderEntities` component accepts three props:
 
 | Prop           | Type                                                            | Description {% class="api-description" %}                                                                                                                  |
 | -------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -44,14 +44,14 @@ The `Entities` component accepts three props:
 
 ### Returns
 
-The `Entities` component essentially renders an entities tree.
+The `BuilderEntities` component essentially renders an entities tree.
 
 ### Render prop
 
-The `children` prop of the `Entities` component must be a function, which is used to wrap each rendered arbitrary entity with additional rendering. This can be useful, for instance, to render a delete button alongside each entity.
+The `children` prop of the `BuilderEntities` component must be a function, which is used to wrap each rendered arbitrary entity with additional rendering. This can be useful, for instance, to render a delete button alongside each entity.
 
 ```tsx
-import { Entities, useBuilderStore } from "@coltorapps/builder-react";
+import { BuilderEntities, useBuilderStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { TextFieldEntity } from "./text-field-entity";
@@ -60,7 +60,7 @@ export function App() {
   const builderStore = useBuilderStore(formBuilder);
 
   return (
-    <Entities
+    <BuilderEntities
       builderStore={builderStore}
       components={{ textField: TextFieldEntity }}
     >
@@ -77,7 +77,7 @@ export function App() {
           </button>
         </div>
       )}
-    </Entities>
+    </BuilderEntities>
   );
 }
 ```

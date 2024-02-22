@@ -159,7 +159,7 @@ const Entity = memo(function Entity(props: {
 
 Entity.displayName = "Entity";
 
-export function Entities<TBuilder extends BaseBuilder>(props: {
+export function BuilderEntities<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   components: EntitiesComponents<TBuilder>;
   children?: GenericEntityComponent<TBuilder>;
@@ -198,7 +198,7 @@ export const BuilderAttributesContext = createContext<{
   entityId: "",
 });
 
-export function EntityAttributes<TBuilder extends BaseBuilder>(props: {
+export function BuilderEntityAttributes<TBuilder extends BaseBuilder>(props: {
   builderStore: BuilderStore<TBuilder>;
   entityId: string;
   components: EntitiesAttributesComponents<TBuilder>;

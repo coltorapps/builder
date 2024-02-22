@@ -1,21 +1,24 @@
 ---
-title: EntityAttributes
+title: BuilderEntityAttributes
 nextjs:
   metadata:
-    title: EntityAttributes
-    description: API Reference of EntityAttributes.
+    title: BuilderEntityAttributes
+    description: API Reference of BuilderEntityAttributes.
 ---
 
 This React component is used to render the attributes of a specific entity instance within the context of a [builder store](/docs/api/react/use-builder-store).
 
 ## Reference
 
-### `<EntityAttributes builderStore components entityId />`
+### `<BuilderEntityAttributes builderStore components entityId />`
 
-Use the `EntityAttributes` component to render the attributes of a specific entity.
+Use the `BuilderEntityAttributes` component to render the attributes of a specific entity.
 
 ```tsx
-import { EntityAttributes, useBuilderStore } from "@coltorapps/builder-react";
+import {
+  BuilderEntityAttributes,
+  useBuilderStore,
+} from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { LabelAttribute, RequiredAttribute } from "./label-attribute";
@@ -35,7 +38,7 @@ export function App() {
   const selectedEntityId = "7c6a073c-03c2-4945-91e5-6e2fb6683c1b";
 
   return (
-    <EntityAttributes
+    <BuilderEntityAttributes
       builderStore={builderStore}
       components={{ textField: TextFieldAttributes }}
       entityId={selectedEntityId}
@@ -52,7 +55,7 @@ If a matched component from the `components` prop attempts to render an [attribu
 
 ### Props
 
-`EntityAttributes` accepts three props:
+`BuilderEntityAttributes` accepts three props:
 
 | Prop           | Type                          | Description {% class="api-description" %}                                                                                                                                                                  |
 | -------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -62,4 +65,4 @@ If a matched component from the `components` prop attempts to render an [attribu
 
 ### Returns
 
-The `EntityAttributes` component essentially renders the attributes of a specific entity.
+The `BuilderEntityAttributes` component essentially renders the attributes of a specific entity.

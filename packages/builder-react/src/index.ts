@@ -1,6 +1,6 @@
 export {
-  Entities,
-  EntityAttributes,
+  BuilderEntities,
+  BuilderEntityAttributes,
   useBuilderStore,
   useBuilderStoreData,
 } from "./builder";

@@ -31,7 +31,7 @@ pnpm install @coltorapps/builder @coltorapps/builder-react
 3. Create a form builder definition by using the `createBuilder` method and attach the text field entity to it.
 4. Create an editor component for the label attribute by using the `createAttributeComponent` method.
 5. Create a component for the text field entity by using the `createEntityComponent` method.
-6. Instantiate a builder store using the `useBuilderStore` hook. Utilize the `Entities` component to render the entities from the store's schema, and use the `Attributes` component to display the attributes of a selected entity.
+6. Instantiate a builder store using the `useBuilderStore` hook. Utilize the `BuilderEntities` component to render the entities from the store's schema, and use the `BuilderEntityAttributes` component to display the attributes of a selected entity.
 7. Implement a server action for validating incoming form schemas by using the `validateSchema` method and persisting them in the database. Use this server action to submit the form schema from the client.
 8. Retrieve the built form schema and instantiate an interpreter store with the `useInterpreterStore` hook. Utilize the `Interpreter` component to render the entities from the store's schema.
 9. Implement a server action for validating incoming form submissions by using the `validateEntitiesValues` method and persisting them in the database. Use this server action to submit the form from the client.
@@ -181,7 +181,7 @@ Now that we have our text field and label components in place, we can proceed to
 ```tsx
 "use client";
 
-import { Entities, useBuilderStore } from "@coltorapps/builder-react";
+import { BuilderEntities, useBuilderStore } from "@coltorapps/builder-react";
 
 import { LabelAttribute, TextFieldEntity } from "./components";
 import { formBuilder } from "./form-builder";
@@ -246,17 +246,17 @@ export default function FormBuilderPage() {
   return (
     <div>
       {/*
-      | We use the `Entities` component to render the entities
+      | We use the `BuilderEntities` component to render the entities
       | tree of the schema within the context of our builder store.
       | We pass the entity components for each defined entity type
       | in our form builder (currently, it's only the text field).
       */}
-      <Entities
+      <BuilderEntities
         builderStore={builderStore}
         components={{ textField: TextFieldEntity }}
       >
         {/*
-        | We leverage the render prop of the `Entities` component
+        | We leverage the render prop of the `BuilderEntities` component
         | to wrap each rendered arbitrary entity with additional
         | rendering.
         */}
@@ -290,7 +290,7 @@ export default function FormBuilderPage() {
             </button>
           </div>
         )}
-      </Entities>
+      </BuilderEntities>
       {/*
       | A button that adds a new text field type entity
       | to the store's schema.
@@ -307,14 +307,14 @@ export default function FormBuilderPage() {
         Add Text Field
       </button>
       {/*
-      | We render the `EntityAttributes` component only when
+      | We render the `BuilderEntityAttributes` component only when
       | an entity is active. We also provide the components
       | that render attribute components for each defined
       | entity type in the builder (currently, it's only the
       | text field).
       */}
       {activeEntityId ? (
-        <EntityAttributes
+        <BuilderEntityAttributes
           builderStore={builderStore}
           components={{ textField: TextFieldAttributes }}
           entityId={activeEntityId}

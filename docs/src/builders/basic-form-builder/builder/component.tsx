@@ -17,8 +17,8 @@ import { InfoIcon, XIcon } from "lucide-react";
 
 import { type BuilderStore } from "@coltorapps/builder";
 import {
-  Entities,
-  EntityAttributes,
+  BuilderEntities,
+  BuilderEntityAttributes,
   useBuilderStore,
   useBuilderStoreData,
 } from "@coltorapps/builder-react";
@@ -205,7 +205,7 @@ export function BasicFormBuilder() {
               <DndContainer
                 builderStore={builderStore}
                 dragOverlay={({ draggingId }) => (
-                  <Entities
+                  <BuilderEntities
                     builderStore={builderStore}
                     components={entitiesComponents}
                   >
@@ -221,11 +221,11 @@ export function BasicFormBuilder() {
                         </Entity>
                       ) : null
                     }
-                  </Entities>
+                  </BuilderEntities>
                 )}
               >
                 {({ draggingId }) => (
-                  <Entities
+                  <BuilderEntities
                     builderStore={builderStore}
                     components={entitiesComponents}
                   >
@@ -248,7 +248,7 @@ export function BasicFormBuilder() {
                         </Entity>
                       </DndItem>
                     )}
-                  </Entities>
+                  </BuilderEntities>
                 )}
               </DndContainer>
             </div>
@@ -341,7 +341,7 @@ export function BasicFormBuilder() {
         {activeEntityId ? (
           <div className="rounded-xl border-l bg-neutral-900/60 p-4 pb-8">
             <div className="sticky top-24 grid gap-8">
-              <EntityAttributes
+              <BuilderEntityAttributes
                 entityId={activeEntityId}
                 builderStore={builderStore}
                 components={entitiesAttributesComponents}

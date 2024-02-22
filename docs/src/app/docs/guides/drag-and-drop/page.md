@@ -59,7 +59,7 @@ import {
 } from "@dnd-kit/sortable";
 
 import {
-  Entities,
+  BuilderEntities,
   useBuilderStore,
   useBuilderStoreData,
 } from "@coltorapps/builder-react";
@@ -120,7 +120,7 @@ export function FormBuilder() {
         items={Array.from(root)}
         strategy={verticalListSortingStrategy}
       >
-        <Entities
+        <BuilderEntities
           builderStore={builderStore}
           components={{
             textField: TextFieldEntity,
@@ -133,7 +133,7 @@ export function FormBuilder() {
           | component to make it draggable.
           */}
           {(props) => <DndItem id={props.entity.id}>{props.children}</DndItem>}
-        </Entities>
+        </BuilderEntities>
       </SortableContext>
     </DndContext>
   );
