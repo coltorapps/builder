@@ -1081,6 +1081,14 @@ describe("builder store", () => {
 
     expect(builderStore.getData()).toMatchSnapshot();
 
+    builderStore.setEntityParent(
+      "6e0035c3-0d4c-445f-a42b-2d971225447c",
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+      { index: 1 },
+    );
+
+    expect(builderStore.getData()).toMatchSnapshot();
+
     expect(listener).toMatchSnapshot();
   });
 

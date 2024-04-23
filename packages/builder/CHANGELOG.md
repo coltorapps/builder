@@ -1,5 +1,11 @@
 # @coltorapps/builder
 
+## 0.1.3
+
+### Patch Changes
+
+- Fixed the issue of inserting duplicate items at incorrect indices in sets.
+
 ## 0.1.2
 
 ### Patch Changes

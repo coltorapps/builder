@@ -1118,6 +1118,38 @@ exports[`builder store > can move an entity in a parent entity 1`] = `
 `;
 
 exports[`builder store > can move an entity in a parent entity 2`] = `
+{
+  "entitiesAttributesErrors": {},
+  "schema": {
+    "entities": {
+      "51324b32-adc3-4d17-a90e-66b5453935bd": {
+        "attributes": {},
+        "children": [
+          "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        ],
+        "type": "test",
+      },
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+        "attributes": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+      "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+        "attributes": {},
+        "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "type": "test",
+      },
+    },
+    "root": [
+      "51324b32-adc3-4d17-a90e-66b5453935bd",
+    ],
+  },
+  "schemaError": undefined,
+}
+`;
+
+exports[`builder store > can move an entity in a parent entity 3`] = `
 [MockFunction spy] {
   "calls": [
     [
@@ -1179,8 +1211,71 @@ exports[`builder store > can move an entity in a parent entity 2`] = `
         },
       ],
     ],
+    [
+      [
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "attributes": {},
+              "id": "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "EntityUpdated",
+          "payload": {
+            "entity": {
+              "attributes": {},
+              "children": [
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+                "6e0035c3-0d4c-445f-a42b-2d971225447c",
+              ],
+              "id": "51324b32-adc3-4d17-a90e-66b5453935bd",
+              "type": "test",
+            },
+          },
+        },
+        {
+          "name": "SchemaUpdated",
+          "payload": {
+            "schema": {
+              "entities": {
+                "51324b32-adc3-4d17-a90e-66b5453935bd": {
+                  "attributes": {},
+                  "children": [
+                    "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
+                    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+                  ],
+                  "type": "test",
+                },
+                "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+                  "attributes": {},
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
+                  "attributes": {},
+                  "parentId": "51324b32-adc3-4d17-a90e-66b5453935bd",
+                  "type": "test",
+                },
+              },
+              "root": [
+                "51324b32-adc3-4d17-a90e-66b5453935bd",
+              ],
+            },
+          },
+        },
+      ],
+    ],
   ],
   "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
     {
       "type": "return",
       "value": undefined,
