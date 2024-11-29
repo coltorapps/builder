@@ -1,15 +1,18 @@
 export {
   BuilderEntities,
   BuilderEntityAttributes,
+  BuilderEntity,
   useBuilderStore,
   useBuilderStoreData,
 } from "./builder";
 
 export {
+  InterpreterEntities,
+  InterpreterEntity,
   Interpreter,
   useInterpreterStore,
   useInterpreterStoreData,
-  useEntitiesValues,
+  useInterpreterEntitiesValues,
 } from "./interpreter";
 
 export { createEntityComponent } from "./entities";

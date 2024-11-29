@@ -19,14 +19,13 @@ import {
   type InterpreterStore,
   type Schema,
 } from "@coltorapps/builder";
-import { Interpreter, useInterpreterStore } from "@coltorapps/builder-react";
+import {
+  InterpreterEntities,
+  useInterpreterStore,
+} from "@coltorapps/builder-react";
 
-import { DatePickerFieldEntity } from "../entities/date-picker/component";
-import { ParagraphEntity } from "../entities/paragraph/component";
-import { SelectFieldEntity } from "../entities/select-field/component";
-import { TextFieldEntity } from "../entities/text-field/component";
-import { TextareaFieldEntity } from "../entities/textarea-field/component";
 import { basicFormBuilder } from "./definition";
+import { entitiesComponents } from "./entities-components";
 
 function Form(props: {
   interpreterStore: InterpreterStore<typeof basicFormBuilder>;
@@ -64,15 +63,9 @@ function Form(props: {
       className="-mx-1 grid gap-4 px-2 py-4"
       noValidate
     >
-      <Interpreter
+      <InterpreterEntities
         interpreterStore={props.interpreterStore}
-        components={{
-          textField: TextFieldEntity,
-          selectField: SelectFieldEntity,
-          datePickerField: DatePickerFieldEntity,
-          textareaField: TextareaFieldEntity,
-          paragraph: ParagraphEntity,
-        }}
+        components={entitiesComponents}
       />
       <div className="flex justify-end">
         <Button type="submit">Submit</Button>

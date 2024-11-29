@@ -3,8 +3,8 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Logomark } from "@/components/Logo";
-import { Navigation } from "@/components/Navigation";
+import { Logomark } from "@/components/logo";
+import { Navigation } from "@/components/navigation";
 import { Dialog } from "@headlessui/react";
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -82,7 +82,7 @@ export function MobileNavigation() {
         className="fixed inset-0 z-50 flex items-start overflow-y-auto bg-neutral-900/50 pr-10 backdrop-blur lg:hidden"
         aria-label="Navigation"
       >
-        <Dialog.Panel className="min-h-full w-full max-w-xs bg-white px-4 pb-12 pt-5 dark:bg-neutral-900 sm:px-6">
+        <Dialog.Panel className="min-h-full w-full max-w-xs bg-white px-4 pb-12 pt-5 sm:px-6 dark:bg-neutral-900">
           <div className="flex items-center">
             <button
               type="button"

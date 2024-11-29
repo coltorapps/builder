@@ -1,5 +1,11 @@
 # @coltorapps/builder
 
+## 0.2.0
+
+### Minor Changes
+
+- Implemented singular entity rendering in builder and interpreter stores by removing context.
+
 ## 0.1.3
 
 ### Patch Changes

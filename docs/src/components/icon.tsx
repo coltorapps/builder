@@ -1,10 +1,10 @@
 import { useId } from "react";
-import { InstallationIcon } from "@/components/icons/InstallationIcon";
-import { LightbulbIcon } from "@/components/icons/LightbulbIcon";
-import { PluginsIcon } from "@/components/icons/PluginsIcon";
-import { PresetsIcon } from "@/components/icons/PresetsIcon";
-import { ThemingIcon } from "@/components/icons/ThemingIcon";
-import { WarningIcon } from "@/components/icons/WarningIcon";
+import { InstallationIcon } from "@/components/icons/installation-icon";
+import { LightbulbIcon } from "@/components/icons/lightbulb-icon";
+import { PluginsIcon } from "@/components/icons/plugins-icon";
+import { PresetsIcon } from "@/components/icons/presets-icon";
+import { ThemingIcon } from "@/components/icons/theming-icon";
+import { WarningIcon } from "@/components/icons/warning-icon";
 import clsx from "clsx";
 
 const icons = {

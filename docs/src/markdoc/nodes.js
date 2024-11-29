@@ -1,5 +1,5 @@
-import { DocsLayout } from "@/components/DocsLayout";
-import { Fence } from "@/components/Fence";
+import { DocsLayout } from "@/components/docs-layout";
+import { Fence } from "@/components/fence";
 import { nodes as defaultNodes, Tag } from "@markdoc/markdoc";
 import { slugifyWithCounter } from "@sindresorhus/slugify";
 import yaml from "js-yaml";

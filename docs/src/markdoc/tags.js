@@ -1,7 +1,7 @@
 import { BasicFormBuilder } from "@/builders/basic-form-builder";
-import { Callout } from "@/components/Callout";
-import { QuickLink, QuickLinks } from "@/components/QuickLinks";
-import { YoutubeVideo } from "@/components/YoutubeVideo";
+import { Callout } from "@/components/callout";
+import { QuickLink, QuickLinks } from "@/components/quick-links";
+import { YoutubeVideo } from "@/components/youtube-video";
 import { cn } from "@/lib/utils";
 
 const tags = {

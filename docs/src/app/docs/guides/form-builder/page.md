@@ -33,7 +33,7 @@ pnpm install @coltorapps/builder @coltorapps/builder-react
 5. Create a component for the text field entity by using the `createEntityComponent` method.
 6. Instantiate a builder store using the `useBuilderStore` hook. Utilize the `BuilderEntities` component to render the entities from the store's schema, and use the `BuilderEntityAttributes` component to display the attributes of a selected entity.
 7. Implement a server action for validating incoming form schemas by using the `validateSchema` method and persisting them in the database. Use this server action to submit the form schema from the client.
-8. Retrieve the built form schema and instantiate an interpreter store with the `useInterpreterStore` hook. Utilize the `Interpreter` component to render the entities from the store's schema.
+8. Retrieve the built form schema and instantiate an interpreter store with the `useInterpreterStore` hook. Utilize the `InterpreterEntities` component to render the entities from the store's schema.
 9. Implement a server action for validating incoming form submissions by using the `validateEntitiesValues` method and persisting them in the database. Use this server action to submit the form from the client.
 
 ## Label attribute definition
@@ -247,7 +247,7 @@ export default function FormBuilderPage() {
     <div>
       {/*
       | We use the `BuilderEntities` component to render the entities
-      | tree of the schema within the context of our builder store.
+      | tree of the schema of our builder store.
       | We pass the entity components for each defined entity type
       | in our form builder (currently, it's only the text field).
       */}
@@ -408,7 +408,10 @@ export default async function FormPage() {
 "use client";
 
 import { type Schema } from "@coltorapps/builder";
-import { Interpreter, useInterpreterStore } from "@coltorapps/builder-react";
+import {
+  InterpreterEntities,
+  useInterpreterStore,
+} from "@coltorapps/builder-react";
 
 import { TextFieldEntity } from "./components";
 import { formBuilder } from "./form-builder";
@@ -447,12 +450,12 @@ export function FormInterpreter(props: { schema: FormBuilderSchema }) {
       }}
     >
       {/*
-      | We use the `Interpreter` component to render the entities tree
-      | of the schema within the context of our interpreter store. We
-      | pass the entity components for each defined entity type in our
-      | form builder (currently, it's only the text field).
+      | We use the `InterpreterEntities` component to render the entities tree
+      | of the schema of our interpreter store. We pass the entity
+      | components for each defined entity type in our form builder
+      | (currently, it's only the text field).
       */}
-      <Interpreter
+      <InterpreterEntities
         interpreterStore={interpreterStore}
         components={{ textField: TextFieldEntity }}
       />
