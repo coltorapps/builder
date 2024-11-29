@@ -1,7 +1,5 @@
 import {
   createContext,
-  memo,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -12,7 +10,7 @@ import {
   builderStoreEventsNames,
   createBuilder,
   createBuilderStore,
-  type Builder as BaseBuilder,
+  type Builder,
   type BuilderStore,
   type BuilderStoreData,
   type BuilderStoreEvent,
@@ -21,25 +19,25 @@ import {
 import { type EntitiesAttributesComponents } from "./attributes";
 import {
   type EntitiesComponents,
+  type EntityComponent,
   type EntityForRender,
   type GenericEntityComponent,
 } from "./entities";
 import { type EventsListeners } from "./utils";
 
-export function useBuilderStore<TBuilder extends BaseBuilder>(
+export function useBuilderStore<TBuilder extends Builder>(
   builder: TBuilder,
   options: {
     initialData?: Partial<BuilderStoreData<TBuilder>>;
     events?: EventsListeners<BuilderStoreEvent<TBuilder>>;
   } = {},
 ): BuilderStore<TBuilder> {
-  const initialData = useRef(options.initialData);
-
   const builderStore = useMemo(
     () =>
       createBuilderStore(builder, {
-        initialData: initialData.current,
+        initialData: options.initialData,
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [builder],
   );
 
@@ -58,7 +56,7 @@ export function useBuilderStore<TBuilder extends BaseBuilder>(
   return builderStore;
 }
 
-export function useBuilderStoreData<TBuilder extends BaseBuilder>(
+export function useBuilderStoreData<TBuilder extends Builder>(
   builderStore: BuilderStore<TBuilder>,
   shouldUpdate: (events: Array<BuilderStoreEvent<TBuilder>>) => boolean = () =>
     true,
@@ -79,24 +77,13 @@ export function useBuilderStoreData<TBuilder extends BaseBuilder>(
   );
 }
 
-const BuilderEntitiesContext = createContext<{
-  components: EntitiesComponents;
-  renderEntity: GenericEntityComponent;
-  builderStore: BuilderStore;
-}>({
-  builderStore: createBuilderStore(createBuilder({ entities: [] })),
-  components: {},
-  renderEntity: ({ children }) => children,
-});
-
-const Entity = memo(function Entity(props: {
+export function BuilderEntity<TBuilder extends Builder>(props: {
   entityId: string;
+  components: EntitiesComponents<TBuilder>;
+  children?: GenericEntityComponent<TBuilder>;
+  builderStore: BuilderStore<TBuilder>;
 }): JSX.Element | null {
-  const { components, renderEntity, builderStore } = useContext(
-    BuilderEntitiesContext,
-  );
-
-  const data = useBuilderStoreData(builderStore, (events) =>
+  const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
       (event) =>
         (event.name === builderStoreEventsNames.EntityUpdated &&
@@ -115,7 +102,7 @@ const Entity = memo(function Entity(props: {
 
   const childrenIds = entity?.children ?? [];
 
-  const EntityComponent = components[entity.type];
+  const EntityComponent = props.components[entity.type] as EntityComponent;
 
   if (!EntityComponent) {
     throw new Error(
@@ -123,10 +110,12 @@ const Entity = memo(function Entity(props: {
     );
   }
 
-  const entityForRender: EntityForRender = {
+  const entityForRender: EntityForRender<TBuilder["entities"][number]> = {
     ...entity,
     id: props.entityId,
   };
+
+  const renderEntity = props.children ?? ((props) => props.children);
 
   return renderEntity({
     entity: entityForRender,
@@ -150,20 +139,23 @@ const Entity = memo(function Entity(props: {
         }}
       >
         {childrenIds.map((entityId) => (
-          <Entity key={entityId} entityId={entityId} />
+          <BuilderEntity
+            key={entityId}
+            entityId={entityId}
+            components={props.components}
+            builderStore={props.builderStore}
+          />
         ))}
       </EntityComponent>
     ),
   });
-});
+}
 
-Entity.displayName = "Entity";
-
-export function BuilderEntities<TBuilder extends BaseBuilder>(props: {
+export function BuilderEntities<TBuilder extends Builder>(props: {
   builderStore: BuilderStore<TBuilder>;
   components: EntitiesComponents<TBuilder>;
   children?: GenericEntityComponent<TBuilder>;
-}): JSX.Element {
+}): JSX.Element[] {
   const data = useBuilderStoreData(props.builderStore, (events) =>
     events.some(
       (event) =>
@@ -172,22 +164,16 @@ export function BuilderEntities<TBuilder extends BaseBuilder>(props: {
     ),
   );
 
-  const renderEntity =
-    (props.children as GenericEntityComponent) ?? ((props) => props.children);
-
-  return (
-    <BuilderEntitiesContext.Provider
-      value={{
-        renderEntity,
-        builderStore: props.builderStore,
-        components: props.components as unknown as EntitiesComponents,
-      }}
+  return data.schema.root.map((entityId) => (
+    <BuilderEntity
+      key={entityId}
+      entityId={entityId}
+      components={props.components}
+      builderStore={props.builderStore}
     >
-      {data.schema.root.map((entityId) => (
-        <Entity key={entityId} entityId={entityId} />
-      ))}
-    </BuilderEntitiesContext.Provider>
-  );
+      {props.children ?? ((props) => props.children)}
+    </BuilderEntity>
+  ));
 }
 
 export const BuilderAttributesContext = createContext<{
@@ -198,7 +184,7 @@ export const BuilderAttributesContext = createContext<{
   entityId: "",
 });
 
-export function BuilderEntityAttributes<TBuilder extends BaseBuilder>(props: {
+export function BuilderEntityAttributes<TBuilder extends Builder>(props: {
   builderStore: BuilderStore<TBuilder>;
   entityId: string;
   components: EntitiesAttributesComponents<TBuilder>;

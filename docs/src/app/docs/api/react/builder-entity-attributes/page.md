@@ -6,7 +6,7 @@ nextjs:
     description: API Reference of BuilderEntityAttributes.
 ---
 
-This React component is used to render the attributes of a specific entity instance within the context of a [builder store](/docs/api/react/use-builder-store).
+This React component is used to render the attributes of a specific entity instance of a [builder store](/docs/api/react/use-builder-store).
 
 ## Reference
 

@@ -1,21 +1,24 @@
 ---
-title: Interpreter
+title: InterpreterEntities
 nextjs:
   metadata:
-    title: Interpreter
-    description: API Reference of Interpreter.
+    title: InterpreterEntities
+    description: API Reference of InterpreterEntities.
 ---
 
-This React component is used to render the entities tree within the context of an [interpreter store](/docs/api/react/use-interpreter-store).
+This React component is used to render the entities tree of an [interpreter store](/docs/api/react/use-interpreter-store).
 
 ## Reference
 
-### `<Interpreter interpreterStore components children? />`
+### `<InterpreterEntities interpreterStore components children? />`
 
-Use the `Interpreter` component to render the entities tree.
+Use the `InterpreterEntities` component to render the entities tree.
 
 ```tsx
-import { Interpreter, useInterpreterStore } from "@coltorapps/builder-react";
+import {
+  InterpreterEntities,
+  useInterpreterStore,
+} from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { TextFieldEntity } from "./text-field-entity";
@@ -36,7 +39,7 @@ export function App() {
   const interpreterStore = useInterpreterStore(formBuilder);
 
   return (
-    <Interpreter
+    <InterpreterEntities
       interpreterStore={interpreterStore}
       components={{ textField: TextFieldEntity }}
     />
@@ -48,7 +51,7 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 ### Props
 
-The `Interpreter` component accepts three props:
+The `InterpreterEntities` component accepts three props:
 
 | Prop               | Type                                                            | Description {% class="api-description" %}                                                                                                                  |
 | ------------------ | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -58,14 +61,17 @@ The `Interpreter` component accepts three props:
 
 ### Returns
 
-The `Interpreter` component essentially renders an entities tree.
+The `InterpreterEntities` component essentially renders an entities tree.
 
 ### Render prop
 
-The `children` prop of the `Interpreter` component must be a function, which is used to wrap each rendered arbitrary entity with additional rendering.
+The `children` prop of the `InterpreterEntities` component must be a function, which is used to wrap each rendered arbitrary entity with additional rendering.
 
 ```tsx
-import { Interpreter, useInterpreterStore } from "@coltorapps/builder-react";
+import {
+  InterpreterEntities,
+  useInterpreterStore,
+} from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
 import { TextFieldEntity } from "./text-field-entity";
@@ -86,7 +92,7 @@ export function App() {
   const interpreterStore = useInterpreterStore(formBuilder);
 
   return (
-    <Interpreter
+    <InterpreterEntities
       interpreterStore={interpreterStore}
       components={{ textField: TextFieldEntity }}
     >
@@ -96,7 +102,7 @@ export function App() {
           {props.children}
         </div>
       )}
-    </Interpreter>
+    </InterpreterEntities>
   );
 }
 ```

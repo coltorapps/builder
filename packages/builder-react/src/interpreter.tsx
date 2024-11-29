@@ -1,19 +1,11 @@
-import {
-  createContext,
-  memo,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 
 import {
-  createBuilder,
   createInterpreterStore,
   interpreterStoreEventsNames,
   type Builder,
   type EntitiesValues,
+  type EntityValue,
   type InterpreterStore,
   type InterpreterStoreData,
   type InterpreterStoreEvent,
@@ -22,6 +14,7 @@ import {
 
 import {
   type EntitiesComponents,
+  type EntityComponent,
   type EntityForRender,
   type GenericEntityComponent,
 } from "./entities";
@@ -35,13 +28,12 @@ export function useInterpreterStore<TBuilder extends Builder>(
     events?: EventsListeners<InterpreterStoreEvent<TBuilder>>;
   } = {},
 ): InterpreterStore<TBuilder> {
-  const initialData = useRef(options.initialData);
-
   const interpreterStore = useMemo(
     () =>
       createInterpreterStore(builder, schema, {
-        initialData: initialData.current,
+        initialData: options.initialData,
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [builder, schema],
   );
 
@@ -82,13 +74,13 @@ export function useInterpreterStoreData<TBuilder extends Builder>(
   );
 }
 
-const MemoizedEntity = memo(function Entity(props: {
+export function InterpreterEntity<TBuilder extends Builder>(props: {
   entityId: string;
+  components: EntitiesComponents<TBuilder>;
+  children?: GenericEntityComponent<TBuilder>;
+  interpreterStore: InterpreterStore<TBuilder>;
 }): JSX.Element | null {
-  const { interpreterStore, components, renderEntity } =
-    useContext(InterpreterContext);
-
-  const entity = interpreterStore.schema.entities[props.entityId];
+  const entity = props.interpreterStore.schema.entities[props.entityId];
 
   if (!entity) {
     throw new Error(
@@ -96,7 +88,7 @@ const MemoizedEntity = memo(function Entity(props: {
     );
   }
 
-  const data = useInterpreterStoreData(interpreterStore, (events) =>
+  const data = useInterpreterStoreData(props.interpreterStore, (events) =>
     events.some(
       (event) =>
         (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
@@ -107,7 +99,7 @@ const MemoizedEntity = memo(function Entity(props: {
     ),
   );
 
-  const entityDefinition = interpreterStore.builder.entities.find(
+  const entityDefinition = props.interpreterStore.builder.entities.find(
     (item) => item.name === entity.type,
   );
 
@@ -122,7 +114,7 @@ const MemoizedEntity = memo(function Entity(props: {
     );
   }
 
-  const EntityComponent = components[entity.type];
+  const EntityComponent = props.components[entity.type] as EntityComponent;
 
   if (!EntityComponent) {
     throw new Error(
@@ -131,12 +123,12 @@ const MemoizedEntity = memo(function Entity(props: {
   }
 
   const isUnprocessableCache = useRef(
-    interpreterStore.isEntityProcessable(props.entityId),
+    props.interpreterStore.isEntityProcessable(props.entityId),
   );
 
   const isUnprocessable = useSyncExternalStore(
     (listen) =>
-      interpreterStore.subscribe((_data, events) => {
+      props.interpreterStore.subscribe((_data, events) => {
         if (
           events.some(
             (event) =>
@@ -146,9 +138,8 @@ const MemoizedEntity = memo(function Entity(props: {
               event.payload.entityId === props.entityId,
           )
         ) {
-          isUnprocessableCache.current = interpreterStore.isEntityProcessable(
-            props.entityId,
-          );
+          isUnprocessableCache.current =
+            props.interpreterStore.isEntityProcessable(props.entityId);
 
           listen();
         }
@@ -163,11 +154,13 @@ const MemoizedEntity = memo(function Entity(props: {
 
   const childrenIds = entity?.children ?? [];
 
-  const entityForRender: EntityForRender = {
+  const entityForRender: EntityForRender<TBuilder["entities"][number]> = {
     ...entityWithId,
     value: data.entitiesValues[props.entityId],
     error: data.entitiesErrors[props.entityId],
   };
+
+  const renderEntity = props.children ?? ((props) => props.children);
 
   return renderEntity({
     entity: entityForRender,
@@ -175,61 +168,63 @@ const MemoizedEntity = memo(function Entity(props: {
       <EntityComponent
         entity={entityForRender}
         setValue={(value) =>
-          interpreterStore.setEntityValue(props.entityId, value)
+          props.interpreterStore.setEntityValue(
+            props.entityId,
+            value as EntityValue<TBuilder>,
+          )
         }
         validateValue={() =>
-          interpreterStore.validateEntityValue(props.entityId)
+          props.interpreterStore.validateEntityValue(props.entityId)
         }
-        resetError={() => interpreterStore.resetEntityError(props.entityId)}
-        resetValue={() => interpreterStore.resetEntityValue(props.entityId)}
-        clearValue={() => interpreterStore.clearEntityValue(props.entityId)}
+        resetError={() =>
+          props.interpreterStore.resetEntityError(props.entityId)
+        }
+        resetValue={() =>
+          props.interpreterStore.resetEntityValue(props.entityId)
+        }
+        clearValue={() =>
+          props.interpreterStore.clearEntityValue(props.entityId)
+        }
       >
         {childrenIds.map((entityId) => (
-          <MemoizedEntity key={entityId} entityId={entityId} />
+          <InterpreterEntity
+            key={entityId}
+            entityId={entityId}
+            components={props.components}
+            interpreterStore={props.interpreterStore}
+          />
         ))}
       </EntityComponent>
     ),
   });
-});
+}
 
-const InterpreterContext = createContext<{
-  interpreterStore: InterpreterStore;
-  components: EntitiesComponents;
-  renderEntity: GenericEntityComponent;
-}>({
-  interpreterStore: createInterpreterStore(createBuilder({ entities: [] }), {
-    entities: {},
-    root: [],
-  }),
-  components: {},
-  renderEntity: ({ children }) => children,
-});
-
-export function Interpreter<TBuilder extends Builder>(props: {
+export function InterpreterEntities<TBuilder extends Builder>(props: {
   interpreterStore: InterpreterStore<TBuilder>;
   components: EntitiesComponents<TBuilder>;
   children?: GenericEntityComponent<TBuilder>;
-}): JSX.Element {
-  return (
-    <InterpreterContext.Provider
-      value={{
-        interpreterStore: props.interpreterStore,
-        renderEntity:
-          (props.children as GenericEntityComponent) ??
-          ((props) => props.children),
-        components: props.components as unknown as EntitiesComponents,
-      }}
+}): JSX.Element[] {
+  return props.interpreterStore.schema.root.map((entityId) => (
+    <InterpreterEntity
+      key={entityId}
+      entityId={entityId}
+      components={props.components}
+      interpreterStore={props.interpreterStore}
     >
-      {props.interpreterStore.schema.root.map((entityId) => (
-        <MemoizedEntity key={entityId} entityId={entityId} />
-      ))}
-    </InterpreterContext.Provider>
-  );
+      {props.children ?? ((props) => props.children)}
+    </InterpreterEntity>
+  ));
 }
 
-export function useEntitiesValues(entitiesIds?: Array<string>): EntitiesValues {
-  const { interpreterStore } = useContext(InterpreterContext);
+/**
+ * @deprecated Use `InterpreterEntities` instead of `Interpreter`. The alias will be removed in future versions.
+ */
+export const Interpreter = InterpreterEntities;
 
+export function useInterpreterEntitiesValues<TBuilder extends Builder>(
+  interpreterStore: InterpreterStore<TBuilder>,
+  entitiesIds?: Array<string>,
+): EntitiesValues<TBuilder> {
   const { entitiesValues } = useInterpreterStoreData(
     interpreterStore,
     (events) =>

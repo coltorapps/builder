@@ -18,22 +18,19 @@ import { InfoIcon, XIcon } from "lucide-react";
 import { type BuilderStore } from "@coltorapps/builder";
 import {
   BuilderEntities,
+  BuilderEntity,
   BuilderEntityAttributes,
   useBuilderStore,
   useBuilderStoreData,
 } from "@coltorapps/builder-react";
 
 import { DatePickerFieldAttributes } from "../entities/date-picker/attributes-component";
-import { DatePickerFieldEntity } from "../entities/date-picker/component";
 import { ParagraphAttributes } from "../entities/paragraph/attributes-component";
-import { ParagraphEntity } from "../entities/paragraph/component";
 import { SelectFieldAttributes } from "../entities/select-field/attributes-component";
-import { SelectFieldEntity } from "../entities/select-field/component";
 import { TextFieldAttributes } from "../entities/text-field/attributes-component";
-import { TextFieldEntity } from "../entities/text-field/component";
 import { TextareaFieldAttributes } from "../entities/textarea-field/attributes-component";
-import { TextareaFieldEntity } from "../entities/textarea-field/component";
 import { basicFormBuilder } from "./definition";
+import { entitiesComponents } from "./entities-components";
 import { initialSchema } from "./initial-schema";
 import { Preview } from "./preview";
 
@@ -118,14 +115,6 @@ function Entity(props: {
   );
 }
 
-const entitiesComponents = {
-  textField: TextFieldEntity,
-  selectField: SelectFieldEntity,
-  datePickerField: DatePickerFieldEntity,
-  textareaField: TextareaFieldEntity,
-  paragraph: ParagraphEntity,
-};
-
 const entitiesAttributesComponents = {
   textField: TextFieldAttributes,
   textareaField: TextareaFieldAttributes,
@@ -204,13 +193,14 @@ export function BasicFormBuilder() {
             <div className="grid gap-8">
               <DndContainer
                 builderStore={builderStore}
-                dragOverlay={({ draggingId }) => (
-                  <BuilderEntities
-                    builderStore={builderStore}
-                    components={entitiesComponents}
-                  >
-                    {(props) =>
-                      props.entity.id === draggingId ? (
+                dragOverlay={({ draggingId }) =>
+                  draggingId ? (
+                    <BuilderEntity
+                      entityId={draggingId}
+                      builderStore={builderStore}
+                      components={entitiesComponents}
+                    >
+                      {(props) => (
                         <Entity
                           isActive
                           isDragging
@@ -219,10 +209,10 @@ export function BasicFormBuilder() {
                         >
                           {props.children}
                         </Entity>
-                      ) : null
-                    }
-                  </BuilderEntities>
-                )}
+                      )}
+                    </BuilderEntity>
+                  ) : null
+                }
               >
                 {({ draggingId }) => (
                   <BuilderEntities

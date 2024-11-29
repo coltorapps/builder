@@ -16,7 +16,7 @@
     "release": "cp README.md packages/builder/README.md && cp README.md packages/builder-react/README.md && pnpm run build --filter='./packages/*' --parallel && cp packages/builder/package.json packages/builder/package.backup.json && cp packages/builder-react/package.json packages/builder-react/package.backup.json && json -I -f packages/builder/package.json -e \"this.devDependencies=undefined\" && json -I -f packages/builder-react/package.json -e \"this.devDependencies=undefined\" && changeset publish && rm packages/builder/README.md && rm packages/builder-react/README.md && mv packages/builder/package.backup.json packages/builder/package.json && mv packages/builder-react/package.backup.json packages/builder-react/package.json"
   },
   "dependencies": {
-    "@changesets/cli": "^2.26.2",
+    "@changesets/cli": "^2.27.10",
     "@coltorapps/eslint-config": "0.1.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.1.1",
     "@manypkg/cli": "^0.21.0",
@@ -32,10 +32,5 @@
     "typescript": "^5.2.2"
   },
   "npmClient": "pnpm",
-  "packageManager": "pnpm@8.6.12",
-  "pnpm": {
-    "patchedDependencies": {
-      "@changesets/assemble-release-plan@5.2.4": "patches/@changesets__assemble-release-plan@5.2.4.patch"
-    }
-  }
+  "packageManager": "pnpm@9.14.4"
 }

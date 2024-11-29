@@ -1,7 +1,7 @@
-import { DocsHeader } from "@/components/DocsHeader";
-import { PrevNextLinks } from "@/components/PrevNextLinks";
-import { Prose } from "@/components/Prose";
-import { TableOfContents } from "@/components/TableOfContents";
+import { DocsHeader } from "@/components/docs-header";
+import { PrevNextLinks } from "@/components/prev-next-links";
+import { Prose } from "@/components/prose";
+import { TableOfContents } from "@/components/table-of-contents";
 import { collectSections } from "@/lib/sections";
 import { type Node } from "@markdoc/markdoc";
 

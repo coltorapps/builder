@@ -6,7 +6,7 @@ nextjs:
     description: API Reference of createEntityComponent.
 ---
 
-This function defines an entity component for later use within the [`<BuilderEntities />`](/docs/api/react/builder-entities) and [`<Interpreter />`](/docs/api/react/interpreter) components.
+This function defines an entity component for later use within the [`<BuilderEntities />`](/docs/api/react/builder-entities) and [`<InterpreterEntities />`](/docs/api/react/interpreter-entities) components.
 
 The function itself serves primarily as a type safety helper and doesn't perform any underlying logic.
 
@@ -54,4 +54,4 @@ export const TextFieldEntity = createEntityComponent(
 
 ### Returns
 
-The `createEntityComponent` function essentially creates a React component to be used within the [`<BuilderEntities />`](/docs/api/react/builder-entities) and [`<Interpreter />`](/docs/api/react/interpreter) components.
+The `createEntityComponent` function essentially creates a React component to be used within the [`<BuilderEntities />`](/docs/api/react/builder-entities) and [`<InterpreterEntities />`](/docs/api/react/interpreter-entities) components.

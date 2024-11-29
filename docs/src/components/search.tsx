@@ -261,7 +261,7 @@ const SearchInput = forwardRef<
       <input
         ref={inputRef}
         className={clsx(
-          "flex-auto appearance-none bg-transparent pl-12 text-neutral-900 outline-none placeholder:text-neutral-400 focus:w-full focus:flex-none dark:text-white sm:text-sm [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden",
+          "flex-auto appearance-none bg-transparent pl-12 text-neutral-900 outline-none placeholder:text-neutral-400 focus:w-full focus:flex-none sm:text-sm dark:text-white [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden",
           autocompleteState.status === "stalled" ? "pr-11" : "pr-4",
         )}
         {...inputProps}
@@ -368,7 +368,7 @@ function SearchDialog({
         <div className="fixed inset-0 bg-neutral-900/50 backdrop-blur" />
 
         <div className="fixed inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-[15vh]">
-          <Dialog.Panel className="mx-auto transform-gpu overflow-hidden rounded-xl bg-white shadow-xl dark:bg-neutral-800 dark:ring-1 dark:ring-neutral-700 sm:max-w-xl">
+          <Dialog.Panel className="mx-auto transform-gpu overflow-hidden rounded-xl bg-white shadow-xl sm:max-w-xl dark:bg-neutral-800 dark:ring-1 dark:ring-neutral-700">
             <div {...autocomplete.getRootProps({})}>
               <form
                 ref={formRef}
@@ -442,15 +442,15 @@ export function Search() {
     <>
       <button
         type="button"
-        className="group flex h-6 w-6 items-center justify-center sm:justify-start md:h-auto md:w-80 md:flex-none md:rounded-lg md:py-2.5 md:pl-4 md:pr-3.5 md:text-sm md:ring-1 md:ring-neutral-200 md:hover:ring-neutral-300 dark:md:bg-neutral-800/75 dark:md:ring-inset dark:md:ring-white/5 dark:md:hover:bg-neutral-700/40 dark:md:hover:ring-neutral-500 lg:w-96"
+        className="group flex h-6 w-6 items-center justify-center sm:justify-start md:h-auto md:w-80 md:flex-none md:rounded-lg md:py-2.5 md:pl-4 md:pr-3.5 md:text-sm md:ring-1 md:ring-neutral-200 md:hover:ring-neutral-300 lg:w-96 dark:md:bg-neutral-800/75 dark:md:ring-inset dark:md:ring-white/5 dark:md:hover:bg-neutral-700/40 dark:md:hover:ring-neutral-500"
         {...buttonProps}
       >
-        <SearchIcon className="h-5 w-5 flex-none fill-neutral-400 group-hover:fill-neutral-500 dark:fill-neutral-500 md:group-hover:fill-neutral-400" />
+        <SearchIcon className="h-5 w-5 flex-none fill-neutral-400 group-hover:fill-neutral-500 md:group-hover:fill-neutral-400 dark:fill-neutral-500" />
         <span className="sr-only md:not-sr-only md:ml-2 md:text-neutral-500 md:dark:text-neutral-400">
           Search docs
         </span>
         {modifierKey && (
-          <kbd className="ml-auto hidden font-medium text-neutral-400 dark:text-neutral-500 md:block">
+          <kbd className="ml-auto hidden font-medium text-neutral-400 md:block dark:text-neutral-500">
             <kbd className="font-sans">{modifierKey}</kbd>
             <kbd className="font-sans">K</kbd>
           </kbd>
