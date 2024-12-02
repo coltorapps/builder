@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { navigation } from "@/lib/navigation";
+import clsx from "clsx";
 
 export function DocsHeader({ title }: { title?: string }) {
   const pathname = usePathname();
@@ -14,7 +15,7 @@ export function DocsHeader({ title }: { title?: string }) {
   }
 
   return (
-    <header className="mb-9 space-y-1">
+    <header className={clsx("space-y-1", pathname === "/" ? "mb-1" : "mb-9")}>
       {section && (
         <p className="font-display text-sm font-medium text-neutral-500">
           {section.title}

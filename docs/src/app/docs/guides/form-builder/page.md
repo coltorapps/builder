@@ -1,5 +1,5 @@
 ---
-title: Form builder
+title: React Form Builder
 nextjs:
   metadata:
     title: React form builder

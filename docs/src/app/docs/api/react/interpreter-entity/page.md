@@ -10,7 +10,7 @@ This React component renders a single entity from an [interpreter store](/docs/a
 
 ## Reference
 
-### `<InterpreterEntity interpreterStore components children? />`
+### `<InterpreterEntity entityId interpreterStore components children? />`
 
 Use the `InterpreterEntity` component to render a single entity, including its children.
 

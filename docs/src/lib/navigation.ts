@@ -9,7 +9,7 @@ export const navigation = [
   {
     title: "Guides",
     links: [
-      { title: "Form builder", href: "/docs/guides/form-builder" },
+      { title: "React form builder", href: "/docs/guides/form-builder" },
       { title: "Factory pattern", href: "/docs/guides/factory-pattern" },
       { title: "Drag & Drop", href: "/docs/guides/drag-and-drop" },
     ],

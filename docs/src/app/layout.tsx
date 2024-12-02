@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { Providers } from "@/app/providers";
 import { Layout } from "@/components/layout";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Analytics } from "@vercel/analytics/react";
 import clsx from "clsx";
 
@@ -26,10 +27,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://builder.coltorapps.com"),
   title: {
     template: "%s - Docs",
-    default: "Builder",
+    default: "React Form Builder",
   },
   description:
-    "Powerful library for crafting your own form builders and beyond.",
+    "React Form Builder. React Native Form Builder. Develop your own dynamic forms builder, websites builder, dashboards builder, UIs builder.",
 };
 
 export default function RootLayout({
@@ -50,6 +51,7 @@ export default function RootLayout({
         <Toaster />
         <Analytics />
       </body>
+      <GoogleAnalytics gaId="G-4DTPJ6V5QP" />
     </html>
   );
 }

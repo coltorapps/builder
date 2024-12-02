@@ -10,6 +10,8 @@ import { Navigation } from "@/components/navigation";
 import { Search } from "@/components/search";
 import clsx from "clsx";
 
+import { Button } from "./ui/button";
+
 function GitHubIcon(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
     <svg aria-hidden="true" viewBox="0 0 16 16" {...props}>
@@ -53,7 +55,7 @@ function Header() {
       <div className="-my-5 mr-6 sm:mr-8 md:mr-0">
         <Search />
       </div>
-      <div className="relative flex basis-0 justify-end gap-6 sm:gap-8 md:flex-grow">
+      <div className="relative flex basis-0 items-center justify-end gap-6 sm:gap-8 md:flex-grow">
         <Link
           href="https://discord.gg/pEGF5DvVRS"
           target="_blank"
@@ -91,6 +93,15 @@ function Header() {
         >
           <GitHubIcon className="h-6 w-6 fill-neutral-400 group-hover:fill-neutral-500 dark:group-hover:fill-neutral-300" />
         </Link>
+        <Button variant="secondary" asChild>
+          <a
+            href="https://www.coltorapps.com/#contacts"
+            target="_blank"
+            className="hidden lg:inline-block"
+          >
+            Contact us
+          </a>
+        </Button>
       </div>
     </header>
   );

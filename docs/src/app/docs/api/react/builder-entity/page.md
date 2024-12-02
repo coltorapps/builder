@@ -10,7 +10,7 @@ This React component renders a single entity from a [builder store](/docs/api/re
 
 ## Reference
 
-### `<BuilderEntity builderStore components children? />`
+### `<BuilderEntity entityId builderStore components children? />`
 
 Use the `BuilderEntity` component to render a single entity, including its children.
 

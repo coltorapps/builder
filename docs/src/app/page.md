@@ -1,6 +1,23 @@
+## Overview
+
+**Builder** is a versatile React and React Native library designed for crafting dynamic form builders and much more. You can also develop dynamic website builders, dashboard builders, and any other builders you envision.
+
+Some key characteristics:
+
+- Headless: Bring your own components and design the user experience as you want.
+- Full-stack: Provides comprehensive tools for building both the interface and validate schemas on the back-end.
+- Typesafe: Ensures full type safety by default in every aspect.
+- Multi-platform: Runs on web (React), mobile (React Native), servers, serverless, and workers.
+- Framework agnostic: Features a core that is independent of any front-end framework.
+- Zero dependencies: Offers a streamlined, lightweight library.
+- Unopinionated: Affords you the freedom to build anything you imagine.
+- Progressively Enhanceable: Embraces web standards.
+
+Currently, **Builder** offers support for React and React Native, with plans to extend compatibility to other front-end frameworks in the future.
+
 ---
-title: Getting started
----
+
+## Get Started
 
 Learn how to get started with Builder through our guides. {% .lead %}
 
@@ -8,9 +25,9 @@ Learn how to get started with Builder through our guides. {% .lead %}
 
 {% quick-link title="Installation" icon="installation" href="/docs/installation" description="Step-by-step guides for setting up and using the library." /%}
 
-{% quick-link title="Core concepts" icon="presets" href="/docs/attributes" description="Learn the core concepts to better understand the library." /%}
+{% quick-link title="React Form Builder Guide" icon="plugins" href="/docs/guides/form-builder" description="Explore our guides to spark your inspiration." /%}
 
-{% quick-link title="Guides" icon="plugins" href="/docs/guides/form-builder" description="Explore our guides to spark your inspiration." /%}
+{% quick-link title="Core concepts" icon="presets" href="/docs/attributes" description="Learn the core concepts to better understand the library." /%}
 
 {% quick-link title="API reference" icon="theming" href="/docs/api/create-attribute" description="Dive into the API Reference for detailed guidance." /%}
 
@@ -20,33 +37,14 @@ Learn how to get started with Builder through our guides. {% .lead %}
 
 ---
 
-## Live Example
+## React Form Builder Demo
 
-A simple example of what can be accomplished with Builder.
+Here is a live demo of a simple React form builder created using `shadcn` components for UI, and `dnd-kit` for drag and drop.
 
 {% basic-form-builder /%}
 
----
-
-## Introduction
-
-**Builder** is a versatile TypeScript library designed for crafting custom form builders and much more. You can also develop website builders, dashboard builders, and any other builders you envision.
-
-Some key characteristics:
-
-- Headless: Bring your own components and design the user experience as you want.
-- Full-stack: Provides comprehensive tools for building both the interface and validate schemas on the back-end.
-- Typesafe: Ensures full type safety by default in every aspect.
-- Multi-platform: Runs on web, mobile, servers, serverless, and workers.
-- Framework agnostic: Features a core that is independent of any front-end framework.
-- Zero dependencies: Offers a streamlined, lightweight library.
-- Unopinionated: Affords you the freedom to build anything you imagine.
-- Progressively Enhanceable: Embraces web standards.
-
-Currently, **Builder** offers support for React, with plans to extend compatibility to other front-end frameworks in the future.
-
-{% callout type="warning" title="Alpha Stage" %}
-We are successfully using **Builder** in real-world production apps. However, it's important to note that the project is currently in the alpha stage, which means that breaking changes can occur even in minor or patch updates.
+{% callout title="You should know!" %}
+You are free to build your own form builder using any components and mechanics you want.
 {% /callout %}
 
 ---
