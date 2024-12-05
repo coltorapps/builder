@@ -46,10 +46,10 @@ export function Hero() {
               priority
             />
             <div className="relative xl:pr-24">
-              <h1 className="font-display inline bg-gradient-to-t from-slate-400 to-white bg-clip-text text-3xl md:text-4xl tracking-tight text-transparent">
+              <h1 className="font-display inline bg-gradient-to-t from-slate-400 to-white bg-clip-text text-3xl tracking-tight text-transparent md:text-4xl">
                 React Form Builder
               </h1>
-              <h2 className="mt-3 md:text-2xl tracking-tight text-neutral-400">
+              <h2 className="mt-3 tracking-tight text-neutral-400 md:text-2xl">
                 <span className="not-sr-only">
                   Develop your dynamic{" "}
                   <WordRotate
@@ -60,7 +60,8 @@ export function Hero() {
                 </span>
                 <span className="sr-only">
                   Develop your own dynamic forms builder, websites builder,
-                  dashboards builder, UIs builder.
+                  dashboards builder. Dynamic UI form JSON. Drag and drop react
+                  builder. Generate UI from JSON schema.
                 </span>
               </h2>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">

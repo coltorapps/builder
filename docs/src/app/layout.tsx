@@ -26,11 +26,11 @@ const lexend = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL("https://builder.coltorapps.com"),
   title: {
-    template: "%s - Docs",
-    default: "React Form Builder",
+    template: "React Form Builder | %s - Docs",
+    default: "React Form Builder | Dynamic JSON-based UI with Drag and Drop.",
   },
   description:
-    "React Form Builder. React Native Form Builder. Develop your own dynamic forms builder, websites builder, dashboards builder, UIs builder.",
+    "React Form Builder. React Native Form Builder. Develop your own dynamic forms builder, websites builder, dashboards builder, UIs builder. Drag-and-drop functionality, generate JSON schema, and seamless integration with React and Next.js",
 };
 
 export default function RootLayout({
