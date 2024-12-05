@@ -1,5 +1,11 @@
 # @coltorapps/builder
 
+## 0.2.1
+
+### Patch Changes
+
+- Added support for React 19 in peerDependencies.
+
 ## 0.2.0
 
 ### Minor Changes

@@ -1,7 +1,7 @@
 {
   "name": "@coltorapps/builder",
   "private": false,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "homepage": "https://builder.coltorapps.com/",
   "repository": {
     "type": "git",
