@@ -50,10 +50,11 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 
 The `options` parameter properties:
 
-| Property      | Type                                                          | Description {% class="api-description" %}                                                              |
-| ------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `initialData` | {% badge content="object" /%} {% badge content="optional" /%} | The optional partial initial data of the [interpreter store](/docs/api/create-interpreter-store#data). |
-| `events`      | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with [events callbacks](#events-callbacks).                                 |
+| Property                            | Type                                                           | Description {% class="api-description" %}                                                              |
+| ----------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `initialData`                       | {% badge content="object" /%} {% badge content="optional" /%}  | The optional partial initial data of the [interpreter store](/docs/api/create-interpreter-store#data). |
+| `initialEntitiesValuesWithDefaults` | {% badge content="boolean" /%} {% badge content="optional" /%} | A flag to enable or disable the automatic setting of default values. Defaults to `true`.               |
+| `events`                            | {% badge content="object" /%} {% badge content="optional" /%}  | An optional partial object with [events callbacks](#events-callbacks).                                 |
 
 ### Returns
 

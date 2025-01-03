@@ -488,15 +488,17 @@ function ensureEntityProcessable(
   }
 }
 
+export type InterpreterStoreOptions<TBuilder extends Builder> = {
+  initialData?: Partial<
+    Omit<InterpreterStoreData<TBuilder>, "unprocessableEntitiesIds">
+  >;
+  initialEntitiesValuesWithDefaults?: boolean;
+};
+
 export function createInterpreterStore<TBuilder extends Builder>(
   builder: TBuilder,
   schema: Schema<TBuilder>,
-  options?: {
-    initialData?: Partial<
-      Omit<InterpreterStoreData<TBuilder>, "unprocessableEntitiesIds">
-    >;
-    initialEntitiesValuesWithDefaults?: boolean;
-  },
+  options?: InterpreterStoreOptions<TBuilder>,
 ): InterpreterStore<TBuilder> {
   const schemaValidationResult = validateSchemaShape(schema, builder);
 

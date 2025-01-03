@@ -9,6 +9,7 @@ import {
   type InterpreterStore,
   type InterpreterStoreData,
   type InterpreterStoreEvent,
+  type InterpreterStoreOptions,
   type Schema,
 } from "@coltorapps/builder";
 
@@ -24,15 +25,11 @@ export function useInterpreterStore<TBuilder extends Builder>(
   builder: TBuilder,
   schema: Schema<TBuilder>,
   options: {
-    initialData?: Partial<InterpreterStoreData<TBuilder>>;
     events?: EventsListeners<InterpreterStoreEvent<TBuilder>>;
-  } = {},
+  } & InterpreterStoreOptions<TBuilder> = {},
 ): InterpreterStore<TBuilder> {
   const interpreterStore = useMemo(
-    () =>
-      createInterpreterStore(builder, schema, {
-        initialData: options.initialData,
-      }),
+    () => createInterpreterStore(builder, schema, options),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [builder, schema],
   );
