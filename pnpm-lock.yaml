@@ -57,10 +57,10 @@ importers:
         specifier: ^1.9.2
         version: 1.17.7(@algolia/client-search@5.15.0)(algoliasearch@5.15.0)(search-insights@2.17.3)
       '@coltorapps/builder':
-        specifier: ^0.2.1
+        specifier: ^0.2.2
         version: link:../packages/builder
       '@coltorapps/builder-react':
-        specifier: ^0.2.1
+        specifier: ^0.2.2
         version: link:../packages/builder-react
       '@dnd-kit/core':
         specifier: ^6.1.0
@@ -256,7 +256,7 @@ importers:
   packages/builder-react:
     devDependencies:
       '@coltorapps/builder':
-        specifier: ^0.2.1
+        specifier: ^0.2.2
         version: link:../builder
       '@coltorapps/eslint-config':
         specifier: 0.1.0

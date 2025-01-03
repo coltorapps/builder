@@ -1,5 +1,11 @@
 # @coltorapps/builder
 
+## 0.2.2
+
+### Patch Changes
+
+- Expose all interpreter store options and make them available in useInterpreterStore.
+
 ## 0.2.1
 
 ### Patch Changes

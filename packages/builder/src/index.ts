@@ -29,6 +29,7 @@ export type {
   InterpreterStore,
   InterpreterStoreData,
   InterpreterStoreEvent,
+  InterpreterStoreOptions,
   InterpreterStoreEventName,
 } from "./interpreter-store";
 
