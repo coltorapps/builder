@@ -144,7 +144,9 @@ export function BuilderEntity<TBuilder extends Builder>(props: {
             entityId={entityId}
             components={props.components}
             builderStore={props.builderStore}
-          />
+          >
+            {renderEntity}
+          </BuilderEntity>
         ))}
       </EntityComponent>
     ),
