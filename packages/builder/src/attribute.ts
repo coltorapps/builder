@@ -5,21 +5,18 @@ export type AttributeContext = {
   entity: SchemaEntityWithId;
 };
 
-export type Attribute<TName extends string = string, TValue = unknown> = {
-  name: TName;
+export type Attribute<TValue = unknown> = {
   validate: (value: unknown, context: AttributeContext) => TValue;
 };
 
 export type AttributesValues<
-  TAttributes extends ReadonlyArray<Attribute> = ReadonlyArray<Attribute>,
+  TAttributes extends Record<string, Attribute> = Record<string, Attribute>,
 > = {
-  [K in TAttributes[number]["name"]]: Awaited<
-    ReturnType<Extract<TAttributes[number], { name: K }>["validate"]>
-  >;
+  [K in keyof TAttributes]: Awaited<ReturnType<TAttributes[K]["validate"]>>;
 };
 
-export function createAttribute<const TName extends string, TValue>(
-  options: Attribute<TName, TValue>,
-): Attribute<TName, TValue> {
+export function createAttribute<TValue>(
+  options: Attribute<TValue>,
+): Attribute<TValue> {
   return options;
 }

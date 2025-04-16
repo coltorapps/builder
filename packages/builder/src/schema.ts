@@ -5,9 +5,8 @@ import {
   isEntityParentAllowed,
   isEntityParentRequired,
   type Builder,
-  type EntitiesExtensions,
 } from "./builder";
-import { type KeyofUnion, type OptionalPropsIfUndefined } from "./utils";
+import { type Entity } from "./entity";
 
 export const schemaValidationErrorCodes = {
   InvalidRootFormat: "InvalidRootFormat",
@@ -190,34 +189,30 @@ export class SchemaValidationError extends Error {
 }
 
 export type BaseSchemaEntity<
-  TBuilder extends Builder = Builder,
-  TExtend = object,
+  TEntity extends Entity = Entity,
+  TType extends string = string,
 > = {
-  [K in TBuilder["entities"][number]["name"]]: {
-    type: K;
-    attributes: OptionalPropsIfUndefined<
-      AttributesValues<
-        Extract<TBuilder["entities"][number], { name: K }>["attributes"]
-      >
-    >;
-    parentId?: string;
-  } & TExtend;
-}[TBuilder["entities"][number]["name"]];
+  type: TType;
+  attributes: AttributesValues<TEntity["attributes"]>;
+  parentId?: string;
+};
 
-export type SchemaEntity<TBuilder extends Builder = Builder> = BaseSchemaEntity<
-  TBuilder,
-  {
-    children?: Array<string>;
-  }
->;
+export interface SchemaEntity<TEntity extends Entity = Entity>
+  extends BaseSchemaEntity<TEntity> {
+  children?: Array<string>;
+}
 
-export type Schema<TBuilder extends Builder = Builder> = {
-  entities: Record<string, SchemaEntity<TBuilder>>;
+export type Schema<
+  TBuilder extends Pick<Builder, "entities"> = Pick<Builder, "entities">,
+> = {
+  entities: Record<string, SchemaEntity<TBuilder["entities"][string]>>;
   root: ReadonlyArray<string>;
 };
 
-export type SchemaEntityWithId<TBuilder extends Builder = Builder> =
-  SchemaEntity<TBuilder> & { id: string };
+export interface SchemaEntityWithId<TEntity extends Entity = Entity>
+  extends SchemaEntity<TEntity> {
+  id: string;
+}
 
 function ensureEntityIsRegistered(
   entity: SchemaEntityWithId,
@@ -275,11 +270,7 @@ function ensureEntityAttributeIsRegistered(
 ): void {
   const entityDefinition = ensureEntityIsRegistered(entity, builder);
 
-  if (
-    !entityDefinition?.attributes.some(
-      (attribute) => attribute.name === attributeName,
-    )
-  ) {
+  if (!entityDefinition?.attributes[attributeName]) {
     throw new SchemaValidationError({
       code: schemaValidationErrorCodes.UnknownEntityAttributeType,
       payload: { entityId: entity.id, attributeName: attributeName },
@@ -309,9 +300,11 @@ async function validateEntityAttributes(
     ...entity.attributes,
   };
 
-  for (const attribute of entityDefinition.attributes) {
+  for (const [attributeName, attribute] of Object.entries(
+    entityDefinition.attributes,
+  )) {
     try {
-      let attributeValue = entity.attributes[attribute.name];
+      let attributeValue = entity.attributes[attributeName];
 
       const attributeValidationContext = {
         schema,
@@ -322,10 +315,10 @@ async function validateEntityAttributes(
         attribute.validate(value, attributeValidationContext);
 
       const attributeExtensionValidator = entityDefinition.attributesExtensions[
-        attribute.name
+        attributeName
       ]?.validate
         ? (value: unknown) =>
-            entityDefinition.attributesExtensions[attribute.name]?.validate?.(
+            entityDefinition.attributesExtensions[attributeName]?.validate?.(
               value,
               {
                 ...attributeValidationContext,
@@ -334,9 +327,9 @@ async function validateEntityAttributes(
             )
         : undefined;
 
-      const entityExtensionAttributeValidator = (
-        builder.entitiesExtensions as EntitiesExtensions
-      )[entity.type]?.attributes?.[attribute.name]?.validate;
+      const entityExtensionAttributeValidator =
+        builder.entitiesExtensions[entity.type]?.attributes?.[attributeName]
+          ?.validate;
 
       if (entityExtensionAttributeValidator) {
         attributeValue = await entityExtensionAttributeValidator(
@@ -352,9 +345,9 @@ async function validateEntityAttributes(
         attributeValue = await attributeValidator(attributeValue);
       }
 
-      newAttributes[attribute.name] = attributeValue;
+      newAttributes[attributeName] = attributeValue;
     } catch (error) {
-      attributesErrors[attribute.name] = error;
+      attributesErrors[attributeName] = error;
     }
   }
 
@@ -369,11 +362,11 @@ async function validateEntityAttributes(
 }
 
 export function ensureEntityOptionalParentIdHasValidReference<
-  TBuilder extends Builder,
+  TEntities extends Record<string, Entity>,
 >(
-  entity: SchemaEntityWithId<TBuilder>,
-  entities: Schema<TBuilder>["entities"],
-): SchemaEntityWithId<TBuilder> | undefined {
+  entity: SchemaEntityWithId<TEntities[string]>,
+  entities: Schema<Builder<TEntities>>["entities"],
+): SchemaEntityWithId<TEntities[string]> | undefined {
   if (typeof entity.parentId === "undefined") {
     return;
   }
@@ -563,10 +556,10 @@ function ensureEntityReachable(
 }
 
 function validateEntitySchema<TBuilder extends Builder>(
-  entity: SchemaEntityWithId<TBuilder>,
+  entity: SchemaEntityWithId<TBuilder["entities"][string]>,
   builder: TBuilder,
   schema: Schema<TBuilder>,
-): SchemaEntity<TBuilder> {
+): SchemaEntity<TBuilder["entities"][string]> {
   builder.validateEntityId(entity.id);
 
   if (typeof entity.parentId !== "undefined") {
@@ -611,10 +604,10 @@ function validateEntitySchema<TBuilder extends Builder>(
   };
 }
 
-export function ensureEntityExists<TBuilder extends Builder>(
+export function ensureEntityExists<TEntities extends Record<string, Entity>>(
   entityId: string,
-  entities: Schema<TBuilder>["entities"],
-): SchemaEntityWithId<TBuilder> {
+  entities: Schema<Builder<TEntities>>["entities"],
+): SchemaEntityWithId<TEntities[string]> {
   const entity = entities[entityId];
 
   if (!entity) {
@@ -712,18 +705,20 @@ function ensureRootEntitiesDontHaveParents(schema: Schema): void {
   );
 }
 
-export function getEmptySchema<TBuilder extends Builder>(): Schema<TBuilder> {
+export function getEmptySchema<
+  TEntities extends Record<string, Entity>,
+>(): Schema<Builder<TEntities>> {
   return { entities: {}, root: [] };
 }
 
-type SchemValidationResult<TBuilder extends Builder> =
-  | { data: Schema<TBuilder>; success: true }
+type SchemValidationResult<TEntities extends Record<string, Entity>> =
+  | { data: Schema<Builder<TEntities>>; success: true }
   | { reason: SchemaValidationErrorReason; success: false };
 
 export function validateSchemaShape<TBuilder extends Builder>(
   schema: unknown,
   builder: TBuilder,
-): SchemValidationResult<TBuilder> {
+): SchemValidationResult<TBuilder["entities"]> {
   const castedSchema = schema as Schema<TBuilder>;
 
   if (typeof schema === "undefined") {
@@ -761,16 +756,18 @@ export function validateSchemaShape<TBuilder extends Builder>(
   }
 }
 
-export type EntityAttributesErrors<TBuilder extends Builder = Builder> =
-  Partial<Record<KeyofUnion<SchemaEntity<TBuilder>["attributes"]>, unknown>>;
+export type EntityAttributesErrors<TEntity extends Entity = Entity> = Partial<
+  Record<Extract<keyof TEntity["attributes"], string>, unknown>
+>;
 
-export type EntitiesAttributesErrors<TBuilder extends Builder = Builder> =
-  Record<string, EntityAttributesErrors<TBuilder>>;
+export type EntitiesAttributesErrors<
+  TEntities extends Record<string, Entity> = Record<string, Entity>,
+> = Record<string, EntityAttributesErrors<TEntities[string]>>;
 
 async function validateEntitiesAttributes<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
   builder: TBuilder,
-): Promise<SchemValidationResult<TBuilder>> {
+): Promise<SchemValidationResult<TBuilder["entities"]>> {
   const entitiesAttributesErrors: EntitiesAttributesErrors = {};
 
   const newEntities = { ...schema.entities };
@@ -821,7 +818,7 @@ async function validateEntitiesAttributes<TBuilder extends Builder>(
 export async function validateSchema<TBuilder extends Builder>(
   schema: unknown,
   builder: TBuilder,
-): Promise<SchemValidationResult<TBuilder>> {
+): Promise<SchemValidationResult<TBuilder["entities"]>> {
   const schemaIntegrityValidationResult = validateSchemaShape(schema, builder);
 
   if (!schemaIntegrityValidationResult.success) {
@@ -838,9 +835,9 @@ export async function validateSchema<TBuilder extends Builder>(
   }
 
   try {
-    const newSchema = (await builder.validateSchema(
+    const newSchema = await builder.validateSchema(
       entitiesAttributesValidationResult.data,
-    )) as Schema<TBuilder>;
+    );
 
     return {
       success: true,

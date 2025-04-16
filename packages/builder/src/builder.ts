@@ -4,80 +4,60 @@ import { type Schema, type SchemaEntityWithId } from "./schema";
 import { generateUuid, validateUuid } from "./uuid";
 
 export type EntitiesExtensions<
-  TEntities extends ReadonlyArray<Entity> = ReadonlyArray<Entity>,
+  TEntities extends Record<string, Entity> = Record<string, Entity>,
 > = {
-  [K in TEntities[number]["name"]]?: {
-    childrenAllowed?: boolean | ReadonlyArray<TEntities[number]["name"]>;
+  [K in Extract<keyof TEntities, string>]?: {
+    childrenAllowed?: boolean | ReadonlyArray<Extract<keyof TEntities, string>>;
     parentRequired?: boolean;
-    allowedParents?: ReadonlyArray<TEntities[number]["name"]>;
+    allowedParents?: ReadonlyArray<Extract<keyof TEntities, string>>;
     attributes?: {
-      [K2 in Extract<
-        TEntities[number],
-        { name: K }
-      >["attributes"][number]["name"]]?: {
+      [K2 in keyof TEntities[K]["attributes"]]?: {
         validate?: (
           value: unknown,
           context: {
             schema: Schema<Builder<TEntities>>;
-            entity: SchemaEntityWithId<
-              Builder<[Extract<TEntities[number], { name: K }>]>
-            >;
+            entity: SchemaEntityWithId<TEntities[K]>;
             validate: (
               value: unknown,
-            ) => ReturnType<
-              Extract<
-                Extract<TEntities[number], { name: K }>["attributes"][number],
-                { name: K2 }
-              >["validate"]
-            >;
+            ) => ReturnType<TEntities[K]["attributes"][K2]["validate"]>;
           },
         ) =>
-          | AttributesValues<
-              Extract<TEntities[number], { name: K }>["attributes"]
-            >[K2]
-          | Promise<
-              AttributesValues<
-                Extract<TEntities[number], { name: K }>["attributes"]
-              >[K2]
-            >;
+          | AttributesValues<TEntities[K]["attributes"]>[K2]
+          | Promise<AttributesValues<TEntities[K]["attributes"]>[K2]>;
       };
     };
   };
 };
 
 export type Builder<
-  TEntities extends ReadonlyArray<Entity> = ReadonlyArray<Entity>,
-  TEntitiesExtensions extends
-    EntitiesExtensions<TEntities> = EntitiesExtensions<[]>,
+  TEntities extends Record<string, Entity> = Record<string, Entity>,
 > = {
   entities: TEntities;
   generateEntityId(): string;
   validateEntityId(id: string): void;
   validateSchema(
-    schema: Schema<Builder<TEntities, TEntitiesExtensions>>,
-  ):
-    | Promise<Schema<Builder<TEntities, TEntitiesExtensions>>>
-    | Schema<Builder<TEntities, TEntitiesExtensions>>;
-  entitiesExtensions: TEntitiesExtensions;
+    schema: Schema<Builder<TEntities>>,
+  ): Promise<Schema<Builder<TEntities>>> | Schema<Builder<TEntities>>;
+  entitiesExtensions: EntitiesExtensions;
 };
 
 type OptionalBuilderArgs =
   | "validateSchema"
   | "generateEntityId"
-  | "entitiesExtensions"
   | "validateEntityId";
 
-export function createBuilder<
-  const TEntities extends ReadonlyArray<Entity>,
-  const TEntitiesExtensions extends
-    EntitiesExtensions<TEntities> = EntitiesExtensions<TEntities>,
->(
-  options: Omit<Builder<TEntities, TEntitiesExtensions>, OptionalBuilderArgs> &
-    Partial<Pick<Builder<TEntities, TEntitiesExtensions>, OptionalBuilderArgs>>,
-): Builder<TEntities, TEntitiesExtensions> {
+interface CreateBuilderOptions<TEntities extends Record<string, Entity>>
+  extends Omit<Builder<TEntities>, OptionalBuilderArgs | "entitiesExtensions">,
+    Partial<Pick<Builder<TEntities>, OptionalBuilderArgs>> {
+  entitiesExtensions?: EntitiesExtensions<TEntities>;
+}
+
+export function createBuilder<const TEntities extends Record<string, Entity>>(
+  options: CreateBuilderOptions<TEntities>,
+): Builder<TEntities> {
   function fallbackValidateSchema(
-    schema: Schema<Builder<TEntities, TEntitiesExtensions>>,
-  ): Schema<Builder<TEntities, TEntitiesExtensions>> {
+    schema: Schema<Builder<TEntities>>,
+  ): Schema<Builder<TEntities>> {
     return schema;
   }
 
@@ -87,7 +67,7 @@ export function createBuilder<
     generateEntityId: options.generateEntityId ?? generateUuid,
     validateEntityId: options.validateEntityId ?? validateUuid,
     entitiesExtensions:
-      options.entitiesExtensions ?? ({} as TEntitiesExtensions),
+      (options.entitiesExtensions as EntitiesExtensions) ?? {},
   };
 }
 
@@ -95,9 +75,7 @@ export function getEntityDefinition(
   entityType: string,
   builder: Builder,
 ): Builder["entities"][number] | undefined {
-  return builder.entities.find(
-    (builderEntity) => builderEntity.name === entityType,
-  );
+  return builder.entities[entityType];
 }
 
 export function ensureEntityIsRegistered(
@@ -120,9 +98,7 @@ export function ensureEntityAttributeIsRegistered(
 ): Attribute {
   const entityDefinition = ensureEntityIsRegistered(entityType, builder);
 
-  const attribute = entityDefinition.attributes.find(
-    (attribute) => attribute.name === attributeName,
-  );
+  const attribute = entityDefinition.attributes[attributeName];
 
   if (!attribute) {
     throw new Error(`Unkown entity attribute "${attributeName}".`);
@@ -151,9 +127,8 @@ export function isEntityChildAllowed(
   const entityDefinition = ensureEntityIsRegistered(entityType, builder);
 
   const allowedChildren =
-    (builder.entitiesExtensions as EntitiesExtensions<ReadonlyArray<Entity>>)[
-      entityType
-    ]?.childrenAllowed ?? entityDefinition.childrenAllowed;
+    builder.entitiesExtensions[entityType]?.childrenAllowed ??
+    entityDefinition.childrenAllowed;
 
   if (!allowedChildren) {
     return false;
@@ -167,9 +142,7 @@ export function isEntityParentAllowed(
   parentEntityType: string,
   builder: Builder,
 ): boolean {
-  const allowedParents = (
-    builder.entitiesExtensions as EntitiesExtensions<ReadonlyArray<Entity>>
-  )[entityType]?.allowedParents;
+  const allowedParents = builder.entitiesExtensions[entityType]?.allowedParents;
 
   return !allowedParents || allowedParents.includes(parentEntityType);
 }
@@ -181,9 +154,8 @@ export function isEntityParentRequired(
   const entityDefinition = ensureEntityIsRegistered(entityType, builder);
 
   return (
-    (builder.entitiesExtensions as EntitiesExtensions<ReadonlyArray<Entity>>)[
-      entityType
-    ]?.parentRequired ?? entityDefinition.parentRequired
+    builder.entitiesExtensions[entityType]?.parentRequired ??
+    entityDefinition.parentRequired
   );
 }
 
@@ -214,9 +186,8 @@ export function ensureEntityCanLackParent(
   const entityDefinition = ensureEntityIsRegistered(entityType, builder);
 
   const parentRequired =
-    (builder.entitiesExtensions as EntitiesExtensions<ReadonlyArray<Entity>>)[
-      entityType
-    ]?.parentRequired ?? entityDefinition.parentRequired;
+    builder.entitiesExtensions[entityType]?.parentRequired ??
+    entityDefinition.parentRequired;
 
   if (parentRequired) {
     throw new Error("A parent is required.");

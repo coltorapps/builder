@@ -12,29 +12,26 @@ import {
 describe("entities values validation", () => {
   it("can validate entities", async () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           validate(value) {
             return z.string().parse(value);
           },
         }),
-        createEntity({
-          name: "section",
-          attributes: [
-            createAttribute({
-              name: "skip",
+        section: createEntity({
+          attributes: {
+            skip: createAttribute({
               validate(value) {
                 return z.boolean().parse(value);
               },
             }),
-          ],
+          },
           shouldBeProcessed(context) {
             return !context.entity.attributes.skip;
           },
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const schema: Schema<typeof builder> = {
