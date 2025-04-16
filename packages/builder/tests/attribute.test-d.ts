@@ -6,14 +6,12 @@ import { createAttribute, type Schema, type SchemaEntityWithId } from "../src";
 describe("attribute", () => {
   it("can be created", () => {
     const attribute = createAttribute({
-      name: "label",
       validate(value) {
         return z.string().parse(value);
       },
     });
 
     expectTypeOf(attribute).toEqualTypeOf<{
-      name: "label";
       validate: (
         value: unknown,
         context: {

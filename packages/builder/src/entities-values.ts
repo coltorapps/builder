@@ -1,28 +1,30 @@
 import { ensureEntityIsRegistered, type Builder } from "./builder";
+import { type Entity } from "./entity";
 import { ensureEntityExists, type Schema } from "./schema";
 
-export type EntityValue<TBuilder extends Builder = Builder> =
-  | Awaited<ReturnType<TBuilder["entities"][number]["validate"]>>
+export type EntityValue<TEntity extends Entity = Entity> =
+  | Awaited<ReturnType<TEntity["validate"]>>
   | undefined;
 
-export type EntitiesValues<TBuilder extends Builder = Builder> = Record<
-  string,
-  EntityValue<TBuilder>
->;
+export type EntitiesValues<
+  TEntities extends Record<string, Entity> = Record<string, Entity>,
+> = Record<string, EntityValue<TEntities[string]>>;
 
 export type EntitiesErrors = Record<string, unknown>;
 
-export type EntitiesValuesValidationResult<TBuilder extends Builder> =
-  | { data: EntitiesValues<TBuilder>; success: true }
+export type EntitiesValuesValidationResult<
+  TEntities extends Record<string, Entity>,
+> =
+  | { data: EntitiesValues<TEntities>; success: true }
   | { entitiesErrors: EntitiesErrors; success: false };
 
 export async function validateEntityValue<TBuilder extends Builder>(
   entityId: string,
-  entitiesValues: EntitiesValues<TBuilder>,
+  entitiesValues: EntitiesValues<TBuilder["entities"]>,
   builder: TBuilder,
   schema: Schema<TBuilder>,
 ): Promise<
-  | { value: EntityValue<TBuilder>; success: true }
+  | { value: EntityValue<TBuilder["entities"][string]>; success: true }
   | { error: unknown; success: false }
 > {
   const entity = ensureEntityExists(entityId, schema.entities);
@@ -33,7 +35,7 @@ export async function validateEntityValue<TBuilder extends Builder>(
     const value = (await entityDefinition.validate(entitiesValues[entityId], {
       entity,
       entitiesValues,
-    })) as EntityValue<TBuilder>;
+    })) as EntityValue<TBuilder["entities"][string]>;
 
     return { success: true, value };
   } catch (error) {
@@ -45,7 +47,7 @@ function getEligibleEntitiesIdsForValidationFromEntity<
   TBuilder extends Builder,
 >(
   entityId: string,
-  entitiesValues: EntitiesValues<TBuilder>,
+  entitiesValues: EntitiesValues<TBuilder["entities"]>,
   schema: Schema<TBuilder>,
   builder: TBuilder,
 ): string[] {
@@ -81,7 +83,7 @@ function getEligibleEntitiesIdsForValidationFromEntity<
 }
 
 export function getEligibleEntitiesIdsForValidation<TBuilder extends Builder>(
-  entitiesValues: EntitiesValues<TBuilder>,
+  entitiesValues: EntitiesValues<TBuilder["entities"]>,
   builder: TBuilder,
   schema: Schema<TBuilder>,
 ): string[] {
@@ -105,13 +107,13 @@ export async function validateEntitiesValues<TBuilder extends Builder>(
   entitiesValues: unknown,
   builder: TBuilder,
   schema: Schema<TBuilder>,
-): Promise<EntitiesValuesValidationResult<TBuilder>> {
+): Promise<EntitiesValuesValidationResult<TBuilder["entities"]>> {
   const computedEntitiesValues =
     typeof entitiesValues !== "object" ||
     Array.isArray(entitiesValues) ||
     entitiesValues === null
       ? {}
-      : (entitiesValues as EntitiesValues<TBuilder>);
+      : (entitiesValues as EntitiesValues<TBuilder["entities"]>);
 
   const eligibleEntitiesIdsForValidation = getEligibleEntitiesIdsForValidation(
     computedEntitiesValues,
@@ -121,7 +123,7 @@ export async function validateEntitiesValues<TBuilder extends Builder>(
 
   const entitiesErrors: EntitiesErrors = {};
 
-  const newEntitiesValues: EntitiesValues<TBuilder> = {
+  const newEntitiesValues: EntitiesValues<TBuilder["entities"]> = {
     ...computedEntitiesValues,
   };
 

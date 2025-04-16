@@ -18,13 +18,13 @@ import {
 import { type Subscribe, type SubscriptionEvent } from "./subscription-manager";
 
 type InternalInterpreterStoreData<TBuilder extends Builder = Builder> = {
-  entitiesValues: Map<string, EntityValue<TBuilder>>;
+  entitiesValues: Map<string, EntityValue<TBuilder["entities"][string]>>;
   entitiesErrors: Map<string, unknown>;
   unprocessableEntitiesIds: Set<string>;
 };
 
 export type InterpreterStoreData<TBuilder extends Builder = Builder> = {
-  entitiesValues: EntitiesValues<TBuilder>;
+  entitiesValues: EntitiesValues<TBuilder["entities"]>;
   entitiesErrors: EntitiesErrors;
   unprocessableEntitiesIds: Array<string>;
 };
@@ -45,7 +45,7 @@ export type InterpreterStoreEvent<TBuilder extends Builder = Builder> =
       typeof interpreterStoreEventsNames.EntityValueUpdated,
       {
         entityId: string;
-        value: EntityValue<TBuilder>;
+        value: EntityValue<TBuilder["entities"][string]>;
       }
     >
   | SubscriptionEvent<
@@ -194,7 +194,7 @@ function resetEntityValue<TBuilder extends Builder>(
   const newValue = entityDefinition.defaultValue({
     entity,
     entitiesValues: serializeInternalEntitiesValues(entitiesValues),
-  }) as EntityValue<TBuilder>;
+  }) as EntityValue<TBuilder["entities"][string]>;
 
   newEntitiesValues.set(entityId, newValue);
 
@@ -300,7 +300,7 @@ function getRecurringChildrenIds(
 }
 
 function computeEntityProcessability<TBuilder extends Builder>(
-  entity: SchemaEntityWithId<TBuilder>,
+  entity: SchemaEntityWithId<TBuilder["entities"][string]>,
   schema: Schema<TBuilder>,
   data: InternalInterpreterStoreData<TBuilder>,
   builder: TBuilder,
@@ -1060,8 +1060,13 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
   builder: TBuilder;
   schema: Schema<TBuilder>;
   validateEntityValue(entityId: string): Promise<void>;
-  validateEntitiesValues(): Promise<EntitiesValuesValidationResult<TBuilder>>;
-  setEntityValue(entityId: string, value: EntityValue<TBuilder>): void;
+  validateEntitiesValues(): Promise<
+    EntitiesValuesValidationResult<TBuilder["entities"]>
+  >;
+  setEntityValue(
+    entityId: string,
+    value: EntityValue<TBuilder["entities"][string]>,
+  ): void;
   resetEntityValue(entityId: string): void;
   resetEntitiesValues(): void;
   clearEntityValue(entityId: string): void;
@@ -1073,6 +1078,8 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
     entitiesErrors: InterpreterStoreData<TBuilder>["entitiesErrors"],
   ): void;
   isEntityProcessable(entityId: string): boolean;
-  getEntityValue(entityId: string): EntityValue<TBuilder> | undefined;
+  getEntityValue(
+    entityId: string,
+  ): EntityValue<TBuilder["entities"][string]> | undefined;
   getEntityError(entityId: string): unknown;
 };

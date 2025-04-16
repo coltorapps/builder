@@ -18,7 +18,6 @@ const dummyAttributeContext = {
 describe("attribute", () => {
   it("can be created with minimal options", () => {
     const attribute = createAttribute({
-      name: "label",
       validate(value) {
         return value;
       },
@@ -31,7 +30,6 @@ describe("attribute", () => {
 
   it("can validate values", () => {
     const attribute = createAttribute({
-      name: "label",
       validate(value) {
         return z.string().parse(value);
       },

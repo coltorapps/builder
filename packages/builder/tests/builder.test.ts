@@ -14,7 +14,7 @@ describe("builder", () => {
     const validateUuidMock = vi.spyOn(uuidExports, "validateUuid");
 
     const builder = createBuilder({
-      entities: [],
+      entities: {},
     });
 
     expect(builder).toMatchSnapshot();
@@ -30,7 +30,7 @@ describe("builder", () => {
 
   it("can be created with entity ID generator and validator", () => {
     const builder = createBuilder({
-      entities: [],
+      entities: {},
       generateEntityId() {
         return "1";
       },
@@ -52,7 +52,7 @@ describe("builder", () => {
 
   it("can be created with entities", () => {
     const builder = createBuilder({
-      entities: [createEntity({ name: "test" })],
+      entities: { test: createEntity({}) },
     });
 
     expect(builder).toMatchSnapshot();
@@ -60,13 +60,12 @@ describe("builder", () => {
 
   it("can be created with children and parent rules", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
           parentRequired: true,
         }),
-      ],
+      },
     });
 
     expect(builder).toMatchSnapshot();

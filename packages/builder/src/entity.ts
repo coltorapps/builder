@@ -1,11 +1,10 @@
 import { type Attribute, type AttributesValues } from "./attribute";
-import { type Builder } from "./builder";
 import { type Schema, type SchemaEntityWithId } from "./schema";
 
-export type EntityContext<TAttributes extends ReadonlyArray<Attribute>> = {
+export type EntityContext<TEntity extends Entity = Entity> = {
   entity: {
     id: string;
-    attributes: AttributesValues<TAttributes>;
+    attributes: AttributesValues<TEntity["attributes"]>;
     children?: Array<string>;
     parentId?: string;
   };
@@ -13,17 +12,15 @@ export type EntityContext<TAttributes extends ReadonlyArray<Attribute>> = {
 };
 
 export type AttributesExtensions<TEntity extends Entity = Entity> = {
-  [K in TEntity["attributes"][number]["name"]]?: {
+  [K in keyof TEntity["attributes"]]?: {
     validate?: (
       value: unknown,
       context: {
         schema: Schema;
-        entity: SchemaEntityWithId<Builder<[TEntity]>>;
+        entity: SchemaEntityWithId<TEntity>;
         validate: (
           value: unknown,
-        ) => ReturnType<
-          Extract<TEntity["attributes"][number], { name: K }>["validate"]
-        >;
+        ) => ReturnType<TEntity["attributes"][K]["validate"]>;
       },
     ) =>
       | AttributesValues<TEntity["attributes"]>[K]
@@ -32,23 +29,24 @@ export type AttributesExtensions<TEntity extends Entity = Entity> = {
 };
 
 export type Entity<
-  TName extends string = string,
-  TAttributes extends ReadonlyArray<Attribute> = ReadonlyArray<Attribute>,
+  TAttributes extends Record<string, Attribute> = Record<string, Attribute>,
   TValue = unknown,
   TParentRequired extends boolean = boolean,
   TChildrenAllowed extends boolean = boolean,
 > = {
-  name: TName;
   attributes: TAttributes;
   valueAllowed: boolean;
   childrenAllowed: TChildrenAllowed;
   parentRequired: TParentRequired;
-  attributesExtensions: AttributesExtensions<Entity<TName, TAttributes>>;
-  validate: (value: unknown, context: EntityContext<TAttributes>) => TValue;
+  attributesExtensions: AttributesExtensions<Entity<TAttributes>>;
+  validate: (
+    value: unknown,
+    context: EntityContext<Entity<TAttributes>>,
+  ) => TValue;
   defaultValue: (
-    context: EntityContext<TAttributes>,
+    context: EntityContext<Entity<TAttributes>>,
   ) => Awaited<TValue> | undefined;
-  shouldBeProcessed: (context: EntityContext<TAttributes>) => boolean;
+  shouldBeProcessed: (context: EntityContext<Entity<TAttributes>>) => boolean;
 };
 
 type OptionalEntityArgs =
@@ -60,31 +58,38 @@ type OptionalEntityArgs =
   | "attributesExtensions"
   | "parentRequired";
 
+interface CreateEntityOptions<
+  TAttributes extends Record<string, Attribute>,
+  TValue,
+  TChildrenAllowed extends boolean,
+  TParentRequired extends boolean,
+> extends Omit<
+      Entity<TAttributes, TValue, TParentRequired, TChildrenAllowed>,
+      OptionalEntityArgs | "valueAllowed"
+    >,
+    Partial<
+      Pick<
+        Entity<TAttributes, TValue, TParentRequired, TChildrenAllowed>,
+        OptionalEntityArgs
+      >
+    > {}
+
 export function createEntity<
-  const TName extends string,
-  const TAttributes extends ReadonlyArray<Attribute>,
+  const TAttributes extends Record<string, Attribute>,
   TValue,
   const TChildrenAllowed extends boolean = false,
   const TParentRequired extends boolean = false,
 >(
-  options: Omit<
-    Entity<TName, TAttributes, TValue, TParentRequired, TChildrenAllowed>,
-    OptionalEntityArgs | "valueAllowed"
-  > &
-    Partial<
-      Pick<
-        Entity<TName, TAttributes, TValue, TParentRequired, TChildrenAllowed>,
-        OptionalEntityArgs
-      >
-    >,
-): Entity<TName, TAttributes, TValue, TParentRequired, TChildrenAllowed> {
-  const fallbackAttributes = [] as ReadonlyArray<unknown> as TAttributes;
-
+  options: CreateEntityOptions<
+    TAttributes,
+    TValue,
+    TChildrenAllowed,
+    TParentRequired
+  >,
+): Entity<TAttributes, TValue, TParentRequired, TChildrenAllowed> {
   function fallbackValidator(value: unknown): TValue {
     if (typeof value !== "undefined") {
-      throw new Error(
-        `Values for entities of type '${options.name}' are not allowed.`,
-      );
+      throw new Error(`Values are not allowed.`);
     }
 
     return undefined as TValue;
@@ -102,7 +107,7 @@ export function createEntity<
     ...options,
     childrenAllowed: options.childrenAllowed ?? (false as TChildrenAllowed),
     parentRequired: options.parentRequired ?? (false as TParentRequired),
-    attributes: options.attributes ?? fallbackAttributes,
+    attributes: options.attributes ?? ({} as TAttributes),
     valueAllowed: typeof options.validate === "function",
     attributesExtensions: options.attributesExtensions ?? {},
     validate: options.validate ?? fallbackValidator,

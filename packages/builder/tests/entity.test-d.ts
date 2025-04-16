@@ -6,22 +6,19 @@ import {
   createEntity,
   type AttributesExtensions,
   type Entity,
+  type EntityContext,
 } from "../src/entity";
 
 describe("entity", () => {
   it("can be created", () => {
-    const entity = createEntity({
-      name: "text",
-    });
+    const entity = createEntity({});
 
-    expectTypeOf(entity).toMatchTypeOf<{
-      name: "text";
-    }>();
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    expectTypeOf(entity).toMatchTypeOf<{}>();
   });
 
   it("can be created with validator", () => {
     const entity = createEntity({
-      name: "text",
       validate(value) {
         return z.string().parse(value);
       },
@@ -42,13 +39,12 @@ describe("entity", () => {
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
-      name: "text";
-      attributes: readonly Attribute[];
+      attributes: Record<string, Attribute>;
       valueAllowed: boolean;
       childrenAllowed: false;
       parentRequired: false;
       attributesExtensions: AttributesExtensions<
-        Entity<"text", readonly Attribute[], unknown, boolean, boolean>
+        Entity<Record<string, Attribute>, unknown, boolean, boolean>
       >;
       validate: (value: unknown, context: EntityContext) => string;
       defaultValue: (context: EntityContext) => string | undefined;
@@ -58,54 +54,53 @@ describe("entity", () => {
 
   it("can be created with attributes", () => {
     const entity = createEntity({
-      name: "text",
       validate(value) {
         return z.string().parse(value);
       },
       childrenAllowed: true,
       parentRequired: true,
-      attributes: [
-        createAttribute({
-          name: "label",
+      attributes: {
+        label: createAttribute({
           validate(value) {
             return z.string().parse(value);
           },
         }),
-        createAttribute({
-          name: "defaultValue",
+        defaultValue: createAttribute({
           validate(value) {
             return z.string().optional().parse(value);
           },
         }),
-      ],
+      },
       defaultValue({ entity }) {
         return entity.attributes.defaultValue;
       },
     });
 
-    type EntityContext = {
-      entity: {
-        id: string;
-        attributes: { label: string; defaultValue: string | undefined };
-        children?: Array<string>;
-        parentId?: string;
-      };
-      entitiesValues: Record<string, unknown>;
+    type Attributes = {
+      readonly label: Attribute<string>;
+      readonly defaultValue: Attribute<string | undefined>;
     };
 
+    type Context = EntityContext<
+      Entity<
+        {
+          readonly label: Attribute<string>;
+          readonly defaultValue: Attribute<string | undefined>;
+        },
+        unknown,
+        boolean,
+        boolean
+      >
+    >;
+
     expectTypeOf(entity).toEqualTypeOf<{
-      name: "text";
-      attributes: readonly [
-        Attribute<"label", string>,
-        Attribute<"defaultValue", string | undefined>,
-      ];
+      attributes: Attributes;
       attributesExtensions: AttributesExtensions<
         Entity<
-          "text",
-          readonly [
-            Attribute<"label", string>,
-            Attribute<"defaultValue", string | undefined>,
-          ],
+          {
+            readonly label: Attribute<string>;
+            readonly defaultValue: Attribute<string | undefined>;
+          },
           unknown,
           boolean,
           boolean
@@ -114,9 +109,9 @@ describe("entity", () => {
       valueAllowed: boolean;
       childrenAllowed: true;
       parentRequired: true;
-      validate: (value: unknown, context: EntityContext) => string;
-      defaultValue: (context: EntityContext) => string | undefined;
-      shouldBeProcessed: (context: EntityContext) => boolean;
+      validate: (value: unknown, context: Context) => string;
+      defaultValue: (context: Context) => string | undefined;
+      shouldBeProcessed: (context: Context) => boolean;
     }>();
   });
 });

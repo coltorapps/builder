@@ -6,9 +6,7 @@ import { createEntity } from "../src/entity";
 
 describe("entity", () => {
   it("can be created with minimal options", () => {
-    const entity = createEntity({
-      name: "text",
-    });
+    const entity = createEntity({});
 
     expect(entity).toMatchSnapshot();
 
@@ -22,7 +20,6 @@ describe("entity", () => {
 
   it("can validate values", () => {
     const entity = createEntity({
-      name: "text",
       validate(value) {
         return z.string().parse(value);
       },
@@ -44,9 +41,7 @@ describe("entity", () => {
   });
 
   it("throws when validating without a validator", () => {
-    const entity = createEntity({
-      name: "text",
-    });
+    const entity = createEntity({});
 
     expect(() =>
       entity.validate("value", {
@@ -65,7 +60,6 @@ describe("entity", () => {
 
   it("can be created with default value", () => {
     const entity = createEntity({
-      name: "text",
       defaultValue() {
         return "test";
       },
@@ -81,15 +75,13 @@ describe("entity", () => {
 
   it("can be created with attributes", () => {
     const entity = createEntity({
-      name: "text",
-      attributes: [
-        createAttribute({
-          name: "required",
+      attributes: {
+        required: createAttribute({
           validate(value) {
             return value;
           },
         }),
-      ],
+      },
       validate(value) {
         return value;
       },
