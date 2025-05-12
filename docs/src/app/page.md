@@ -1,6 +1,6 @@
 ## Overview
 
-**Builder** is a versatile React and React Native library designed for crafting dynamic form builders and much more. You can also generate dynamic UI from JSON schema, drag and drop React UI builders, and any other builders you envision.
+**Builder** is a versatile React and React Native library designed for crafting drag and drop form builders and JSON schema forms. You can also generate dynamic UI from JSON schema and any other builders you envision.
 
 Some key characteristics:
 
@@ -37,11 +37,11 @@ Learn how to get started with Builder through our guides. {% .lead %}
 
 ---
 
-## Demo of a React Form Builder with Drag and Drop
+## Demo of a React Drag and Drop Form Builder
 
-Here is a live demo of a simple **React Form Builder Drag and Drop** interface created using `shadcn` components for UI and `dnd-kit`.
+Here is a live demo of a simple **React Drag and Drop Form Builder** interface created using `shadcn` components for UI and `dnd-kit`.
 
-In the **Preview Form** -> **Schema** section you can get an idea of how to generate React forms dynamically from JSON, making it easy to create and customize forms for your applications.
+In the **Preview Form** -> **Schema** section you can get an idea of how to generate React forms dynamically from a JSON schema, making it easy to create and customize forms for your applications.
 
 {% basic-form-builder /%}
 

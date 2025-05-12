@@ -32,7 +32,7 @@ function TrafficLightsIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 
 export function Hero() {
   return (
-    <div className="overflow-hidden bg-neutral-950 dark:-mb-32 dark:mt-[-4.75rem] dark:pb-32 dark:pt-[4.75rem]">
+    <div className="overflow-hidden bg-neutral-950 dark:-mb-32 dark:mt-[-4.75rem] dark:pb-32 dark:pt-24">
       <div className="py-16 sm:px-2 lg:relative lg:px-0 lg:py-20">
         <div className="lg:max-w-8xl xl:gap-x-18 mx-auto grid max-w-2xl grid-cols-1 items-center gap-x-8 gap-y-40 px-4 md:max-w-3xl lg:grid-cols-2 lg:px-8 xl:px-12">
           <div className="relative z-10 md:text-center lg:text-left">
