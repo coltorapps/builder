@@ -64,6 +64,7 @@ export function Logo(props: React.ComponentPropsWithoutRef<"svg">) {
         stroke="url(#paint0_linear_309_51)"
         strokeWidth="2"
         strokeMiterlimit="10"
+        strokeLinecap="round"
         fill="transparent"
       />
       <path
@@ -71,6 +72,7 @@ export function Logo(props: React.ComponentPropsWithoutRef<"svg">) {
         stroke="url(#paint1_linear_309_51)"
         strokeWidth="3"
         strokeMiterlimit="10"
+        strokeLinecap="round"
         fill="transparent"
       />
       <defs>

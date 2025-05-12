@@ -10,8 +10,6 @@ import { Navigation } from "@/components/navigation";
 import { Search } from "@/components/search";
 import clsx from "clsx";
 
-import { Button } from "./ui/button";
-
 function GitHubIcon(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
     <svg aria-hidden="true" viewBox="0 0 16 16" {...props}>
@@ -93,15 +91,6 @@ function Header() {
         >
           <GitHubIcon className="h-6 w-6 fill-neutral-400 group-hover:fill-neutral-500 dark:group-hover:fill-neutral-300" />
         </Link>
-        <Button variant="secondary" asChild>
-          <a
-            href="https://www.coltorapps.com/#contacts"
-            target="_blank"
-            className="hidden lg:inline-block"
-          >
-            Contact us
-          </a>
-        </Button>
       </div>
     </header>
   );
@@ -113,6 +102,58 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex w-full flex-col">
+      <div className="relative isolate flex items-center gap-x-6 overflow-hidden bg-blue-950 py-2.5 px-3.5 sm:before:flex-1">
+        <div
+          aria-hidden="true"
+          className="absolute left-[max(-7rem,calc(50%-52rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
+        >
+          <div
+            style={{
+              clipPath:
+                "polygon(74.8% 41.9%, 97.2% 73.2%, 100% 34.9%, 92.5% 0.4%, 87.5% 0%, 75% 28.6%, 58.5% 54.6%, 50.1% 56.8%, 46.9% 44%, 48.3% 17.4%, 24.7% 53.9%, 0% 27.9%, 11.9% 74.2%, 24.9% 54.1%, 68.6% 100%, 74.8% 41.9%)",
+            }}
+            className="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-cyan-300 to-blue-300 opacity-50"
+          />
+        </div>
+        <div
+          aria-hidden="true"
+          className="absolute left-[max(45rem,calc(50%+8rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
+        >
+          <div
+            style={{
+              clipPath:
+                "polygon(74.8% 41.9%, 97.2% 73.2%, 100% 34.9%, 92.5% 0.4%, 87.5% 0%, 75% 28.6%, 58.5% 54.6%, 50.1% 56.8%, 46.9% 44%, 48.3% 17.4%, 24.7% 53.9%, 0% 27.9%, 11.9% 74.2%, 24.9% 54.1%, 68.6% 100%, 74.8% 41.9%)",
+            }}
+            className="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-cyan-300 to-blue-300 opacity-50"
+          />
+        </div>
+        <div className="flex flex-wrap items-center sm:gap-x-4 gap-y-2 text-[0.8125rem] sm:text-sm">
+          <p className="font-medium text-white">
+            We are{" "}
+            <a
+              className="font-bold underline"
+              href="https://www.coltorapps.com/"
+            >
+              Coltor Apps
+            </a>
+            {" "}― a software development agency behind this OSS. Need a reliable tech partner?
+          </p>
+          <a
+            href="mailto:hello@coltorapps.com"
+            className="flex-none rounded-full bg-gray-900 px-3.5 py-1 font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+          >
+            Let’s talk <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+        <div className="flex flex-1 justify-end">
+          <button
+            type="button"
+            className="-m-3 p-3 focus-visible:outline-offset-[-4px]"
+          >
+            <span className="sr-only">Dismiss</span>
+          </button>
+        </div>
+      </div>
       <Header />
 
       {isHomePage && <Hero />}
