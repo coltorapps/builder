@@ -7,6 +7,7 @@ const config = {
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "prettier",
   ],
+  parser: "@typescript-eslint/parser",
   rules: {
     "@next/next/no-html-link-for-pages": "off",
     "@typescript-eslint/restrict-template-expressions": "off",

@@ -1,3 +1,5 @@
+import { type ReactNode } from "react";
+
 import { type SubscriptionEvent } from "@coltorapps/builder";
 
 export type KeyofUnion<T> = T extends unknown ? keyof T : never;
@@ -7,3 +9,103 @@ export type EventsListeners<TEvent extends SubscriptionEvent> = {
     ? (payload: Extract<TEvent, { name: REventName }>["payload"]) => void
     : never;
 };
+
+export function chainRenderers<TProps extends { children?: ReactNode }>(
+  outer: (props: TProps) => ReactNode,
+  inner?: (props: TProps) => ReactNode,
+): (props: TProps) => ReactNode {
+  return (props) =>
+    outer({
+      ...props,
+      children: inner ? inner(props) : props.children,
+    });
+}
+
+/**
+ * =====================================================================
+ * Zustand - shallow comparator (MIT-licensed)
+ * Source: https://github.com/pmndrs/zustand/blob/main/src/vanilla/shallow.ts
+ * Credits: Zustand team
+ * ---------------------------------------------------------------------
+ * The code between this banner and the matching "END Zustand" banner
+ * is copied from the Zustand repository.
+ * =====================================================================
+ */
+
+const isIterable = (obj: object): obj is Iterable<unknown> =>
+  Symbol.iterator in obj;
+
+const hasIterableEntries = (
+  value: Iterable<unknown>,
+): value is Iterable<unknown> & {
+  entries(): Iterable<[unknown, unknown]>;
+} => "entries" in value;
+
+const compareEntries = (
+  valueA: { entries(): Iterable<[unknown, unknown]> },
+  valueB: { entries(): Iterable<[unknown, unknown]> },
+) => {
+  const mapA = valueA instanceof Map ? valueA : new Map(valueA.entries());
+  const mapB = valueB instanceof Map ? valueB : new Map(valueB.entries());
+  if (mapA.size !== mapB.size) {
+    return false;
+  }
+  for (const [key, value] of mapA) {
+    if (!Object.is(value, mapB.get(key))) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const compareIterables = (
+  valueA: Iterable<unknown>,
+  valueB: Iterable<unknown>,
+) => {
+  const iteratorA = valueA[Symbol.iterator]();
+  const iteratorB = valueB[Symbol.iterator]();
+  let nextA = iteratorA.next();
+  let nextB = iteratorB.next();
+  while (!nextA.done && !nextB.done) {
+    if (!Object.is(nextA.value, nextB.value)) {
+      return false;
+    }
+    nextA = iteratorA.next();
+    nextB = iteratorB.next();
+  }
+  return !!nextA.done && !!nextB.done;
+};
+
+export function shallow<T>(valueA: T, valueB: T): boolean {
+  if (Object.is(valueA, valueB)) {
+    return true;
+  }
+  if (
+    typeof valueA !== "object" ||
+    valueA === null ||
+    typeof valueB !== "object" ||
+    valueB === null
+  ) {
+    return false;
+  }
+  if (Object.getPrototypeOf(valueA) !== Object.getPrototypeOf(valueB)) {
+    return false;
+  }
+  if (isIterable(valueA) && isIterable(valueB)) {
+    if (hasIterableEntries(valueA) && hasIterableEntries(valueB)) {
+      return compareEntries(valueA, valueB);
+    }
+    return compareIterables(valueA, valueB);
+  }
+
+  return compareEntries(
+    { entries: () => Object.entries(valueA) },
+    { entries: () => Object.entries(valueB) },
+  );
+}
+
+/**
+ * =====================================================================
+ * END Zustand - shallow comparator
+ * =====================================================================
+ */

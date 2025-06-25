@@ -3,7 +3,6 @@ import { z } from "zod";
 import { createAttribute } from "@coltorapps/builder";
 
 export const contentAttribute = createAttribute({
-  name: "content",
   validate(value) {
     return z
       .object({
@@ -14,3 +13,5 @@ export const contentAttribute = createAttribute({
       .parse(value);
   },
 });
+
+export type ContentAttribute = typeof contentAttribute;

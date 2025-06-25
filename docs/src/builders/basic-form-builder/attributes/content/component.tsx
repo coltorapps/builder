@@ -6,72 +6,74 @@ import { useRefWithErrorFocus } from "@/lib/error-focus";
 import { cn } from "@/lib/utils";
 import { Bold, Italic } from "lucide-react";
 
-import { createAttributeComponent } from "@coltorapps/builder-react";
+import {
+  useAttributeError,
+  useAttributeValue,
+  type AttributeInstance,
+} from "@coltorapps/builder-react";
 
-import { contentAttribute } from "./definition";
+import { type ContentAttribute } from "./definition";
 
-export const ContentAttribute = createAttributeComponent(
-  contentAttribute,
-  function ContentAttribute(props) {
-    const inputRef = useRefWithErrorFocus<HTMLTextAreaElement>(
-      props.attribute.error,
-    );
+export function ContentAttribute(props: {
+  attribute: AttributeInstance<ContentAttribute>;
+}) {
+  const value = useAttributeValue(props.attribute);
 
-    return (
-      <div>
-        <Label htmlFor={props.attribute.name} aria-required>
-          Content
-        </Label>
-        <div className="relative">
-          <div className="absolute flex h-8 w-full items-center justify-end gap-2 border-b px-1">
-            <Toggle
-              pressed={props.attribute.value.italic}
-              size="xs"
-              aria-label="Toggle italic"
-              onPressedChange={(pressed) =>
-                props.setValue({ ...props.attribute.value, italic: pressed })
-              }
-            >
-              <Italic className="h-4 w-4" />
-            </Toggle>
-            <Toggle
-              pressed={props.attribute.value.bold}
-              size="xs"
-              aria-label="Toggle bold"
-              onPressedChange={(pressed) =>
-                props.setValue({ ...props.attribute.value, bold: pressed })
-              }
-            >
-              <Bold className="h-4 w-4" />
-            </Toggle>
-          </div>
-          <Textarea
-            ref={inputRef}
-            className={cn("pt-10", {
-              "font-semibold": props.attribute.value.bold,
-              italic: props.attribute.value.italic,
-            })}
-            id={props.attribute.name}
-            name={props.attribute.name}
-            value={props.attribute.value.text ?? ""}
-            onChange={(e) => {
-              props.setValue({
-                ...props.attribute.value,
-                text: e.target.value,
-              });
-            }}
-            required
-            rows={10}
-            autoFocus
-          />
+  const error = useAttributeError(props.attribute);
+
+  const inputRef = useRefWithErrorFocus<HTMLTextAreaElement>(error);
+
+  return (
+    <div>
+      <Label htmlFor={props.attribute.name} aria-required>
+        Content
+      </Label>
+      <div className="relative">
+        <div className="absolute flex h-8 w-full items-center justify-end gap-2 border-b px-1">
+          <Toggle
+            pressed={value.italic}
+            size="xs"
+            aria-label="Toggle italic"
+            onPressedChange={(pressed) =>
+              props.attribute.setValue({ ...value, italic: pressed })
+            }
+          >
+            <Italic className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={value.bold}
+            size="xs"
+            aria-label="Toggle bold"
+            onPressedChange={(pressed) =>
+              props.attribute.setValue({ ...value, bold: pressed })
+            }
+          >
+            <Bold className="h-4 w-4" />
+          </Toggle>
         </div>
-        <ValidationError>
-          {
-            formatError(props.attribute.value, props.attribute.error)?.text
-              ?._errors?.[0]
-          }
-        </ValidationError>
+        <Textarea
+          ref={inputRef}
+          className={cn("pt-10", {
+            "font-semibold": value.bold,
+            italic: value.italic,
+          })}
+          id={props.attribute.name}
+          name={props.attribute.name}
+          value={value.text ?? ""}
+          onChange={(e) => {
+            props.attribute.setValue({
+              ...value,
+              text: e.target.value,
+            });
+          }}
+          required
+          rows={10}
+          autoFocus
+        />
       </div>
-    );
-  },
-);
+      <ValidationError>
+        {formatError(value, error)?.text?._errors?.[0]}
+      </ValidationError>
+    </div>
+  );
+}

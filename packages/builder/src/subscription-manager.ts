@@ -1,10 +1,10 @@
-type Listener<TData, TEvent extends SubscriptionEvent> = {
+interface Listener<TData, TEvent extends SubscriptionEvent> {
   (data: TData, events: Array<TEvent>): void;
-};
+}
 
-export type Subscribe<TData, TEvent extends SubscriptionEvent> = {
+export interface Subscribe<TData, TEvent extends SubscriptionEvent> {
   (listener: Listener<TData, TEvent>): () => void;
-};
+}
 
 export type SubscriptionEvent<
   TName extends string = string,

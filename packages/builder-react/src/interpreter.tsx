@@ -1,25 +1,76 @@
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 import {
   createInterpreterStore,
-  interpreterStoreEventsNames,
   type Builder,
-  type EntitiesValues,
+  type Entity,
   type EntityValue,
+  type EntityValueValidationResult,
   type InterpreterStore,
   type InterpreterStoreData,
   type InterpreterStoreEvent,
   type InterpreterStoreOptions,
   type Schema,
+  type SchemaEntityWithId,
 } from "@coltorapps/builder";
 
-import {
-  type EntitiesComponents,
-  type EntityComponent,
-  type EntityForRender,
-  type GenericEntityComponent,
-} from "./entities";
-import { type EventsListeners } from "./utils";
+import { chainRenderers, shallow, type EventsListeners } from "./utils";
+
+export interface InterpreterEntityInstance<TEntity extends Entity = Entity>
+  extends Pick<
+    SchemaEntityWithId<TEntity>,
+    "id" | "parentId" | "children" | "type" | "attributes"
+  > {
+  getValue(): EntityValue<TEntity> | undefined;
+  setValue(value: EntityValue<TEntity>): void;
+  getError(): unknown;
+  setError(value: unknown): void;
+  validate(): Promise<EntityValueValidationResult<TEntity>>;
+  subscribeToValue(
+    listener: (value: EntityValue<TEntity> | undefined) => void,
+  ): () => void;
+  subscribeToError(listener: (error: unknown) => void): () => void;
+}
+
+export interface InterpreterEntityComponentProps<
+  TEntity extends TBuilder["entities"][string],
+  TBuilder extends Builder = Builder,
+> {
+  entity: InterpreterEntityInstance<TEntity>;
+  RenderChildren(props: {
+    children?: GenericInterpreterEntityComponent<TBuilder>;
+  }): ReactNode;
+  RenderChild(props: {
+    entityId: string;
+    children?: GenericInterpreterEntityComponent<TBuilder>;
+  }): ReactNode;
+}
+
+export type InterpreterEntityComponent<
+  TEntity extends TBuilder["entities"][string],
+  TBuilder extends Builder = Builder,
+> = (props: InterpreterEntityComponentProps<TEntity, TBuilder>) => ReactNode;
+
+export type InterpreterEntitiesComponents<TBuilder extends Builder = Builder> =
+  {
+    [K in Extract<
+      keyof TBuilder["entities"],
+      string
+    >]: InterpreterEntityComponent<TBuilder["entities"][K], TBuilder>;
+  };
+
+export type GenericInterpreterEntityComponent<
+  TBuilder extends Builder = Builder,
+> = (props: {
+  entity: InterpreterEntityInstance<TBuilder["entities"][string]>;
+  children?: ReactNode;
+}) => ReactNode;
 
 export function useInterpreterStore<TBuilder extends Builder>(
   builder: TBuilder,
@@ -49,19 +100,27 @@ export function useInterpreterStore<TBuilder extends Builder>(
   return interpreterStore;
 }
 
-export function useInterpreterStoreData<TBuilder extends Builder>(
+export function useInterpreterStoreData<TBuilder extends Builder, TData>(
   interpreterStore: InterpreterStore<TBuilder>,
-  shouldUpdate: (
+  selector: (
+    data: InterpreterStoreData<TBuilder>,
     events: Array<InterpreterStoreEvent<TBuilder>>,
-  ) => boolean = () => true,
-): InterpreterStoreData<TBuilder> {
-  const dataCache = useRef(interpreterStore.getData());
+  ) => TData = (data) => data as TData,
+  comparator: (
+    oldData: TData,
+    newData: TData,
+    events: Array<InterpreterStoreEvent<TBuilder>>,
+  ) => boolean = shallow,
+): TData {
+  const dataCache = useRef(selector(interpreterStore.getData(), []));
 
   return useSyncExternalStore(
     (listen) =>
       interpreterStore.subscribe((data, events) => {
-        if (shouldUpdate(events)) {
-          dataCache.current = data;
+        const newData = selector(data, events);
+
+        if (comparator(dataCache.current, newData, events)) {
+          dataCache.current = newData;
 
           listen();
         }
@@ -73,89 +132,112 @@ export function useInterpreterStoreData<TBuilder extends Builder>(
 
 export function InterpreterEntity<TBuilder extends Builder>(props: {
   entityId: string;
-  components: EntitiesComponents<TBuilder>;
-  children?: GenericEntityComponent<TBuilder>;
+  components: InterpreterEntitiesComponents<TBuilder>;
+  children?: GenericInterpreterEntityComponent<TBuilder>;
   interpreterStore: InterpreterStore<TBuilder>;
-}): JSX.Element | null {
+}): ReactNode {
   const entity = props.interpreterStore.schema.entities[props.entityId];
 
   if (!entity) {
     throw new Error(
-      `[Entity] The entity with ID "${props.entityId}" was not found.`,
+      `<InterpreterEntity /> encountered an error:
+
+Attempted to render an entity with ID "${props.entityId}", but it does not exist in the provided interpreter store's schema.`,
     );
   }
 
-  const data = useInterpreterStoreData(props.interpreterStore, (events) =>
-    events.some(
-      (event) =>
-        (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
-          event.payload.entityId === props.entityId) ||
-        (event.name === interpreterStoreEventsNames.EntityErrorUpdated &&
-          event.payload.entityId === props.entityId) ||
-        event.name === interpreterStoreEventsNames.DataSet,
-    ),
-  );
-
-  const entityDefinition = props.interpreterStore.builder.entities.find(
-    (item) => item.name === entity.type,
-  );
-
-  const entityWithId = {
-    ...entity,
-    id: props.entityId,
-  };
+  const entityDefinition = props.interpreterStore.builder.entities[entity.type];
 
   if (!entityDefinition) {
     throw new Error(
-      `[Entity] The definition for the entity of type "${entity.type}" was not found.`,
+      `<InterpreterEntity /> encountered an error:
+
+Attempted to render an entity of type "${entity.type}", but this type is not registered in the builder definition used to create the provided interpreter store.
+
+Ensure that the builder definition includes an entity of type "${entity.type}".`,
     );
   }
 
-  const EntityComponent = props.components[entity.type] as EntityComponent;
-
-  if (!EntityComponent) {
-    throw new Error(
-      `[Entity] No entity component found for the entity of type "${entity.type}".`,
-    );
-  }
-
-  const isUnprocessableCache = useRef(
-    props.interpreterStore.isEntityProcessable(props.entityId),
-  );
-
-  const isUnprocessable = useSyncExternalStore(
-    (listen) =>
-      props.interpreterStore.subscribe((_data, events) => {
+  const entityForRender: InterpreterEntityInstance<
+    TBuilder["entities"][string]
+  > = {
+    ...entity,
+    id: props.entityId,
+    getValue() {
+      return props.interpreterStore.getEntityValue(props.entityId);
+    },
+    setValue(value) {
+      return props.interpreterStore.setEntityValue(props.entityId, value);
+    },
+    getError() {
+      return props.interpreterStore.getEntityError(props.entityId);
+    },
+    setError(error) {
+      return props.interpreterStore.setEntityError(props.entityId, error);
+    },
+    validate() {
+      return props.interpreterStore.validateEntityValue(
+        props.entityId,
+      ) as ReturnType<
+        InterpreterEntityInstance<TBuilder["entities"][string]>["validate"]
+      >;
+    },
+    subscribeToValue(listener) {
+      return props.interpreterStore.subscribe((data, events) => {
         if (
           events.some(
             (event) =>
-              (event.name === interpreterStoreEventsNames.EntityProcessable ||
-                event.name ===
-                  interpreterStoreEventsNames.EntityUnprocessable) &&
-              event.payload.entityId === props.entityId,
+              (event.name === "EntityValueUpdated" &&
+                event.payload.entityId === props.entityId) ||
+              event.name === "DataSet",
           )
         ) {
-          isUnprocessableCache.current =
-            props.interpreterStore.isEntityProcessable(props.entityId);
-
-          listen();
+          listener(data.entitiesValues[props.entityId]);
         }
-      }),
-    () => isUnprocessableCache.current,
-    () => isUnprocessableCache.current,
-  );
+      });
+    },
+    subscribeToError(listener) {
+      return props.interpreterStore.subscribe((data, events) => {
+        if (
+          events.some(
+            (event) =>
+              (event.name === "EntityErrorUpdated" &&
+                event.payload.entityId === props.entityId) ||
+              event.name === "DataSet",
+          )
+        ) {
+          listener(data.entitiesErrors[props.entityId]);
+        }
+      });
+    },
+  };
 
-  if (!isUnprocessable) {
-    return null;
+  const EntityComponent = props.components[
+    entity.type
+  ] as InterpreterEntityComponent<TBuilder["entities"][string], TBuilder>;
+
+  if (!EntityComponent) {
+    throw new Error(
+      `<InterpreterEntity /> encountered an error:
+
+No component was provided for the entity of type "${entity.type}".
+
+This means that the "components" map passed to <InterpreterEntity /> does not include a React component for entities of type "${entity.type}".
+
+To fix this:
+- Ensure that the provided "components" map includes a component mapped to the entity type "${entity.type}".
+- If you're conditionally passing components, verify that all expected types are covered.`,
+    );
   }
 
-  const childrenIds = entity?.children ?? [];
+  const isUnprocessable = useInterpreterStoreData(
+    props.interpreterStore,
+    (data) => data.unprocessableEntitiesIds.includes(props.entityId),
+  );
 
-  const entityForRender: EntityForRender<TBuilder["entities"][number]> = {
-    ...entityWithId,
-    value: data.entitiesValues[props.entityId],
-    error: data.entitiesErrors[props.entityId],
-  };
+  if (isUnprocessable) {
+    return null;
+  }
 
   const renderEntity = props.children ?? ((props) => props.children);
 
@@ -164,45 +246,39 @@ export function InterpreterEntity<TBuilder extends Builder>(props: {
     children: (
       <EntityComponent
         entity={entityForRender}
-        setValue={(value) =>
-          props.interpreterStore.setEntityValue(
-            props.entityId,
-            value as EntityValue<TBuilder>,
-          )
-        }
-        validateValue={() =>
-          props.interpreterStore.validateEntityValue(props.entityId)
-        }
-        resetError={() =>
-          props.interpreterStore.resetEntityError(props.entityId)
-        }
-        resetValue={() =>
-          props.interpreterStore.resetEntityValue(props.entityId)
-        }
-        clearValue={() =>
-          props.interpreterStore.clearEntityValue(props.entityId)
-        }
-      >
-        {childrenIds.map((entityId) => (
+        RenderChild={({ entityId, children }) => (
           <InterpreterEntity
-            key={entityId}
+            interpreterStore={props.interpreterStore}
             entityId={entityId}
             components={props.components}
-            interpreterStore={props.interpreterStore}
           >
-            {renderEntity}
+            {(childProps) => chainRenderers(renderEntity, children)(childProps)}
           </InterpreterEntity>
-        ))}
-      </EntityComponent>
+        )}
+        RenderChildren={({ children }) =>
+          entity.children?.map((childId) => (
+            <InterpreterEntity
+              key={childId}
+              entityId={childId}
+              interpreterStore={props.interpreterStore}
+              components={props.components}
+            >
+              {(childProps) =>
+                chainRenderers(renderEntity, children)(childProps)
+              }
+            </InterpreterEntity>
+          ))
+        }
+      />
     ),
   });
 }
 
 export function InterpreterEntities<TBuilder extends Builder>(props: {
   interpreterStore: InterpreterStore<TBuilder>;
-  components: EntitiesComponents<TBuilder>;
-  children?: GenericEntityComponent<TBuilder>;
-}): JSX.Element[] {
+  components: InterpreterEntitiesComponents<TBuilder>;
+  children?: GenericInterpreterEntityComponent<TBuilder>;
+}): ReactNode {
   return props.interpreterStore.schema.root.map((entityId) => (
     <InterpreterEntity
       key={entityId}
@@ -210,41 +286,57 @@ export function InterpreterEntities<TBuilder extends Builder>(props: {
       components={props.components}
       interpreterStore={props.interpreterStore}
     >
-      {props.children ?? ((props) => props.children)}
+      {props.children}
     </InterpreterEntity>
   ));
 }
 
-/**
- * @deprecated Use `InterpreterEntities` instead of `Interpreter`. The alias will be removed in future versions.
- */
-export const Interpreter = InterpreterEntities;
+export function useEntityValue<
+  TEntity extends Entity,
+  TData = EntityValue<TEntity> | undefined,
+>(
+  entity: InterpreterEntityInstance<TEntity>,
+  selector: (data: EntityValue<TEntity> | undefined) => TData = (data) =>
+    data as TData,
+  comparator: (oldData: TData, newData: TData) => boolean = shallow,
+): TData {
+  const dataCache = useRef(selector(entity.getValue()));
 
-export function useInterpreterEntitiesValues<TBuilder extends Builder>(
-  interpreterStore: InterpreterStore<TBuilder>,
-  entitiesIds?: Array<string>,
-): EntitiesValues<TBuilder> {
-  const { entitiesValues } = useInterpreterStoreData(
-    interpreterStore,
-    (events) =>
-      events.some(
-        (event) =>
-          event.name === interpreterStoreEventsNames.DataSet ||
-          (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
-            entitiesIds &&
-            entitiesIds.includes(event.payload.entityId)) ||
-          (event.name === interpreterStoreEventsNames.EntityValueUpdated &&
-            !entitiesIds),
-      ),
+  return useSyncExternalStore(
+    (listen) =>
+      entity.subscribeToValue((data) => {
+        const newData = selector(data);
+
+        if (!comparator(dataCache.current, newData)) {
+          dataCache.current = newData;
+
+          listen();
+        }
+      }),
+    () => dataCache.current,
+    () => dataCache.current,
   );
+}
 
-  if (!entitiesIds) {
-    return entitiesValues;
-  }
+export function useEntityError<TEntity extends Entity, TData>(
+  entity: InterpreterEntityInstance<TEntity>,
+  selector: (data: unknown) => TData = (data) => data as TData,
+  comparator: (oldData: TData, newData: TData) => boolean = shallow,
+): TData {
+  const dataCache = useRef(selector(entity.getError()));
 
-  return entitiesIds.reduce<EntitiesValues>((result, entityId) => {
-    result[entityId] = entitiesValues[entityId];
+  return useSyncExternalStore(
+    (listen) =>
+      entity.subscribeToError((data) => {
+        const newData = selector(data);
 
-    return result;
-  }, {});
+        if (!comparator(dataCache.current, newData)) {
+          dataCache.current = newData;
+
+          listen();
+        }
+      }),
+    () => dataCache.current,
+    () => dataCache.current,
+  );
 }

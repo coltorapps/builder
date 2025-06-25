@@ -2,16 +2,15 @@
 
 exports[`entity > can be created with attributes 1`] = `
 {
-  "attributes": [
-    {
-      "name": "required",
+  "attributes": {
+    "required": {
       "validate": [Function],
     },
-  ],
+  },
   "attributesExtensions": {},
   "childrenAllowed": false,
   "defaultValue": [Function],
-  "name": "text",
+  "metadata": undefined,
   "parentRequired": false,
   "shouldBeProcessed": [Function],
   "validate": [Function],
@@ -23,11 +22,11 @@ exports[`entity > can be created with default value 1`] = `"test"`;
 
 exports[`entity > can be created with minimal options 1`] = `
 {
-  "attributes": [],
+  "attributes": {},
   "attributesExtensions": {},
   "childrenAllowed": false,
   "defaultValue": [Function],
-  "name": "text",
+  "metadata": undefined,
   "parentRequired": false,
   "shouldBeProcessed": [Function],
   "validate": [Function],
@@ -51,6 +50,6 @@ exports[`entity > can validate values 2`] = `
 ]"
 `;
 
-exports[`entity > throws when validating without a validator 1`] = `"Values for entities of type 'text' are not allowed."`;
+exports[`entity > throws when validating without a validator 1`] = `"Values for entities of type \\"text\\" are not allowed."`;
 
 exports[`entity > throws when validating without a validator 2`] = `undefined`;

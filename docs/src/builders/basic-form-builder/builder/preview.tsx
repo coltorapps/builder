@@ -15,8 +15,8 @@ import { AlertCircle, CheckCircle2, EyeIcon } from "lucide-react";
 
 import {
   type BuilderStore,
-  type EntitiesValues,
   type InterpreterStore,
+  type OptionalEntitiesValues,
   type Schema,
 } from "@coltorapps/builder";
 import {
@@ -24,8 +24,8 @@ import {
   useInterpreterStore,
 } from "@coltorapps/builder-react";
 
-import { basicFormBuilder } from "./definition";
-import { entitiesComponents } from "./entities-components";
+import { basicFormBuilder, type BasicFormBuilder } from "./definition";
+import { interpreterEntitiesComponents } from "./entities-components";
 
 function Form(props: {
   interpreterStore: InterpreterStore<typeof basicFormBuilder>;
@@ -65,7 +65,7 @@ function Form(props: {
     >
       <InterpreterEntities
         interpreterStore={props.interpreterStore}
-        components={entitiesComponents}
+        components={interpreterEntitiesComponents}
       />
       <div className="flex justify-end">
         <Button type="submit">Submit</Button>
@@ -74,7 +74,7 @@ function Form(props: {
   );
 }
 
-function PreviewJsonCard(props: { json?: Record<string, unknown> }) {
+function PreviewJsonCard(props: { json?: unknown }) {
   return (
     <Card>
       <CardContent className="max-h-96 overflow-auto py-4">
@@ -151,7 +151,7 @@ export function Preview(props: {
   }
 
   const [previewValues, setPreviewValues] =
-    useState<EntitiesValues<typeof basicFormBuilder>>();
+    useState<OptionalEntitiesValues<BasicFormBuilder["entities"]>>();
 
   return (
     <div>
@@ -176,13 +176,17 @@ export function Preview(props: {
           variant="secondary"
           size="sm"
           onClick={() => void openPreview()}
+          id=""
         >
           <EyeIcon className="mr-2 h-4 w-4" />
           Preview Form
         </Button>
       </div>
       <Dialog modal open={previewVisible} onOpenChange={setPreviewVisible}>
-        <DialogContent className="sm:top-[20%] sm:translate-y-0">
+        <DialogContent
+          aria-describedby={undefined}
+          className="sm:top-[20%] sm:translate-y-0"
+        >
           <DialogHeader>
             <DialogTitle>Preview</DialogTitle>
           </DialogHeader>

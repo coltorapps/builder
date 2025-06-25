@@ -7,8 +7,11 @@ import { labelAttribute } from "../../attributes/label/definition";
 import { requiredAttribute } from "../../attributes/required/definition";
 
 export const datePickerFieldEntity = createEntity({
-  name: "datePickerField",
-  attributes: [labelAttribute, defaultDateValueAttribute, requiredAttribute],
+  attributes: {
+    label: labelAttribute,
+    defaultValue: defaultDateValueAttribute,
+    required: requiredAttribute,
+  },
   validate(value, context) {
     const schema = z.coerce.date();
 
@@ -22,3 +25,5 @@ export const datePickerFieldEntity = createEntity({
     return context.entity.attributes.defaultValue;
   },
 });
+
+export type DatePickerFieldEntity = typeof datePickerFieldEntity;

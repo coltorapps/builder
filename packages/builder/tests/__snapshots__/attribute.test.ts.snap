@@ -2,7 +2,6 @@
 
 exports[`attribute > can be created with minimal options 1`] = `
 {
-  "name": "label",
   "validate": [Function],
 }
 `;

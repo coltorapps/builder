@@ -1,4 +1,7 @@
-import { type AttributesValues } from "./attribute";
+import {
+  type AttributeValue,
+  type AttributeValueValidationResult,
+} from "./attribute";
 import {
   ensureEntityAttributeIsRegistered,
   ensureEntityAttributesAreRegistered,
@@ -10,47 +13,55 @@ import {
 } from "./builder";
 import { createDataManager } from "./data-manager";
 import {
+  ensureEntityTypeMatches,
+  type Entity,
+  type EntityAttributesErrors,
+} from "./entity";
+import {
   SchemaValidationError,
   schemaValidationErrorCodes,
   validateSchemaShape,
   type BaseSchemaEntity,
   type EntitiesAttributesErrors,
-  type EntityAttributesErrors,
   type Schema,
   type SchemaEntity,
   type SchemaEntityWithId,
   type SchemaValidationErrorReason,
 } from "./schema";
 import { type Subscribe, type SubscriptionEvent } from "./subscription-manager";
-import { insertIntoSetAtIndex } from "./utils";
+import { insertIntoSetAtIndex, type ExtractStringKeys } from "./utils";
 
-interface InternalBuilderStoreEntity<TBuilder extends Builder = Builder>
-  extends BaseSchemaEntity<TBuilder["entities"][string]> {
+interface InternalBuilderStoreEntity<
+  TEntity extends Entity = Entity,
+  TType extends string = string,
+> extends BaseSchemaEntity<TEntity, TType> {
   children?: Set<string>;
 }
 
-interface InternalBuilderStoreEntityWithId<TBuilder extends Builder = Builder>
-  extends InternalBuilderStoreEntity<TBuilder> {
+interface InternalBuilderStoreEntityWithId<
+  TEntity extends Entity = Entity,
+  TType extends string = string,
+> extends InternalBuilderStoreEntity<TEntity, TType> {
   id: string;
 }
 
-type InternalBuilderStoreData<TBuilder extends Builder = Builder> = {
+interface InternalBuilderStoreData<TBuilder extends Builder = Builder> {
   schema: {
-    entities: Map<string, InternalBuilderStoreEntity<TBuilder>>;
+    entities: Map<
+      string,
+      InternalBuilderStoreEntity<TBuilder["entities"][string]>
+    >;
     root: Set<string>;
   };
-  entitiesAttributesErrors: Map<
-    string,
-    EntityAttributesErrors<TBuilder["entities"][string]>
-  >;
+  entitiesAttributesErrors: Map<string, EntityAttributesErrors>;
   schemaError: unknown;
-};
+}
 
-export type BuilderStoreData<TBuilder extends Builder = Builder> = {
+export interface BuilderStoreData<TBuilder extends Builder = Builder> {
   schema: Schema<TBuilder>;
-  entitiesAttributesErrors: EntitiesAttributesErrors<TBuilder["entities"]>;
+  entitiesAttributesErrors: EntitiesAttributesErrors;
   schemaError: unknown;
-};
+}
 
 export const builderStoreEventsNames = {
   EntityAdded: "EntityAdded",
@@ -68,6 +79,19 @@ export const builderStoreEventsNames = {
 export type BuilderStoreEventName =
   (typeof builderStoreEventsNames)[keyof typeof builderStoreEventsNames];
 
+type EntityWithUpdatedAttributeName<TBuilder extends Builder> = {
+  [K in ExtractStringKeys<TBuilder["entities"]>]: SchemaEntityWithId<
+    TBuilder["entities"][K],
+    K
+  > & {
+    updatedAttributeName: keyof SchemaEntityWithId<
+      TBuilder["entities"][K],
+      K
+    >["attributes"] &
+      string;
+  };
+}[ExtractStringKeys<TBuilder["entities"]>];
+
 export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
   | SubscriptionEvent<
       typeof builderStoreEventsNames.EntityAdded,
@@ -84,11 +108,7 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
   | SubscriptionEvent<
       typeof builderStoreEventsNames.EntityAttributeUpdated,
       {
-        entity: SchemaEntityWithId<TBuilder["entities"][string]>;
-        attributeName: Extract<
-          keyof TBuilder["entities"][string]["attributes"],
-          string
-        >;
+        entity: EntityWithUpdatedAttributeName<TBuilder>;
       }
     >
   | SubscriptionEvent<
@@ -100,9 +120,15 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
   | SubscriptionEvent<
       typeof builderStoreEventsNames.EntityCloned,
       {
-        entity: SchemaEntityWithId<TBuilder["entities"][string]>;
-        entityClone: SchemaEntityWithId<TBuilder["entities"][string]>;
-        isCloneOrigin: boolean;
+        entity: {
+          [K in ExtractStringKeys<TBuilder["entities"]>]: SchemaEntityWithId<
+            TBuilder["entities"][K],
+            K
+          > & {
+            clone: SchemaEntityWithId<TBuilder["entities"][K], K>;
+            isCloneOrigin: boolean;
+          };
+        }[ExtractStringKeys<TBuilder["entities"]>];
       }
     >
   | SubscriptionEvent<
@@ -114,11 +140,7 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
   | SubscriptionEvent<
       typeof builderStoreEventsNames.EntityAttributeErrorUpdated,
       {
-        entity: SchemaEntityWithId<TBuilder["entities"][string]>;
-        attributeName: Extract<
-          keyof SchemaEntity<TBuilder["entities"][string]>["attributes"],
-          string
-        >;
+        entity: EntityWithUpdatedAttributeName<TBuilder>;
         error: unknown;
       }
     >
@@ -144,7 +166,7 @@ export type BuilderStoreEvent<TBuilder extends Builder = Builder> =
 function ensureEntityExists<TBuilder extends Builder>(
   id: string,
   entities: InternalBuilderStoreData<TBuilder>["schema"]["entities"],
-): InternalBuilderStoreEntity<TBuilder> {
+): InternalBuilderStoreEntity<TBuilder["entities"][string]> {
   const entity = entities.get(id);
 
   if (!entity) {
@@ -165,7 +187,9 @@ function deleteEntity<TBuilder extends Builder>(
   data: InternalBuilderStoreData<TBuilder>,
 ): {
   data: InternalBuilderStoreData<TBuilder>;
-  deletedEntities: InternalBuilderStoreEntityWithId<TBuilder>[];
+  deletedEntities: InternalBuilderStoreEntityWithId<
+    TBuilder["entities"][string]
+  >[];
 } {
   const entity = ensureEntityExists(entityId, data.schema.entities);
 
@@ -190,7 +214,9 @@ function deleteEntity<TBuilder extends Builder>(
     newData.schema.entities.set(entity.parentId, parentEntity);
   }
 
-  let deletedEntities: InternalBuilderStoreEntityWithId<TBuilder>[] = [
+  let deletedEntities: InternalBuilderStoreEntityWithId<
+    TBuilder["entities"][string]
+  >[] = [
     {
       ...entity,
       id: entityId,
@@ -199,7 +225,9 @@ function deleteEntity<TBuilder extends Builder>(
 
   const childrenDeletionResult = Array.from(entity.children ?? []).reduce<{
     data: InternalBuilderStoreData<TBuilder>;
-    deletedEntities: InternalBuilderStoreEntityWithId<TBuilder>[];
+    deletedEntities: InternalBuilderStoreEntityWithId<
+      TBuilder["entities"][string]
+    >[];
   }>(
     (result, childId) => {
       const childDeletion = deleteEntity(childId, result.data);
@@ -279,9 +307,11 @@ async function validateEntityAttribute<TBuilder extends Builder>(
           )
       : undefined;
 
-    const entityExtensionAttributeValidator =
-      builder.entitiesExtensions[entity.type]?.attributes?.[attributeName]
-        ?.validate;
+    const entityExtensionAttributeValidator = builder.entitiesExtensions[
+      entity.type
+    ]?.attributes?.[attributeName]?.validate?.bind(
+      builder.entitiesExtensions[entity.type]?.attributes?.[attributeName],
+    );
 
     if (entityExtensionAttributeValidator) {
       await entityExtensionAttributeValidator(attributeValue, {
@@ -328,11 +358,11 @@ function createEntityAttributeErrorUpdatedEvent<
   return {
     name: builderStoreEventsNames.EntityAttributeErrorUpdated,
     payload: {
-      entity: options.entity,
-      attributeName: options.attributeName as Extract<
-        keyof SchemaEntity<TBuilder["entities"][string]>["attributes"],
-        string
-      >,
+      entity: {
+        ...options.entity,
+        type: options.entity.type as ExtractStringKeys<TBuilder["entities"]>,
+        updatedAttributeName: options.attributeName,
+      },
       error: options.error,
     },
   };
@@ -343,9 +373,7 @@ async function validateEntityAttributes<TBuilder extends Builder>(
   data: InternalBuilderStoreData<TBuilder>,
   builder: TBuilder,
 ): Promise<{
-  entityAttributesErrors:
-    | EntityAttributesErrors<TBuilder["entities"][string]>
-    | undefined;
+  entityAttributesErrors: EntityAttributesErrors | undefined;
   events: Array<BuilderStoreEvent<TBuilder>>;
 }> {
   let newEntitiesAttributesErrors = new Map(data.entitiesAttributesErrors);
@@ -419,10 +447,10 @@ async function validateEntitiesAttributes<TBuilder extends Builder>(
 }
 
 function ensureEntitiesAttributesErrorsAreValid<TBuilder extends Builder>(
-  entitiesAttributesErrors: EntitiesAttributesErrors<TBuilder["entities"]>,
+  entitiesAttributesErrors: EntitiesAttributesErrors,
   entities: Schema<TBuilder>["entities"],
   builder: TBuilder,
-): EntitiesAttributesErrors<TBuilder["entities"]> {
+): EntitiesAttributesErrors {
   if (
     typeof entitiesAttributesErrors !== "object" ||
     Array.isArray(entitiesAttributesErrors) ||
@@ -463,10 +491,12 @@ function serializeInternalBuilderStoreSchemaRoot<TBuilder extends Builder>(
 function serializeInternalBuilderStoreSchema<TBuilder extends Builder>(
   schema: InternalBuilderStoreData<TBuilder>["schema"],
 ): Schema<TBuilder> {
-  const newEntities: BuilderStoreData<TBuilder>["schema"]["entities"] = {};
+  const newEntities: Schema<TBuilder>["entities"] = {};
 
   for (const [id, entity] of schema.entities) {
-    newEntities[id] = serializeInternalBuilderStoreEntity(entity);
+    newEntities[id] = serializeInternalBuilderStoreEntity(
+      entity,
+    ) as Schema<TBuilder>["entities"][string];
   }
 
   return {
@@ -497,13 +527,17 @@ function serializeInternalBuilderStoreData<TBuilder extends Builder>(
 }
 
 function serializeInternalBuilderStoreEntity<TBuilder extends Builder>(
-  entity: InternalBuilderStoreEntity<TBuilder>,
-): SchemaEntity<TBuilder["entities"][string]> {
+  entity: InternalBuilderStoreEntity<TBuilder["entities"][string]>,
+): SchemaEntity<
+  TBuilder["entities"][string],
+  ExtractStringKeys<TBuilder["entities"]>
+> {
+  const { children, ...schemaEntity } = entity;
+
   return {
-    ...entity,
-    ...(entity.children
-      ? { children: Array.from(entity.children) }
-      : { children: undefined }),
+    ...schemaEntity,
+    type: entity.type as ExtractStringKeys<TBuilder["entities"]>,
+    ...(children ? { children: Array.from(children) } : {}),
     attributes: entity.attributes,
   };
 }
@@ -587,7 +621,7 @@ function getEntityIndex(
 
 function cloneEntity<TBuilder extends Builder>(
   entityId: string,
-  entity: InternalBuilderStoreEntity<TBuilder>,
+  entity: InternalBuilderStoreEntity<TBuilder["entities"][string]>,
   schema: InternalBuilderStoreData<TBuilder>["schema"],
   builder: TBuilder,
   options: {
@@ -596,11 +630,15 @@ function cloneEntity<TBuilder extends Builder>(
   },
 ): {
   schema: InternalBuilderStoreData<TBuilder>["schema"];
-  entityClone: InternalBuilderStoreEntityWithId<TBuilder>;
+  entityClone: InternalBuilderStoreEntityWithId<TBuilder["entities"][string]>;
   events: Array<BuilderStoreEvent<TBuilder>>;
 } {
   const { schema: schemaWithNewEntity, entity: entityClone } = addEntity(
-    { ...entity, index: options?.index },
+    {
+      ...entity,
+      index: options?.index,
+      type: entity.type as ExtractStringKeys<TBuilder["entities"]>,
+    },
     schema,
     builder,
   );
@@ -637,35 +675,43 @@ function cloneEntity<TBuilder extends Builder>(
   const serializedEntity = {
     ...serializeInternalBuilderStoreEntity(entity),
     id: entityId,
+    isCloneOrigin: options.isCloneOrigin,
+    clone: {
+      ...serializeInternalBuilderStoreEntity(entityClone),
+      id: entityClone.id,
+    },
   };
 
   events.unshift({
     name: builderStoreEventsNames.EntityCloned,
     payload: {
       entity: serializedEntity,
-      entityClone: {
-        ...serializeInternalBuilderStoreEntity(entityClone),
-        id: entityClone.id,
-      },
-      isCloneOrigin: options.isCloneOrigin,
     },
   });
 
   return { schema: newSchema, entityClone, events };
 }
 
-interface AddEntityPayload<TBuilder extends Builder = Builder>
-  extends InternalBuilderStoreEntity<TBuilder> {
+interface AddEntityPayload<
+  TEntity extends Builder["entities"][string] = Builder["entities"][string],
+  TType extends string = string,
+> extends InternalBuilderStoreEntity<TEntity, TType> {
   index?: number;
 }
 
-function addEntity<TBuilder extends Builder>(
-  payload: AddEntityPayload<TBuilder>,
+function addEntity<
+  TBuilder extends Builder,
+  TEntityType extends ExtractStringKeys<TBuilder["entities"]>,
+>(
+  payload: AddEntityPayload<TBuilder["entities"][TEntityType], TEntityType>,
   schema: InternalBuilderStoreData<TBuilder>["schema"],
   builder: TBuilder,
 ): {
   schema: InternalBuilderStoreData<TBuilder>["schema"];
-  entity: InternalBuilderStoreEntityWithId<TBuilder>;
+  entity: InternalBuilderStoreEntityWithId<
+    TBuilder["entities"][TEntityType],
+    TEntityType
+  >;
 } {
   const id = builder.generateEntityId();
 
@@ -675,7 +721,10 @@ function addEntity<TBuilder extends Builder>(
     throw new Error(`An entitiy with the ID "${id}" already exists.`);
   }
 
-  const newEntity: InternalBuilderStoreEntity<TBuilder> = {
+  const newEntity: InternalBuilderStoreEntity<
+    TBuilder["entities"][string],
+    TEntityType
+  > = {
     attributes: payload.attributes,
     type: payload.type,
     parentId: payload?.parentId,
@@ -846,6 +895,7 @@ export function createBuilderStore<TBuilder extends Builder>(
       return {
         ...serializeInternalBuilderStoreEntity(entity),
         id: entity.id,
+        type: payload.type,
       };
     },
     setEntityParent(entityId, parentId, mutationOptions) {
@@ -1094,16 +1144,21 @@ export function createBuilderStore<TBuilder extends Builder>(
 
       setData(data, events);
     },
-    setEntityAttribute(entityId, attributeName, attributeValue) {
+    setEntityAttribute(
+      entityId: string,
+      attributeName: string,
+      attributeValue: unknown,
+      entityType?: string,
+    ) {
       const data = getData();
 
       const entity = ensureEntityExists(entityId, data.schema.entities);
 
-      ensureEntityAttributeIsRegistered(
-        entity.type,
-        attributeName.toString(),
-        builder,
-      );
+      if (entityType) {
+        ensureEntityTypeMatches({ ...entity, id: entityId }, entityType);
+      }
+
+      ensureEntityAttributeIsRegistered(entity.type, attributeName, builder);
 
       entity.attributes = {
         ...entity.attributes,
@@ -1136,8 +1191,8 @@ export function createBuilderStore<TBuilder extends Builder>(
               entity: {
                 ...serializeInternalBuilderStoreEntity(entity),
                 id: entityId,
+                updatedAttributeName: attributeName,
               },
-              attributeName,
             },
           },
           {
@@ -1236,8 +1291,18 @@ export function createBuilderStore<TBuilder extends Builder>(
         ],
       );
     },
-    async validateEntityAttribute(entityId, attributeName) {
+    async validateEntityAttribute(
+      entityId: string,
+      attributeName: string,
+      entityType?: string,
+    ) {
       const data = getData();
+
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      if (entityType) {
+        ensureEntityTypeMatches({ ...entity, id: entityId }, entityType);
+      }
 
       const newEntitiesAttributesErrors = await validateEntityAttribute(
         entityId,
@@ -1247,7 +1312,8 @@ export function createBuilderStore<TBuilder extends Builder>(
         serializeInternalBuilderStoreSchema(data.schema),
       );
 
-      const entity = ensureEntityExists(entityId, data.schema.entities);
+      const attributeError =
+        newEntitiesAttributesErrors.get(entityId)?.[attributeName];
 
       setData(
         {
@@ -1261,10 +1327,24 @@ export function createBuilderStore<TBuilder extends Builder>(
               id: entityId,
             },
             attributeName,
-            error: newEntitiesAttributesErrors.get(entityId)?.[attributeName],
+            error: attributeError,
           }),
         ],
       );
+
+      if (attributeError) {
+        return {
+          success: false as const,
+          error: attributeError,
+        };
+      }
+
+      return {
+        success: true as const,
+        data: entity.attributes[
+          attributeName as keyof typeof entity.attributes
+        ],
+      };
     },
     async validateEntityAttributes(entityId) {
       const data = getData();
@@ -1303,20 +1383,24 @@ export function createBuilderStore<TBuilder extends Builder>(
         events,
       );
     },
-    resetEntityAttributeError(entityId, attributeName) {
+    resetEntityAttributeError(
+      entityId: string,
+      attributeName: string,
+      entityType?: undefined,
+    ) {
       const data = getData();
+
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      if (entityType) {
+        ensureEntityTypeMatches({ ...entity, id: entityId }, entityType);
+      }
 
       const newEntitiesAttributesErrors = new Map(
         data.entitiesAttributesErrors,
       );
 
-      const entity = ensureEntityExists(entityId, data.schema.entities);
-
-      ensureEntityAttributeIsRegistered(
-        entity.type,
-        attributeName.toString(),
-        builder,
-      );
+      ensureEntityAttributeIsRegistered(entity.type, attributeName, builder);
 
       const entityAttributesErrors =
         data.entitiesAttributesErrors.get(entityId);
@@ -1343,20 +1427,29 @@ export function createBuilderStore<TBuilder extends Builder>(
               ...serializeInternalBuilderStoreEntity(entity),
               id: entityId,
             },
-            attributeName,
+            attributeName: attributeName.toString(),
             error: undefined,
           }),
         ],
       );
     },
-    setEntityAttributeError(entityId, attributeName, error) {
+    setEntityAttributeError(
+      entityId: string,
+      attributeName: string,
+      error?: unknown,
+      entityType?: string,
+    ) {
       const data = getData();
+
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      if (entityType) {
+        ensureEntityTypeMatches({ ...entity, id: entityId }, entityType);
+      }
 
       const newEntitiesAttributesErrors = new Map(
         data.entitiesAttributesErrors,
       );
-
-      const entity = ensureEntityExists(entityId, data.schema.entities);
 
       ensureEntityAttributeIsRegistered(
         entity.type,
@@ -1380,7 +1473,7 @@ export function createBuilderStore<TBuilder extends Builder>(
               ...serializeInternalBuilderStoreEntity(entity),
               id: entityId,
             },
-            attributeName,
+            attributeName: attributeName.toString(),
             error,
           }),
         ],
@@ -1422,8 +1515,18 @@ export function createBuilderStore<TBuilder extends Builder>(
         events,
       );
     },
-    setEntityAttributesErrors(entityId, newEntityAttributesErrors) {
+    setEntityAttributesErrors(
+      entityId: string,
+      newEntityAttributesErrors: Record<string, unknown>,
+      entityType?: undefined,
+    ) {
       const data = getData();
+
+      const entity = ensureEntityExists(entityId, data.schema.entities);
+
+      if (entityType) {
+        ensureEntityTypeMatches({ ...entity, id: entityId }, entityType);
+      }
 
       const newEntitiesAttributesErrors = new Map(
         data.entitiesAttributesErrors,
@@ -1431,8 +1534,6 @@ export function createBuilderStore<TBuilder extends Builder>(
 
       const entityAttributesErrors =
         data.entitiesAttributesErrors.get(entityId);
-
-      const entity = ensureEntityExists(entityId, data.schema.entities);
 
       ensureEntityAttributesAreRegistered(
         entity.type,
@@ -1763,13 +1864,14 @@ export function createBuilderStore<TBuilder extends Builder>(
         ? {
             ...serializeInternalBuilderStoreEntity(entity),
             id: entityId,
+            type: entity.type as ExtractStringKeys<TBuilder["entities"]>,
           }
         : null;
     },
   };
 }
 
-export type BuilderStore<TBuilder extends Builder = Builder> = {
+export interface BuilderStore<TBuilder extends Builder = Builder> {
   getData(): BuilderStoreData<TBuilder>;
   getSchema(): BuilderStoreData<TBuilder>["schema"];
   getEntitiesAttributesErrors(): BuilderStoreData<TBuilder>["entitiesAttributesErrors"];
@@ -1783,9 +1885,9 @@ export type BuilderStore<TBuilder extends Builder = Builder> = {
     Subscribe<BuilderStoreData<TBuilder>, BuilderStoreEvent<TBuilder>>
   >;
   builder: TBuilder;
-  addEntity(
-    payload: AddEntityPayload<TBuilder>,
-  ): SchemaEntityWithId<TBuilder["entities"][string]>;
+  addEntity<TEntityType extends ExtractStringKeys<TBuilder["entities"]>>(
+    payload: AddEntityPayload<TBuilder["entities"][TEntityType], TEntityType>,
+  ): SchemaEntityWithId<TBuilder["entities"][TEntityType], TEntityType>;
   setEntityParent(
     entityId: string,
     parentId: string,
@@ -1794,54 +1896,92 @@ export type BuilderStore<TBuilder extends Builder = Builder> = {
   unsetEntityParent(entityId: string, options?: { index?: number }): void;
   setEntityIndex(entityId: string, index: number): void;
   setEntityAttribute<
-    TAttributeName extends Extract<
-      keyof TBuilder["entities"][string]["attributes"],
-      string
+    TEntityType extends ExtractStringKeys<TBuilder["entities"]>,
+    TAttributeName extends ExtractStringKeys<
+      TBuilder["entities"][TEntityType]["attributes"]
     >,
   >(
     entityId: string,
     attributeName: TAttributeName,
-    attributeValue: AttributesValues<
-      TBuilder["entities"][string]["attributes"]
-    >[TAttributeName],
+    attributeValue: AttributeValue<
+      TBuilder["entities"][TEntityType]["attributes"][TAttributeName]
+    >,
+    entityType: TEntityType,
+  ): void;
+  setEntityAttribute(
+    entityId: string,
+    attributeName: string,
+    attributeValue: unknown,
+    entityType?: undefined,
   ): void;
   deleteEntity(entityId: string): void;
   validateEntityAttribute<
-    TAttributeName extends Extract<
-      keyof SchemaEntity<TBuilder["entities"][string]>["attributes"],
-      string
+    TEntityType extends ExtractStringKeys<TBuilder["entities"]>,
+    TAttributeName extends ExtractStringKeys<
+      TBuilder["entities"][TEntityType]["attributes"]
     >,
   >(
     entityId: string,
     attributeName: TAttributeName,
-  ): Promise<void>;
+    entityType: TEntityType,
+  ): Promise<
+    AttributeValueValidationResult<
+      TBuilder["entities"][TEntityType]["attributes"][TAttributeName]
+    >
+  >;
+  validateEntityAttribute(
+    entityId: string,
+    attributeName: string,
+    entityType?: undefined,
+  ): Promise<AttributeValueValidationResult>;
   validateEntityAttributes(entityId: string): Promise<void>;
   validateEntitiesAttributes(): Promise<void>;
   resetEntityAttributeError<
-    TAttributeName extends Extract<
-      keyof SchemaEntity<TBuilder["entities"][string]>["attributes"],
-      string
+    TEntityType extends ExtractStringKeys<TBuilder["entities"]>,
+    TAttributeName extends ExtractStringKeys<
+      TBuilder["entities"][TEntityType]["attributes"]
     >,
   >(
     entityId: string,
     attributeName: TAttributeName,
+    entityType: TEntityType,
+  ): void;
+  resetEntityAttributeError(
+    entityId: string,
+    attributeName: string,
+    entityType?: undefined,
   ): void;
   setEntityAttributeError<
-    TAttributeName extends Extract<
-      keyof SchemaEntity<TBuilder["entities"][string]>["attributes"],
-      string
+    TEntityType extends ExtractStringKeys<TBuilder["entities"]>,
+    TAttributeName extends ExtractStringKeys<
+      TBuilder["entities"][TEntityType]["attributes"]
     >,
   >(
     entityId: string,
     attributeName: TAttributeName,
+    error: unknown,
+    entityType: TEntityType,
+  ): void;
+  setEntityAttributeError(
+    entityId: string,
+    attributeName: string,
     error?: unknown,
+    entityType?: undefined,
   ): void;
   resetEntityAttributesErrors(entityId: string): void;
-  setEntityAttributesErrors(
+  setEntityAttributesErrors<
+    TEntityType extends ExtractStringKeys<TBuilder["entities"]>,
+  >(
     entityId: string,
     entityAttributesErrors: EntityAttributesErrors<
-      TBuilder["entities"][string]
+      TBuilder["entities"][TEntityType]
     >,
+    entityType: TEntityType,
+  ): void;
+  setEntityAttributesErrors(
+    entityId: string,
+    entityAttributesErrors: Record<string, unknown>,
+    entityType?: undefined,
   ): void;
   resetEntitiesAttributesErrors(): void;
   setEntitiesAttributesErrors(
@@ -1871,7 +2011,12 @@ export type BuilderStore<TBuilder extends Builder = Builder> = {
   >;
   setSchemaError(error?: unknown): void;
   resetSchemaError(): void;
-  getEntity(
-    entityId: string,
-  ): SchemaEntityWithId<TBuilder["entities"][string]> | null;
-};
+  getEntity(entityId: string):
+    | {
+        [K in keyof TBuilder["entities"]]: SchemaEntityWithId<
+          TBuilder["entities"][K],
+          Extract<K, string>
+        >;
+      }[keyof TBuilder["entities"]]
+    | null;
+}

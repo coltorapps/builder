@@ -18,7 +18,7 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [],
+      entities: {},
     });
 
     const builderStore = createBuilderStore(builder);
@@ -41,19 +41,17 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -85,7 +83,7 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [],
+      entities: {},
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -110,19 +108,17 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const schema = {
@@ -160,19 +156,17 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -220,19 +214,17 @@ describe("builder store", () => {
 
   it("can return the data", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const schema = {
@@ -263,12 +255,11 @@ describe("builder store", () => {
 
   it("can delete entities and cascade delete their children", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -325,7 +316,7 @@ describe("builder store", () => {
   });
 
   it("throws when trying to delete non existent entity", () => {
-    const builder = createBuilder({ entities: [] });
+    const builder = createBuilder({ entities: {} });
 
     expect(() =>
       createBuilderStore(builder).deleteEntity("test"),
@@ -338,12 +329,11 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -371,12 +361,11 @@ describe("builder store", () => {
 
   it("throws when adding an entity without a parent when parent is required", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           parentRequired: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder);
@@ -391,16 +380,14 @@ describe("builder store", () => {
 
   it("throws when adding an entity to a non allowed parent", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           parentRequired: true,
         }),
-        createEntity({
-          name: "section",
+        section: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
       entitiesExtensions: {
         text: {
           allowedParents: ["text"],
@@ -433,15 +420,12 @@ describe("builder store", () => {
 
   it("throws when adding moving an entity to a non allowed parent", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-        }),
-        createEntity({
-          name: "section",
+      entities: {
+        text: createEntity(),
+        section: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
       entitiesExtensions: {
         text: {
           allowedParents: ["text"],
@@ -480,11 +464,9 @@ describe("builder store", () => {
 
   it("throws when adding an entity to a parent with non-allowed children", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-        }),
-      ],
+      entities: {
+        test: createEntity(),
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -513,16 +495,14 @@ describe("builder store", () => {
 
   it("throws when moving an entity to the root when parent is required", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "section",
+      entities: {
+        section: createEntity({
           childrenAllowed: true,
         }),
-        createEntity({
-          name: "text",
+        text: createEntity({
           parentRequired: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -553,11 +533,9 @@ describe("builder store", () => {
 
   it("throws moving an entity to a non-allowed parent", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-        }),
-      ],
+      entities: {
+        test: createEntity(),
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -596,11 +574,9 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-        }),
-      ],
+      entities: {
+        test: createEntity(),
+      },
     });
 
     const builderStore = createBuilderStore(builder);
@@ -621,12 +597,11 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -658,12 +633,11 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -696,12 +670,11 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -734,12 +707,11 @@ describe("builder store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -775,11 +747,9 @@ describe("builder store", () => {
 
   it("can move an entity in root", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-        }),
-      ],
+      entities: {
+        test: createEntity(),
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -831,12 +801,11 @@ describe("builder store", () => {
 
   it("can move an entity to root", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -875,12 +844,11 @@ describe("builder store", () => {
 
   it("can move an entity to root at a specific index", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -921,12 +889,11 @@ describe("builder store", () => {
 
   it("can move an entity from root to a parent entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -975,12 +942,11 @@ describe("builder store", () => {
 
   it("can move an entity from root to a parent entity at a specific index", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1030,12 +996,11 @@ describe("builder store", () => {
 
   it("can move an entity in a parent entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1094,7 +1059,7 @@ describe("builder store", () => {
 
   it("throws when trying to move a non existent entity", () => {
     const builder = createBuilder({
-      entities: [],
+      entities: {},
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1118,12 +1083,11 @@ describe("builder store", () => {
 
   it("throws when trying to move an entity to a non existent parent entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1158,11 +1122,9 @@ describe("builder store", () => {
 
   it("throws when setting a parent id to the only root entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-        }),
-      ],
+      entities: {
+        test: createEntity(),
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1190,12 +1152,11 @@ describe("builder store", () => {
 
   it("throws when setting an entity parent id to its grandchild", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1242,13 +1203,10 @@ describe("builder store", () => {
 
   it("throws when trying to add an entity to a non existent parent entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-        }),
-      ],
+      entities: {
+        test: createEntity(),
+      },
     });
-
     const builderStore = createBuilderStore(builder, {
       initialData: {
         entitiesAttributesErrors: {},
@@ -1270,36 +1228,31 @@ describe("builder store", () => {
 
   it("can update entity attributes", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "select",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        select: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-            createAttribute({
-              name: "required",
+            required: createAttribute({
               validate(value) {
                 return z.boolean().parse(value);
               },
             }),
-          ],
+          },
         }),
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "maxLength",
+        text: createEntity({
+          attributes: {
+            maxLength: createAttribute({
               validate(value) {
                 return z.number().parse(value);
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1339,12 +1292,14 @@ describe("builder store", () => {
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "label",
       "New label",
+      "select",
     );
 
     builderStore.setEntityAttribute(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "maxLength",
       1,
+      "text",
     );
 
     expect(builderStore.getData()).toMatchSnapshot();
@@ -1354,11 +1309,17 @@ describe("builder store", () => {
 
   it("throws when updating an attribute of a non-existent entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
+          attributes: {
+            testAttribute: createAttribute({
+              validate() {
+                return "string";
+              },
+            }),
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1372,25 +1333,66 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.setEntityAttribute("invalid", "", ""),
+      builderStore.setEntityAttribute("invalid", "testAttribute", "", "test"),
+    ).toThrowErrorMatchingSnapshot();
+  });
+
+  it("throws when updating an attribute of an entity of wrong type", () => {
+    const builder = createBuilder({
+      entities: {
+        test: createEntity({
+          attributes: {
+            testAttribute: createAttribute({
+              validate() {
+                return "string";
+              },
+            }),
+          },
+        }),
+      },
+    });
+
+    const builderStore = createBuilderStore(builder, {
+      initialData: {
+        entitiesAttributesErrors: {},
+        schema: {
+          entities: {
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+              type: "test",
+              attributes: {
+                testAttribute: "string",
+              },
+            },
+          },
+          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
+        },
+      },
+    });
+
+    expect(() =>
+      builderStore.setEntityAttribute(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "testAttribute",
+        "",
+        // @ts-expect-error Intentional wrong entity type
+        "invalid-entity-type",
+      ),
     ).toThrowErrorMatchingSnapshot();
   });
 
   it("throws when updating an non-existent attribute of an entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "maxLength",
+      entities: {
+        test: createEntity({
+          attributes: {
+            maxLength: createAttribute({
               validate(value) {
                 return z.number().parse(value);
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1410,23 +1412,23 @@ describe("builder store", () => {
     });
 
     expect(() =>
+      // @ts-expect-error Intentional wrong data type
       builderStore.setEntityAttribute(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        // @ts-expect-error Intentional wrong data type
         "invalid",
         "",
+        "test",
       ),
     ).toThrowErrorMatchingSnapshot();
   });
 
   it("can change entity's index", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
+      entities: {
+        test: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1474,25 +1476,22 @@ describe("builder store", () => {
 
   it("can validate a single entity attribute", async () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-            createAttribute({
-              name: "description",
+            description: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
       entitiesExtensions: {
         test: {
           attributes: {
@@ -1524,10 +1523,18 @@ describe("builder store", () => {
                 description: "",
               },
             },
+            "37515819-4f68-4e40-a391-aad5f51c26e2": {
+              type: "test",
+              attributes: {
+                description: "valid",
+                label: "valid",
+              },
+            },
           },
           root: [
             "6e0035c3-0d4c-445f-a42b-2d971225447c",
             "51324b32-adc3-4d17-a90e-66b5453935bd",
+            "37515819-4f68-4e40-a391-aad5f51c26e2",
           ],
         },
         entitiesAttributesErrors: {},
@@ -1544,31 +1551,54 @@ describe("builder store", () => {
       builderStore.validateEntityAttribute(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "label",
+        "test",
       ),
-    ).resolves.toEqual(undefined);
+    ).resolves.toMatchSnapshot();
 
     await expect(
       builderStore.validateEntityAttribute(
         "51324b32-adc3-4d17-a90e-66b5453935bd",
         "label",
+        "test",
       ),
-    ).resolves.toEqual(undefined);
+    ).resolves.toMatchSnapshot();
 
-    await builderStore.validateEntityAttribute(
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-      "description",
-    );
+    await expect(
+      builderStore.validateEntityAttribute(
+        "51324b32-adc3-4d17-a90e-66b5453935bd",
+        "description",
+        "test",
+      ),
+    ).resolves.toMatchSnapshot();
+
+    await expect(
+      builderStore.validateEntityAttribute(
+        "37515819-4f68-4e40-a391-aad5f51c26e2",
+        "description",
+        "test",
+      ),
+    ).resolves.toMatchSnapshot();
 
     expect(builderStore.getData()).toMatchSnapshot();
 
     await expect(
-      builderStore.validateEntityAttribute("invalid", "label"),
+      builderStore.validateEntityAttribute("invalid", "label", "test"),
+    ).rejects.toThrowErrorMatchingSnapshot();
+
+    await expect(
+      // @ts-expect-error Intentional wrong data type
+      builderStore.validateEntityAttribute(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "invalid",
+        "test",
+      ),
     ).rejects.toThrowErrorMatchingSnapshot();
 
     await expect(
       builderStore.validateEntityAttribute(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        // @ts-expect-error Intentional wrong data type
+        "label",
+        // @ts-expect-error Intentional wrong entity type
         "invalid",
       ),
     ).rejects.toThrowErrorMatchingSnapshot();
@@ -1578,31 +1608,27 @@ describe("builder store", () => {
 
   it("can validate a all attributes of a single entity", async () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-            createAttribute({
-              name: "maxLength",
+            maxLength: createAttribute({
               validate(value) {
                 return z.number().parse(value);
               },
             }),
-            createAttribute({
-              name: "description",
+            description: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
       entitiesExtensions: {
         test: {
           attributes: {
@@ -1658,31 +1684,27 @@ describe("builder store", () => {
 
   it("can validate a all attributes of all entities", async () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-            createAttribute({
-              name: "maxLength",
+            maxLength: createAttribute({
               validate(value) {
                 return z.number().parse(value);
               },
             }),
-            createAttribute({
-              name: "description",
+            description: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
       entitiesExtensions: {
         test: {
           attributes: {
@@ -1743,25 +1765,22 @@ describe("builder store", () => {
 
   it("can set a single entity attribute error", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-            createAttribute({
-              name: "title",
+            title: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1770,7 +1789,10 @@ describe("builder store", () => {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+                title: undefined,
+              },
             },
           },
           root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
@@ -1790,6 +1812,7 @@ describe("builder store", () => {
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "label",
         "Some error",
+        "test",
       ),
     ).toEqual(undefined);
 
@@ -1798,21 +1821,33 @@ describe("builder store", () => {
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "title",
         "Title error",
+        "test",
       ),
     ).toEqual(undefined);
 
     expect(builderStore.getData()).toMatchSnapshot();
 
     expect(() =>
-      builderStore.setEntityAttributeError("invalid", "title", "error"),
+      builderStore.setEntityAttributeError("invalid", "title", "error", "test"),
     ).toThrowErrorMatchingSnapshot();
 
     expect(() =>
+      // @ts-expect-error Intentional wrong data type
       builderStore.setEntityAttributeError(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        // @ts-expect-error Intentional wrong data type
         "invalid",
         "error",
+        "test",
+      ),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(() =>
+      // @ts-expect-error Intentional wrong entity type
+      builderStore.setEntityAttributeError(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "invalid",
+        "error",
+        "invalid",
       ),
     ).toThrowErrorMatchingSnapshot();
 
@@ -1821,31 +1856,27 @@ describe("builder store", () => {
 
   it("can set multiple attribute errors for a single entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-            createAttribute({
-              name: "title",
+            title: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-            createAttribute({
-              name: "description",
+            description: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1854,7 +1885,11 @@ describe("builder store", () => {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+                title: undefined,
+                description: undefined,
+              },
             },
           },
           root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
@@ -1880,22 +1915,35 @@ describe("builder store", () => {
           label: "some error",
           title: "another error",
         },
+        "test",
       ),
     ).toEqual(undefined);
 
     expect(builderStore.getData()).toMatchSnapshot();
 
     expect(() =>
-      builderStore.setEntityAttributeError("invalid", "title", "error"),
+      builderStore.setEntityAttributeError("invalid", "title", "error", "test"),
     ).toThrowErrorMatchingSnapshot();
 
     expect(() =>
+      // @ts-expect-error Intentional wrong data type
       builderStore.setEntityAttributesErrors(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         {
-          // @ts-expect-error Intentional wrong data type
           invalid: "some error",
         },
+        "test",
+      ),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(() =>
+      // @ts-expect-error Intentional wrong data type
+      builderStore.setEntityAttributesErrors(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        {
+          invalid: "some error",
+        },
+        "invalid",
       ),
     ).toThrowErrorMatchingSnapshot();
 
@@ -1904,36 +1952,31 @@ describe("builder store", () => {
 
   it("can reset a single entity attribute error", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "select",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        select: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-            createAttribute({
-              name: "title",
+            title: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "maxLength",
+        text: createEntity({
+          attributes: {
+            maxLength: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -1942,7 +1985,10 @@ describe("builder store", () => {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
               type: "select",
-              attributes: {},
+              attributes: {
+                label: undefined,
+                title: undefined,
+              },
             },
           },
           root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
@@ -1963,6 +2009,7 @@ describe("builder store", () => {
         label: "label error",
         title: "title error",
       },
+      "select",
     );
 
     expect(builderStore.getData()).toMatchSnapshot();
@@ -1971,19 +2018,30 @@ describe("builder store", () => {
       builderStore.resetEntityAttributeError(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "label",
+        "select",
       ),
     ).toEqual(undefined);
 
     expect(builderStore.getData()).toMatchSnapshot();
 
     expect(() =>
-      builderStore.resetEntityAttributeError("invalid", "title"),
+      builderStore.resetEntityAttributeError("invalid", "title", "select"),
     ).toThrowErrorMatchingSnapshot();
 
     expect(() =>
+      // @ts-expect-error Intentional wrong data type
       builderStore.resetEntityAttributeError(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        // @ts-expect-error Intentional wrong data type
+        "invalid",
+        "select",
+      ),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(() =>
+      // @ts-expect-error Intentional wrong data type
+      builderStore.resetEntityAttributeError(
+        "6e0035c3-0d4c-445f-a42b-2d971225447c",
+        "invalid",
         "invalid",
       ),
     ).toThrowErrorMatchingSnapshot();
@@ -1993,25 +2051,22 @@ describe("builder store", () => {
 
   it("can reset all attributes errors for a single entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-            createAttribute({
-              name: "title",
+            title: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -2020,7 +2075,10 @@ describe("builder store", () => {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+                title: undefined,
+              },
             },
           },
           root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
@@ -2041,6 +2099,7 @@ describe("builder store", () => {
         label: "label error",
         title: "title error",
       },
+      "test",
     );
 
     expect(builderStore.getData()).toMatchSnapshot();
@@ -2062,25 +2121,22 @@ describe("builder store", () => {
 
   it("can reset all attributes errors for all entities", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-            createAttribute({
-              name: "title",
+            title: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -2089,11 +2145,17 @@ describe("builder store", () => {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+                title: undefined,
+              },
             },
             "51324b32-adc3-4d17-a90e-66b5453935bd": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+                title: undefined,
+              },
             },
           },
           root: [
@@ -2129,31 +2191,27 @@ describe("builder store", () => {
 
   it("can set all attributes errors for all entities", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-            createAttribute({
-              name: "title",
+            title: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-            createAttribute({
-              name: "description",
+            description: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -2162,11 +2220,19 @@ describe("builder store", () => {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+                title: undefined,
+                description: undefined,
+              },
             },
             "51324b32-adc3-4d17-a90e-66b5453935bd": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+                title: undefined,
+                description: undefined,
+              },
             },
           },
           root: [
@@ -2224,20 +2290,18 @@ describe("builder store", () => {
     });
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -2246,7 +2310,9 @@ describe("builder store", () => {
           entities: {
             "6e0035c3-0d4c-445f-a42b-2d971225447c": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+              },
               children: [
                 "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
                 "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
@@ -2254,28 +2320,38 @@ describe("builder store", () => {
             },
             "51324b32-adc3-4d17-a90e-66b5453935bd": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+              },
               children: ["3194bbe0-b2f3-4d5c-b118-3cce0f72ff52"],
             },
             "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+              },
               parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
             },
             "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+              },
               parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
             },
             "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+              },
               parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
               children: ["1c2ec3a4-18a8-4785-906e-6465b9b5883b"],
             },
             "1c2ec3a4-18a8-4785-906e-6465b9b5883b": {
               type: "test",
-              attributes: {},
+              attributes: {
+                label: undefined,
+              },
               parentId: "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
             },
           },
@@ -2308,25 +2384,22 @@ describe("builder store", () => {
 
   it("can validate the schema", async () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "test",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        test: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-            createAttribute({
-              name: "title",
+            title: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
       entitiesExtensions: {
         test: {
           attributes: {
@@ -2403,12 +2476,14 @@ describe("builder store", () => {
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "title",
       "1",
+      "test",
     );
 
     builderStore.setEntityAttribute(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "title",
       "should fail",
+      "test",
     );
 
     builderStore.subscribe(listenerWrapper2);
@@ -2422,7 +2497,7 @@ describe("builder store", () => {
 
   it("can set and reset the schema error", () => {
     const builder = createBuilder({
-      entities: [],
+      entities: {},
     });
 
     const builderStore = createBuilderStore(builder, {
@@ -2452,11 +2527,9 @@ describe("builder store", () => {
 
   it("can retrieve an entity", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-        }),
-      ],
+      entities: {
+        text: createEntity(),
+      },
     });
 
     const builderStore = createBuilderStore(builder, {

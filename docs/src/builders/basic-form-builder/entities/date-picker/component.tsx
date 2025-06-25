@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { forwardRef, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
@@ -13,40 +13,48 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
-import { createEntityComponent } from "@coltorapps/builder-react";
+import {
+  type EntityAttributesValues,
+  type EntityValue,
+} from "@coltorapps/builder";
+import {
+  useEntityAttributesValues,
+  useEntityError,
+  useEntityValue,
+  type BuilderEntityComponentProps,
+  type InterpreterEntityComponentProps,
+} from "@coltorapps/builder-react";
 
-import { datePickerFieldEntity } from "./definition";
+import { type DatePickerFieldEntity } from "./definition";
 
-export const DatePickerFieldEntity = createEntityComponent(
-  datePickerFieldEntity,
-  function DatePickerFieldEntity(props) {
-    const id = useId();
+interface DatePickerFieldProps
+  extends EntityAttributesValues<DatePickerFieldEntity> {
+  id: string;
+  value?: EntityValue<DatePickerFieldEntity>;
+  onChange?: (value: EntityValue<DatePickerFieldEntity>) => void;
+}
 
-    const buttonRef = useRefWithErrorFocus<HTMLButtonElement>(
-      props.entity.error,
-    );
-
+const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(
+  function DatePickerField(props, ref) {
     return (
       <div>
-        <Label htmlFor={id} aria-required={props.entity.attributes.required}>
-          {props.entity.attributes.label.trim()
-            ? props.entity.attributes.label
-            : "Label"}
+        <Label htmlFor={props.id} aria-required={props.required}>
+          {props.label.trim() ? props.label : "Label"}
         </Label>
         <Popover modal>
           <PopoverTrigger asChild>
             <Button
-              ref={buttonRef}
-              id={id}
+              ref={ref}
+              id={props.id}
               variant={"outline"}
               className={cn(
                 "w-full justify-start rounded-md text-left font-normal",
-                !props.entity.value && "text-muted-foreground",
+                !props.value && "text-muted-foreground",
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {props.entity.value ? (
-                format(props.entity.value, "PPP")
+              {props.value ? (
+                format(props.value, "PPP")
               ) : (
                 <span>Pick a date</span>
               )}
@@ -55,16 +63,48 @@ export const DatePickerFieldEntity = createEntityComponent(
           <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
-              selected={props.entity.value}
-              onSelect={props.setValue}
+              selected={props.value}
+              onSelect={props.onChange}
               initialFocus
             />
           </PopoverContent>
         </Popover>
-        <ValidationError>
-          {formatError(props.entity.value, props.entity.error)?._errors?.[0]}
-        </ValidationError>
       </div>
     );
   },
 );
+
+export function BuilderDatePickerFieldEntity(
+  props: BuilderEntityComponentProps<DatePickerFieldEntity>,
+) {
+  const attributes = useEntityAttributesValues(props.entity);
+
+  return <DatePickerField id={props.entity.id} {...attributes} />;
+}
+
+export function InterpreterDatePickerFieldEntity(
+  props: InterpreterEntityComponentProps<DatePickerFieldEntity>,
+) {
+  const id = useId();
+
+  const value = useEntityValue(props.entity);
+
+  const error = useEntityError(props.entity);
+
+  const buttonRef = useRefWithErrorFocus<HTMLButtonElement>(error);
+
+  return (
+    <div>
+      <DatePickerField
+        ref={buttonRef}
+        id={id}
+        value={value}
+        onChange={(value) => props.entity.setValue(value)}
+        {...props.entity.attributes}
+      />
+      <ValidationError>
+        {formatError(value, error)?._errors?.[0]}
+      </ValidationError>
+    </div>
+  );
+}

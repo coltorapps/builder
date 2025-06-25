@@ -52,7 +52,7 @@ describe("builder", () => {
 
   it("can be created with entities", () => {
     const builder = createBuilder({
-      entities: { test: createEntity({}) },
+      entities: { test: createEntity() },
     });
 
     expect(builder).toMatchSnapshot();

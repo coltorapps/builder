@@ -9,27 +9,22 @@ import {
   type Entity,
   type Schema,
 } from "../src";
-import { type EntitiesExtensions } from "../src/builder";
+import { type EntityExtension } from "../src/builder";
 
 describe("builder", () => {
   it("can be created with minimal options", () => {
     const builder = createBuilder({ entities: {} });
 
-    type SchemaForValidation = Schema<
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      Builder<{}>
-    >;
+    type SchemaForValidation = Schema<Builder<Record<never, Entity>>>;
 
     expectTypeOf(builder).toEqualTypeOf<{
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      entities: {};
+      entities: Record<never, Entity>;
       generateEntityId: () => string;
       validateEntityId: (id: string) => void;
       validateSchema: (
         schema: SchemaForValidation,
       ) => SchemaForValidation | Promise<SchemaForValidation>;
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      entitiesExtensions: EntitiesExtensions<{}>;
+      entitiesExtensions: Record<string, EntityExtension>;
     }>();
   });
 
@@ -56,8 +51,7 @@ describe("builder", () => {
           readonly label: Attribute<string>;
         },
         unknown,
-        true,
-        true
+        false
       >;
     };
 
@@ -70,7 +64,7 @@ describe("builder", () => {
       validateSchema: (
         schema: BuilderSchema,
       ) => Promise<BuilderSchema> | BuilderSchema;
-      entitiesExtensions: EntitiesExtensions<Entities>;
+      entitiesExtensions: Record<string, EntityExtension>;
     }>();
   });
 });

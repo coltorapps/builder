@@ -3,39 +3,41 @@ import { Label } from "@/components/ui/label";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 import { useRefWithErrorFocus } from "@/lib/error-focus";
 
-import { createAttributeComponent } from "@coltorapps/builder-react";
+import {
+  useAttributeError,
+  useAttributeValue,
+  type AttributeInstance,
+} from "@coltorapps/builder-react";
 
-import { labelAttribute } from "./definition";
+import { type LabelAttribute } from "./definition";
 
-export const LabelAttribute = createAttributeComponent(
-  labelAttribute,
-  function LabelAttribute(props) {
-    const inputRef = useRefWithErrorFocus<HTMLInputElement>(
-      props.attribute.error,
-    );
+export function LabelAttribute(props: {
+  attribute: AttributeInstance<LabelAttribute>;
+}) {
+  const value = useAttributeValue(props.attribute);
 
-    return (
-      <div>
-        <Label htmlFor={props.attribute.name} aria-required>
-          Label
-        </Label>
-        <Input
-          ref={inputRef}
-          id={props.attribute.name}
-          name={props.attribute.name}
-          value={props.attribute.value ?? ""}
-          onChange={(e) => {
-            props.setValue(e.target.value);
-          }}
-          required
-        />
-        <ValidationError>
-          {
-            formatError(props.attribute.value, props.attribute.error)
-              ?._errors?.[0]
-          }
-        </ValidationError>
-      </div>
-    );
-  },
-);
+  const error = useAttributeError(props.attribute);
+
+  const inputRef = useRefWithErrorFocus<HTMLInputElement>(error);
+
+  return (
+    <div>
+      <Label htmlFor={props.attribute.name} aria-required>
+        Label
+      </Label>
+      <Input
+        ref={inputRef}
+        id={props.attribute.name}
+        name={props.attribute.name}
+        value={value ?? ""}
+        onChange={(e) => {
+          props.attribute.setValue(e.target.value);
+        }}
+        required
+      />
+      <ValidationError>
+        {formatError(value, error)?._errors?.[0]}
+      </ValidationError>
+    </div>
+  );
+}
