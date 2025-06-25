@@ -2,7 +2,6 @@
 const config = {
   root: true,
   extends: ["@coltorapps/eslint-config"],
-  parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: "latest",
     tsconfigRootDir: __dirname,

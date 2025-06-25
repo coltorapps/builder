@@ -1,45 +1,99 @@
-import { type Attribute, type AttributesValues } from "./attribute";
-import { type Entity } from "./entity";
-import { type Schema, type SchemaEntityWithId } from "./schema";
+import { type Attribute } from "./attribute";
+import { type EntityValue } from "./entities-values";
+import {
+  type AttributeExtensionInput,
+  type Entity,
+  type EntityContext,
+} from "./entity";
+import { type Schema } from "./schema";
+import { type ExtractStringKeys } from "./utils";
 import { generateUuid, validateUuid } from "./uuid";
 
-export type EntitiesExtensions<
-  TEntities extends Record<string, Entity> = Record<string, Entity>,
-> = {
-  [K in Extract<keyof TEntities, string>]?: {
-    childrenAllowed?: boolean | ReadonlyArray<Extract<keyof TEntities, string>>;
-    parentRequired?: boolean;
-    allowedParents?: ReadonlyArray<Extract<keyof TEntities, string>>;
-    attributes?: {
-      [K2 in keyof TEntities[K]["attributes"]]?: {
-        validate?: (
-          value: unknown,
-          context: {
-            schema: Schema<Builder<TEntities>>;
-            entity: SchemaEntityWithId<TEntities[K]>;
-            validate: (
-              value: unknown,
-            ) => ReturnType<TEntities[K]["attributes"][K2]["validate"]>;
-          },
-        ) =>
-          | AttributesValues<TEntities[K]["attributes"]>[K2]
-          | Promise<AttributesValues<TEntities[K]["attributes"]>[K2]>;
-      };
-    };
-  };
-};
+interface BaseEntityExtension {
+  parentRequired?: boolean;
+}
 
-export type Builder<
+interface EntityValidationExtensionContext<
+  TEntity extends Entity,
+  TType extends string = string,
   TEntities extends Record<string, Entity> = Record<string, Entity>,
-> = {
+> extends EntityContext<TEntity, TType, TEntities> {
+  validate(value: unknown): ReturnType<TEntity["validate"]>;
+}
+
+interface EntityDefaultValueExtensionContext<
+  TEntity extends Entity,
+  TType extends string = string,
+  TEntities extends Record<string, Entity> = Record<string, Entity>,
+> extends EntityContext<TEntity, TType, TEntities> {
+  defaultValue(): ReturnType<TEntity["defaultValue"]>;
+}
+
+interface EntityShouldBeProcessedExtensionContext<
+  TEntity extends Entity,
+  TType extends string = string,
+  TEntities extends Record<string, Entity> = Record<string, Entity>,
+> extends EntityContext<TEntity, TType, TEntities> {
+  shouldBeProcessed(): ReturnType<TEntity["shouldBeProcessed"]>;
+}
+
+export interface EntityExtension<TEntity extends Entity = Entity>
+  extends BaseEntityExtension {
+  childrenAllowed?: boolean | ReadonlyArray<string>;
+  allowedParents?: ReadonlyArray<string>;
+  attributes?: Record<string, AttributeExtensionInput>;
+  validate?(
+    value: unknown,
+    context: EntityValidationExtensionContext<TEntity>,
+  ): unknown;
+  defaultValue(context: EntityDefaultValueExtensionContext<TEntity>): unknown;
+  shouldBeProcessed(
+    context: EntityShouldBeProcessedExtensionContext<TEntity>,
+  ): boolean;
+}
+
+interface EntityExtensionInput<
+  TEntities extends Record<string, Entity>,
+  TEntity extends Entity,
+  TType extends string,
+> extends BaseEntityExtension {
+  childrenAllowed?: boolean | ReadonlyArray<ExtractStringKeys<TEntities>>;
+  allowedParents?: ReadonlyArray<ExtractStringKeys<TEntities>>;
+  validate?: TEntity["valueAllowed"] extends true
+    ? (
+        value: unknown,
+        context: EntityValidationExtensionContext<TEntity, TType, TEntities>,
+      ) => EntityValue<TEntity> | Promise<EntityValue<TEntity>>
+    : never;
+  defaultValue?: TEntity["valueAllowed"] extends true
+    ? (
+        context: EntityDefaultValueExtensionContext<TEntity, TType, TEntities>,
+      ) => EntityValue<TEntity>
+    : never;
+  shouldBeProcessed?(
+    context: EntityShouldBeProcessedExtensionContext<TEntity, TType, TEntities>,
+  ): boolean;
+  attributes?: {
+    [K2 in ExtractStringKeys<TEntity["attributes"]>]?: AttributeExtensionInput<
+      TEntity,
+      TType,
+      TEntity["attributes"][K2],
+      TEntities
+    >;
+  };
+}
+
+export interface Builder<
+  TEntities extends Record<string, Entity> = Record<string, Entity>,
+> {
   entities: TEntities;
   generateEntityId(): string;
   validateEntityId(id: string): void;
   validateSchema(
     schema: Schema<Builder<TEntities>>,
   ): Promise<Schema<Builder<TEntities>>> | Schema<Builder<TEntities>>;
-  entitiesExtensions: EntitiesExtensions;
-};
+  entitiesExtensions: Record<string, EntityExtension>;
+}
 
 type OptionalBuilderArgs =
   | "validateSchema"
@@ -49,7 +103,13 @@ type OptionalBuilderArgs =
 interface CreateBuilderOptions<TEntities extends Record<string, Entity>>
   extends Omit<Builder<TEntities>, OptionalBuilderArgs | "entitiesExtensions">,
     Partial<Pick<Builder<TEntities>, OptionalBuilderArgs>> {
-  entitiesExtensions?: EntitiesExtensions<TEntities>;
+  entitiesExtensions?: {
+    [K in ExtractStringKeys<TEntities>]?: EntityExtensionInput<
+      TEntities,
+      TEntities[K],
+      K
+    >;
+  };
 }
 
 export function createBuilder<const TEntities extends Record<string, Entity>>(
@@ -67,8 +127,32 @@ export function createBuilder<const TEntities extends Record<string, Entity>>(
     generateEntityId: options.generateEntityId ?? generateUuid,
     validateEntityId: options.validateEntityId ?? validateUuid,
     entitiesExtensions:
-      (options.entitiesExtensions as EntitiesExtensions) ?? {},
+      (options.entitiesExtensions as Builder["entitiesExtensions"]) ?? {},
   };
+}
+
+export function getBuilderEntityMetadata<
+  TBuilder extends Builder,
+  TEntityType extends ExtractStringKeys<TBuilder["entities"]>,
+>(
+  builder: TBuilder,
+  entityType: TEntityType,
+): TBuilder["entities"][TEntityType]["metadata"] {
+  const entityDefinition = builder.entities[entityType];
+
+  if (!entityDefinition) {
+    throw new Error(`Unknown entity type "${entityType}".`);
+  }
+
+  return entityDefinition.metadata;
+}
+
+export function getBuilderEntitiesTypes<TBuilder extends Builder>(
+  builder: TBuilder,
+): ReadonlyArray<ExtractStringKeys<TBuilder["entities"]>> {
+  return Object.keys(builder.entities) as unknown as ReadonlyArray<
+    ExtractStringKeys<TBuilder["entities"]>
+  >;
 }
 
 export function getEntityDefinition(

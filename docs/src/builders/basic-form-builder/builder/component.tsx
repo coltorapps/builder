@@ -15,13 +15,13 @@ import {
 import { cn } from "@/lib/utils";
 import { InfoIcon, XIcon } from "lucide-react";
 
-import { type BuilderStore } from "@coltorapps/builder";
 import {
   BuilderEntities,
   BuilderEntity,
-  BuilderEntityAttributes,
   useBuilderStore,
   useBuilderStoreData,
+  useEntityAttributesErrors,
+  type BuilderEntityInstance,
 } from "@coltorapps/builder-react";
 
 import { DatePickerFieldAttributes } from "../entities/date-picker/attributes-component";
@@ -30,7 +30,7 @@ import { SelectFieldAttributes } from "../entities/select-field/attributes-compo
 import { TextFieldAttributes } from "../entities/text-field/attributes-component";
 import { TextareaFieldAttributes } from "../entities/textarea-field/attributes-component";
 import { basicFormBuilder } from "./definition";
-import { entitiesComponents } from "./entities-components";
+import { builderEntitiesComponents } from "./entities-components";
 import { initialSchema } from "./initial-schema";
 import { Preview } from "./preview";
 
@@ -54,24 +54,14 @@ function AddElementButton(props: { onClick: () => void; children: ReactNode }) {
 }
 
 function Entity(props: {
-  entityId: string;
   children: ReactNode;
   isActive: boolean;
   isDragging: boolean;
   onFocus?: () => void;
   onDelete?: () => void;
-  builderStore: BuilderStore;
+  entity: BuilderEntityInstance;
 }) {
-  const { entitiesAttributesErrors } = useBuilderStoreData(
-    props.builderStore,
-    (events) =>
-      events.some(
-        (event) =>
-          (event.name === "EntityAttributeErrorUpdated" &&
-            event.payload.entity.id === props.entityId) ||
-          event.name === "DataSet",
-      ),
-  );
+  const attributesErrors = useEntityAttributesErrors(props.entity);
 
   return (
     <div className="relative">
@@ -96,7 +86,7 @@ function Entity(props: {
           {
             "border-destructive":
               !props.isActive &&
-              entitiesAttributesErrors[props.entityId] &&
+              Object.keys(attributesErrors).length &&
               !props.isDragging,
           },
         )}
@@ -141,7 +131,7 @@ export function BasicFormBuilder() {
       onEntityAttributeUpdated(payload) {
         void builderStore.validateEntityAttribute(
           payload.entity.id,
-          payload.attributeName,
+          payload.entity.updatedAttributeName,
         );
       },
     },
@@ -154,17 +144,14 @@ export function BasicFormBuilder() {
     builderStore.getData().schema.root[0],
   );
 
-  const {
-    schema: { root },
-  } = useBuilderStoreData(builderStore, (events) =>
-    events.some(
-      (event) => event.name === "RootUpdated" || event.name === "DataSet",
-    ),
+  const hasEntities = useBuilderStoreData(
+    builderStore,
+    (data) => data.schema.root.length > 0,
   );
 
   return (
     <div>
-      {root.length ? (
+      {hasEntities ? (
         <div className="flex justify-end">
           <Preview
             builderStore={builderStore}
@@ -179,10 +166,10 @@ export function BasicFormBuilder() {
       ) : null}
       <div
         className={cn("grid", {
-          "mt-6 gap-8 sm:grid-cols-2": root.length,
+          "mt-6 gap-8 sm:grid-cols-2": hasEntities,
         })}
       >
-        {!root.length ? (
+        {!hasEntities ? (
           <div className="mt-4 grid gap-2 text-center">
             <InfoIcon className="mx-auto h-8 w-8 text-neutral-600" />
             <span>No elements yet.</span>
@@ -198,15 +185,10 @@ export function BasicFormBuilder() {
                     <BuilderEntity
                       entityId={draggingId}
                       builderStore={builderStore}
-                      components={entitiesComponents}
+                      components={builderEntitiesComponents}
                     >
                       {(props) => (
-                        <Entity
-                          isActive
-                          isDragging
-                          builderStore={builderStore}
-                          entityId={props.entity.id}
-                        >
+                        <Entity isActive isDragging entity={props.entity}>
                           {props.children}
                         </Entity>
                       )}
@@ -217,13 +199,12 @@ export function BasicFormBuilder() {
                 {({ draggingId }) => (
                   <BuilderEntities
                     builderStore={builderStore}
-                    components={entitiesComponents}
+                    components={builderEntitiesComponents}
                   >
                     {(props) => (
                       <DndItem id={props.entity.id}>
                         <Entity
-                          builderStore={builderStore}
-                          entityId={props.entity.id}
+                          entity={props.entity}
                           isActive={
                             activeEntityId === props.entity.id &&
                             draggingId !== props.entity.id
@@ -265,6 +246,9 @@ export function BasicFormBuilder() {
                           type: "textField",
                           attributes: {
                             label: "Text Field",
+                            placeholder: undefined,
+                            defaultValue: undefined,
+                            required: undefined,
                           },
                         })
                       }
@@ -277,6 +261,9 @@ export function BasicFormBuilder() {
                           type: "textareaField",
                           attributes: {
                             label: "Textarea Field",
+                            placeholder: undefined,
+                            defaultValue: undefined,
+                            required: undefined,
                           },
                         })
                       }
@@ -290,6 +277,8 @@ export function BasicFormBuilder() {
                           attributes: {
                             label: "Select Field",
                             options: [],
+                            placeholder: undefined,
+                            required: undefined,
                           },
                         })
                       }
@@ -302,6 +291,8 @@ export function BasicFormBuilder() {
                           type: "datePickerField",
                           attributes: {
                             label: "Date Picker Field",
+                            defaultValue: undefined,
+                            required: undefined,
                           },
                         })
                       }
@@ -331,7 +322,8 @@ export function BasicFormBuilder() {
         {activeEntityId ? (
           <div className="rounded-xl border-l bg-neutral-900/60 p-4 pb-8">
             <div className="sticky top-24 grid gap-8">
-              <BuilderEntityAttributes
+              <BuilderEntity
+                key={activeEntityId}
                 entityId={activeEntityId}
                 builderStore={builderStore}
                 components={entitiesAttributesComponents}

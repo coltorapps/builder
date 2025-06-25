@@ -8,13 +8,12 @@ import { placeholderAttribute } from "../../attributes/placeholder/definition";
 import { requiredAttribute } from "../../attributes/required/definition";
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [
-    labelAttribute,
-    placeholderAttribute,
-    defaultStringValueAttribute,
-    requiredAttribute,
-  ],
+  attributes: {
+    label: labelAttribute,
+    placeholder: placeholderAttribute,
+    defaultValue: defaultStringValueAttribute,
+    required: requiredAttribute,
+  },
   validate(value, context) {
     const schema = z.string().max(255);
 
@@ -28,3 +27,5 @@ export const textFieldEntity = createEntity({
     return context.entity.attributes.defaultValue;
   },
 });
+
+export type TextFieldEntity = typeof textFieldEntity;

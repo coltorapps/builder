@@ -13,3 +13,8 @@ export function insertIntoSetAtIndex<T>(
 
   return new Set(result);
 }
+
+export type ExtractStringKeys<T extends Record<string, unknown>> = Extract<
+  keyof T,
+  string
+>;

@@ -1,41 +1,45 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatError, ValidationError } from "@/components/ui/validation-error";
 
-import { createAttributeComponent } from "@coltorapps/builder-react";
+import {
+  useAttributeError,
+  useAttributeValue,
+  type AttributeInstance,
+} from "@coltorapps/builder-react";
 
-import { requiredAttribute } from "./definition";
+import { type RequiredAttribute } from "./definition";
 
-export const RequiredAttribute = createAttributeComponent(
-  requiredAttribute,
-  function RequiredAttribute(props) {
-    return (
-      <div>
-        <div className="items-top flex space-x-2">
-          <Checkbox
-            id={props.attribute.name}
-            checked={props.attribute.value}
-            onCheckedChange={(checked) => {
-              if (typeof checked === "boolean") {
-                props.setValue(checked);
-              }
-            }}
-          />
-          <div className="grid gap-1.5 leading-none">
-            <label
-              htmlFor={props.attribute.name}
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Mandatory Field
-            </label>
-          </div>
+export function RequiredAttribute(props: {
+  attribute: AttributeInstance<RequiredAttribute>;
+}) {
+  const value = useAttributeValue(props.attribute);
+
+  const error = useAttributeError(props.attribute);
+
+  return (
+    <div>
+      <div className="items-top flex space-x-2">
+        <Checkbox
+          id={props.attribute.name}
+          checked={value}
+          onCheckedChange={(checked) => {
+            if (typeof checked === "boolean") {
+              props.attribute.setValue(checked);
+            }
+          }}
+        />
+        <div className="grid gap-1.5 leading-none">
+          <label
+            htmlFor={props.attribute.name}
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Mandatory Field
+          </label>
         </div>
-        <ValidationError>
-          {
-            formatError(props.attribute.value, props.attribute.error)
-              ?._errors?.[0]
-          }
-        </ValidationError>
       </div>
-    );
-  },
-);
+      <ValidationError>
+        {formatError(value, error)?._errors?.[0]}
+      </ValidationError>
+    </div>
+  );
+}

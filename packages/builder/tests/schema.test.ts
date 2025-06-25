@@ -438,30 +438,24 @@ const invalidSchemasCases: Array<{
 describe("schema shape validation", () => {
   it("fails for invalid schemas", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-        createEntity({
-          name: "section",
-        }),
-        createEntity({
-          name: "card",
+        section: createEntity(),
+        card: createEntity({
           childrenAllowed: true,
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           parentRequired: true,
         }),
-      ],
+      },
       entitiesExtensions: {
         section: {
           childrenAllowed: ["text", "section"],
@@ -484,19 +478,17 @@ describe("schema shape validation", () => {
 
   it("returns the validated schema", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return z.string().parse(value) + "should be appended";
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
     });
 
     expect(
@@ -517,11 +509,9 @@ describe("schema shape validation", () => {
 
   it("throws for invalid parent id", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-        }),
-      ],
+      entities: {
+        text: createEntity(),
+      },
     });
 
     expect(() =>
@@ -543,12 +533,11 @@ describe("schema shape validation", () => {
 
   it("throws for invalid children ids", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     expect(() =>
@@ -570,11 +559,9 @@ describe("schema shape validation", () => {
 
   it("throws for invalid root ids", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-        }),
-      ],
+      entities: {
+        text: createEntity(),
+      },
     });
 
     expect(() =>
@@ -595,24 +582,21 @@ describe("schema shape validation", () => {
 
   it("returns clean data for valid schemas", () => {
     const textEntity = createEntity({
-      name: "text",
-      attributes: [
-        createAttribute({
-          name: "label",
+      attributes: {
+        label: createAttribute({
           validate(value) {
             return value;
           },
         }),
-      ],
+      },
     });
 
     const sectionEntity = createEntity({
-      name: "section",
       childrenAllowed: true,
     });
 
     const builder = createBuilder({
-      entities: [textEntity, sectionEntity],
+      entities: { text: textEntity, section: sectionEntity },
     });
 
     const schema: Schema = {
@@ -642,30 +626,24 @@ describe("schema shape validation", () => {
 describe("schema validation", () => {
   it("fails for invalid schemas", async () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return value;
               },
             }),
-          ],
+          },
         }),
-        createEntity({
-          name: "section",
-        }),
-        createEntity({
-          name: "card",
+        section: createEntity(),
+        card: createEntity({
           childrenAllowed: true,
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           parentRequired: true,
         }),
-      ],
+      },
       entitiesExtensions: {
         section: {
           childrenAllowed: ["text", "section"],
@@ -677,7 +655,9 @@ describe("schema validation", () => {
       validateSchema(schema) {
         if (
           Object.values(schema.entities).some(
-            (entity) => entity.attributes.label === "should fail",
+            (entity) =>
+              entity.type === "text" &&
+              entity.attributes.label === "should fail",
           )
         ) {
           throw "Label validation failed";
@@ -699,19 +679,17 @@ describe("schema validation", () => {
 
   it("validates the schema with the custom validator", async () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
-                return value;
+                return value as string;
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
       validateSchema(schema) {
         if (
           Object.values(schema.entities).some(
@@ -753,25 +731,22 @@ describe("schema validation", () => {
 
   it("validates attributes with their validators", async () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
-          attributes: [
-            createAttribute({
-              name: "label",
+      entities: {
+        text: createEntity({
+          attributes: {
+            label: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-            createAttribute({
-              name: "description",
+            description: createAttribute({
               validate(value) {
                 return z.string().parse(value);
               },
             }),
-          ],
+          },
         }),
-      ],
+      },
       entitiesExtensions: {
         text: {
           attributes: {

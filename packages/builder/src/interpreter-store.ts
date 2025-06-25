@@ -7,7 +7,14 @@ import {
   type EntitiesValues,
   type EntitiesValuesValidationResult,
   type EntityValue,
+  type EntityValueValidationResult,
+  type OptionalEntitiesValues,
 } from "./entities-values";
+import {
+  computeContextEntitiesEntries,
+  computeContextEntitiesEntry,
+  ensureEntityTypeMatches,
+} from "./entity";
 import {
   ensureEntityExists,
   SchemaValidationError,
@@ -16,18 +23,22 @@ import {
   type SchemaEntityWithId,
 } from "./schema";
 import { type Subscribe, type SubscriptionEvent } from "./subscription-manager";
+import { type ExtractStringKeys } from "./utils";
 
-type InternalInterpreterStoreData<TBuilder extends Builder = Builder> = {
-  entitiesValues: Map<string, EntityValue<TBuilder["entities"][string]>>;
+interface InternalInterpreterStoreData<TBuilder extends Builder = Builder> {
+  entitiesValues: Map<
+    string,
+    EntityValue<TBuilder["entities"][string]> | undefined
+  >;
   entitiesErrors: Map<string, unknown>;
   unprocessableEntitiesIds: Set<string>;
-};
+}
 
-export type InterpreterStoreData<TBuilder extends Builder = Builder> = {
-  entitiesValues: EntitiesValues<TBuilder["entities"]>;
+export interface InterpreterStoreData<TBuilder extends Builder = Builder> {
+  entitiesValues: OptionalEntitiesValues<TBuilder["entities"]>;
   entitiesErrors: EntitiesErrors;
   unprocessableEntitiesIds: Array<string>;
-};
+}
 
 export const interpreterStoreEventsNames = {
   EntityValueUpdated: "EntityValueUpdated",
@@ -45,7 +56,7 @@ export type InterpreterStoreEvent<TBuilder extends Builder = Builder> =
       typeof interpreterStoreEventsNames.EntityValueUpdated,
       {
         entityId: string;
-        value: EntityValue<TBuilder["entities"][string]>;
+        value: EntityValue<TBuilder["entities"][string]> | undefined;
       }
     >
   | SubscriptionEvent<
@@ -73,6 +84,12 @@ export type InterpreterStoreEvent<TBuilder extends Builder = Builder> =
         data: InterpreterStoreData<TBuilder>;
       }
     >;
+
+export type EntityTypeWithAllowedValue<TBuilder extends Builder> = {
+  [K in ExtractStringKeys<
+    TBuilder["entities"]
+  >]: TBuilder["entities"][K]["valueAllowed"] extends true ? K : never;
+}[ExtractStringKeys<TBuilder["entities"]>];
 
 function ensureEntitiesErrorsAreValid<TBuilder extends Builder>(
   entitiesErrors: InterpreterStoreData<TBuilder>["entitiesErrors"],
@@ -191,10 +208,28 @@ function resetEntityValue<TBuilder extends Builder>(
 
   const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
-  const newValue = entityDefinition.defaultValue({
-    entity,
-    entitiesValues: serializeInternalEntitiesValues(entitiesValues),
-  }) as EntityValue<TBuilder["entities"][string]>;
+  const computeEntityExtensionDefaultValue = builder.entitiesExtensions[
+    entity.type
+  ]?.defaultValue?.bind?.(builder.entitiesExtensions[entity.type]);
+
+  const context = {
+    entity: computeContextEntitiesEntry(entity, entitiesValues, builder),
+    entities: computeContextEntitiesEntries(
+      serializeInternalEntitiesValues(entitiesValues),
+      builder,
+      schema,
+    ),
+    schema,
+  };
+
+  const newValue = computeEntityExtensionDefaultValue
+    ? (computeEntityExtensionDefaultValue({
+        ...context,
+        defaultValue() {
+          return entityDefinition.defaultValue(context);
+        },
+      }) as EntityValue<TBuilder["entities"][string]> | undefined)
+    : entityDefinition.defaultValue(context);
 
   newEntitiesValues.set(entityId, newValue);
 
@@ -300,7 +335,10 @@ function getRecurringChildrenIds(
 }
 
 function computeEntityProcessability<TBuilder extends Builder>(
-  entity: SchemaEntityWithId<TBuilder["entities"][string]>,
+  entity: SchemaEntityWithId<
+    TBuilder["entities"][string],
+    ExtractStringKeys<TBuilder["entities"]>
+  >,
   schema: Schema<TBuilder>,
   data: InternalInterpreterStoreData<TBuilder>,
   builder: TBuilder,
@@ -312,12 +350,32 @@ function computeEntityProcessability<TBuilder extends Builder>(
 
   let newEntitiesValues = new Map(data.entitiesValues);
 
+  let newEntitiesErrors = new Map(data.entitiesErrors);
+
   const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
-  const shouldBeProcessed = entityDefinition.shouldBeProcessed({
-    entitiesValues: serializeInternalEntitiesValues(newEntitiesValues),
-    entity,
-  });
+  const computeEntityExtensionShouldBeProcessed = builder.entitiesExtensions[
+    entity.type
+  ]?.shouldBeProcessed?.bind?.(builder.entitiesExtensions[entity.type]);
+
+  const context = {
+    entity: computeContextEntitiesEntry(entity, data.entitiesValues, builder),
+    schema,
+    entities: computeContextEntitiesEntries(
+      serializeInternalEntitiesValues(data.entitiesValues),
+      builder,
+      schema,
+    ),
+  };
+
+  const shouldBeProcessed = computeEntityExtensionShouldBeProcessed
+    ? computeEntityExtensionShouldBeProcessed({
+        ...context,
+        shouldBeProcessed() {
+          return entityDefinition.shouldBeProcessed(context);
+        },
+      })
+    : entityDefinition.shouldBeProcessed(context);
 
   let events: Array<InterpreterStoreEvent<TBuilder>> = [];
 
@@ -344,7 +402,17 @@ function computeEntityProcessability<TBuilder extends Builder>(
       },
     });
 
+    events.push({
+      name: interpreterStoreEventsNames.EntityErrorUpdated,
+      payload: {
+        entityId: entity.id,
+        error: undefined,
+      },
+    });
+
     newEntitiesValues.delete(entity.id);
+
+    newEntitiesErrors.delete(entity.id);
 
     newUnprocessableEntitiesIds.add(entity.id);
 
@@ -354,6 +422,8 @@ function computeEntityProcessability<TBuilder extends Builder>(
       newUnprocessableEntitiesIds.add(childId);
 
       newEntitiesValues.delete(childId);
+
+      newEntitiesErrors.delete(childId);
 
       events.push({
         name: interpreterStoreEventsNames.EntityUnprocessable,
@@ -369,6 +439,14 @@ function computeEntityProcessability<TBuilder extends Builder>(
           value: undefined,
         },
       });
+
+      events.push({
+        name: interpreterStoreEventsNames.EntityErrorUpdated,
+        payload: {
+          entityId: childId,
+          error: undefined,
+        },
+      });
     });
 
     return {
@@ -376,6 +454,7 @@ function computeEntityProcessability<TBuilder extends Builder>(
         ...data,
         entitiesValues: newEntitiesValues,
         unprocessableEntitiesIds: newUnprocessableEntitiesIds,
+        entitiesErrors: newEntitiesErrors,
       },
       events,
     };
@@ -403,6 +482,7 @@ function computeEntityProcessability<TBuilder extends Builder>(
           ...data,
           entitiesValues: newEntitiesValues,
           unprocessableEntitiesIds: newUnprocessableEntitiesIds,
+          entitiesErrors: newEntitiesErrors,
         },
         builder,
       );
@@ -413,6 +493,8 @@ function computeEntityProcessability<TBuilder extends Builder>(
         childEntityProcessability.data.unprocessableEntitiesIds;
 
       newEntitiesValues = childEntityProcessability.data.entitiesValues;
+
+      newEntitiesErrors = childEntityProcessability.data.entitiesErrors;
     }
   }
 
@@ -421,6 +503,7 @@ function computeEntityProcessability<TBuilder extends Builder>(
       ...data,
       entitiesValues: newEntitiesValues,
       unprocessableEntitiesIds: newUnprocessableEntitiesIds,
+      entitiesErrors: newEntitiesErrors,
     },
     events,
   };
@@ -438,6 +521,8 @@ export function computeUnprocessableEntities<TBuilder extends Builder>(
 
   let newEntitiesValues = new Map(data.entitiesValues);
 
+  let newEntitiesErrors = new Map(data.entitiesErrors);
+
   let events: Array<InterpreterStoreEvent<TBuilder>> = [];
 
   for (const entityId of schema.root) {
@@ -450,6 +535,7 @@ export function computeUnprocessableEntities<TBuilder extends Builder>(
         ...data,
         entitiesValues: newEntitiesValues,
         unprocessableEntitiesIds: newUnprocessableEntitiesIds,
+        entitiesErrors: newEntitiesErrors,
       },
       builder,
     );
@@ -459,6 +545,8 @@ export function computeUnprocessableEntities<TBuilder extends Builder>(
 
     newEntitiesValues = entityProcessability.data.entitiesValues;
 
+    newEntitiesErrors = entityProcessability.data.entitiesErrors;
+
     events = events.concat(entityProcessability.events);
   }
 
@@ -466,6 +554,7 @@ export function computeUnprocessableEntities<TBuilder extends Builder>(
     data: {
       ...data,
       entitiesValues: newEntitiesValues,
+      entitiesErrors: newEntitiesErrors,
       unprocessableEntitiesIds: newUnprocessableEntitiesIds,
     },
     events,
@@ -488,12 +577,12 @@ function ensureEntityProcessable(
   }
 }
 
-export type InterpreterStoreOptions<TBuilder extends Builder> = {
+export interface InterpreterStoreOptions<TBuilder extends Builder> {
   initialData?: Partial<
     Omit<InterpreterStoreData<TBuilder>, "unprocessableEntitiesIds">
   >;
   initialEntitiesValuesWithDefaults?: boolean;
-};
+}
 
 export function createInterpreterStore<TBuilder extends Builder>(
   builder: TBuilder,
@@ -580,7 +669,13 @@ export function createInterpreterStore<TBuilder extends Builder>(
 
       setData(newData, events.concat(entitiesProcessability.events));
     },
-    setEntityValue(entityId, value) {
+    setEntityValue(entityId: string, value?: unknown, entityType?: undefined) {
+      const entity = ensureEntityExists(entityId, schema.entities);
+
+      if (entityType) {
+        ensureEntityTypeMatches(entity, entityType);
+      }
+
       ensureEntityValueAllowed(entityId, builder, schema);
 
       const data = getData();
@@ -589,7 +684,10 @@ export function createInterpreterStore<TBuilder extends Builder>(
 
       const newEntitiesValues = new Map(data.entitiesValues);
 
-      newEntitiesValues.set(entityId, value);
+      newEntitiesValues.set(
+        entityId,
+        value as EntityValue<TBuilder["entities"][string]>,
+      );
 
       let newData = {
         ...data,
@@ -609,7 +707,7 @@ export function createInterpreterStore<TBuilder extends Builder>(
           name: interpreterStoreEventsNames.EntityValueUpdated,
           payload: {
             entityId,
-            value,
+            value: value as EntityValue<TBuilder["entities"][string]>,
           },
         },
       ];
@@ -935,6 +1033,8 @@ export function createInterpreterStore<TBuilder extends Builder>(
           ],
         );
       }
+
+      return entityValidationResult;
     },
     async validateEntitiesValues() {
       const data = getData();
@@ -1016,7 +1116,9 @@ export function createInterpreterStore<TBuilder extends Builder>(
 
       return {
         success: true,
-        data: serializeInternalEntitiesValues(data.entitiesValues),
+        data: serializeInternalEntitiesValues(
+          data.entitiesValues,
+        ) as EntitiesValues,
       };
     },
     getEntitiesErrors() {
@@ -1042,7 +1144,7 @@ export function createInterpreterStore<TBuilder extends Builder>(
   };
 }
 
-export type InterpreterStore<TBuilder extends Builder = Builder> = {
+export interface InterpreterStore<TBuilder extends Builder = Builder> {
   getData(): InterpreterStoreData<TBuilder>;
   getEntitiesErrors(): InterpreterStoreData<TBuilder>["entitiesErrors"];
   getEntitiesValues(): InterpreterStoreData<TBuilder>["entitiesValues"];
@@ -1059,13 +1161,17 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
   >;
   builder: TBuilder;
   schema: Schema<TBuilder>;
-  validateEntityValue(entityId: string): Promise<void>;
-  validateEntitiesValues(): Promise<
-    EntitiesValuesValidationResult<TBuilder["entities"]>
-  >;
+  validateEntityValue(entityId: string): Promise<EntityValueValidationResult>;
+  validateEntitiesValues(): Promise<EntitiesValuesValidationResult>;
+  setEntityValue<TEntityType extends EntityTypeWithAllowedValue<TBuilder>>(
+    entityId: string,
+    value: EntityValue<TBuilder["entities"][TEntityType]> | undefined,
+    entityType: TEntityType,
+  ): void;
   setEntityValue(
     entityId: string,
-    value: EntityValue<TBuilder["entities"][string]>,
+    value?: unknown,
+    entityType?: undefined,
   ): void;
   resetEntityValue(entityId: string): void;
   resetEntitiesValues(): void;
@@ -1082,4 +1188,4 @@ export type InterpreterStore<TBuilder extends Builder = Builder> = {
     entityId: string,
   ): EntityValue<TBuilder["entities"][string]> | undefined;
   getEntityError(entityId: string): unknown;
-};
+}

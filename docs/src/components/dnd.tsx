@@ -55,11 +55,10 @@ export function DndContainer(props: {
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
-  const rootEntities = useBuilderStoreData(props.builderStore, (events) =>
-    events.some(
-      (event) => event.name === "RootUpdated" || event.name === "DataSet",
-    ),
-  ).schema.root;
+  const rootEntities = useBuilderStoreData(
+    props.builderStore,
+    (data) => data.schema.root,
+  );
 
   return (
     <DndContext

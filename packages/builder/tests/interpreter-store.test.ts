@@ -23,7 +23,7 @@ describe("interpreter store", () => {
     };
 
     const builder = createBuilder({
-      entities: [],
+      entities: {},
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -35,9 +35,8 @@ describe("interpreter store", () => {
 
   it("resets entities values when created", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -45,16 +44,13 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity({}),
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, {
@@ -84,9 +80,8 @@ describe("interpreter store", () => {
 
   it("doesn't reset entities values when created if configured to", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -94,7 +89,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -118,9 +113,8 @@ describe("interpreter store", () => {
 
   it("can return the data", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -128,7 +122,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, {
@@ -146,9 +140,8 @@ describe("interpreter store", () => {
 
   it("can be created with initial data", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -156,8 +149,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -165,10 +157,8 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity(),
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -211,9 +201,8 @@ describe("interpreter store", () => {
 
   it("can set the data", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -221,8 +210,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -230,10 +218,8 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity(),
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, {
@@ -296,9 +282,8 @@ describe("interpreter store", () => {
 
   it("can set an entity value", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -306,8 +291,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -315,10 +299,8 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity(),
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -361,12 +343,24 @@ describe("interpreter store", () => {
     interpreterStore.setEntityValue(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "new value",
+      "text",
     );
 
     expect(() =>
       interpreterStore.setEntityValue(
         "2df173ee-6b88-4744-a74d-0f21d49166b3",
         "new value",
+        // @ts-expect-error Intentional entity with values not allowed
+        "section",
+      ),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(() =>
+      interpreterStore.setEntityValue(
+        "2df173ee-6b88-4744-a74d-0f21d49166b3",
+        "new value",
+        // @ts-expect-error Intentional wrong entity type
+        "invalid",
       ),
     ).toThrowErrorMatchingSnapshot();
 
@@ -377,9 +371,8 @@ describe("interpreter store", () => {
 
   it("can reset an entity value", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -387,8 +380,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -396,10 +388,8 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity(),
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -452,9 +442,8 @@ describe("interpreter store", () => {
 
   it("can reset all entities values", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -462,8 +451,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -471,7 +459,7 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -515,9 +503,8 @@ describe("interpreter store", () => {
 
   it("can clear an entity value", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -525,8 +512,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -534,10 +520,8 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity(),
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -590,9 +574,8 @@ describe("interpreter store", () => {
 
   it("can clear all entities values", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -600,8 +583,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -609,7 +591,7 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -653,9 +635,8 @@ describe("interpreter store", () => {
 
   it("can set an entity error", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -663,8 +644,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -672,10 +652,8 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity(),
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -734,9 +712,8 @@ describe("interpreter store", () => {
 
   it("can reset an entity error", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -744,8 +721,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -753,10 +729,8 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity(),
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -809,9 +783,8 @@ describe("interpreter store", () => {
 
   it("can reset all entities errors", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -819,8 +792,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -828,7 +800,7 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -872,9 +844,8 @@ describe("interpreter store", () => {
 
   it("can set entities errors", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           defaultValue() {
             return "default";
           },
@@ -882,8 +853,7 @@ describe("interpreter store", () => {
             return "";
           },
         }),
-        createEntity({
-          name: "select",
+        select: createEntity({
           validate() {
             return "";
           },
@@ -891,10 +861,8 @@ describe("interpreter store", () => {
             return "default";
           },
         }),
-        createEntity({
-          name: "section",
-        }),
-      ],
+        section: createEntity(),
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -968,14 +936,13 @@ describe("interpreter store", () => {
     );
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           validate(value) {
             return z.string().parse(value);
           },
         }),
-      ],
+      },
     });
 
     const schema = {
@@ -1109,13 +1076,12 @@ describe("interpreter store", () => {
     } as const;
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: (context) =>
             context.entity.id === "6e0035c3-0d4c-445f-a42b-2d971225447c",
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -1156,9 +1122,8 @@ describe("interpreter store", () => {
     let processable = true;
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: (context) =>
             context.entity.id === "6e0035c3-0d4c-445f-a42b-2d971225447c" ||
             processable,
@@ -1166,7 +1131,7 @@ describe("interpreter store", () => {
             return;
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -1180,6 +1145,7 @@ describe("interpreter store", () => {
     interpreterStore.setEntityValue(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "test",
+      "text",
     );
 
     processable = true;
@@ -1187,11 +1153,13 @@ describe("interpreter store", () => {
     interpreterStore.setEntityValue(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "test",
+      "text",
     );
 
     interpreterStore.setEntityValue(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       undefined,
+      "text",
     );
 
     expect(interpreterStore.getUnprocessableEntitiesIds()).toMatchSnapshot();
@@ -1220,9 +1188,8 @@ describe("interpreter store", () => {
     let processable = true;
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: (context) =>
             context.entity.id === "6e0035c3-0d4c-445f-a42b-2d971225447c" ||
             processable,
@@ -1230,7 +1197,7 @@ describe("interpreter store", () => {
             return;
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -1268,15 +1235,14 @@ describe("interpreter store", () => {
     let processable = true;
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: () => processable,
           validate: () => {
             return;
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -1321,9 +1287,8 @@ describe("interpreter store", () => {
     let processable = true;
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: (context) =>
             context.entity.id === "6e0035c3-0d4c-445f-a42b-2d971225447c" ||
             processable,
@@ -1331,7 +1296,7 @@ describe("interpreter store", () => {
             return;
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -1369,15 +1334,14 @@ describe("interpreter store", () => {
     let processable = true;
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: () => processable,
           validate: () => {
             return;
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -1415,15 +1379,14 @@ describe("interpreter store", () => {
     let processable = true;
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: () => processable,
           validate: () => {
             return "string";
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -1459,14 +1422,13 @@ describe("interpreter store", () => {
 
   it("can retrieve an entity value and error", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           validate() {
             return "";
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(
@@ -1517,15 +1479,14 @@ describe("unprocessable entities computation", () => {
     let processable = true;
 
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: () => processable,
           validate: () => {
             return "string";
           },
         }),
-      ],
+      },
     });
 
     const interpreterStore = createInterpreterStore(builder, schema);
@@ -1573,17 +1534,16 @@ describe("unprocessable entities computation", () => {
 
   it("computes the unprocessable entities recursively", () => {
     const builder = createBuilder({
-      entities: [
-        createEntity({
-          name: "text",
+      entities: {
+        text: createEntity({
           shouldBeProcessed: (context) =>
-            context.entitiesValues[context.entity.id] === "process",
+            context.entities[context.entity.id]?.value === "process",
           validate: () => {
             return "string";
           },
           childrenAllowed: true,
         }),
-      ],
+      },
     });
 
     const schema: schemaExports.Schema<typeof builder> = {
@@ -1669,6 +1629,24 @@ describe("unprocessable entities computation", () => {
             "2df173ee-6b88-4744-a74d-0f21d49166b3",
             "6e0035c3-0d4c-445f-a42b-2d971225447c",
           ]),
+        },
+        builder,
+      ),
+    ).toMatchSnapshot();
+
+    expect(
+      computeUnprocessableEntities(
+        schema,
+        {
+          entitiesValues: new Map([
+            ["51324b32-adc3-4d17-a90e-66b5453935bd", "process"],
+          ]),
+          entitiesErrors: new Map([
+            ["51324b32-adc3-4d17-a90e-66b5453935bd", "error"],
+            ["6e0035c3-0d4c-445f-a42b-2d971225447c", "error"],
+            ["2df173ee-6b88-4744-a74d-0f21d49166b3", "error"],
+          ]),
+          unprocessableEntitiesIds: new Set(),
         },
         builder,
       ),

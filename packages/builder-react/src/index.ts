@@ -1,31 +1,34 @@
 export {
-  BuilderEntities,
-  BuilderEntityAttributes,
   BuilderEntity,
+  BuilderEntities,
   useBuilderStore,
+  useAttributeError,
+  useAttributeValue,
   useBuilderStoreData,
+  useEntityAttributesValues,
+  useEntityAttributesErrors,
+} from "./builder";
+export type {
+  BuilderEntityInstance,
+  AttributeInstance,
+  BuilderEntityComponent,
+  BuilderEntitiesComponents,
+  BuilderEntityComponentProps,
+  GenericBuilderEntityComponent,
 } from "./builder";
 
 export {
-  InterpreterEntities,
+  useEntityError,
+  useEntityValue,
   InterpreterEntity,
-  Interpreter,
   useInterpreterStore,
+  InterpreterEntities,
   useInterpreterStoreData,
-  useInterpreterEntitiesValues,
 } from "./interpreter";
-
-export { createEntityComponent } from "./entities";
 export type {
-  EntityComponentProps,
-  GenericEntityComponent,
-  GenericEntityProps,
-  EntitiesComponents,
-  EntityComponent,
-} from "./entities";
-
-export { createAttributeComponent } from "./attributes";
-export type {
-  AttributeComponentProps,
-  EntitiesAttributesComponents,
-} from "./attributes";
+  InterpreterEntityInstance,
+  InterpreterEntityComponent,
+  InterpreterEntitiesComponents,
+  InterpreterEntityComponentProps,
+  GenericInterpreterEntityComponent,
+} from "./interpreter";

@@ -8,13 +8,12 @@ import { placeholderAttribute } from "../../attributes/placeholder/definition";
 import { requiredAttribute } from "../../attributes/required/definition";
 
 export const selectFieldEntity = createEntity({
-  name: "selectField",
-  attributes: [
-    labelAttribute,
-    placeholderAttribute,
-    requiredAttribute,
-    optionsAttribute,
-  ],
+  attributes: {
+    label: labelAttribute,
+    placeholder: placeholderAttribute,
+    required: requiredAttribute,
+    options: optionsAttribute,
+  },
   validate(value, context) {
     const schema = z.enum(
       context.entity.attributes.options as [string, ...string[]],
@@ -27,3 +26,5 @@ export const selectFieldEntity = createEntity({
     return schema.optional().parse(value);
   },
 });
+
+export type SelectFieldEntity = typeof selectFieldEntity;
