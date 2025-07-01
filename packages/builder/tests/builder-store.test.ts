@@ -2459,12 +2459,7 @@ describe("builder store", () => {
     const listener = vi.fn();
     const listener2 = vi.fn();
 
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    const listenerWrapper2 = (...args: unknown[]): unknown =>
-      listener2(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
+    builderStore.subscribe(listener);
 
     await builderStore.validateSchema();
 
@@ -2486,7 +2481,7 @@ describe("builder store", () => {
       "test",
     );
 
-    builderStore.subscribe(listenerWrapper2);
+    builderStore.subscribe(listener2);
 
     await builderStore.validateSchema();
 

@@ -205,7 +205,7 @@ export interface SchemaEntity<
   TEntity extends Entity = Entity,
   TType extends string = string,
 > extends BaseSchemaEntity<TEntity, TType> {
-  children?: Array<string>;
+  children?: ReadonlyArray<string>;
 }
 
 export interface Schema<

@@ -21,6 +21,9 @@ import {
   useBuilderStore,
   useBuilderStoreData,
   useEntityAttributesErrors,
+  useOnBuilderStoreEntityAdded,
+  useOnBuilderStoreEntityAttributeUpdated,
+  useOnBuilderStoreEntityDeleted,
   type BuilderEntityInstance,
 } from "@coltorapps/builder-react";
 
@@ -115,39 +118,42 @@ const entitiesAttributesComponents = {
 
 export function BasicFormBuilder() {
   const builderStore = useBuilderStore(basicFormBuilder, {
-    events: {
-      onEntityAdded(payload) {
-        setActiveEntityId(payload.entity.id);
-      },
-      onEntityDeleted(payload) {
-        const rootEntityId = builderStore.getData().schema.root[0];
-
-        if (payload.entity.id === activeEntityId && rootEntityId) {
-          setActiveEntityId(rootEntityId);
-        } else {
-          setActiveEntityId(null);
-        }
-      },
-      onEntityAttributeUpdated(payload) {
-        void builderStore.validateEntityAttribute(
-          payload.entity.id,
-          payload.entity.updatedAttributeName,
-        );
-      },
-    },
     initialData: {
       schema: initialSchema,
     },
   });
 
-  const [activeEntityId, setActiveEntityId] = useState<string | null>(
+  const [activeEntityId, setActiveEntityId] = useState(
     builderStore.getData().schema.root[0],
   );
+
+  useOnBuilderStoreEntityAdded(builderStore, (entity) =>
+    setActiveEntityId(entity.id),
+  );
+
+  useOnBuilderStoreEntityDeleted(builderStore, () =>
+    setActiveEntityId(builderStore.getData().schema.root[0]),
+  );
+
+  useOnBuilderStoreEntityAttributeUpdated(builderStore, (entity) => {
+    void builderStore.validateEntityAttribute(
+      entity.id,
+      entity.updatedAttributeName,
+    );
+  });
 
   const hasEntities = useBuilderStoreData(
     builderStore,
     (data) => data.schema.root.length > 0,
   );
+
+  function deleteEntity(entityId: string) {
+    builderStore.deleteEntity(entityId);
+
+    if (entityId === activeEntityId) {
+      setActiveEntityId(builderStore.getData().schema.root[0]);
+    }
+  }
 
   return (
     <div>
@@ -211,9 +217,7 @@ export function BasicFormBuilder() {
                           }
                           isDragging={draggingId === props.entity.id}
                           onFocus={() => setActiveEntityId(props.entity.id)}
-                          onDelete={() =>
-                            builderStore.deleteEntity(props.entity.id)
-                          }
+                          onDelete={() => deleteEntity(props.entity.id)}
                         >
                           {props.children}
                         </Entity>

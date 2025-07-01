@@ -4,7 +4,11 @@ import { createAttribute } from "@coltorapps/builder";
 
 export const defaultDateValueAttribute = createAttribute({
   validate(value) {
-    return z.coerce.date().optional().parse(value);
+    return z
+      .string()
+      .refine((val) => !isNaN(Date.parse(val)))
+      .optional()
+      .parse(value);
   },
 });
 

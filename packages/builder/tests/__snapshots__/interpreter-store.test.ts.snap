@@ -28,6 +28,7 @@ exports[`interpreter store > can be created 1`] = `
   },
   "setData": [Function],
   "setEntitiesErrors": [Function],
+  "setEntitiesValues": [Function],
   "setEntityError": [Function],
   "setEntityValue": [Function],
   "subscribe": [Function],
@@ -66,22 +67,14 @@ exports[`interpreter store > can clear all entities values 2`] = `
         "entitiesValues": {},
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
         },
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "value": undefined,
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -93,7 +86,7 @@ exports[`interpreter store > can clear all entities values 2`] = `
 }
 `;
 
-exports[`interpreter store > can clear an entity value 1`] = `"Entity value not allowed."`;
+exports[`interpreter store > can clear an entity value 1`] = `"Entities of type \\"section\\" are not allowed to have values."`;
 
 exports[`interpreter store > can clear an entity value 2`] = `
 {
@@ -116,15 +109,14 @@ exports[`interpreter store > can clear an entity value 3`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
         },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -159,22 +151,17 @@ exports[`interpreter store > can reset all entities errors 2`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
-          },
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
         },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "error": undefined,
-          },
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
         },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -209,22 +196,14 @@ exports[`interpreter store > can reset all entities values 2`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": "default",
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
         },
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "value": "default",
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -236,7 +215,7 @@ exports[`interpreter store > can reset all entities values 2`] = `
 }
 `;
 
-exports[`interpreter store > can reset an entity error 1`] = `"Entity error not allowed."`;
+exports[`interpreter store > can reset an entity error 1`] = `"Entities of type \\"section\\" are not allowed to have errors."`;
 
 exports[`interpreter store > can reset an entity error 2`] = `
 {
@@ -265,15 +244,17 @@ exports[`interpreter store > can reset an entity error 3`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
-          },
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
         },
-      ],
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+        },
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -285,7 +266,7 @@ exports[`interpreter store > can reset an entity error 3`] = `
 }
 `;
 
-exports[`interpreter store > can reset an entity value 1`] = `"Entity value not allowed."`;
+exports[`interpreter store > can reset an entity value 1`] = `"Entities of type \\"section\\" are not allowed to have values."`;
 
 exports[`interpreter store > can reset an entity value 2`] = `
 {
@@ -310,15 +291,14 @@ exports[`interpreter store > can reset an entity value 3`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": "default",
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
         },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -344,7 +324,7 @@ exports[`interpreter store > can return the data 1`] = `
 }
 `;
 
-exports[`interpreter store > can set an entity error 1`] = `"Entity error not allowed."`;
+exports[`interpreter store > can set an entity error 1`] = `"Entities of type \\"section\\" are not allowed to have errors."`;
 
 exports[`interpreter store > can set an entity error 2`] = `
 {
@@ -375,15 +355,17 @@ exports[`interpreter store > can set an entity error 3`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": "new error",
-          },
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
         },
-      ],
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+        },
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -395,7 +377,7 @@ exports[`interpreter store > can set an entity error 3`] = `
 }
 `;
 
-exports[`interpreter store > can set an entity value 1`] = `"Entity value not allowed."`;
+exports[`interpreter store > can set an entity value 1`] = `"Entities of type \\"section\\" are not allowed to have values."`;
 
 exports[`interpreter store > can set an entity value 2`] = `"Entity with ID \\"2df173ee-6b88-4744-a74d-0f21d49166b3\\" is of type \\"section\\" but expected \\"invalid\\"."`;
 
@@ -422,15 +404,14 @@ exports[`interpreter store > can set an entity value 4`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": "new value",
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
         },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -442,7 +423,7 @@ exports[`interpreter store > can set an entity value 4`] = `
 }
 `;
 
-exports[`interpreter store > can set entities errors 1`] = `"Entity error not allowed."`;
+exports[`interpreter store > can set entities errors 1`] = `"Entities of type \\"section\\" are not allowed to have errors."`;
 
 exports[`interpreter store > can set entities errors 2`] = `
 {
@@ -475,29 +456,19 @@ exports[`interpreter store > can set entities errors 3`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "e31665da-9663-4a4f-87ac-cd326760863e",
-            "error": undefined,
-          },
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text error",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select error",
+          "e31665da-9663-4a4f-87ac-cd326760863e": "initial error",
         },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": "new text error",
-          },
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
+          "e31665da-9663-4a4f-87ac-cd326760863e": "default",
         },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "error": "new select error",
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -509,9 +480,53 @@ exports[`interpreter store > can set entities errors 3`] = `
 }
 `;
 
-exports[`interpreter store > can set the data 1`] = `"Entity value not allowed."`;
+exports[`interpreter store > can set entities values 1`] = `"Entities of type \\"section\\" are not allowed to have values."`;
 
-exports[`interpreter store > can set the data 2`] = `"Entity error not allowed."`;
+exports[`interpreter store > can set entities values 2`] = `
+{
+  "entitiesErrors": {},
+  "entitiesValues": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "new text value",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "new select value",
+  },
+  "unprocessableEntitiesIds": [],
+}
+`;
+
+exports[`interpreter store > can set entities values 3`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "new text value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "new select value",
+        },
+        "unprocessableEntitiesIds": [],
+      },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+        },
+        "unprocessableEntitiesIds": [],
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`interpreter store > can set the data 1`] = `"Entities of type \\"section\\" are not allowed to have values."`;
+
+exports[`interpreter store > can set the data 2`] = `"Entities of type \\"section\\" are not allowed to have errors."`;
 
 exports[`interpreter store > can set the data 3`] = `
 {
@@ -538,22 +553,14 @@ exports[`interpreter store > can set the data 4`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "DataSet",
-          "payload": {
-            "data": {
-              "entitiesErrors": {
-                "51324b32-adc3-4d17-a90e-66b5453935bd": "new error",
-              },
-              "entitiesValues": {
-                "51324b32-adc3-4d17-a90e-66b5453935bd": "new value",
-              },
-              "unprocessableEntitiesIds": [],
-            },
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "default",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "default",
         },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -619,23 +626,17 @@ exports[`interpreter store > can validate entities 2`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": [ZodError: [
-  {
-    "code": "invalid_type",
-    "expected": "string",
-    "received": "undefined",
-    "path": [],
-    "message": "Required"
-  }
-]],
-          },
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "initial text error",
         },
-      ],
+        "entitiesValues": {
+          "2df173ee-6b88-4744-a74d-0f21d49166b3": "valid",
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
+        },
+        "unprocessableEntitiesIds": [],
+      },
     ],
     [
       {
@@ -657,15 +658,25 @@ exports[`interpreter store > can validate entities 2`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-            "error": undefined,
-          },
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
         },
-      ],
+        "entitiesValues": {
+          "2df173ee-6b88-4744-a74d-0f21d49166b3": "valid",
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
+        },
+        "unprocessableEntitiesIds": [],
+      },
     ],
     [
       {
@@ -696,12 +707,9 @@ exports[`interpreter store > can validate entities 2`] = `
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": [ZodError: [
+      {
+        "entitiesErrors": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [
   {
     "code": "invalid_type",
     "expected": "string",
@@ -710,31 +718,14 @@ exports[`interpreter store > can validate entities 2`] = `
     "message": "Required"
   }
 ]],
-          },
         },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "error": [ZodError: [
-  {
-    "code": "invalid_type",
-    "expected": "string",
-    "received": "undefined",
-    "path": [],
-    "message": "Required"
-  }
-]],
-          },
+        "entitiesValues": {
+          "2df173ee-6b88-4744-a74d-0f21d49166b3": "valid",
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
         },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-            "error": undefined,
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -767,35 +758,14 @@ exports[`interpreter store > computes entities processability when clearing valu
           "51324b32-adc3-4d17-a90e-66b5453935bd",
         ],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
         },
-        {
-          "name": "EntityUnprocessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
-        },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
     [
       {
@@ -803,21 +773,13 @@ exports[`interpreter store > computes entities processability when clearing valu
         "entitiesValues": {},
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "value": undefined,
-          },
-        },
-        {
-          "name": "EntityProcessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-      ],
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {},
+        "unprocessableEntitiesIds": [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+        ],
+      },
     ],
     [
       {
@@ -825,15 +787,11 @@ exports[`interpreter store > computes entities processability when clearing valu
         "entitiesValues": {},
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
-        },
-      ],
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {},
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -872,35 +830,13 @@ exports[`interpreter store > computes entities processability when clearing valu
           "51324b32-adc3-4d17-a90e-66b5453935bd",
         ],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
         },
-        {
-          "name": "EntityUnprocessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
-        },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
     [
       {
@@ -908,14 +844,13 @@ exports[`interpreter store > computes entities processability when clearing valu
         "entitiesValues": {},
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityProcessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-      ],
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {},
+        "unprocessableEntitiesIds": [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+        ],
+      },
     ],
   ],
   "results": [
@@ -956,35 +891,14 @@ exports[`interpreter store > computes entities processability when resetting val
           "51324b32-adc3-4d17-a90e-66b5453935bd",
         ],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
         },
-        {
-          "name": "EntityUnprocessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
-        },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
     [
       {
@@ -994,21 +908,15 @@ exports[`interpreter store > computes entities processability when resetting val
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
         },
-        {
-          "name": "EntityProcessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+        ],
+      },
     ],
     [
       {
@@ -1019,15 +927,13 @@ exports[`interpreter store > computes entities processability when resetting val
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
         },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -1066,35 +972,13 @@ exports[`interpreter store > computes entities processability when resetting val
           "51324b32-adc3-4d17-a90e-66b5453935bd",
         ],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
         },
-        {
-          "name": "EntityUnprocessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
-        },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
     [
       {
@@ -1104,21 +988,13 @@ exports[`interpreter store > computes entities processability when resetting val
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
-        },
-        {
-          "name": "EntityProcessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-      ],
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {},
+        "unprocessableEntitiesIds": [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+        ],
+      },
     ],
   ],
   "results": [
@@ -1153,40 +1029,13 @@ exports[`interpreter store > computes entities processability when setting data 
           "51324b32-adc3-4d17-a90e-66b5453935bd",
         ],
       },
-      [
-        {
-          "name": "DataSet",
-          "payload": {
-            "data": {
-              "entitiesErrors": {},
-              "entitiesValues": {},
-              "unprocessableEntitiesIds": [
-                "51324b32-adc3-4d17-a90e-66b5453935bd",
-              ],
-            },
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
         },
-        {
-          "name": "EntityUnprocessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
-        },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
     [
       {
@@ -1196,26 +1045,13 @@ exports[`interpreter store > computes entities processability when setting data 
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "DataSet",
-          "payload": {
-            "data": {
-              "entitiesErrors": {},
-              "entitiesValues": {
-                "51324b32-adc3-4d17-a90e-66b5453935bd": "string",
-              },
-              "unprocessableEntitiesIds": [],
-            },
-          },
-        },
-        {
-          "name": "EntityProcessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-      ],
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {},
+        "unprocessableEntitiesIds": [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+        ],
+      },
     ],
   ],
   "results": [
@@ -1246,35 +1082,14 @@ exports[`interpreter store > computes entities processability when updating valu
           "51324b32-adc3-4d17-a90e-66b5453935bd",
         ],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "value": "test",
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": undefined,
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": undefined,
         },
-        {
-          "name": "EntityUnprocessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
-        },
-        {
-          "name": "EntityErrorUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "error": undefined,
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
     [
       {
@@ -1284,21 +1099,15 @@ exports[`interpreter store > computes entities processability when updating valu
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "value": "test",
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "test",
         },
-        {
-          "name": "EntityProcessable",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-          },
-        },
-      ],
+        "unprocessableEntitiesIds": [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+        ],
+      },
     ],
     [
       {
@@ -1309,15 +1118,13 @@ exports[`interpreter store > computes entities processability when updating valu
         },
         "unprocessableEntitiesIds": [],
       },
-      [
-        {
-          "name": "EntityValueUpdated",
-          "payload": {
-            "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "value": undefined,
-          },
+      {
+        "entitiesErrors": {},
+        "entitiesValues": {
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "test",
         },
-      ],
+        "unprocessableEntitiesIds": [],
+      },
     ],
   ],
   "results": [
@@ -1348,301 +1155,93 @@ exports[`interpreter store > resets entities values when created 1`] = `
 
 exports[`unprocessable entities computation > computes the unprocessable entities and events 1`] = `
 {
-  "data": {
-    "entitiesErrors": Map {},
-    "entitiesValues": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => undefined,
-    },
-    "unprocessableEntitiesIds": Set {},
+  "entitiesErrors": Map {},
+  "entitiesValues": Map {
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => undefined,
   },
-  "events": [],
+  "unprocessableEntitiesIds": Set {},
 }
 `;
 
 exports[`unprocessable entities computation > computes the unprocessable entities and events 2`] = `
 {
-  "data": {
-    "entitiesErrors": Map {},
-    "entitiesValues": Map {},
-    "unprocessableEntitiesIds": Set {
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-    },
+  "entitiesErrors": Map {},
+  "entitiesValues": Map {},
+  "unprocessableEntitiesIds": Set {
+    "51324b32-adc3-4d17-a90e-66b5453935bd",
   },
-  "events": [
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "value": undefined,
-      },
-    },
-    {
-      "name": "EntityErrorUpdated",
-      "payload": {
-        "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "error": undefined,
-      },
-    },
-  ],
 }
 `;
 
 exports[`unprocessable entities computation > computes the unprocessable entities and events 3`] = `
 {
-  "data": {
-    "entitiesErrors": Map {},
-    "entitiesValues": Map {},
-    "unprocessableEntitiesIds": Set {},
-  },
-  "events": [
-    {
-      "name": "EntityProcessable",
-      "payload": {
-        "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-      },
-    },
-  ],
+  "entitiesErrors": Map {},
+  "entitiesValues": Map {},
+  "unprocessableEntitiesIds": Set {},
 }
 `;
 
 exports[`unprocessable entities computation > computes the unprocessable entities recursively 1`] = `
 {
-  "data": {
-    "entitiesErrors": Map {},
-    "entitiesValues": Map {},
-    "unprocessableEntitiesIds": Set {
-      "2df173ee-6b88-4744-a74d-0f21d49166b3",
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+  "entitiesErrors": Map {},
+  "entitiesValues": Map {},
+  "unprocessableEntitiesIds": Set {
+    "2df173ee-6b88-4744-a74d-0f21d49166b3",
+    "51324b32-adc3-4d17-a90e-66b5453935bd",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
   },
-  "events": [
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "value": undefined,
-      },
-    },
-    {
-      "name": "EntityErrorUpdated",
-      "payload": {
-        "entityId": "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "error": undefined,
-      },
-    },
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "value": undefined,
-      },
-    },
-    {
-      "name": "EntityErrorUpdated",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "error": undefined,
-      },
-    },
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        "value": undefined,
-      },
-    },
-    {
-      "name": "EntityErrorUpdated",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        "error": undefined,
-      },
-    },
-  ],
 }
 `;
 
 exports[`unprocessable entities computation > computes the unprocessable entities recursively 2`] = `
 {
-  "data": {
-    "entitiesErrors": Map {},
-    "entitiesValues": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => "process",
-    },
-    "unprocessableEntitiesIds": Set {
-      "2df173ee-6b88-4744-a74d-0f21d49166b3",
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    },
+  "entitiesErrors": Map {},
+  "entitiesValues": Map {
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => "process",
   },
-  "events": [
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "value": undefined,
-      },
-    },
-    {
-      "name": "EntityErrorUpdated",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "error": undefined,
-      },
-    },
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        "value": undefined,
-      },
-    },
-    {
-      "name": "EntityErrorUpdated",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        "error": undefined,
-      },
-    },
-  ],
+  "unprocessableEntitiesIds": Set {
+    "2df173ee-6b88-4744-a74d-0f21d49166b3",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  },
 }
 `;
 
 exports[`unprocessable entities computation > computes the unprocessable entities recursively 3`] = `
 {
-  "data": {
-    "entitiesErrors": Map {},
-    "entitiesValues": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => "process",
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => "process",
-    },
-    "unprocessableEntitiesIds": Set {
-      "2df173ee-6b88-4744-a74d-0f21d49166b3",
-    },
+  "entitiesErrors": Map {},
+  "entitiesValues": Map {
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => "process",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => "process",
   },
-  "events": [],
+  "unprocessableEntitiesIds": Set {
+    "2df173ee-6b88-4744-a74d-0f21d49166b3",
+  },
 }
 `;
 
 exports[`unprocessable entities computation > computes the unprocessable entities recursively 4`] = `
 {
-  "data": {
-    "entitiesErrors": Map {},
-    "entitiesValues": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => "process",
-      "6e0035c3-0d4c-445f-a42b-2d971225447c" => "process",
-      "2df173ee-6b88-4744-a74d-0f21d49166b3" => "process",
-    },
-    "unprocessableEntitiesIds": Set {},
+  "entitiesErrors": Map {},
+  "entitiesValues": Map {
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => "process",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c" => "process",
+    "2df173ee-6b88-4744-a74d-0f21d49166b3" => "process",
   },
-  "events": [
-    {
-      "name": "EntityProcessable",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      },
-    },
-    {
-      "name": "EntityProcessable",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-      },
-    },
-  ],
+  "unprocessableEntitiesIds": Set {},
 }
 `;
 
 exports[`unprocessable entities computation > computes the unprocessable entities recursively 5`] = `
 {
-  "data": {
-    "entitiesErrors": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => "error",
-    },
-    "entitiesValues": Map {
-      "51324b32-adc3-4d17-a90e-66b5453935bd" => "process",
-    },
-    "unprocessableEntitiesIds": Set {
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "2df173ee-6b88-4744-a74d-0f21d49166b3",
-    },
+  "entitiesErrors": Map {
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => "error",
   },
-  "events": [
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "value": undefined,
-      },
-    },
-    {
-      "name": "EntityErrorUpdated",
-      "payload": {
-        "entityId": "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "error": undefined,
-      },
-    },
-    {
-      "name": "EntityUnprocessable",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-      },
-    },
-    {
-      "name": "EntityValueUpdated",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        "value": undefined,
-      },
-    },
-    {
-      "name": "EntityErrorUpdated",
-      "payload": {
-        "entityId": "2df173ee-6b88-4744-a74d-0f21d49166b3",
-        "error": undefined,
-      },
-    },
-  ],
+  "entitiesValues": Map {
+    "51324b32-adc3-4d17-a90e-66b5453935bd" => "process",
+  },
+  "unprocessableEntitiesIds": Set {
+    "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    "2df173ee-6b88-4744-a74d-0f21d49166b3",
+  },
 }
 `;

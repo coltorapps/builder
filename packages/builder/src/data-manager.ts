@@ -1,18 +1,12 @@
 import {
   createSubscriptionManager,
   type Subscribe,
-  type SubscriptionEvent,
 } from "./subscription-manager";
 
-export function createDataManager<
-  TData,
-  TEvent extends SubscriptionEvent = SubscriptionEvent,
->(
-  initialData: TData,
-): {
+export function createDataManager<TData>(initialData: TData): {
   getData: () => TData;
-  setData: (data: TData, events: Array<TEvent>) => TData;
-  subscribe: Subscribe<TData, TEvent>;
+  setData: (data: TData) => TData;
+  subscribe: Subscribe<TData>;
 } {
   let data: TData = initialData;
 
@@ -20,15 +14,17 @@ export function createDataManager<
     return data;
   }
 
-  const { notify, subscribe } = createSubscriptionManager<TData, TEvent>();
+  const { notify, subscribe } = createSubscriptionManager<TData>();
 
   return {
     subscribe,
     getData,
-    setData(newData, events) {
+    setData(newData) {
+      const previousData = data;
+
       data = newData;
 
-      notify(data, events);
+      notify(data, previousData);
 
       return data;
     },

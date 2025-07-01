@@ -33,7 +33,7 @@ export function TableOfContents({
     const headings = getHeadings(tableOfContents);
     function onScroll() {
       const top = window.scrollY;
-      let current = headings[0].id;
+      let current = headings[0]?.id;
       for (const heading of headings) {
         if (top >= heading.top - 10) {
           current = heading.id;

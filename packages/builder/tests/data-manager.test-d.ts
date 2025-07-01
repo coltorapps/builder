@@ -4,9 +4,9 @@ import { createDataManager } from "../src/data-manager";
 
 describe("data manager", () => {
   it("can be created", () => {
-    type Event = { name: "event name"; payload: "event payload" };
+    type Data = { someValue: string };
 
-    const dataManager = createDataManager<{ someValue: string }, Event>({
+    const dataManager = createDataManager<Data>({
       someValue: "test",
     });
 
@@ -14,22 +14,10 @@ describe("data manager", () => {
       getData: () => {
         someValue: string;
       };
-      setData: (
-        data: {
-          someValue: string;
-        },
-        events: Event[],
-      ) => {
+      setData: (data: Data) => {
         someValue: string;
       };
-      subscribe: (
-        listener: (
-          data: {
-            someValue: string;
-          },
-          events: Event[],
-        ) => void,
-      ) => () => void;
+      subscribe: (listener: (data: Data, prevData: Data) => void) => () => void;
     }>();
   });
 });
