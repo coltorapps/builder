@@ -79,7 +79,7 @@ export function collectSections(
               "Cannot add `h3` to table of contents without a preceding `h2`",
             );
           }
-          sections[sections.length - 1].children.push({
+          sections[sections.length - 1]?.children.push({
             ...node.attributes,
             id,
             title,

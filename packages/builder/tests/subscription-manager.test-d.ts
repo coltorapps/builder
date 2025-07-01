@@ -6,25 +6,11 @@ describe("subscription manager", () => {
   it("can be created", () => {
     type Data = { test: string };
 
-    type Event = { name: "event name"; payload: "event payload" };
-
-    const subscriptionManager = createSubscriptionManager<Data, Event>();
+    const subscriptionManager = createSubscriptionManager<Data>();
 
     expectTypeOf(subscriptionManager).toEqualTypeOf<{
-      notify: (
-        data: {
-          test: string;
-        },
-        events: Event[],
-      ) => void;
-      subscribe: (
-        listener: (
-          data: {
-            test: string;
-          },
-          events: Event[],
-        ) => void,
-      ) => () => void;
+      notify: (data: Data, prevData: Data) => void;
+      subscribe: (listener: (data: Data, prevData: Data) => void) => () => void;
     }>();
   });
 });

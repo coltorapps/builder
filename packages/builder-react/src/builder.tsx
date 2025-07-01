@@ -14,14 +14,14 @@ import {
   type Builder,
   type BuilderStore,
   type BuilderStoreData,
-  type BuilderStoreEvent,
   type Entity,
   type EntityAttributesErrors,
   type EntityAttributesValues,
+  type Schema,
   type SchemaEntityWithId,
 } from "@coltorapps/builder";
 
-import { chainRenderers, shallow, type EventsListeners } from "./utils";
+import { chainRenderers, shallow, type Comparator } from "./utils";
 
 export interface AttributeInstance<TAttribute extends Attribute = Attribute> {
   name: string;
@@ -29,10 +29,15 @@ export interface AttributeInstance<TAttribute extends Attribute = Attribute> {
   setValue(value: AttributeValue<TAttribute>): void;
   getError(): unknown;
   validate(): Promise<AttributeValueValidationResult<TAttribute>>;
+  setError(error: unknown): void;
   subscribeToValue(
     listener: (value: AttributeValue<TAttribute>) => void,
+    comparator?: Comparator<AttributeValue<TAttribute>>,
   ): () => void;
-  subscribeToError(listener: (error: unknown) => void): () => void;
+  subscribeToError(
+    listener: (error: unknown) => void,
+    comparator?: Comparator<unknown>,
+  ): () => void;
 }
 
 export interface BuilderEntityInstance<TEntity extends Entity = Entity>
@@ -48,22 +53,38 @@ export interface BuilderEntityInstance<TEntity extends Entity = Entity>
   setParent(parentId: string, options?: { index?: number }): void;
   unsetParent(options?: { index?: number }): void;
   setIndex(index: number): void;
-  setEntityAttribute<
+  setAttribute<
     TAttributeName extends Extract<keyof TEntity["attributes"], string>,
   >(
     attributeName: TAttributeName,
     attributeValue: AttributeValue<TEntity["attributes"][TAttributeName]>,
   ): void;
   delete(): void;
+  clone(): void;
+  validateAttribute(
+    attributeName: Extract<keyof TEntity["attributes"], string>,
+  ): Promise<AttributeValueValidationResult>;
+  resetAttributeError(
+    attributeName: Extract<keyof TEntity["attributes"], string>,
+  ): void;
+  resetAttributesErrors(): void;
+  setAttributesErrors(
+    entityAttributesErrors: EntityAttributesErrors<TEntity>,
+  ): void;
+  setAttributeError(
+    attributeName: Extract<keyof TEntity["attributes"], string>,
+    error: unknown,
+  ): void;
+  validateAttributes(): Promise<void>;
   getAttributesValues(): EntityAttributesValues<TEntity>;
   getAttributesErrors(): EntityAttributesErrors<TEntity>;
   subscribeToAttributesValues(
     listener: (value: EntityAttributesValues<TEntity>) => void,
+    comparator?: Comparator<EntityAttributesValues<TEntity>>,
   ): () => void;
   subscribeToAttributesErrors(
-    listener: (
-      errors: Partial<Record<keyof TEntity["attributes"], unknown>>,
-    ) => void,
+    listener: (errors: EntityAttributesErrors<TEntity>) => void,
+    comparator?: Comparator<EntityAttributesErrors<TEntity> | undefined>,
   ): () => void;
 }
 
@@ -104,7 +125,6 @@ export function useBuilderStore<TBuilder extends Builder>(
   builder: TBuilder,
   options: {
     initialData?: Partial<BuilderStoreData<TBuilder>>;
-    events?: EventsListeners<BuilderStoreEvent<TBuilder>>;
   } = {},
 ): BuilderStore<TBuilder> {
   const builderStore = useMemo(
@@ -116,18 +136,6 @@ export function useBuilderStore<TBuilder extends Builder>(
     [builder],
   );
 
-  useEffect(() => {
-    return builderStore.subscribe((_data, events) => {
-      events.forEach((event) => {
-        const listener = options.events?.[`on${event.name}`] as
-          | undefined
-          | ((payload: BuilderStoreEvent<TBuilder>["payload"]) => void);
-
-        listener?.(event.payload);
-      });
-    });
-  }, [builderStore, options.events]);
-
   return builderStore;
 }
 
@@ -136,24 +144,18 @@ export function useBuilderStoreData<
   TData = BuilderStoreData<TBuilder>,
 >(
   builderStore: BuilderStore<TBuilder>,
-  selector: (
-    data: BuilderStoreData<TBuilder>,
-    events: Array<BuilderStoreEvent<TBuilder>>,
-  ) => TData = (data) => data as TData,
-  comparator: (
-    oldData: TData,
-    newData: TData,
-    events: Array<BuilderStoreEvent<TBuilder>>,
-  ) => boolean = shallow,
+  selector: (data: BuilderStoreData<TBuilder>) => TData = (data) =>
+    data as TData,
+  comparator: (oldData: TData, newData: TData) => boolean = shallow,
 ): TData {
-  const dataCache = useRef(selector(builderStore.getData(), []));
+  const dataCache = useRef(selector(builderStore.getData()));
 
   return useSyncExternalStore(
     (listen) =>
-      builderStore.subscribe((data, events) => {
-        const newData = selector(data, events);
+      builderStore.subscribe((data) => {
+        const newData = selector(data);
 
-        if (!comparator(dataCache.current, newData, events)) {
+        if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
           listen();
@@ -249,47 +251,46 @@ To fix this:
             attributeName
           ];
         },
+        setError(error) {
+          return props.builderStore.setEntityAttributeError(
+            entity.id,
+            attributeName,
+            error,
+          );
+        },
         validate() {
           return props.builderStore.validateEntityAttribute(
             props.entityId,
             attributeName,
           );
         },
-        subscribeToValue(listener) {
-          return props.builderStore.subscribe((data, events) => {
-            const entity = data.schema.entities[props.entityId];
+        subscribeToValue(listener, comparator = shallow) {
+          return props.builderStore.subscribe((data, prevData) => {
+            const value =
+              data.schema.entities[props.entityId]?.attributes[attributeName];
 
-            if (!entity) {
-              return;
-            }
+            const prevValue =
+              prevData.schema.entities[props.entityId]?.attributes[
+                attributeName
+              ];
 
-            if (
-              events.some(
-                (event) =>
-                  (event.name === "EntityAttributeUpdated" &&
-                    event.payload.entity.id === props.entityId) ||
-                  event.name === "DataSet",
-              )
-            ) {
-              listener(entity.attributes[attributeName]);
+            if (!comparator(value, prevValue)) {
+              listener(value);
             }
           });
         },
-        subscribeToError(listener) {
-          return props.builderStore.subscribe((data, events) => {
-            if (
-              events.some(
-                (event) =>
-                  (event.name === "EntityAttributeErrorUpdated" &&
-                    event.payload.entity.id === props.entityId &&
-                    event.payload.entity.updatedAttributeName ===
-                      attributeName) ||
-                  event.name === "DataSet",
-              )
-            ) {
-              listener(
-                data.entitiesAttributesErrors[props.entityId]?.[attributeName],
-              );
+        subscribeToError(listener, comparator = shallow) {
+          return props.builderStore.subscribe((data, prevData) => {
+            const value =
+              data.entitiesAttributesErrors[props.entityId]?.[attributeName];
+
+            const prevValue =
+              prevData.entitiesAttributesErrors[props.entityId]?.[
+                attributeName
+              ];
+
+            if (!comparator(value, prevValue)) {
+              listener(value);
             }
           });
         },
@@ -312,15 +313,46 @@ To fix this:
     setIndex(index) {
       props.builderStore.setEntityIndex(props.entityId, index);
     },
-    setEntityAttribute(attributeName, attributeValue) {
+    setAttribute(attributeName, attributeValue) {
       props.builderStore.setEntityAttribute(
         props.entityId,
         attributeName,
         attributeValue,
       );
     },
+    validateAttribute(attributeName) {
+      return props.builderStore.validateEntityAttribute(
+        props.entityId,
+        attributeName,
+      );
+    },
+    validateAttributes() {
+      return props.builderStore.validateEntityAttributes(props.entityId);
+    },
+    resetAttributeError(attributeName) {
+      props.builderStore.resetEntityAttributeError(
+        props.entityId,
+        attributeName,
+      );
+    },
+    resetAttributesErrors() {
+      props.builderStore.resetEntityAttributesErrors(props.entityId);
+    },
+    setAttributesErrors(errors) {
+      props.builderStore.setEntityAttributesErrors(props.entityId, errors);
+    },
+    setAttributeError(attributeName, error) {
+      props.builderStore.setEntityAttributeError(
+        props.entityId,
+        attributeName,
+        error,
+      );
+    },
     delete() {
       props.builderStore.deleteEntity(props.entityId);
+    },
+    clone() {
+      props.builderStore.cloneEntity(props.entityId);
     },
     getAttributesValues() {
       const entity = props.builderStore.getEntity(props.entityId);
@@ -336,41 +368,39 @@ To fix this:
         props.builderStore.getEntitiesAttributesErrors()[props.entityId] ?? {}
       );
     },
-    subscribeToAttributesValues(listener) {
-      return props.builderStore.subscribe((data, events) => {
+    subscribeToAttributesValues(listener, comparator = shallow) {
+      return props.builderStore.subscribe((data, prevData) => {
         const entity = data.schema.entities[props.entityId];
+
+        const previousEntity = prevData.schema.entities[props.entityId];
+
+        if (!entity || !previousEntity) {
+          return;
+        }
+
+        const value = entity.attributes;
+
+        const prevValue = previousEntity.attributes;
 
         if (!entity) {
           return;
         }
 
-        if (
-          events.some(
-            (event) =>
-              (event.name === "EntityAttributeUpdated" &&
-                event.payload.entity.id === props.entityId) ||
-              event.name === "DataSet",
-          )
-        ) {
-          listener(entity.attributes);
+        if (!comparator(value, prevValue)) {
+          listener(value);
         }
       });
     },
-    subscribeToAttributesErrors(listener) {
-      return props.builderStore.subscribe((_data, events) => {
-        if (
-          events.some(
-            (event) =>
-              (event.name === "EntityAttributeErrorUpdated" &&
-                event.payload.entity.id === props.entityId) ||
-              event.name === "DataSet",
-          )
-        ) {
+    subscribeToAttributesErrors(listener, comparator = shallow) {
+      return props.builderStore.subscribe((data, prevData) => {
+        const value = data.entitiesAttributesErrors[props.entityId] ?? {};
+
+        const prevValue =
+          prevData.entitiesAttributesErrors[props.entityId] ?? {};
+
+        if (!comparator(value, prevValue)) {
           listener(
-            (props.builderStore.getEntitiesAttributesErrors()[props.entityId] ??
-              {}) as Partial<
-              Record<keyof TBuilder["entities"][string]["attributes"], unknown>
-            >,
+            value as EntityAttributesErrors<TBuilder["entities"][string]>,
           );
         }
       });
@@ -442,7 +472,7 @@ export function useAttributeValue<
   attribute: AttributeInstance<TAttribute>,
   selector: (data: AttributeValue<TAttribute>) => TData = (data) =>
     data as TData,
-  comparator: (oldData: TData, newData: TData) => boolean = shallow,
+  comparator: Comparator<TData> = shallow,
 ): TData {
   const dataCache = useRef(selector(attribute.getValue()));
 
@@ -469,7 +499,7 @@ export function useEntityAttributesValues<
   entity: BuilderEntityInstance<TEntity>,
   selector: (data: EntityAttributesValues<TEntity>) => TData = (data) =>
     data as TData,
-  comparator: (oldData: TData, newData: TData) => boolean = shallow,
+  comparator: Comparator<TData> = shallow,
 ): TData {
   const dataCache = useRef(selector(entity.getAttributesValues()));
 
@@ -492,7 +522,7 @@ export function useEntityAttributesValues<
 export function useAttributeError<TAttribute extends Attribute, TData>(
   attribute: AttributeInstance<TAttribute>,
   selector: (data: unknown) => TData = (data) => data as TData,
-  comparator: (oldData: TData, newData: TData) => boolean = shallow,
+  comparator: Comparator<TData> = shallow,
 ): TData {
   const dataCache = useRef(selector(attribute.getError()));
 
@@ -519,7 +549,7 @@ export function useEntityAttributesErrors<
   entity: BuilderEntityInstance<TEntity>,
   selector: (data: EntityAttributesErrors<TEntity>) => TData = (data) =>
     data as TData,
-  comparator: (oldData: TData, newData: TData) => boolean = shallow,
+  comparator: Comparator<TData> = shallow,
 ): TData {
   const dataCache = useRef(selector(entity.getAttributesErrors()));
 
@@ -536,5 +566,121 @@ export function useEntityAttributesErrors<
       }),
     () => dataCache.current,
     () => dataCache.current,
+  );
+}
+
+export function useOnBuilderStoreEntityAdded<TBuilder extends Builder>(
+  builderStore: BuilderStore<TBuilder>,
+  callback: (
+    entity: Schema<TBuilder>["entities"][string] & { id: string },
+  ) => void,
+) {
+  useEffect(
+    () =>
+      builderStore.subscribe((data, prevData) => {
+        const nextIds = Object.keys(data.schema.entities);
+
+        const prevIds = new Set(Object.keys(prevData.schema.entities));
+
+        for (const id of nextIds) {
+          if (!prevIds.has(id) && data.schema.entities[id]) {
+            callback({
+              ...data.schema.entities[id],
+              id,
+            });
+          }
+        }
+      }),
+    [builderStore, callback],
+  );
+}
+
+export function useOnBuilderStoreEntityDeleted<TBuilder extends Builder>(
+  builderStore: BuilderStore<TBuilder>,
+  callback: (
+    entity: Schema<TBuilder>["entities"][string] & { id: string },
+  ) => void,
+) {
+  useEffect(
+    () =>
+      builderStore.subscribe((data, prevData) => {
+        const nextIds = new Set(Object.keys(data.schema.entities));
+
+        const prevIds = new Set(Object.keys(prevData.schema.entities));
+
+        for (const id of prevIds) {
+          if (!nextIds.has(id) && prevData.schema.entities[id]) {
+            callback({ ...prevData.schema.entities[id], id });
+          }
+        }
+      }),
+    [builderStore, callback],
+  );
+}
+
+type EntityWithUpdatedAttributeName<TBuilder extends Builder> = {
+  [K in Extract<keyof TBuilder["entities"], string>]: SchemaEntityWithId<
+    TBuilder["entities"][K],
+    K
+  > & {
+    updatedAttributeName: keyof SchemaEntityWithId<
+      TBuilder["entities"][K],
+      K
+    >["attributes"] &
+      string;
+  };
+}[Extract<keyof TBuilder["entities"], string>];
+
+export function useOnBuilderStoreEntityAttributeUpdated<
+  TBuilder extends Builder,
+>(
+  builderStore: BuilderStore<TBuilder>,
+  callback: (entity: EntityWithUpdatedAttributeName<TBuilder>) => void,
+  comparator: Comparator<
+    AttributeValue<TBuilder["entities"][string]["attributes"][string]>
+  > = shallow,
+) {
+  useEffect(
+    () =>
+      builderStore.subscribe((data, prevData) => {
+        const prevEntities = prevData.schema.entities;
+
+        const entities = data.schema.entities;
+
+        for (const id of Object.keys(entities)) {
+          const entity = entities[id];
+
+          const prevEntity = prevEntities[id];
+
+          if (!prevEntity || !entity) {
+            continue;
+          }
+
+          const attributesKeys = new Set([
+            ...Object.keys(prevEntity.attributes),
+            ...Object.keys(entity.attributes),
+          ]);
+
+          for (const key of attributesKeys) {
+            if (
+              !comparator(
+                prevEntity.attributes[key] as AttributeValue<
+                  TBuilder["entities"][string]["attributes"][string]
+                >,
+                entity.attributes[key] as AttributeValue<
+                  TBuilder["entities"][string]["attributes"][string]
+                >,
+              )
+            ) {
+              callback({
+                ...entity,
+                id,
+                updatedAttributeName: key,
+              });
+            }
+          }
+        }
+      }),
+    [builderStore, callback, comparator],
   );
 }

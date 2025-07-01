@@ -924,6 +924,76 @@ describe("interpreter store", () => {
     expect(listener).toMatchSnapshot();
   });
 
+  it("can set entities values", () => {
+    const builder = createBuilder({
+      entities: {
+        text: createEntity({
+          validate() {
+            return "";
+          },
+        }),
+        select: createEntity({
+          validate() {
+            return "";
+          },
+        }),
+        section: createEntity(),
+      },
+    });
+
+    const interpreterStore = createInterpreterStore(
+      builder,
+      {
+        entities: {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": {
+            type: "text",
+            attributes: {},
+          },
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
+            type: "select",
+            attributes: {},
+          },
+          "2df173ee-6b88-4744-a74d-0f21d49166b3": {
+            type: "section",
+            attributes: {},
+          },
+        },
+        root: [
+          "51324b32-adc3-4d17-a90e-66b5453935bd",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c",
+          "2df173ee-6b88-4744-a74d-0f21d49166b3",
+        ],
+      },
+      {
+        initialData: {
+          entitiesValues: {
+            "51324b32-adc3-4d17-a90e-66b5453935bd": "text value",
+            "6e0035c3-0d4c-445f-a42b-2d971225447c": "select value",
+          },
+        },
+      },
+    );
+
+    const listener = vi.fn();
+
+    interpreterStore.subscribe(listener);
+
+    interpreterStore.setEntitiesValues({
+      "51324b32-adc3-4d17-a90e-66b5453935bd": "new text value",
+      "6e0035c3-0d4c-445f-a42b-2d971225447c": "new select value",
+    });
+
+    expect(() =>
+      interpreterStore.setEntitiesValues({
+        "2df173ee-6b88-4744-a74d-0f21d49166b3": "new section value",
+      }),
+    ).toThrowErrorMatchingSnapshot();
+
+    expect(interpreterStore.getData()).toMatchSnapshot();
+
+    expect(listener).toMatchSnapshot();
+  });
+
   it("can validate entities", async () => {
     const validateEntityValueMock = vi.spyOn(
       entitiesValuesExports,
@@ -1497,6 +1567,7 @@ describe("unprocessable entities computation", () => {
         deserializeAndValidateInterpreterStoreData(
           interpreterStore.getData(),
           schema,
+          builder,
         ),
         builder,
       ),
@@ -1510,6 +1581,7 @@ describe("unprocessable entities computation", () => {
         deserializeAndValidateInterpreterStoreData(
           interpreterStore.getData(),
           schema,
+          builder,
         ),
         builder,
       ),

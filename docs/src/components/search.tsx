@@ -387,13 +387,14 @@ function SearchDialog({
                   className="border-t border-neutral-200 bg-white px-2 py-3 empty:hidden dark:border-neutral-400/10 dark:bg-neutral-800"
                   {...autocomplete.getPanelProps({})}
                 >
-                  {autocompleteState.isOpen && (
+                  {autocompleteState.isOpen &&
+                  autocompleteState.collections[0] ? (
                     <SearchResults
                       autocomplete={autocomplete}
                       query={autocompleteState.query}
                       collection={autocompleteState.collections[0]}
                     />
-                  )}
+                  ) : null}
                 </div>
               </form>
             </div>

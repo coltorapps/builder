@@ -22,6 +22,7 @@ import {
 import {
   InterpreterEntities,
   useInterpreterStore,
+  useOnInterpreterStoreEntityValueUpdated,
 } from "@coltorapps/builder-react";
 
 import { basicFormBuilder, type BasicFormBuilder } from "./definition";
@@ -108,16 +109,13 @@ export function Preview(props: {
   const interpreterStore = useInterpreterStore(
     basicFormBuilder,
     schema ?? { entities: {}, root: [] },
-    {
-      events: {
-        onEntityValueUpdated(payload) {
-          if (submitAttemptedRef.current) {
-            void interpreterStore.validateEntityValue(payload.entityId);
-          }
-        },
-      },
-    },
   );
+
+  useOnInterpreterStoreEntityValueUpdated(interpreterStore, (entity) => {
+    if (submitAttemptedRef.current) {
+      void interpreterStore.validateEntityValue(entity.id);
+    }
+  });
 
   async function openPreview() {
     const result = await props.builderStore.validateSchema();
@@ -135,9 +133,13 @@ export function Preview(props: {
       props.activeEntityId &&
       !result.reason.payload.entitiesAttributesErrors[props.activeEntityId]
     ) {
-      props.onEntityError(
-        Object.keys(result.reason.payload.entitiesAttributesErrors)[0],
-      );
+      const firstIdWithError = Object.keys(
+        result.reason.payload.entitiesAttributesErrors,
+      )[0];
+
+      if (firstIdWithError) {
+        props.onEntityError(firstIdWithError);
+      }
     }
 
     toast({

@@ -7,7 +7,9 @@ exports[`data manager > allows subscribing to data changes 1`] = `
       {
         "age": 18,
       },
-      [],
+      {
+        "age": 17,
+      },
     ],
   ],
   "results": [

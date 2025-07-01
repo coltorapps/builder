@@ -2,11 +2,14 @@ export {
   BuilderEntity,
   BuilderEntities,
   useBuilderStore,
+  useOnBuilderStoreEntityAdded,
   useAttributeError,
   useAttributeValue,
+  useOnBuilderStoreEntityDeleted,
   useBuilderStoreData,
   useEntityAttributesValues,
   useEntityAttributesErrors,
+  useOnBuilderStoreEntityAttributeUpdated,
 } from "./builder";
 export type {
   BuilderEntityInstance,
@@ -24,6 +27,7 @@ export {
   useInterpreterStore,
   InterpreterEntities,
   useInterpreterStoreData,
+  useOnInterpreterStoreEntityValueUpdated,
 } from "./interpreter";
 export type {
   InterpreterEntityInstance,

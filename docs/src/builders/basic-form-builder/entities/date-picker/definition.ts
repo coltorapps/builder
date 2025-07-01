@@ -13,7 +13,7 @@ export const datePickerFieldEntity = createEntity({
     required: requiredAttribute,
   },
   validate(value, context) {
-    const schema = z.coerce.date();
+    const schema = z.string().refine((val) => !isNaN(Date.parse(val)));
 
     if (context.entity.attributes.required) {
       return schema.parse(value);

@@ -14,13 +14,12 @@ import {
   type EntityValueValidationResult,
   type InterpreterStore,
   type InterpreterStoreData,
-  type InterpreterStoreEvent,
   type InterpreterStoreOptions,
   type Schema,
   type SchemaEntityWithId,
 } from "@coltorapps/builder";
 
-import { chainRenderers, shallow, type EventsListeners } from "./utils";
+import { chainRenderers, shallow, type Comparator } from "./utils";
 
 export interface InterpreterEntityInstance<TEntity extends Entity = Entity>
   extends Pick<
@@ -31,6 +30,9 @@ export interface InterpreterEntityInstance<TEntity extends Entity = Entity>
   setValue(value: EntityValue<TEntity>): void;
   getError(): unknown;
   setError(value: unknown): void;
+  resetValue(): void;
+  clearValue(): void;
+  resetError(): void;
   validate(): Promise<EntityValueValidationResult<TEntity>>;
   subscribeToValue(
     listener: (value: EntityValue<TEntity> | undefined) => void,
@@ -75,9 +77,7 @@ export type GenericInterpreterEntityComponent<
 export function useInterpreterStore<TBuilder extends Builder>(
   builder: TBuilder,
   schema: Schema<TBuilder>,
-  options: {
-    events?: EventsListeners<InterpreterStoreEvent<TBuilder>>;
-  } & InterpreterStoreOptions<TBuilder> = {},
+  options: InterpreterStoreOptions<TBuilder> = {},
 ): InterpreterStore<TBuilder> {
   const interpreterStore = useMemo(
     () => createInterpreterStore(builder, schema, options),
@@ -85,41 +85,23 @@ export function useInterpreterStore<TBuilder extends Builder>(
     [builder, schema],
   );
 
-  useEffect(() => {
-    return interpreterStore.subscribe((_data, events) => {
-      events.forEach((event) => {
-        const listener = options.events?.[`on${event.name}`] as
-          | undefined
-          | ((payload: InterpreterStoreEvent<TBuilder>["payload"]) => void);
-
-        listener?.(event.payload);
-      });
-    });
-  }, [interpreterStore, options.events]);
-
   return interpreterStore;
 }
 
 export function useInterpreterStoreData<TBuilder extends Builder, TData>(
   interpreterStore: InterpreterStore<TBuilder>,
-  selector: (
-    data: InterpreterStoreData<TBuilder>,
-    events: Array<InterpreterStoreEvent<TBuilder>>,
-  ) => TData = (data) => data as TData,
-  comparator: (
-    oldData: TData,
-    newData: TData,
-    events: Array<InterpreterStoreEvent<TBuilder>>,
-  ) => boolean = shallow,
+  selector: (data: InterpreterStoreData<TBuilder>) => TData = (data) =>
+    data as TData,
+  comparator: Comparator<TData> = shallow,
 ): TData {
-  const dataCache = useRef(selector(interpreterStore.getData(), []));
+  const dataCache = useRef(selector(interpreterStore.getData()));
 
   return useSyncExternalStore(
     (listen) =>
-      interpreterStore.subscribe((data, events) => {
-        const newData = selector(data, events);
+      interpreterStore.subscribe((data) => {
+        const newData = selector(data);
 
-        if (comparator(dataCache.current, newData, events)) {
+        if (comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
           listen();
@@ -182,31 +164,34 @@ Ensure that the builder definition includes an entity of type "${entity.type}".`
         InterpreterEntityInstance<TBuilder["entities"][string]>["validate"]
       >;
     },
-    subscribeToValue(listener) {
-      return props.interpreterStore.subscribe((data, events) => {
-        if (
-          events.some(
-            (event) =>
-              (event.name === "EntityValueUpdated" &&
-                event.payload.entityId === props.entityId) ||
-              event.name === "DataSet",
-          )
-        ) {
-          listener(data.entitiesValues[props.entityId]);
+    resetValue() {
+      return props.interpreterStore.resetEntityValue(props.entityId);
+    },
+    clearValue() {
+      return props.interpreterStore.clearEntityValue(props.entityId);
+    },
+    resetError() {
+      return props.interpreterStore.resetEntityError(props.entityId);
+    },
+    subscribeToValue(listener, comparator = shallow) {
+      return props.interpreterStore.subscribe((data, prevData) => {
+        const value = data.entitiesValues[props.entityId];
+
+        const prevValue = prevData.entitiesValues[props.entityId];
+
+        if (!comparator(value, prevValue)) {
+          listener(value);
         }
       });
     },
-    subscribeToError(listener) {
-      return props.interpreterStore.subscribe((data, events) => {
-        if (
-          events.some(
-            (event) =>
-              (event.name === "EntityErrorUpdated" &&
-                event.payload.entityId === props.entityId) ||
-              event.name === "DataSet",
-          )
-        ) {
-          listener(data.entitiesErrors[props.entityId]);
+    subscribeToError(listener, comparator = shallow) {
+      return props.interpreterStore.subscribe((data, prevData) => {
+        const value = data.entitiesErrors[props.entityId];
+
+        const prevValue = prevData.entitiesErrors[props.entityId];
+
+        if (!comparator(value, prevValue)) {
+          listener(value);
         }
       });
     },
@@ -298,7 +283,7 @@ export function useEntityValue<
   entity: InterpreterEntityInstance<TEntity>,
   selector: (data: EntityValue<TEntity> | undefined) => TData = (data) =>
     data as TData,
-  comparator: (oldData: TData, newData: TData) => boolean = shallow,
+  comparator: Comparator<TData> = shallow,
 ): TData {
   const dataCache = useRef(selector(entity.getValue()));
 
@@ -321,7 +306,7 @@ export function useEntityValue<
 export function useEntityError<TEntity extends Entity, TData>(
   entity: InterpreterEntityInstance<TEntity>,
   selector: (data: unknown) => TData = (data) => data as TData,
-  comparator: (oldData: TData, newData: TData) => boolean = shallow,
+  comparator: Comparator<TData> = shallow,
 ): TData {
   const dataCache = useRef(selector(entity.getError()));
 
@@ -338,5 +323,47 @@ export function useEntityError<TEntity extends Entity, TData>(
       }),
     () => dataCache.current,
     () => dataCache.current,
+  );
+}
+
+export function useOnInterpreterStoreEntityValueUpdated<
+  TBuilder extends Builder,
+>(
+  interpreterStore: InterpreterStore<TBuilder>,
+  callback: (
+    args: {
+      [K in Extract<keyof TBuilder["entities"], string>]: SchemaEntityWithId<
+        TBuilder["entities"][K],
+        K
+      > & {
+        value?: EntityValue<TBuilder["entities"][K]>;
+        prevValue?: EntityValue<TBuilder["entities"][K]>;
+      };
+    }[Extract<keyof TBuilder["entities"], string>],
+  ) => void,
+  comparator: Comparator<
+    EntityValue<TBuilder["entities"][string]> | undefined
+  > = shallow,
+) {
+  useEffect(
+    () =>
+      interpreterStore.subscribe((data, prevData) => {
+        const prevEntitiesValues = prevData.entitiesValues;
+
+        const entitiesValues = data.entitiesValues;
+
+        for (const entityId of Object.keys(entitiesValues)) {
+          const prevValue = prevEntitiesValues[entityId];
+
+          const value = entitiesValues[entityId];
+
+          const entity = interpreterStore.schema.entities[entityId];
+
+          if (entity && !comparator(prevValue, value)) {
+            callback({ ...entity, id: entityId, value, prevValue });
+          }
+        }
+      }),
+    [interpreterStore, callback, comparator],
   );
 }

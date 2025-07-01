@@ -24,6 +24,8 @@ export function DefaultDateValueAttribute(props: {
 }) {
   const value = useAttributeValue(props.attribute);
 
+  const parsedValue = value ? new Date(value) : undefined;
+
   const error = useAttributeError(props.attribute);
 
   return (
@@ -36,19 +38,23 @@ export function DefaultDateValueAttribute(props: {
             variant={"outline"}
             className={cn(
               "w-full justify-start rounded-md text-left font-normal",
-              !value && "text-muted-foreground",
+              !parsedValue && "text-muted-foreground",
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {value ? format(value, "PPP") : <span>Pick a date</span>}
+            {parsedValue ? (
+              format(parsedValue, "PPP")
+            ) : (
+              <span>Pick a date</span>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
           <Calendar
             mode="single"
-            selected={value}
+            selected={parsedValue}
             onSelect={(value) => {
-              props.attribute.setValue(value);
+              props.attribute.setValue(value?.toString());
             }}
             initialFocus
           />

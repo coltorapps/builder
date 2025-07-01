@@ -36,6 +36,8 @@ interface DatePickerFieldProps
 
 const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(
   function DatePickerField(props, ref) {
+    const parsedValue = props.value ? new Date(props.value) : undefined;
+
     return (
       <div>
         <Label htmlFor={props.id} aria-required={props.required}>
@@ -49,12 +51,12 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(
               variant={"outline"}
               className={cn(
                 "w-full justify-start rounded-md text-left font-normal",
-                !props.value && "text-muted-foreground",
+                !parsedValue && "text-muted-foreground",
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {props.value ? (
-                format(props.value, "PPP")
+              {parsedValue ? (
+                format(parsedValue, "PPP")
               ) : (
                 <span>Pick a date</span>
               )}
@@ -63,8 +65,8 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(
           <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
-              selected={props.value}
-              onSelect={props.onChange}
+              selected={parsedValue}
+              onSelect={(value) => props.onChange?.(value?.toString())}
               initialFocus
             />
           </PopoverContent>

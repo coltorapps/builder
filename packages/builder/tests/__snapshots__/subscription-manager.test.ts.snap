@@ -4,8 +4,8 @@ exports[`subscription manager > allows subscribing to notifications 1`] = `
 [MockFunction spy] {
   "calls": [
     [
-      "test",
-      [],
+      "new",
+      "old",
     ],
   ],
   "results": [

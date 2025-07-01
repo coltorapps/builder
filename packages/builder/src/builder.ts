@@ -185,7 +185,9 @@ export function ensureEntityAttributeIsRegistered(
   const attribute = entityDefinition.attributes[attributeName];
 
   if (!attribute) {
-    throw new Error(`Unkown entity attribute "${attributeName}".`);
+    throw new Error(
+      `Entity of type "${entityType}" does not have an attribute named "${attributeName}".`,
+    );
   }
 
   return attribute;
@@ -249,7 +251,9 @@ export function ensureEntityChildAllowed(
   builder: Builder,
 ): void {
   if (!isEntityChildAllowed(entityType, childEntityType, builder)) {
-    throw new Error("Child is not allowed.");
+    throw new Error(
+      `Entities of type "${childEntityType}" are not allowed as children of entities of type "${entityType}".`,
+    );
   }
 }
 
@@ -259,7 +263,9 @@ export function ensureEntityParentAllowed(
   builder: Builder,
 ): void {
   if (!isEntityParentAllowed(entityType, parentEntityType, builder)) {
-    throw new Error("Parent is not allowed.");
+    throw new Error(
+      `Entities of type "${entityType}" cannot have a parent of type "${parentEntityType}".`,
+    );
   }
 }
 
@@ -274,6 +280,6 @@ export function ensureEntityCanLackParent(
     entityDefinition.parentRequired;
 
   if (parentRequired) {
-    throw new Error("A parent is required.");
+    throw new Error(`Entities of type "${entityType}" require a parent.`);
   }
 }
