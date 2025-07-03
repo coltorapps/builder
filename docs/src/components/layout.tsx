@@ -102,7 +102,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex w-full flex-col">
-      <div className="relative isolate flex items-center gap-x-6 overflow-hidden bg-blue-950 py-2.5 px-3.5 sm:before:flex-1">
+      <div className="relative isolate flex items-center gap-x-6 overflow-hidden bg-blue-950 px-3.5 py-2.5 sm:before:flex-1">
         <div
           aria-hidden="true"
           className="absolute left-[max(-7rem,calc(50%-52rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
@@ -127,7 +127,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             className="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-cyan-300 to-blue-300 opacity-50"
           />
         </div>
-        <div className="flex flex-wrap items-center sm:gap-x-4 gap-y-2 text-[0.8125rem] sm:text-sm">
+        <div className="flex flex-wrap items-center gap-y-2 text-[0.8125rem] sm:gap-x-4 sm:text-sm">
           <p className="font-medium text-white">
             We are{" "}
             <a
@@ -135,8 +135,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
               href="https://www.coltorapps.com/"
             >
               Coltor Apps
-            </a>
-            {" "}― a software development agency behind this OSS. Need a reliable tech partner?
+            </a>{" "}
+            ― a software development agency behind this OSS. Need a reliable
+            tech partner?
           </p>
           <a
             href="mailto:hello@coltorapps.com"
