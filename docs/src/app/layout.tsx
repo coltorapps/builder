@@ -27,7 +27,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://builder.coltorapps.com"),
   title: {
     template: "React Form Builder | %s - Docs",
-    default: "React Form Builder | Drag and drop form builder with JSON schema form.",
+    default:
+      "React Form Builder | Drag and drop form builder with JSON schema form.",
   },
   description:
     "React Form Builder. React Native Form Builder. Develop your own Drag and Drop form builder, websites builder, dashboards builder and more. Generate JSON schema form, and seamless integration with React and Next.js",

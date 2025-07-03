@@ -189,7 +189,9 @@ export function InterpreterEntity<TBuilder extends Builder>(props: {
             entityId={entityId}
             components={props.components}
             interpreterStore={props.interpreterStore}
-          />
+          >
+            {renderEntity}
+          </InterpreterEntity>
         ))}
       </EntityComponent>
     ),

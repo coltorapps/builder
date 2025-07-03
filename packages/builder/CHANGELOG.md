@@ -1,10 +1,16 @@
 # @coltorapps/builder
 
+## 0.2.4
+
+### Patch Changes
+
+- Wrap children entities in the interpreter generic entity renderer.
+
 ## 0.2.3
 
 ### Patch Changes
 
-- Wrap children entities in the generic renderer.
+- Wrap children entities in the builder generic entity renderer.
 
 ## 0.2.2
 
