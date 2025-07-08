@@ -22,7 +22,6 @@ import { z } from "zod";
 import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
-  name: "label",
   validate(value) {
     return z.string().min(1).parse(value);
   },
@@ -45,7 +44,6 @@ You can throw errors, strings, objects, and virtually anything (however, as a pr
 import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
-  name: "label",
   validate(value) {
     if (typeof value !== "string") {
       throw new Error("Must be a string");
@@ -76,7 +74,6 @@ import { z } from "zod";
 import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
-  name: "label",
   validate(value) {
     const label = z.string().min(1).parse(value);
 

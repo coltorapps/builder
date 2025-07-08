@@ -25,7 +25,7 @@ export function ContentAttribute(props: {
 
   return (
     <div>
-      <Label htmlFor={props.attribute.name} aria-required>
+      <Label htmlFor={props.attribute.type} aria-required>
         Content
       </Label>
       <div className="relative">
@@ -57,8 +57,8 @@ export function ContentAttribute(props: {
             "font-semibold": value.bold,
             italic: value.italic,
           })}
-          id={props.attribute.name}
-          name={props.attribute.name}
+          id={props.attribute.type}
+          name={props.attribute.type}
           value={value.text ?? ""}
           onChange={(e) => {
             props.attribute.setValue({

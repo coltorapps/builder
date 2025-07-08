@@ -20,7 +20,7 @@ export function RequiredAttribute(props: {
     <div>
       <div className="items-top flex space-x-2">
         <Checkbox
-          id={props.attribute.name}
+          id={props.attribute.type}
           checked={value}
           onCheckedChange={(checked) => {
             if (typeof checked === "boolean") {
@@ -30,7 +30,7 @@ export function RequiredAttribute(props: {
         />
         <div className="grid gap-1.5 leading-none">
           <label
-            htmlFor={props.attribute.name}
+            htmlFor={props.attribute.type}
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             Mandatory Field

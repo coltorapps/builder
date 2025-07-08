@@ -10,7 +10,7 @@ This React component renders a single entity from an [interpreter store](/docs/a
 
 ## Reference
 
-### `<InterpreterEntity entityId interpreterStore components children? />`
+### `<InterpreterEntity entityId interpreterStore components children? />` {% class="break-all" %}
 
 Use the `InterpreterEntity` component to render a single entity, including its children.
 
@@ -21,7 +21,7 @@ import {
 } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
-import { TextFieldEntity } from "./text-field-entity";
+import { InterpreterTextFieldEntity } from "./text-field-entity";
 
 const formSchema = {
   entities: {
@@ -44,31 +44,37 @@ const formSchema = {
   ],
 };
 
+const components = { textField: InterpreterTextFieldEntity };
+
 export function App() {
-  const interpreterStore = useInterpreterStore(formBuilder);
+  const interpreterStore = useInterpreterStore(formBuilder, formSchema);
 
   return (
     <InterpreterEntity
       entityId="a2971678-1e09-48dc-80e9-70f4fe75d4db"
       interpreterStore={interpreterStore}
-      components={{ textField: TextFieldEntity }}
+      components={components}
     />
   );
 }
 ```
 
-In the example above, we've hardcoded the schema, but typically, you would retrieve it from a database, for instance.
+In the example above, we've hardcoded the schema, but typically, you would retrieve it from some data source, for instance.
+
+{% callout title="You should know!" %}
+The `InterpreterEntity` component is especially useful when you need fine-grained control over how entities are rendered, such as when implementing virtualization. You can extract the root entity IDs from `yourCoolSchema.root` and manually iterate over them.
+{% /callout %}
 
 ### Props
 
 The `InterpreterEntity` component accepts four props:
 
-| Prop               | Type                                                            | Description {% class="api-description" %}                                                                                                                  |
-| ------------------ | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `entityId`         | {% badge content="string" /%}                                   | The ID of the entity to render, including its children.                                                                                                    |
-| `interpreterStore` | {% badge content="object" /%}                                   | The [interpreter store](/docs/api/react/use-interpreter-store).                                                                                            |
-| `components`       | {% badge content="object" /%}                                   | An object mapping of [entities components](/docs/api/react/create-entity-component) for each defined entity type in the builder.                           |
-| `children`         | {% badge content="function" /%} {% badge content="optional" /%} | A function intended to wrap each rendered arbitrary entity with additional rendering. It receives both the rendered entity and the entity instance object. |
+| Prop               | Type                                                            | Description {% class="api-description" %}                                                                                                               |
+| ------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `entityId`         | {% badge content="string" /%}                                   | The ID of the entity to render, including its children.                                                                                                 |
+| `interpreterStore` | {% badge content="object" /%}                                   | The [interpreter store](/docs/api/react/use-interpreter-store).                                                                                         |
+| `components`       | {% badge content="object" /%}                                   | An object mapping of [interpreter entities components](/docs/api/react/interpreter-entity-component-props) for each defined entity type in the builder. |
+| `children`         | {% badge content="function" /%} {% badge content="optional" /%} | [A render prop](#render-prop) intended to wrap each rendered arbitrary entity with additional rendering recursively.                                    |
 
 ### Returns
 
@@ -85,7 +91,7 @@ import {
 } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
-import { TextFieldEntity } from "./text-field-entity";
+import { InterpreterTextFieldEntity } from "./text-field-entity";
 
 const formSchema = {
   entities: {
@@ -108,14 +114,16 @@ const formSchema = {
   ],
 };
 
+const components = { textField: InterpreterTextFieldEntity };
+
 export function App() {
-  const interpreterStore = useInterpreterStore(formBuilder);
+  const interpreterStore = useInterpreterStore(formBuilder, formSchema);
 
   return (
     <InterpreterEntity
       entityId="a2971678-1e09-48dc-80e9-70f4fe75d4db"
       interpreterStore={interpreterStore}
-      components={{ textField: TextFieldEntity }}
+      components={components}
     >
       {(props) => (
         <div>
@@ -128,4 +136,4 @@ export function App() {
 }
 ```
 
-In the example above, we've hardcoded the schema, but typically, you would retrieve it from a database, for instance.
+In the example above, we've hardcoded the schema, but typically, you would retrieve it from some data source, for instance.

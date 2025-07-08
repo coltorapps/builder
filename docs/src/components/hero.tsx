@@ -12,12 +12,11 @@ import { WordRotate } from "./word-rotate";
 
 const codeLanguage = "typescript";
 const code = `export const formBuilder = createBuilder({
-  entities: [
-    createEntity({
-      name: "textField",
+  entities: {
+    textField: createEntity({
       validate: (value) => z.string().parse(value),
     }),
-  ],
+  },
 });`;
 
 function TrafficLightsIcon(props: React.ComponentPropsWithoutRef<"svg">) {

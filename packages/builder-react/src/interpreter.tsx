@@ -8,6 +8,7 @@ import {
 
 import {
   createInterpreterStore,
+  type Attribute,
   type Builder,
   type Entity,
   type EntityValue,
@@ -21,11 +22,14 @@ import {
 
 import { chainRenderers, shallow, type Comparator } from "./utils";
 
-export interface InterpreterEntityInstance<TEntity extends Entity = Entity>
-  extends Pick<
-    SchemaEntityWithId<TEntity>,
+export interface InterpreterEntityInstance<
+  TEntity extends Entity = Entity,
+  TType extends string = string,
+> extends Pick<
+    SchemaEntityWithId<TEntity, TType>,
     "id" | "parentId" | "children" | "type" | "attributes"
   > {
+  metadata: TEntity["metadata"];
   getValue(): EntityValue<TEntity> | undefined;
   setValue(value: EntityValue<TEntity>): void;
   getError(): unknown;
@@ -41,10 +45,11 @@ export interface InterpreterEntityInstance<TEntity extends Entity = Entity>
 }
 
 export interface InterpreterEntityComponentProps<
-  TEntity extends TBuilder["entities"][string],
+  TEntity extends Entity,
   TBuilder extends Builder = Builder,
 > {
   entity: InterpreterEntityInstance<TEntity>;
+  interpreterStore: InterpreterStore<TBuilder>;
   RenderChildren(props: {
     children?: GenericInterpreterEntityComponent<TBuilder>;
   }): ReactNode;
@@ -55,22 +60,26 @@ export interface InterpreterEntityComponentProps<
 }
 
 export type InterpreterEntityComponent<
-  TEntity extends TBuilder["entities"][string],
+  TEntity extends Entity,
   TBuilder extends Builder = Builder,
 > = (props: InterpreterEntityComponentProps<TEntity, TBuilder>) => ReactNode;
 
 export type InterpreterEntitiesComponents<TBuilder extends Builder = Builder> =
   {
-    [K in Extract<
-      keyof TBuilder["entities"],
-      string
-    >]: InterpreterEntityComponent<TBuilder["entities"][K], TBuilder>;
+    [K in Extract<keyof TBuilder["entities"], string>]:
+      | InterpreterEntityComponent<TBuilder["entities"][K], TBuilder>
+      | InterpreterEntityComponent<TBuilder["entities"][K]>;
   };
 
 export type GenericInterpreterEntityComponent<
   TBuilder extends Builder = Builder,
 > = (props: {
-  entity: InterpreterEntityInstance<TBuilder["entities"][string]>;
+  entity: {
+    [K in Extract<
+      keyof TBuilder["entities"],
+      string
+    >]: InterpreterEntityInstance<TBuilder["entities"][K], K>;
+  }[Extract<keyof TBuilder["entities"], string>];
   children?: ReactNode;
 }) => ReactNode;
 
@@ -101,7 +110,7 @@ export function useInterpreterStoreData<TBuilder extends Builder, TData>(
       interpreterStore.subscribe((data) => {
         const newData = selector(data);
 
-        if (comparator(dataCache.current, newData)) {
+        if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
           listen();
@@ -141,10 +150,12 @@ Ensure that the builder definition includes an entity of type "${entity.type}".`
   }
 
   const entityForRender: InterpreterEntityInstance<
-    TBuilder["entities"][string]
+    TBuilder["entities"][Extract<keyof TBuilder["entities"], string>],
+    Extract<keyof TBuilder["entities"], string>
   > = {
     ...entity,
     id: props.entityId,
+    metadata: entityDefinition.metadata,
     getValue() {
       return props.interpreterStore.getEntityValue(props.entityId);
     },
@@ -199,7 +210,10 @@ Ensure that the builder definition includes an entity of type "${entity.type}".`
 
   const EntityComponent = props.components[
     entity.type
-  ] as InterpreterEntityComponent<TBuilder["entities"][string], TBuilder>;
+  ] as unknown as InterpreterEntityComponent<
+    TBuilder["entities"][string],
+    TBuilder
+  >;
 
   if (!EntityComponent) {
     throw new Error(
@@ -230,6 +244,7 @@ To fix this:
     entity: entityForRender,
     children: (
       <EntityComponent
+        interpreterStore={props.interpreterStore}
         entity={entityForRender}
         RenderChild={({ entityId, children }) => (
           <InterpreterEntity
@@ -277,7 +292,7 @@ export function InterpreterEntities<TBuilder extends Builder>(props: {
 }
 
 export function useEntityValue<
-  TEntity extends Entity,
+  TEntity extends Entity<Record<string, Attribute>, unknown, true>,
   TData = EntityValue<TEntity> | undefined,
 >(
   entity: InterpreterEntityInstance<TEntity>,
@@ -303,7 +318,10 @@ export function useEntityValue<
   );
 }
 
-export function useEntityError<TEntity extends Entity, TData>(
+export function useEntityError<
+  TEntity extends Entity<Record<string, Attribute>, unknown, true>,
+  TData,
+>(
   entity: InterpreterEntityInstance<TEntity>,
   selector: (data: unknown) => TData = (data) => data as TData,
   comparator: Comparator<TData> = shallow,
@@ -326,9 +344,7 @@ export function useEntityError<TEntity extends Entity, TData>(
   );
 }
 
-export function useOnInterpreterStoreEntityValueUpdated<
-  TBuilder extends Builder,
->(
+export function useEntityValueUpdated<TBuilder extends Builder>(
   interpreterStore: InterpreterStore<TBuilder>,
   callback: (
     args: {
@@ -366,4 +382,49 @@ export function useOnInterpreterStoreEntityValueUpdated<
       }),
     [interpreterStore, callback, comparator],
   );
+}
+
+export function useEntityProcessabilityChanged<TBuilder extends Builder>(
+  interpreterStore: InterpreterStore<TBuilder>,
+  callback: (
+    args: {
+      [K in Extract<keyof TBuilder["entities"], string>]: SchemaEntityWithId<
+        TBuilder["entities"][K],
+        K
+      > & {
+        processable: boolean;
+        prevProcessable: boolean;
+      };
+    }[Extract<keyof TBuilder["entities"], string>],
+  ) => void,
+) {
+  useEffect(() => {
+    return interpreterStore.subscribe((data, prevData) => {
+      const currentSet = new Set(data.unprocessableEntitiesIds);
+
+      const prevSet = new Set(prevData.unprocessableEntitiesIds);
+
+      const allIds = new Set([
+        ...data.unprocessableEntitiesIds,
+        ...prevData.unprocessableEntitiesIds,
+      ]);
+
+      for (const entityId of allIds) {
+        const isNowUnprocessable = currentSet.has(entityId);
+
+        const wasUnprocessable = prevSet.has(entityId);
+
+        const entity = interpreterStore.schema.entities[entityId];
+
+        if (isNowUnprocessable !== wasUnprocessable && entity) {
+          callback({
+            ...entity,
+            id: entityId,
+            processable: !isNowUnprocessable,
+            prevProcessable: !wasUnprocessable,
+          });
+        }
+      }
+    });
+  }, [interpreterStore, callback]);
 }

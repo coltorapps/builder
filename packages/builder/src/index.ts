@@ -1,8 +1,4 @@
-export {
-  createBuilder,
-  getBuilderEntitiesTypes,
-  getBuilderEntityMetadata,
-} from "./builder";
+export { createBuilder, getBuilderEntitiesTypes } from "./builder";
 export type { Builder } from "./builder";
 
 export { createEntity } from "./entity";
@@ -51,6 +47,6 @@ export { validateEntitiesValues } from "./entities-values";
 export type {
   EntityValue,
   EntitiesErrors,
-  OptionalEntitiesValues,
+  EntitiesValues,
   EntityValueValidationResult,
 } from "./entities-values";

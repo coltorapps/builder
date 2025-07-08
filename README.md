@@ -62,7 +62,6 @@ import { z } from "zod";
 import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
-  name: "label",
   validate(value) {
     return z.string().min(1).parse(value);
   },
@@ -81,8 +80,7 @@ import { createEntity } from "@coltorapps/builder";
 import { labelAttribute } from "./label-attribute";
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [labelAttribute],
+  attributes: { label: labelAttribute },
   validate(value) {
     return z.string().optional().parse(value);
   },
@@ -99,7 +97,7 @@ import { createBuilder } from "@coltorapps/builder";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity],
+  entities: { textField: textFieldEntity },
 });
 ```
 

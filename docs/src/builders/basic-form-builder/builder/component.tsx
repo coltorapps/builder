@@ -18,12 +18,12 @@ import { InfoIcon, XIcon } from "lucide-react";
 import {
   BuilderEntities,
   BuilderEntity,
+  useAttributeValueUpdated,
   useBuilderStore,
   useBuilderStoreData,
+  useEntityAdded,
   useEntityAttributesErrors,
-  useOnBuilderStoreEntityAdded,
-  useOnBuilderStoreEntityAttributeUpdated,
-  useOnBuilderStoreEntityDeleted,
+  useEntityDeleted,
   type BuilderEntityInstance,
 } from "@coltorapps/builder-react";
 
@@ -127,15 +127,13 @@ export function BasicFormBuilder() {
     builderStore.getData().schema.root[0],
   );
 
-  useOnBuilderStoreEntityAdded(builderStore, (entity) =>
-    setActiveEntityId(entity.id),
-  );
+  useEntityAdded(builderStore, (entity) => setActiveEntityId(entity.id));
 
-  useOnBuilderStoreEntityDeleted(builderStore, () =>
+  useEntityDeleted(builderStore, () =>
     setActiveEntityId(builderStore.getData().schema.root[0]),
   );
 
-  useOnBuilderStoreEntityAttributeUpdated(builderStore, (entity) => {
+  useAttributeValueUpdated(builderStore, (entity) => {
     void builderStore.validateEntityAttribute(
       entity.id,
       entity.updatedAttributeName,

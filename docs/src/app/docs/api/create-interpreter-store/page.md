@@ -12,7 +12,7 @@ In most cases, you won't need to use the `createInterpreterStore` method directl
 
 ## Reference
 
-### `createInterpreterStore(builder, schema, options?)`
+### `createInterpreterStore(builder, schema, options?)` {% class="break-all" %}
 
 Use the `createInterpreterStore` function to instantiate an interpreter store.
 
@@ -59,30 +59,31 @@ The `options` parameter properties:
 
 `createInterpreterStore` instantiates an interpreter store, providing a set of methods to operate with the store.
 
-| Method                        | Type                            | Description {% class="api-description" %}                                                         |
-| ----------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `getData`                     | {% badge content="function" /%} | Retrieves the [store's data](#data).                                                              |
-| `getEntitiesErrors`           | {% badge content="function" /%} | Retrieves the entities' validation errors from the [store's data](#data).                         |
-| `getEntitiesValues`           | {% badge content="function" /%} | Retrieves the values of entities from the [store's data](#data).                                  |
-| `getUnprocessableEntitiesIds` | {% badge content="function" /%} | Retrieves the IDs of entities excluded from processing from the [store's data](#data).            |
-| `setData`                     | {% badge content="function" /%} | Sets the store's new data.                                                                        |
-| `subscribe`                   | {% badge content="function" /%} | Subscribes to the [store's events](#events), returning a function `() => void` for unsubscribing. |
-| `validateEntityValue`         | {% badge content="function" /%} | An async function that triggers the validation of a single entity.                                |
-| `validateEntitiesValues`      | {% badge content="function" /%} | An async function that triggers the validation of all entities.                                   |
-| `setEntityValue`              | {% badge content="function" /%} | Sets the value of an entity.                                                                      |
-| `resetEntityValue`            | {% badge content="function" /%} | Resets the value of an entity to its default.                                                     |
-| `resetEntitiesValues`         | {% badge content="function" /%} | Resets the values of all entities to their defaults.                                              |
-| `clearEntityValue`            | {% badge content="function" /%} | Clears the value of an entity.                                                                    |
-| `clearEntitiesValues`         | {% badge content="function" /%} | Clears the values of all entities.                                                                |
-| `setEntityError`              | {% badge content="function" /%} | Sets the validation error of an entity.                                                           |
-| `resetEntityError`            | {% badge content="function" /%} | Resets the validation error of an entity.                                                         |
-| `resetEntitiesErrors`         | {% badge content="function" /%} | Resets the validation errors of all entities.                                                     |
-| `setEntitiesErrors`           | {% badge content="function" /%} | Sets the validation errors of all entities.                                                       |
-| `isEntityProcessable`         | {% badge content="function" /%} | Returns a boolean indicating whether an entity is processable or not.                             |
-| `getEntityValue`              | {% badge content="function" /%} | Retrieves the value of a specific entity.                                                         |
-| `getEntityError`              | {% badge content="function" /%} | Retrieves the validation error of a specific entity.                                              |
-| `builder`                     | {% badge content="object" /%}   | The [builder definition](/docs/api/create-builder) used to instantiate the store.                 |
-| `schema`                      | {% badge content="object" /%}   | The schema used to instantiate the store.                                                         |
+| Method                        | Type                            | Description {% class="api-description" %}                                                |
+| ----------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------- |
+| `getData`                     | {% badge content="function" /%} | Retrieves the [store's data](#data).                                                     |
+| `getEntitiesErrors`           | {% badge content="function" /%} | Retrieves the entities' validation errors from the [store's data](#data).                |
+| `getEntitiesValues`           | {% badge content="function" /%} | Retrieves the values of entities from the [store's data](#data).                         |
+| `getUnprocessableEntitiesIds` | {% badge content="function" /%} | Retrieves the IDs of entities excluded from processing from the [store's data](#data).   |
+| `setData`                     | {% badge content="function" /%} | Sets the store's new data.                                                               |
+| `subscribe`                   | {% badge content="function" /%} | Subscribes to store's data updates, returning a function `() => void` for unsubscribing. |
+| `validateEntityValue`         | {% badge content="function" /%} | An async function that triggers the validation of a single entity.                       |
+| `validateEntitiesValues`      | {% badge content="function" /%} | An async function that triggers the validation of all entities.                          |
+| `setEntityValue`              | {% badge content="function" /%} | Sets the value of an entity.                                                             |
+| `setEntitiesValues`           | {% badge content="function" /%} | Sets the values of all entities.                                                         |
+| `resetEntityValue`            | {% badge content="function" /%} | Resets the value of an entity to its default.                                            |
+| `resetEntitiesValues`         | {% badge content="function" /%} | Resets the values of all entities to their defaults.                                     |
+| `clearEntityValue`            | {% badge content="function" /%} | Clears the value of an entity.                                                           |
+| `clearEntitiesValues`         | {% badge content="function" /%} | Clears the values of all entities.                                                       |
+| `setEntityError`              | {% badge content="function" /%} | Sets the validation error of an entity.                                                  |
+| `resetEntityError`            | {% badge content="function" /%} | Resets the validation error of an entity.                                                |
+| `resetEntitiesErrors`         | {% badge content="function" /%} | Resets the validation errors of all entities.                                            |
+| `setEntitiesErrors`           | {% badge content="function" /%} | Sets the validation errors of all entities.                                              |
+| `isEntityProcessable`         | {% badge content="function" /%} | Returns a boolean indicating whether an entity is processable or not.                    |
+| `getEntityValue`              | {% badge content="function" /%} | Retrieves the value of a specific entity.                                                |
+| `getEntityError`              | {% badge content="function" /%} | Retrieves the validation error of a specific entity.                                     |
+| `builder`                     | {% badge content="object" /%}   | The [builder definition](/docs/api/create-builder) used to instantiate the store.        |
+| `schema`                      | {% badge content="object" /%}   | The schema used to instantiate the store.                                                |
 
 ## Data
 
@@ -93,15 +94,3 @@ The data of the interpreter store is an object containing the following properti
 | `entitiesValues`           | {% badge content="object" /%} | Represents the values of entities.                    |
 | `entitiesErrors`           | {% badge content="object" /%} | Represents the validation errors of entities.         |
 | `unprocessableEntitiesIds` | {% badge content="array" /%}  | Represents the entities IDs excluded from processing. |
-
-## Events
-
-The interpreter store emits various events after mutations to subscribed listeners, with different payloads based on the event. A mutation might cause the store to emit multiple events simultaneously. These events can be emitted by the store:
-
-| Event                 | Description {% class="api-description" %} |
-| --------------------- | ----------------------------------------- |
-| `EntityValueUpdated`  | An entity's value was updated.            |
-| `EntityErrorUpdated`  | An entity's validation error was updated. |
-| `EntityUnprocessable` | An entity was marked as unprocessable.    |
-| `EntityProcessable`   | An entity was marked as processable.      |
-| `DataSet`             | The data was manually set.                |

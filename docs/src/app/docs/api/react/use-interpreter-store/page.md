@@ -10,7 +10,7 @@ This React hook creates an [interpreter store](/docs/api/create-interpreter-stor
 
 ## Reference
 
-### `useInterpreterStore(builder, schema, options?)`
+### `useInterpreterStore(builder, schema, options?)` {% class="break-all" %}
 
 Use the `useInterpreterStore` function to create an [interpreter store](/docs/api/create-interpreter-store).
 
@@ -36,7 +36,7 @@ export function App() {
 }
 ```
 
-In the example above, we've hardcoded the schema, but typically, you would retrieve it from a database, for instance.
+In the example above, we've hardcoded the schema, but typically, you would fetch it from some data source, for instance.
 
 ### Parameters
 
@@ -46,7 +46,13 @@ In the example above, we've hardcoded the schema, but typically, you would retri
 | --------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `builder` | {% badge content="object" /%}                                 | The [builder definition](/docs/api/create-builder).                                          |
 | `schema`  | {% badge content="object" /%}                                 | The schema that was built using the provided [builder definition](/docs/api/create-builder). |
-| `options` | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with initialization options.                                      |
+| `options` | {% badge content="object" /%} {% badge content="optional" /%} | An optional partial object with initialization [options](#options).                          |
+
+{% callout title="You should know!" type="warning" %}
+Ensure that the provided `builder` and `schema` parameters remain stable or are memoized. The interpreter store will be recreated if these references change, leading to data loss.
+{% /callout %}
+
+### Options
 
 The `options` parameter properties:
 
@@ -54,20 +60,7 @@ The `options` parameter properties:
 | ----------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `initialData`                       | {% badge content="object" /%} {% badge content="optional" /%}  | The optional partial initial data of the [interpreter store](/docs/api/create-interpreter-store#data). |
 | `initialEntitiesValuesWithDefaults` | {% badge content="boolean" /%} {% badge content="optional" /%} | A flag to enable or disable the automatic setting of default values. Defaults to `true`.               |
-| `events`                            | {% badge content="object" /%} {% badge content="optional" /%}  | An optional partial object with [events callbacks](#events-callbacks).                                 |
 
 ### Returns
 
 The `useInterpreterStore` function essentially creates and returns an [interpreter store](/docs/api/create-interpreter-store).
-
-## Events Callbacks
-
-Each [event](/docs/api/create-interpreter-store#events) emitted by the builder store is available as a callback within the `events` key of the `options` parameter. Every callback receives a specific payload based on the event.
-
-| Callback                | Description {% class="api-description" %} |
-| ----------------------- | ----------------------------------------- |
-| `onEntityValueUpdated`  | An entity's value was updated.            |
-| `onEntityErrorUpdated`  | An entity's validation error was updated. |
-| `onEntityUnprocessable` | An entity was marked as unprocessable.    |
-| `onEntityProcessable`   | An entity was marked as processable.      |
-| `onDataSet`             | The data was manually set.                |

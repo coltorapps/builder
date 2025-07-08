@@ -18,6 +18,16 @@ describe("entities values validation", () => {
             return z.string().parse(value);
           },
         }),
+        age: createEntity({
+          validate(value) {
+            return z.number().min(0).max(18).optional().parse(value);
+          },
+        }),
+        location: createEntity({
+          validate(value) {
+            return z.string().min(50).parse(value);
+          },
+        }),
         section: createEntity({
           attributes: {
             skip: createAttribute({
@@ -32,6 +42,18 @@ describe("entities values validation", () => {
           childrenAllowed: true,
         }),
       },
+      entitiesExtensions: {
+        age: {
+          validate(value) {
+            return z.number().min(0).max(120).optional().parse(value);
+          },
+        },
+        location: {
+          shouldBeProcessed() {
+            return false;
+          },
+        },
+      },
     });
 
     const schema: Schema<typeof builder> = {
@@ -42,6 +64,14 @@ describe("entities values validation", () => {
         },
         "6e0035c3-0d4c-445f-a42b-2d971225447c": {
           type: "text",
+          attributes: {},
+        },
+        "8a7bfa5e-9828-4b80-a615-cfb6f79728e1": {
+          type: "age",
+          attributes: {},
+        },
+        "fd1a7a25-9bd1-4d88-81fd-ce82b0a90004": {
+          type: "location",
           attributes: {},
         },
         "115ca988-0175-48cd-a645-acbebd3c498a": {
@@ -67,12 +97,30 @@ describe("entities values validation", () => {
         "51324b32-adc3-4d17-a90e-66b5453935bd",
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "2df173ee-6b88-4744-a74d-0f21d49166b3",
+        "8a7bfa5e-9828-4b80-a615-cfb6f79728e1",
+        "fd1a7a25-9bd1-4d88-81fd-ce82b0a90004",
       ],
     };
 
     expect(
       await validateEntitiesValues(
-        { "51324b32-adc3-4d17-a90e-66b5453935bd": "value" },
+        {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "value",
+          "8a7bfa5e-9828-4b80-a615-cfb6f79728e1": 18,
+        },
+        builder,
+        schema,
+      ),
+    ).toMatchSnapshot();
+
+    expect(
+      await validateEntitiesValues(
+        {
+          "51324b32-adc3-4d17-a90e-66b5453935bd": "value",
+          "6e0035c3-0d4c-445f-a42b-2d971225447c": "second value",
+          "8a7bfa5e-9828-4b80-a615-cfb6f79728e1": 100,
+          "fd1a7a25-9bd1-4d88-81fd-ce82b0a90004": "location",
+        },
         builder,
         schema,
       ),

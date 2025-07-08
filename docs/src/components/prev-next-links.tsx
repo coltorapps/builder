@@ -28,15 +28,17 @@ function PageLink({
       <dt className="font-display text-sm font-medium text-neutral-900 dark:text-white">
         {dir === "next" ? "Next" : "Previous"}
       </dt>
-      <dd className="mt-1">
+      <dd className="mt-1 flex max-w-full overflow-hidden">
         <Link
           href={href}
           className={clsx(
-            "flex items-center gap-x-1 text-base font-semibold text-neutral-500 hover:text-neutral-600 dark:text-neutral-400 dark:hover:text-neutral-300",
-            dir === "previous" && "flex-row-reverse",
+            "flex w-full items-center gap-x-1 text-base font-semibold text-neutral-500 hover:text-neutral-600 dark:text-neutral-400 dark:hover:text-neutral-300",
+            dir === "previous"
+              ? "flex-row-reverse justify-end"
+              : "justify-end text-right",
           )}
         >
-          {title}
+          <span className="block max-w-full truncate break-all">{title}</span>
           <ArrowIcon
             className={clsx(
               "h-4 w-4 flex-none fill-current",
@@ -61,9 +63,9 @@ export function PrevNextLinks() {
   }
 
   return (
-    <dl className="mt-12 flex border-t border-neutral-200 pt-6 dark:border-neutral-800">
+    <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-neutral-200 pt-6 dark:border-neutral-800">
       {previousPage && <PageLink dir="previous" {...previousPage} />}
-      {nextPage && <PageLink className="ml-auto text-right" {...nextPage} />}
+      {nextPage && <PageLink className="text-right" {...nextPage} />}
     </dl>
   );
 }

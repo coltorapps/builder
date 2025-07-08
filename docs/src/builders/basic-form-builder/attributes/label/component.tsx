@@ -22,13 +22,13 @@ export function LabelAttribute(props: {
 
   return (
     <div>
-      <Label htmlFor={props.attribute.name} aria-required>
+      <Label htmlFor={props.attribute.type} aria-required>
         Label
       </Label>
       <Input
         ref={inputRef}
-        id={props.attribute.name}
-        name={props.attribute.name}
+        id={props.attribute.type}
+        name={props.attribute.type}
         value={value ?? ""}
         onChange={(e) => {
           props.attribute.setValue(e.target.value);

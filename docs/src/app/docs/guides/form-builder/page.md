@@ -1,5 +1,5 @@
 ---
-title: React Form Builder
+title: React form builder
 nextjs:
   metadata:
     title: React form builder
@@ -12,8 +12,6 @@ This guide will help you grasp the basics of attributes, entities, builders, usa
 
 We'll be creating a simple form builder that lets users add text fields to their forms. Users will be able to customize each field by setting details like the label, whether it's required or not, and more.
 
-We will use RSC for illustrative purposes, but you can replicate these setups with any stack.
-
 Note that in this guide, we won't be discussing progressive enhancement of forms to simplify the content and make it easier to understand.
 
 ## Prerequisites
@@ -24,250 +22,323 @@ To get started with Builder, all you need to do is install the dependencies in y
 pnpm install @coltorapps/builder @coltorapps/builder-react
 ```
 
-## Summary
+## Core concepts
 
-1. Create a label attribute definition by using the `createAttribute` method.
-2. Create a text field entity definition by using the `createEntity` method and attach the label attribute to it.
-3. Create a form builder definition by using the `createBuilder` method and attach the text field entity to it.
-4. Create an editor component for the label attribute by using the `createAttributeComponent` method.
-5. Create a component for the text field entity by using the `createEntityComponent` method.
-6. Instantiate a builder store using the `useBuilderStore` hook. Utilize the `BuilderEntities` component to render the entities from the store's schema, and use the `BuilderEntityAttributes` component to display the attributes of a selected entity.
-7. Implement a server action for validating incoming form schemas by using the `validateSchema` method and persisting them in the database. Use this server action to submit the form schema from the client.
-8. Retrieve the built form schema and instantiate an interpreter store with the `useInterpreterStore` hook. Utilize the `InterpreterEntities` component to render the entities from the store's schema.
-9. Implement a server action for validating incoming form submissions by using the `validateEntitiesValues` method and persisting them in the database. Use this server action to submit the form from the client.
+- **Attributes**: The props of your entities. For instance, a text field may include attributes such as a label, a requirement flag, a maximum length, and others. Attributes are atomic, enabling their reuse across various entities.
 
-## Label attribute definition
+- **Entities**: Think of entities with attributes as components with props. For instance, you can define a text field entity and later add multiple instances of text fields with different configurations to a form. Entities are atomic, enabling their reuse across different builders.
 
-Think of attributes as the props of your entities. For instance, a text field may include attributes such as a label, a requirement flag, a maximum length, and others. Attributes are atomic, enabling their reuse across various entities.
+- **Builders**: Think of builders as collections of supported entities. For example, you can have a form builder that allows adding text and select fields to a form, and a landing page builder that allows adding hero sections and feature sections to a landing page.
 
-We'll begin with a simple label attribute definition for now, but later we'll add more attributes.
+The concept is simple. First, you define the attributes, entities, and builder definitions. Next, you design the UI of your form builder, which subsequently generates a JSON schema for your custom form. This schema can include an arbitrary number of entities and their attribute values. The schema can then be used to render the actual form and allow users to submit it. All of this functionality and more is fully covered by the library.
 
-For illustrative purposes, we're going to use [Zod](https://zod.dev/) for validation, but you're free to use any other validation library or even manually validate inputs as per your requirements.
+## Getting started
 
-```typescript
+### Attribute definitions
+
+We'll begin by defining two simple attributes: `label` and `required`. For illustrative purposes, we're using Zod for validation, but you're free to use any other validation library—or even perform manual validation if you prefer.
+
+```ts
 import { z } from "zod";
 
 import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
-  name: "label",
   validate(value) {
     return z.string().min(1).parse(value);
   },
 });
+
+export const requiredAttribute = createAttribute({
+  validate(value) {
+    return z.boolean().optional().parse(value);
+  },
+});
 ```
 
-In the example above, we've created a label attribute. Its value must be a valid string of at least one character in length. This validation will be invoked when we later validate the form built by the user.
+In the example above, we've created a `label` attribute, which must be a non-empty string, and a `required` attribute, which is an optional boolean. These validations will be triggered when we later validate the JSON schema of a custom form built by a user.
 
-## Text field entity definition
-
-Think of entities with attributes as components with props. For example, you can define a text field entity, and users can later add multiple instances of text fields to a form.
+### Text field entity definition
 
 Now let's create a text field entity definition.
 
-```typescript
+```ts
 import { z } from "zod";
 
 import { createEntity } from "@coltorapps/builder";
 
-import { labelAttribute } from "./label-attribute";
+import { labelAttribute, requiredAttribute } from "./attributes";
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [labelAttribute],
-  validate(value) {
-    return z.string().optional().parse(value);
+  attributes: {
+    label: labelAttribute,
+    required: requiredAttribute,
+  },
+  validate(value, context) {
+    const schema = z.string();
+
+    if (!context.entity.attributes.required) {
+      return schema.optional().parse(value);
+    }
+
+    return schema.min(1).parse(value);
   },
 });
 ```
 
-In the example above, we've created a text field entity with a label attribute. Its value must be an optional, yet valid, string. This validation will be invoked when we later validate a form submitted by an user.
+In the example above, we've created a text field entity with a `label` and `required` attribute. You can name each attribute whatever you like by choosing the key under which it appears in the `attributes` object.
 
-## Form builder definition
+The entity's value must be a string. If the `required` attribute is set to `true`, the value must be a non-empty string. If `required` is not set or is `false`, the value may be empty or omitted. This validation logic will be invoked when validating a form submission.
 
-Think of builders as collections of supported entities. For example, you can have a form builder that allows adding text and select fields to a form, but also another landing page builder that allows adding hero sections and feature sections to a landing page. For now, we're going to focus solely on the form builder.
+### Form builder definition
 
-```typescript
+It's time to define our form builder.
+
+```ts
 import { createBuilder } from "@coltorapps/builder";
 
-import { textFieldEntity } from "./text-field-entity";
+import { textFieldEntity } from "./entities";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity],
+  entities: { textField: textFieldEntity },
 });
 ```
 
-Our newly created form builder exclusively supports text fields only. This builder will be used both on the client to render our form builder interface, render the built forms, and also to validate users' schemas of built forms on the server before storing them in the database.
+Our newly created form builder supports only a single entity type named `textField`. You can name your entities however you like by choosing the key under which they appear in the `entities` object. This builder will be used both on the client to render the form builder interface and built forms, and also on the client and server to validate users' form schemas and form submissions.
 
-## Label attribute component
+### Text field entity components for building and interpreting schemas
 
-Now that we have defined a label attribute, let's create a component for it. This component will be later rendered and used to allow users to configure the labels of text fields.
+Now that we've defined our entity and builder, it's time to create UI components that render each entity — both during the builder phase (when users design their form) and the interpreter phase (when users fill out the form).
 
-```tsx
-import { ZodError } from "zod";
+We start with a `TextField` component, which is a reusable presentational component that accepts the field’s attributes, current value, and an `onChange` handler. This component is used by both the builder and interpreter components.
 
-import { createAttributeComponent } from "@coltorapps/builder-react";
+The `BuilderTextFieldEntity` component is used during the form-building phase. It subscribes to attribute value changes using `useEntityAttributesValues`. Any change to the entity’s attributes will trigger a re-render. This allows the builder interface to reflect live updates as users configure their form fields. Note that you can also subscribe to individual attribute updates using `useAttributeValue(props.entity.attributes.label)`.
 
-import { labelAttribute } from "./label-attribute";
-
-export const LabelAttribute = createAttributeComponent(
-  labelAttribute,
-  (props) => {
-    const id = `${props.entity.id}-${props.attribute.name}`;
-
-    return (
-      <div>
-        <label htmlFor={id}>Field Label</label>
-        <input
-          id={id}
-          name={id}
-          value={props.attribute.value ?? ""}
-          onChange={(e) => props.setValue(e.target.value)}
-          required
-        />
-        {props.attribute.error instanceof ZodError
-          ? props.attribute.error.format()._errors[0]
-          : null}
-      </div>
-    );
-  },
-);
-```
-
-The incoming props contain a set of useful methods. For instance, `setValue` is used for setting the value of the attribute. Besides that, the arbitrary entity instance to which the attribute is attached is included in the props as well.
-
-Also, the props include the attribute's validation-thrown error. Remember the `z.string().min(1).parse(value)` part in the attribute's validation? Zod's [parse method](https://zod.dev/?id=parse) throws an error in case of a failed validation. All thrown errors are basically automatically caught and provided to you in the attribute's component. It's up to you how to narrow down the error type and render it.
-
-## Text field entity component
-
-Now that we have defined a text field entity, let's create a component for it. This component will be later rendered when building forms, and also when finally "interpreting" built forms.
+The `InterpreterTextFieldEntity` component is used during the form interpretation (or submission) phase. It subscribes to the entity's value and error using `useEntityValue` and `useEntityError`. Unlike in the builder phase, the entity’s attributes are static here, so they’re accessed directly without hooks.
 
 ```tsx
-import { ZodError } from "zod";
+import {
+  type EntityAttributesValues,
+  type EntityValue,
+} from "@coltorapps/builder";
+import {
+  useEntityAttributesValues,
+  useEntityError,
+  useEntityValue,
+  type BuilderEntityComponentProps,
+  type InterpreterEntityComponentProps,
+} from "@coltorapps/builder-react";
 
-import { createEntityComponent } from "@coltorapps/builder-react";
+import { type textFieldEntity } from "./entities";
 
-import { textFieldEntity } from "./text-field-entity";
+interface TextFieldProps
+  extends EntityAttributesValues<typeof textFieldEntity> {
+  id: string;
+  value?: EntityValue<typeof textFieldEntity>;
+  onChange?: (value: EntityValue<typeof textFieldEntity>) => void;
+}
 
-export const TextFieldEntity = createEntityComponent(
-  textFieldEntity,
-  (props) => {
-    return (
-      <div>
-        <label htmlFor={props.entity.id}>{props.entity.attributes.label}</label>
-        <input
-          id={props.entity.id}
-          name={props.entity.id}
-          value={props.entity.value ?? ""}
-          onChange={(e) => props.setValue(e.target.value)}
-        />
-        {props.entity.error instanceof ZodError
-          ? props.entity.error.format()._errors[0]
-          : null}
-      </div>
-    );
-  },
-);
-```
-
-Similar to attribute components, entity components receive props that contain a set of useful methods. For instance, `setValue` is used to set the value of the entity. Besides that, the entity instance is included in the props as well, along with all of its attributes (notice how we've rendered the label).
-
-Also, the props include the entity's validation-thrown error. Remember the `z.string().optional().parse(value)` part in the entity's validation? Zod's [parse method](https://zod.dev/?id=parse) throws an error in case of a failed validation. All thrown errors are basically automatically caught and provided to you in the entity's component. It's up to you how to narrow down the error type and render it.
-
-## Form builder rendering
-
-Now that we have our text field and label components in place, we can proceed to render the form builder itself.
-
-```tsx
-"use client";
-
-import { BuilderEntities, useBuilderStore } from "@coltorapps/builder-react";
-
-import { LabelAttribute, TextFieldEntity } from "./components";
-import { formBuilder } from "./form-builder";
-
-/*
-| We define a `TextFieldAttributes` component, 
-| which is responsible for rendering the attributes 
-| of a text field (currently, it only includes the
-| label attribute).
-*/
-function TextFieldAttributes() {
+function TextField(props: TextFieldProps) {
   return (
     <div>
-      <LabelAttribute />
+      <label htmlFor={props.id} aria-required={props.required}>
+        {props.label.trim() ? props.label : "Label"}
+      </label>
+      <input
+        id={props.id}
+        name={props.id}
+        value={props.value ?? ""}
+        onChange={(e) => props.onChange?.(e.target.value)}
+        placeholder={props.placeholder}
+        required={props.required}
+      />
     </div>
   );
 }
 
+export function BuilderTextFieldEntity(
+  props: BuilderEntityComponentProps<typeof textFieldEntity>,
+) {
+  const attributes = useEntityAttributesValues(props.entity);
+
+  return <TextField id={props.entity.id} {...attributes} />;
+}
+
+export function InterpreterTextFieldEntity(
+  props: InterpreterEntityComponentProps<typeof textFieldEntity>,
+) {
+  const value = useEntityValue(props.entity);
+
+  const error = useEntityError(props.entity);
+
+  return (
+    <div>
+      <TextField
+        id={props.entity.id}
+        value={value}
+        onChange={(value) => props.entity.setValue(value)}
+        {...props.entity.attributes}
+      />
+      {error ? <p className="text-red-500">{String(error)}</p> : null}
+    </div>
+  );
+}
+```
+
+Note that the validation error returned by `useEntityError` is of type `unknown`. This is intentional to give you full control over how you interpret and present errors. You can use `instanceof`, `typeof`, or other type checks depending on how your validation logic is structured. In the example, we simply cast the error to a string for display, but you can customize the rendering to suit your error structure.
+
+### Attributes editors component
+
+In this section, we define reusable editor components for editing individual attributes — specifically the `label` and `required` attributes. These components use the `useAttributeValue` and `useAttributeError` hooks to subscribe to the current value and validation error of each attribute in real time. This ensures that any changes or validation results are immediately reflected in the UI.
+
+The `LabelAttributeEditor` renders a text input for editing the `label` attribute, while the `RequiredAttributeEditor` renders a checkbox for toggling the `required` attribute. Both components are reactive and display any associated validation error directly below the input field.
+
+These editor components are generic and can be reused across different entities that include the same attributes. However, in our case, we only need them for the text field entity, which is handled by the `TextFieldAttributesEditor` component. This component composes both editors, wiring them to the respective attributes of the provided text field entity.
+
+By keeping attribute editors modular and focused, you gain flexibility and reusability across a wide range of entity configurations.
+
+```tsx
+import {
+  useAttributeError,
+  useAttributeValue,
+  type AttributeInstance,
+  type BuilderEntityComponentProps,
+} from "@coltorapps/builder-react";
+
+import { type labelAttribute, type requiredAttribute } from "./attributes";
+import { type textFieldEntity } from "./entities";
+
+export function LabelAttributeEditor(props: {
+  attribute: AttributeInstance<typeof labelAttribute>;
+}) {
+  const value = useAttributeValue(props.attribute);
+
+  const error = useAttributeError(props.attribute);
+
+  return (
+    <div>
+      <label htmlFor={props.attribute.type} aria-required>
+        Label
+      </label>
+      <input
+        id={props.attribute.type}
+        name={props.attribute.type}
+        value={value ?? ""}
+        onChange={(e) => props.attribute.setValue(e.target.value)}
+        required
+      />
+      {error ? <p className="text-red-500">{String(error)}</p> : null}
+    </div>
+  );
+}
+
+export function RequiredAttributeEditor(props: {
+  attribute: AttributeInstance<typeof requiredAttribute>;
+}) {
+  const value = useAttributeValue(props.attribute);
+
+  const error = useAttributeError(props.attribute);
+
+  return (
+    <div>
+      <label htmlFor={props.attribute.type} aria-required>
+        Required
+      </label>
+      <input
+        id={props.attribute.type}
+        name={props.attribute.type}
+        type="checkbox"
+        checked={value}
+        onChange={(e) => props.attribute.setValue(e.target.checked)}
+      />
+      {error ? <p className="text-red-500">{String(error)}</p> : null}
+    </div>
+  );
+}
+
+export function TextFieldAttributesEditor(
+  props: BuilderEntityComponentProps<typeof textFieldEntity>,
+) {
+  return (
+    <div>
+      <LabelAttribute attribute={props.entity.attributes.label} />
+      <RequiredAttribute attribute={props.entity.attributes.required} />
+    </div>
+  );
+}
+```
+
+### Form builder component
+
+Our custom form builder component brings everything together. It initializes a builder store using the form builder definition and provides an UI for building a form dynamically.
+
+We define an `activeEntityId` state that holds the ID of the currently selected entity so the user can edit its attributes. The `useBuilderStore` hook initializes the builder store, which is responsible for managing and validating the form schema.
+
+To ensure reactive validation, we subscribe to entity attribute updates using `useAttributeValueUpdated`, which triggers validation for the updated attribute. We also use `useEntityDeleted` to clear the active selection if the selected entity is deleted.
+
+The `BuilderEntities` component renders the current list of entities from the store’s schema. Each entity is enhanced with "Select" and "Delete" buttons. The "Add Text Field" button appends a new entity to the form.
+
+Finally, when an entity is selected, we render `BuilderEntity` to show the attribute editors, and a "Save Form" button triggers schema validation, returning the form data if everything is valid.
+
+```tsx
+import { useState } from "react";
+
+import {
+  BuilderEntities,
+  BuilderEntity,
+  useAttributeValueUpdated,
+  useBuilderStore,
+  useEntityDeleted,
+} from "@coltorapps/builder-react";
+
+import {
+  BuilderTextFieldEntity,
+  TextFieldAttributesEditor,
+} from "./components";
+import { formBuilder } from "./form-builder";
+
+const entityComponents = { textField: BuilderTextFieldEntity };
+
+const attributeEditorsComponents = { textField: TextFieldAttributesEditor };
+
 export default function FormBuilderPage() {
-  /*
-  | We declare an `activeEntityId` state variable, 
-  | which holds an optional reference to the currently
-  | active entity ID.
-  */
   const [activeEntityId, setActiveEntityId] = useState<string>();
 
-  /*
-  | We utilize the `useBuilderStore` hook, which creates
-  | a builder store for us. This store is responsible for 
-  | building a schema based on a builder definition.
-  */
-  const builderStore = useBuilderStore(formBuilder, {
-    events: {
-      /*
-      | We use the `onEntityAttributeUpdated` event callback
-      | to trigger an arbitrary attribute validation every time
-      | its value is updated.
-      */
-      onEntityAttributeUpdated(payload) {
-        void builderStore.validateEntityAttribute(
-          payload.entity.id,
-          payload.attributeName,
-        );
-      },
-      /*
-      | We use the `onEntityDeleted` event callback to unset the
-      | `activeEntityId` state variable when the currently active
-      | entity is deleted.
-      */
-      onEntityDeleted(payload) {
-        if (payload.entity.id === activeEntityId) {
-          setActiveEntityId(null);
-        }
-      },
-    },
+  const builderStore = useBuilderStore(formBuilder);
+
+  useAttributeValueUpdated(
+    builderStore,
+    (entity) =>
+      void builderStore.validateEntityAttribute(
+        entity.id,
+        entity.updatedAttributeName,
+      ),
+  );
+
+  useEntityDeleted(builderStore, (entity) => {
+    if (entity.id === activeEntityId) {
+      setActiveEntityId(null);
+    }
   });
 
   async function submitFormSchema() {
-    // We will cover server integration in the next section.
+    const validationResult = await builderStore.validateSchema();
+
+    if (validationResult.success) {
+      // The schema is valid and can be sent to the server.
+      // validationResult.data;
+    }
   }
 
   return (
     <div>
-      {/*
-      | We use the `BuilderEntities` component to render the entities
-      | tree of the schema of our builder store.
-      | We pass the entity components for each defined entity type
-      | in our form builder (currently, it's only the text field).
-      */}
       <BuilderEntities
         builderStore={builderStore}
-        components={{ textField: TextFieldEntity }}
+        components={entityComponents}
       >
-        {/*
-        | We leverage the render prop of the `BuilderEntities` component
-        | to wrap each rendered arbitrary entity with additional
-        | rendering.
-        */}
         {(props) => (
           <div>
-            {/* This represents each rendered arbitrary entity. */}
             {props.children}
-            {/*
-            | A button that marks the arbitrary entity as active,
-            | allowing the user to edit its attributes.
-            */}
             <button
               type="button"
               onClick={() => {
@@ -276,10 +347,6 @@ export default function FormBuilderPage() {
             >
               Select
             </button>
-            {/*
-            | A delete button is rendered next to each entity,
-            | that removes the entity from the store's schema.
-            */}
             <button
               type="button"
               onClick={() => {
@@ -291,36 +358,25 @@ export default function FormBuilderPage() {
           </div>
         )}
       </BuilderEntities>
-      {/*
-      | A button that adds a new text field type entity
-      | to the store's schema.
-      */}
       <button
         type="button"
         onClick={() =>
           builderStore.addEntity({
             type: "textField",
-            attributes: { label: "Text Field" },
+            attributes: { label: "Text Field", required: false },
           })
         }
       >
         Add Text Field
       </button>
-      {/*
-      | We render the `BuilderEntityAttributes` component only when
-      | an entity is active. We also provide the components
-      | that render attribute components for each defined
-      | entity type in the builder (currently, it's only the
-      | text field).
-      */}
       {activeEntityId ? (
-        <BuilderEntityAttributes
-          builderStore={builderStore}
-          components={{ textField: TextFieldAttributes }}
+        <BuilderEntity
+          key={activeEntityId}
           entityId={activeEntityId}
+          builderStore={builderStore}
+          components={attributeEditorsComponents}
         />
       ) : null}
-      {/* We will cover server integration in the next section. */}
       <button type="button" onClick={() => void submitFormSchema()}>
         Save Form
       </button>
@@ -329,135 +385,81 @@ export default function FormBuilderPage() {
 }
 ```
 
-## Form builder server integration
+### Server-side form schema validation
 
-Let's define a server action that will receive the built form schema.
+Once a form is created on the client, its schema can be submitted to the server for validation and persistence. The `validateSchema` function allows you to verify that the submitted schema is structurally and semantically correct according to the builder definition used to generate it.
 
-```typescript
-"use server";
+Below is an example of how you can validate an incoming schema on the server. If the schema passes validation, it can safely be stored in your database. Otherwise, you can handle the validation errors accordingly.
 
+```ts
 import { validateSchema } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
 
 export async function saveFormSchema(formSchema: unknown) {
-  /*
-  | We validate the incoming form schema based
-  | on the builder that was used to create it.
-  */
   const validationResult = await validateSchema(formSchema, formBuilder);
 
   if (validationResult.success) {
-    /*
-    | The `validationResult.data` contains a valid schema
-    | that can be stored in the database.
-    */
+    // The form schema is valid and can be stored in your database.
+    const validSchema = validationResult.data;
   } else {
-    /*
-    | The `validationResult.reason` holds the reason for
-    | validation failure.
-    */
+    // The schema is invalid — handle the error appropriately.
+    const reason = validationResult.reason;
   }
 }
 ```
 
-Now, on our client, we can use our newly created server action to submit the form schema.
+This pattern ensures consistent validation logic across both client and server.
 
-```typescript
-"use client";
+Here’s a refined paragraph to introduce the **Form Rendering** section, including the note about fetching the schema:
 
-import { saveFormSchema } from "./save-form-schema";
+### Interpreting a form schema
 
-// ...
+Once a form schema has been stored on the server, it can be retrieved and rendered on the client for user input. Typically, the schema would be fetched from your database or another data source and passed into the interpreter. The `useInterpreterStore` hook creates an interpreter store based on the builder definition and the fetched schema, allowing you to render the form, manage value changes, and validate input.
 
-async function submitFormSchema() {
-  /*
-  | We validate the schema once again on the client
-  | to trigger all the validations and provide the user
-  | with feedback on what needs to be corrected.
-  */
-  const validationResult = await builderStore.validateSchema();
-
-  if (validationResult.success) {
-    // The schema is valid and can be sent to the server.
-    await saveFormSchema(validationResult.data);
-  }
-}
-
-// ...
-```
-
-## Form rendering
-
-Once a form schema has been created, it can be retrieved and "interpreted" on the client. In other words, we display the form to the user for completion.
+Below is an example of how to render a form using the stored schema and handle form submission:
 
 ```tsx
-"use server";
-
-import { getForm } from "./get-form";
-
-export default async function FormPage() {
-  // Retrieve the form schema from your storage of choice.
-  const form = await getForm();
-
-  return <FormInterpreter schema={form.schema} />;
-}
-```
-
-```tsx
-"use client";
-
-import { type Schema } from "@coltorapps/builder";
 import {
   InterpreterEntities,
+  useEntityValueUpdated,
   useInterpreterStore,
 } from "@coltorapps/builder-react";
 
-import { TextFieldEntity } from "./components";
+import { InterpreterTextFieldEntity } from "./components";
 import { formBuilder } from "./form-builder";
 
-type FormBuilderSchema = Schema<typeof formBuilder>;
+const components = { textField: InterpreterTextFieldEntity };
 
-export function FormInterpreter(props: { schema: FormBuilderSchema }) {
-  /*
-  | We utilize the `useInterpreterStore` hook, which creates
-  | an interpreter store for us. This store is used for filling
-  | entities values based on a schema and builder definition.
-  */
-  const interpreterStore = useInterpreterStore(formBuilder, formSchema, {
-    events: {
-      /*
-      | We use the `onEntityValueUpdated` event callback
-      | to trigger an arbitrary entity validation every time
-      | its value is updated.
-      */
-      onEntityValueUpdated(payload) {
-        void interpreterStore.validateEntityValue(payload.entityId);
-      },
-    },
+export function FormInterpreter() {
+  // Assume `formSchema` is fetched from your data source
+  const interpreterStore = useInterpreterStore(formBuilder, formSchema);
+
+  useEntityValueUpdated(interpreterStore, (entity) => {
+    void interpreterStore.validateEntityValue(entity.id);
   });
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
-    // We will cover server integration in the next section.
+    const validationResult = await interpreterStore.validateEntitiesValues();
+
+    if (validationResult.success) {
+      // Valid input — send `validationResult.data` to your server
+      validationResult.data;
+      // Alternatively, gather the raw values with FormData
+      new FormData(e.target);
+    }
   }
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-
-        void submitForm();
+        void submitForm(e);
       }}
     >
-      {/*
-      | We use the `InterpreterEntities` component to render the entities tree
-      | of the schema of our interpreter store. We pass the entity
-      | components for each defined entity type in our form builder
-      | (currently, it's only the text field).
-      */}
       <InterpreterEntities
         interpreterStore={interpreterStore}
-        components={{ textField: TextFieldEntity }}
+        components={components}
       />
       <button type="submit">Submit</button>
     </form>
@@ -465,177 +467,39 @@ export function FormInterpreter(props: { schema: FormBuilderSchema }) {
 }
 ```
 
-## Form server integration
+### Server-side form values validation
 
-Let's define a server action that will receive the submitted schema.
+When a form is submitted by a user, the server must validate the submitted values against the stored schema to ensure correctness and integrity.
 
-```typescript
-"use server";
-
-import { validateSchema } from "@coltorapps/builder";
+```ts
+import { validateEntitiesValues } from "@coltorapps/builder";
 
 import { formBuilder } from "./form-builder";
-import { getForm } from "./get-form";
 
 export async function saveSubmission(values: FormData) {
-  // Retrieve the form schema from your storage of choice.
-  const form = await getForm();
+  // Retrieve the JSON form schema from your storage of choice.
+  const formSchema = await getFormSchema();
 
   /*
-  | We validate the incoming form values based
-  | on the desired form schema.
+  | Validate the submitted form values against the retrieved schema.
+  | We assume `values` is a FormData object, which we convert to entries.
   */
   const validationResult = await validateEntitiesValues(
     Object.entries(values),
     formBuilder,
-    form.schema,
+    formSchema,
   );
 
   if (validationResult.success) {
     /*
-    | The `validationResult.data` contains valid values
-    | that can be stored in the database.
+    | The `validationResult.data` contains the validated entity values,
+    | ready to be processed or stored in your database.
     */
   } else {
     /*
-    | The `validationResult.entitiesErrors` object contains
-    | validation errors corresponding to invalid
-    | entities values.
+    | The `validationResult.entitiesErrors` object contains detailed
+    | validation errors for each invalid entity in the submission.
     */
   }
 }
-```
-
-Now, on our client, we can use our newly created server action to submit the form.
-
-```typescript
-"use client";
-
-import { saveSubmission } from "./save-submission";
-
-// ...
-
-async function submitForm(e: FormEvent<HTMLFormElement>) {
-  /*
-  | We validate the values once again on the client
-  | to trigger all the validations and provide the user
-  | with feedback on what needs to be corrected.
-  */
-  const validationResult = await interpreterStore.validateEntitiesValues();
-
-  if (validationResult.success) {
-    /*
-    | The schema is valid and can be sent to the server.
-    | Alternatively you can use `validationResult.data`
-    | instead of sending `FormData`.
-    */
-    await saveSubmission(new FormData(e.target));
-  }
-}
-
-// ...
-```
-
-## Bonus
-
-### Required attribute
-
-Now that we have our form builder system in place, let's expand the functionality of our text field by implementing a "required" attribute.
-
-First, create the attribute definition.
-
-```typescript
-import { z } from "zod";
-
-import { createAttribute } from "@coltorapps/builder";
-
-export const requiredAttribute = createAttribute({
-  name: "required",
-  validate(value) {
-    return z.boolean().optional().parse(value);
-  },
-});
-```
-
-Attach the attribute definition to the text field entity definition.
-
-```typescript
-import { z } from "zod";
-
-import { createEntity } from "@coltorapps/builder";
-
-import { labelAttribute } from "./label-attribute";
-import { requiredAttribute } from "./required-attribute";
-
-export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [labelAttribute, requiredAttribute],
-  /*
-  | We can adjust entity validations based on
-  | its attributes values.
-  */
-  validate(value, context) {
-    const schema = z.string();
-
-    if (!context.entity.attributes.required) {
-      return schema.optional().parse(value);
-    }
-
-    return schema.parse(value);
-  },
-});
-```
-
-Create the editor component of the attribute.
-
-```tsx
-import { ZodError } from "zod";
-
-import { createAttributeComponent } from "@coltorapps/builder-react";
-
-import { requiredAttribute } from "./required-attribute";
-
-export const RequiredAttribute = createAttributeComponent(
-  requiredAttribute,
-  (props) => {
-    const id = `${props.entity.id}-${props.attribute.name}`;
-
-    return (
-      <div>
-        <label htmlFor={id}>
-          <input
-            id={id}
-            name={id}
-            type="checkbox"
-            checked={props.attribute.value ?? false}
-            onChange={(e) => props.setValue(event.target.checked)}
-          />
-          Required
-        </label>
-        {props.attribute.error instanceof ZodError
-          ? props.attribute.error.format()._errors[0]
-          : null}
-      </div>
-    );
-  },
-);
-```
-
-Include the attribute component in the text field's attributes component.
-
-```tsx
-import { LabelAttribute, RequiredAttribute } from "./components";
-
-// ...
-
-function TextFieldAttributes() {
-  return (
-    <div>
-      <LabelAttribute />
-      <RequiredAttribute />
-    </div>
-  );
-}
-
-// ...
 ```

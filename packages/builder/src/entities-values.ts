@@ -37,15 +37,27 @@ export async function validateEntityValue<TBuilder extends Builder>(
   schema: Schema<TBuilder>,
 ): Promise<EntityValueValidationResult> {
   const entity = ensureEntityExists(entityId, schema.entities);
-
   const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
+  const context = {
+    entity: computeContextEntitiesEntry(entity, entitiesValues, builder),
+    entities: computeContextEntitiesEntries(entitiesValues, builder, schema),
+    schema,
+  };
+
+  const computeEntityExtensionValidate = builder.entitiesExtensions[
+    entity.type
+  ]?.validate?.bind?.(builder.entitiesExtensions[entity.type]);
+
   try {
-    const data = await entityDefinition.validate(entitiesValues[entityId], {
-      entity: computeContextEntitiesEntry(entity, entitiesValues, builder),
-      schema,
-      entities: computeContextEntitiesEntries(entitiesValues, builder, schema),
-    });
+    const data = computeEntityExtensionValidate
+      ? await computeEntityExtensionValidate(entitiesValues[entityId], {
+          ...context,
+          validate(value: unknown) {
+            return entityDefinition.validate(value, context);
+          },
+        })
+      : await entityDefinition.validate(entitiesValues[entityId], context);
 
     return { success: true, data };
   } catch (error) {
@@ -167,7 +179,7 @@ export async function validateEntitiesValues<TBuilder extends Builder>(
 
     if (!validationResult.success) {
       entitiesErrors[entityId] = validationResult.error;
-    } else {
+    } else if (typeof validationResult.data !== "undefined") {
       newEntitiesValues[entityId] = validationResult.data as EntityValue<
         TBuilder["entities"][string]
       >;

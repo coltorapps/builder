@@ -324,7 +324,10 @@ async function validateEntityAttributes(
 
       const attributeValidationContext = {
         schema,
-        entity,
+        entity: {
+          ...entity,
+          metadata: entityDefinition.metadata,
+        },
       };
 
       const attributeValidator = (value: unknown) =>

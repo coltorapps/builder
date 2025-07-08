@@ -10,7 +10,7 @@ This React component is used to render the entities tree of a [builder store](/d
 
 ## Reference
 
-### `<BuilderEntities builderStore components children? />`
+### `<BuilderEntities builderStore components children? />` {% class="break-all" %}
 
 Use the `BuilderEntities` component to render the entities tree.
 
@@ -18,16 +18,15 @@ Use the `BuilderEntities` component to render the entities tree.
 import { BuilderEntities, useBuilderStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
-import { TextFieldEntity } from "./text-field-entity";
+import { BuilderTextFieldEntity } from "./text-field-entity";
+
+const components = { textField: BuilderTextFieldEntity };
 
 export function App() {
   const builderStore = useBuilderStore(formBuilder);
 
   return (
-    <BuilderEntities
-      builderStore={builderStore}
-      components={{ textField: TextFieldEntity }}
-    />
+    <BuilderEntities builderStore={builderStore} components={components} />
   );
 }
 ```
@@ -36,15 +35,11 @@ export function App() {
 
 The `BuilderEntities` component accepts three props:
 
-| Prop           | Type                                                            | Description {% class="api-description" %}                                                                                                                  |
-| -------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builderStore` | {% badge content="object" /%}                                   | The [builder store](/docs/api/react/use-builder-store).                                                                                                    |
-| `components`   | {% badge content="object" /%}                                   | An object mapping of [entities components](/docs/api/react/create-entity-component) for each defined entity type in the builder.                           |
-| `children`     | {% badge content="function" /%} {% badge content="optional" /%} | A function intended to wrap each rendered arbitrary entity with additional rendering. It receives both the rendered entity and the entity instance object. |
-
-### Returns
-
-The `BuilderEntities` component essentially renders an entities tree.
+| Prop           | Type                                                            | Description {% class="api-description" %}                                                                                                       |
+| -------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builderStore` | {% badge content="object" /%}                                   | The [builder store](/docs/api/react/use-builder-store).                                                                                         |
+| `components`   | {% badge content="object" /%}                                   | An object mapping of [builder entities components](/docs/api/react/builder-entity-component-props) for each defined entity type in the builder. |
+| `children`     | {% badge content="function" /%} {% badge content="optional" /%} | [A render prop](#render-prop) intended to wrap each rendered arbitrary entity with additional rendering recursively.                            |
 
 ### Render prop
 
@@ -54,16 +49,15 @@ The `children` prop of the `BuilderEntities` component must be a function, which
 import { BuilderEntities, useBuilderStore } from "@coltorapps/builder-react";
 
 import { formBuilder } from "./form-builder";
-import { TextFieldEntity } from "./text-field-entity";
+import { BuilderTextFieldEntity } from "./text-field-entity";
+
+const components = { textField: BuilderTextFieldEntity };
 
 export function App() {
   const builderStore = useBuilderStore(formBuilder);
 
   return (
-    <BuilderEntities
-      builderStore={builderStore}
-      components={{ textField: TextFieldEntity }}
-    >
+    <BuilderEntities builderStore={builderStore} components={components}>
       {(props) => (
         <div>
           {/* This is the rendered entity. */}
@@ -81,3 +75,7 @@ export function App() {
   );
 }
 ```
+
+### Returns
+
+The `BuilderEntities` component essentially renders an entities tree.

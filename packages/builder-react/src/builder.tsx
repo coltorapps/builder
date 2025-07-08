@@ -24,7 +24,7 @@ import {
 import { chainRenderers, shallow, type Comparator } from "./utils";
 
 export interface AttributeInstance<TAttribute extends Attribute = Attribute> {
-  name: string;
+  type: string;
   getValue(): AttributeValue<TAttribute>;
   setValue(value: AttributeValue<TAttribute>): void;
   getError(): unknown;
@@ -40,9 +40,11 @@ export interface AttributeInstance<TAttribute extends Attribute = Attribute> {
   ): () => void;
 }
 
-export interface BuilderEntityInstance<TEntity extends Entity = Entity>
-  extends Pick<
-    SchemaEntityWithId<TEntity>,
+export interface BuilderEntityInstance<
+  TEntity extends Entity = Entity,
+  TType extends string = string,
+> extends Pick<
+    SchemaEntityWithId<TEntity, TType>,
     "id" | "parentId" | "children" | "type"
   > {
   attributes: {
@@ -50,6 +52,7 @@ export interface BuilderEntityInstance<TEntity extends Entity = Entity>
       TEntity["attributes"][K]
     >;
   };
+  metadata: TEntity["metadata"];
   setParent(parentId: string, options?: { index?: number }): void;
   unsetParent(options?: { index?: number }): void;
   setIndex(index: number): void;
@@ -89,7 +92,7 @@ export interface BuilderEntityInstance<TEntity extends Entity = Entity>
 }
 
 export interface BuilderEntityComponentProps<
-  TEntity extends TBuilder["entities"][string],
+  TEntity extends Entity,
   TBuilder extends Builder = Builder,
 > {
   entity: BuilderEntityInstance<TEntity>;
@@ -104,20 +107,24 @@ export interface BuilderEntityComponentProps<
 }
 
 export type BuilderEntityComponent<
-  TEntity extends TBuilder["entities"][string],
+  TEntity extends Entity,
   TBuilder extends Builder = Builder,
 > = (props: BuilderEntityComponentProps<TEntity, TBuilder>) => ReactNode;
 
 export type BuilderEntitiesComponents<TBuilder extends Builder = Builder> = {
-  [K in Extract<keyof TBuilder["entities"], string>]: BuilderEntityComponent<
-    TBuilder["entities"][K],
-    TBuilder
-  >;
+  [K in Extract<keyof TBuilder["entities"], string>]:
+    | BuilderEntityComponent<TBuilder["entities"][K], TBuilder>
+    | BuilderEntityComponent<TBuilder["entities"][K]>;
 };
 
 export type GenericBuilderEntityComponent<TBuilder extends Builder = Builder> =
   (props: {
-    entity: BuilderEntityInstance<TBuilder["entities"][string]>;
+    entity: {
+      [K in Extract<keyof TBuilder["entities"], string>]: BuilderEntityInstance<
+        TBuilder["entities"][K],
+        K
+      >;
+    }[Extract<keyof TBuilder["entities"], string>];
     children?: ReactNode;
   }) => ReactNode;
 
@@ -205,7 +212,10 @@ Make sure the builder store instance is stable across renders and that the entit
 
   const EntityComponent = props.components[
     entity.type
-  ] as BuilderEntityComponent<TBuilder["entities"][string], TBuilder>;
+  ] as unknown as BuilderEntityComponent<
+    TBuilder["entities"][string],
+    TBuilder
+  >;
 
   if (!EntityComponent) {
     throw new Error(
@@ -221,13 +231,23 @@ To fix this:
     );
   }
 
-  const attributes = Object.keys(
-    props.builderStore.builder.entities[entity.type]?.attributes ?? {},
-  ).reduce(
+  const entityDefinition = props.builderStore.builder.entities[entity.type];
+
+  if (!entityDefinition) {
+    throw new Error(
+      `<BuilderEntity /> encountered an error:
+
+Attempted to render an entity of type "${entity.type}", but this type is not registered in the builder definition used to create the provided builder store.
+
+Ensure that the builder definition includes an entity of type "${entity.type}".`,
+    );
+  }
+
+  const attributes = Object.keys(entityDefinition.attributes ?? {}).reduce(
     (result, attributeName) => ({
       ...result,
       [attributeName]: {
-        name: attributeName,
+        type: attributeName,
         getValue() {
           const entity = props.builderStore.getEntity(props.entityId);
 
@@ -299,11 +319,15 @@ To fix this:
     {} as BuilderEntityInstance<TBuilder["entities"][string]>["attributes"],
   );
 
-  const entityForRender: BuilderEntityInstance<TBuilder["entities"][string]> = {
+  const entityForRender: BuilderEntityInstance<
+    TBuilder["entities"][string],
+    Extract<keyof TBuilder["entities"], string>
+  > = {
     id: props.entityId,
     type: entity.type,
     parentId: entity.parentId,
     attributes,
+    metadata: entityDefinition.metadata,
     setParent(parentId, options) {
       props.builderStore.setEntityParent(props.entityId, parentId, options);
     },
@@ -407,7 +431,11 @@ To fix this:
     },
   };
 
-  const renderEntity = props.children ?? ((props) => props.children);
+  const renderEntity = useMemo(() => {
+    return (
+      props.children ?? ((props: { children?: ReactNode }) => props.children)
+    );
+  }, [props.children]);
 
   return renderEntity({
     entity: entityForRender,
@@ -447,7 +475,7 @@ export function BuilderEntities<TBuilder extends Builder>(props: {
   builderStore: BuilderStore<TBuilder>;
   components: BuilderEntitiesComponents<TBuilder>;
   children?: GenericBuilderEntityComponent<TBuilder>;
-}): JSX.Element[] {
+}): ReactNode {
   const root = useBuilderStoreData(
     props.builderStore,
     (data) => data.schema.root,
@@ -569,7 +597,7 @@ export function useEntityAttributesErrors<
   );
 }
 
-export function useOnBuilderStoreEntityAdded<TBuilder extends Builder>(
+export function useEntityAdded<TBuilder extends Builder>(
   builderStore: BuilderStore<TBuilder>,
   callback: (
     entity: Schema<TBuilder>["entities"][string] & { id: string },
@@ -595,7 +623,7 @@ export function useOnBuilderStoreEntityAdded<TBuilder extends Builder>(
   );
 }
 
-export function useOnBuilderStoreEntityDeleted<TBuilder extends Builder>(
+export function useEntityDeleted<TBuilder extends Builder>(
   builderStore: BuilderStore<TBuilder>,
   callback: (
     entity: Schema<TBuilder>["entities"][string] & { id: string },
@@ -631,9 +659,7 @@ type EntityWithUpdatedAttributeName<TBuilder extends Builder> = {
   };
 }[Extract<keyof TBuilder["entities"], string>];
 
-export function useOnBuilderStoreEntityAttributeUpdated<
-  TBuilder extends Builder,
->(
+export function useAttributeValueUpdated<TBuilder extends Builder>(
   builderStore: BuilderStore<TBuilder>,
   callback: (entity: EntityWithUpdatedAttributeName<TBuilder>) => void,
   comparator: Comparator<

@@ -12,7 +12,7 @@ In most cases, you won't need to use the `createBuilderStore` method directly. I
 
 ## Reference
 
-### `createBuilderStore(builder, options?)`
+### `createBuilderStore(builder, options?)` {% class="break-all" %}
 
 Use the `createBuilderStore` function to instantiate a builder store.
 
@@ -50,7 +50,7 @@ The `options` parameter properties:
 | `getEntitiesAttributesErrors`   | {% badge content="function" /%} | Retrieves the entities' attributes errors from the [store's data](#data).                                                            |
 | `getSchemaError`                | {% badge content="function" /%} | Retrieves the schema error from the [store's data](#data).                                                                           |
 | `setData`                       | {% badge content="function" /%} | Sets the store's new data.                                                                                                           |
-| `subscribe`                     | {% badge content="function" /%} | Subscribes to the [store's events](#events), returning a function `() => void` for unsubscribing.                                    |
+| `subscribe`                     | {% badge content="function" /%} | Subscribes to store's data updates, returning a function `() => void` for unsubscribing.                                             |
 | `addEntity`                     | {% badge content="function" /%} | Adds a new entity, returning the newly added entity instance.                                                                        |
 | `setEntityParent`               | {% badge content="function" /%} | Sets an entity's parent.                                                                                                             |
 | `unsetEntityParent`             | {% badge content="function" /%} | Unsets an entity's parent and moves it to the root.                                                                                  |
@@ -82,20 +82,3 @@ The data of the builder store is an object containing the following properties:
 | `schema`                   | {% badge content="object" /%}  | Represents the schema, which contains the collection of all entities instances and their order. |
 | `entitiesAttributesErrors` | {% badge content="object" /%}  | Represents the validation errors of various entity attributes.                                  |
 | `schemaError`              | {% badge content="unknown" /%} | Represents the schema validation error.                                                         |
-
-## Events
-
-The builder store emits various events after mutations to subscribed listeners, with different payloads based on the event. A mutation might cause the store to emit multiple events simultaneously. These events can be emitted by the store:
-
-| Event                         | Description {% class="api-description" %} |
-| ----------------------------- | ----------------------------------------- |
-| `EntityAdded`                 | An entity was added.                      |
-| `EntityUpdated`               | An entity was updated.                    |
-| `EntityAttributeUpdated`      | An entity's attribute was updated.        |
-| `EntityDeleted`               | An entity was deleted.                    |
-| `EntityCloned`                | An entity was cloned.                     |
-| `RootUpdated`                 | The root was updated.                     |
-| `EntityAttributeErrorUpdated` | An entity's attribute error was updated.  |
-| `SchemaErrorUpdated`          | The schema's error was updated.           |
-| `SchemaUpdated`               | The schema was updated.                   |
-| `DataSet`                     | The data was manually set.                |

@@ -3,7 +3,7 @@ import {
   type AttributeContext,
   type AttributeValue,
 } from "./attribute";
-import { getBuilderEntityMetadata, type Builder } from "./builder";
+import { type Builder } from "./builder";
 import {
   type EntityValue,
   type OptionalEntitiesValues,
@@ -133,7 +133,7 @@ interface CreateEntityOptions<
     > {
   attributesExtensions?: {
     [K in ExtractStringKeys<TAttributes>]?: AttributeExtensionInput<
-      Entity<TAttributes>,
+      Entity<TAttributes, unknown, boolean, TMetadata>,
       string,
       TAttributes[K]
     >;
@@ -200,7 +200,7 @@ export function computeContextEntitiesEntry<TBuilder extends Builder>(
   return {
     ...entity,
     value: entityValue,
-    metadata: getBuilderEntityMetadata(builder, entity.type),
+    metadata: builder.entities[entity.type]?.metadata,
   };
 }
 export function computeContextEntitiesEntries<TBuilder extends Builder>(

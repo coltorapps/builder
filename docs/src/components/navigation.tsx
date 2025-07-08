@@ -30,7 +30,7 @@ export function Navigation({
                     href={link.href}
                     onClick={onLinkClick}
                     className={clsx(
-                      "block w-full pl-3.5 before:pointer-events-none before:absolute before:-left-1 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full",
+                      "block w-full truncate pl-3.5 before:pointer-events-none before:absolute before:-left-1 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full",
                       link.href === pathname
                         ? "font-semibold text-sky-400 before:bg-sky-400"
                         : "text-neutral-500 before:hidden before:bg-neutral-300 hover:text-neutral-600 hover:before:block dark:text-neutral-400 dark:before:bg-neutral-700 dark:hover:text-neutral-300",

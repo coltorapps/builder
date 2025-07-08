@@ -16,16 +16,15 @@ import { AlertCircle, CheckCircle2, EyeIcon } from "lucide-react";
 import {
   type BuilderStore,
   type InterpreterStore,
-  type OptionalEntitiesValues,
   type Schema,
 } from "@coltorapps/builder";
 import {
   InterpreterEntities,
+  useEntityValueUpdated,
   useInterpreterStore,
-  useOnInterpreterStoreEntityValueUpdated,
 } from "@coltorapps/builder-react";
 
-import { basicFormBuilder, type BasicFormBuilder } from "./definition";
+import { basicFormBuilder } from "./definition";
 import { interpreterEntitiesComponents } from "./entities-components";
 
 function Form(props: {
@@ -111,7 +110,7 @@ export function Preview(props: {
     schema ?? { entities: {}, root: [] },
   );
 
-  useOnInterpreterStoreEntityValueUpdated(interpreterStore, (entity) => {
+  useEntityValueUpdated(interpreterStore, (entity) => {
     if (submitAttemptedRef.current) {
       void interpreterStore.validateEntityValue(entity.id);
     }
@@ -152,8 +151,7 @@ export function Preview(props: {
     });
   }
 
-  const [previewValues, setPreviewValues] =
-    useState<OptionalEntitiesValues<BasicFormBuilder["entities"]>>();
+  const [previewValues, setPreviewValues] = useState<Record<string, unknown>>();
 
   return (
     <div>

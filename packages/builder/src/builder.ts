@@ -131,22 +131,6 @@ export function createBuilder<const TEntities extends Record<string, Entity>>(
   };
 }
 
-export function getBuilderEntityMetadata<
-  TBuilder extends Builder,
-  TEntityType extends ExtractStringKeys<TBuilder["entities"]>,
->(
-  builder: TBuilder,
-  entityType: TEntityType,
-): TBuilder["entities"][TEntityType]["metadata"] {
-  const entityDefinition = builder.entities[entityType];
-
-  if (!entityDefinition) {
-    throw new Error(`Unknown entity type "${entityType}".`);
-  }
-
-  return entityDefinition.metadata;
-}
-
 export function getBuilderEntitiesTypes<TBuilder extends Builder>(
   builder: TBuilder,
 ): ReadonlyArray<ExtractStringKeys<TBuilder["entities"]>> {

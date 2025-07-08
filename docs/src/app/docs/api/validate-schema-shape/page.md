@@ -18,7 +18,7 @@ Schema's shape is consistently validated synchronously under the hood when insta
 
 ## Reference
 
-### `validateSchemaShape(schema, builder)`
+### `validateSchemaShape(schema, builder)` {% class="break-all" %}
 
 Use the `validateSchemaShape` function to validate the input schema:
 

@@ -12,6 +12,7 @@ const dummyAttributeContext = {
     id: "",
     attributes: {},
     type: "",
+    metadata: undefined,
   },
 };
 

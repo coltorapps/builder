@@ -27,7 +27,6 @@ export function createFormBuilder(options?: {
   validateEmailField?: (email: string) => Promise<void>;
 }) {
   const emailFieldEntity = createEntity({
-    name: "emailField",
     async validate(value) {
       const validatedValue = z.string().email().parse(value);
 
@@ -38,7 +37,7 @@ export function createFormBuilder(options?: {
   });
 
   const formBuilder = createBuilder({
-    entities: [emailFieldEntity],
+    entities: { emailField: emailFieldEntity },
   });
 
   return {
@@ -81,29 +80,80 @@ export async function saveFormSchema(formSchema: unknown) {
 
 ## Using the factory on the client
 
-We will create an instance of our form builder on the client using the defined factory.
+We will create an instance of our form builder on the client using the defined factory, while extending the validation of email fields with a uniqueness check via a remote API call.
 
-As you may have noticed above, the `options` parameter of our factory is optional. We will simply omit it on the client to keep this guide simple.
-
-```typescript
+```tsx
 "use client";
 
 import {
-  createEntityComponent,
+  BuilderEntities,
+  InterpreterEntities,
   useBuilderStore,
+  type BuilderEntityComponentProps,
+  type InterpreterEntityComponentProps,
 } from "@coltorapps/builder-react";
 
 import { createFormBuilder } from "./form-builder";
 
-const { formBuilder, emailFieldEntity } = createFormBuilder();
+const { formBuilder, emailFieldEntity } = createFormBuilder({
+  async validateEmailField(email) {
+    const res = await fetch(
+      `/api/check-email?email=${encodeURIComponent(email)}`,
+      {
+        method: "GET",
+      },
+    );
 
-const EmailFieldEntity = createEntityComponent(emailFieldEntity, () => {
-  // ...
+    if (!res.ok) {
+      throw new Error("Failed to check email");
+    }
+
+    const { exists } = await res.json();
+
+    if (exists) {
+      throw new Error("Email already used");
+    }
+  },
 });
+
+export function BuilderEmailFieldEntity(
+  props: BuilderEntityComponentProps<typeof emailFieldEntity>,
+) {
+  return <div>Your Builder Field</div>;
+}
+
+export function InterpreterEmailFieldEntity(
+  props: InterpreterEntityComponentProps<typeof emailFieldEntity>,
+) {
+  return <div>Your Interpreter Field</div>;
+}
 
 // ...
 
-const builderStore = useBuilderStore(formBuilder);
-```
+const builderComponents = {
+  emailField: BuilderEmailFieldEntity,
+};
 
-For example, to verify the uniqueness of an email on the client, just utilize the `validateEmailField` option to make a request to a server endpoint and check whether it is unique or not. It's limited only by your imagination.
+const interpreterComponents = {
+  emailField: InterpreterEmailFieldEntity,
+};
+
+function App() {
+  const builderStore = useBuilderStore(formBuilder);
+
+  const interpreterStore = useInterpreterStore(formBuilder, someSchema);
+
+  return (
+    <div>
+      <BuilderEntities
+        builderStore={builderStore}
+        components={builderComponents}
+      />
+      <InterpreterEntities
+        interpreterStore={interpreterStore}
+        components={interpreterComponents}
+      />
+    </div>
+  );
+}
+```
