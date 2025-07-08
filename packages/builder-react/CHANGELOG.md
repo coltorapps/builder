@@ -1,10 +1,21 @@
 # @coltorapps/builder-react
 
+## 1.0.0-canary.0
+
+### Major Changes
+
+- Canary release https://canary.builder.coltorapps.com/
+
 ## 0.2.4
 
 ### Patch Changes
 
 - Wrap children entities in the interpreter generic entity renderer.
+
+### Patch Changes
+
+- Updated dependencies
+  - @coltorapps/builder@1.0.0-canary.0
 
 ## 0.2.3
 

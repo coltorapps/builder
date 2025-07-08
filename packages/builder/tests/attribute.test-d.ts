@@ -10,13 +10,16 @@ describe("attribute", () => {
         return z.string().parse(value);
       },
     });
+    interface ContextEntity extends SchemaEntityWithId {
+      metadata: unknown;
+    }
 
     expectTypeOf(attribute).toEqualTypeOf<{
       validate: (
         value: unknown,
         context: {
           schema: Schema;
-          entity: SchemaEntityWithId;
+          entity: ContextEntity;
         },
       ) => string;
     }>();

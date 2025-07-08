@@ -2,13 +2,20 @@ import { type Builder } from "./builder";
 import { type Entity } from "./entity";
 import { type Schema, type SchemaEntityWithId } from "./schema";
 
+interface ContextEntity<
+  TEntity extends Entity = Entity,
+  TEntityType extends string = string,
+> extends SchemaEntityWithId<TEntity, TEntityType> {
+  metadata: TEntity["metadata"];
+}
+
 export interface AttributeContext<
   TEntity extends Entity = Entity,
   TEntityType extends string = string,
   TEntities extends Record<string, Entity> = Record<string, Entity>,
 > {
   schema: Schema<Builder<TEntities>>;
-  entity: SchemaEntityWithId<TEntity, TEntityType>;
+  entity: ContextEntity<TEntity, TEntityType>;
 }
 
 export interface Attribute<TValue = unknown> {

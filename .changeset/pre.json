@@ -1,0 +1,11 @@
+{
+  "mode": "pre",
+  "tag": "canary",
+  "initialVersions": {
+    "@coltorapps/builder-docs": "0.0.0",
+    "@coltorapps/builder": "1.0.0-canary.0",
+    "@coltorapps/builder-react": "1.0.0-canary.0",
+    "@coltorapps/eslint-config": "0.1.0"
+  },
+  "changesets": ["odd-readers-deny"]
+}

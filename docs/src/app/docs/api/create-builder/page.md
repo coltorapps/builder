@@ -8,11 +8,9 @@ nextjs:
 
 This function creates a builder definition that can be used for building, validating and interpreting schemas.
 
-By a builder definition, we simply mean an object with specific properties. The function itself serves primarily as a type safety helper and doesn't perform any underlying logic.
-
 ## Reference
 
-### `createBuilder(options)`
+### `createBuilder(options)` {% class="break-all" %}
 
 Use the `createBuilder` function to create a builder definition.
 
@@ -22,7 +20,10 @@ import { createBuilder } from "@coltorapps/builder";
 import { selectFieldEntity, textFieldEntity } from "./entities";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity, selectFieldEntity],
+  entities: {
+    textField: textFieldEntity,
+    selectField: selectFieldEntity,
+  },
 });
 ```
 
@@ -32,7 +33,7 @@ export const formBuilder = createBuilder({
 
 | Property             | Type                                                            | Description {% class="api-description" %}                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | -------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `entities`           | {% badge content="array" /%}                                    | An array of [entities definitions](/docs/api/create-entity) used for building and validating schemas.                                                                                                                                                                                                                                                                                                                                                                   |
+| `entities`           | {% badge content="object" /%}                                   | A record of [entities definitions](/docs/api/create-entity) used for building and validating schemas.                                                                                                                                                                                                                                                                                                                                                                   |
 | `generateEntityId`   | {% badge content="function" /%} {% badge content="optional" /%} | An optional function for generating entities IDs, which is invoked when adding new entities to the schema. It defaults to `() => string` and returns UUIDs by default, by leveraging the `crypto` module when possible. If your app is running in an environment that doesn't natively support this module, this function is useful for implementing your own ID generation logic, or alternatively, you may opt to generate a completely different type of identifier. |
 | `validateEntityId`   | {% badge content="function" /%} {% badge content="optional" /%} | An optional function for validating entities IDs. This function is invoked for each entity in the schema during schema validation, receiving the entity ID of each respective entity. Any exceptions it raises will be automatically caught during schema validation. It defaults to `() => void` and verifies that IDs are in UUID format. Alternatively, you can opt to validate a completely different format of identifier.                                         |
 | `validateSchema`     | {% badge content="function" /%} {% badge content="optional" /%} | An optional function adding custom validation logic that is invoked during schema validation after all base validations, which receives the current schema for validation. It can be asynchronous, and any exceptions it raises will be automatically caught and stored in the builder store, or returned back to you when validating the schema inline. Defaults to `() => void`.                                                                                      |
@@ -44,7 +45,7 @@ The `createBuilder` function essentially forwards the provided `options` paramet
 
 | Property             | Type                            | Description {% class="api-description" %}                                               |
 | -------------------- | ------------------------------- | --------------------------------------------------------------------------------------- |
-| `entities`           | {% badge content="array" /%}    | An array of [entities definitions](/docs/api/create-entity).                            |
+| `entities`           | {% badge content="object" /%}   | A record of [entities definitions](/docs/api/create-entity).                            |
 | `generateEntityId`   | {% badge content="function" /%} | A function for generating entities IDs.                                                 |
 | `validateEntityId`   | {% badge content="function" /%} | A function for validating entities IDs.                                                 |
 | `validateSchema`     | {% badge content="function" /%} | A function for additional schema validation.                                            |
@@ -60,6 +61,12 @@ Extending or overriding attribute validations or entities configurations can be 
 {
   // The key is the name of one of the entities.
   entityName?: {
+    // The logic for validating the entity's value.
+    validate?: (value, context) => TEntityValue
+    // The logic for computing entity's default value.
+    defaultValue?: (value, context) => TEntityValue | undefined
+    // The logic for determining whether the entity is processable.
+    shouldBeProcessed?: (context) => boolean
     // Determines whether the entity can or cannot have any
     // child entities. It can also be an array of entities
     // names for constraining the relationships.
@@ -75,7 +82,7 @@ Extending or overriding attribute validations or entities configurations can be 
       // The key corresponds to the name of an attribute.
       attributeName?: {
         // The logic for validating the attribute's value.
-        validate?: (value, context) => TValue
+        validate?: (value, context) => TAttributeValue
       }
     }
   }

@@ -12,7 +12,7 @@ In most cases, you'll call this function on the server side to validate the inco
 
 ## Reference
 
-### `validateSchema(schema, builder)`
+### `validateSchema(schema, builder)` {% class="break-all" %}
 
 Use the `validateSchema` function to validate the input schema:
 

@@ -1,3 +1,6 @@
+<div align="center"><strong style="background-color:#ffd230;color:#461901;border-radius:0.5rem;padding:0.2rem 0.5rem;">Canary Release</strong></div>
+<br />
+
 [![Builder](https://raw.githubusercontent.com/coltorapps/builder/main/assets/github-cover-photo.png)](https://builder.coltorapps.com)
 
 <div align="center"><strong>Builder</strong></div>
@@ -62,7 +65,6 @@ import { z } from "zod";
 import { createAttribute } from "@coltorapps/builder";
 
 export const labelAttribute = createAttribute({
-  name: "label",
   validate(value) {
     return z.string().min(1).parse(value);
   },
@@ -81,8 +83,7 @@ import { createEntity } from "@coltorapps/builder";
 import { labelAttribute } from "./label-attribute";
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [labelAttribute],
+  attributes: { label: labelAttribute },
   validate(value) {
     return z.string().optional().parse(value);
   },
@@ -99,7 +100,7 @@ import { createBuilder } from "@coltorapps/builder";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity],
+  entities: { textField: textFieldEntity },
 });
 ```
 

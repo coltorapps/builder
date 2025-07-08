@@ -187,6 +187,7 @@ async function validateEntityAttribute<TBuilder extends Builder>(
     const serializedEntity = {
       ...serializeInternalBuilderStoreEntity(entity),
       id: entityId,
+      metadata: entityDefinition.metadata,
     };
 
     const attributeValidationContext = {

@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { navigation } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
 import clsx from "clsx";
 
 export function DocsHeader({ title }: { title?: string }) {
@@ -22,7 +23,14 @@ export function DocsHeader({ title }: { title?: string }) {
         </p>
       )}
       {title && (
-        <h1 className="font-display text-3xl tracking-tight text-neutral-900 dark:text-white">
+        <h1
+          className={cn(
+            "font-display text-3xl tracking-tight text-neutral-900 dark:text-white",
+            {
+              "break-all": pathname.startsWith("/docs/api/"),
+            },
+          )}
+        >
           {title}
         </h1>
       )}

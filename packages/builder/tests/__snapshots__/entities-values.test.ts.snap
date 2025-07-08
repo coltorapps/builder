@@ -22,6 +22,7 @@ exports[`entities values validation > can validate entities 2`] = `
   "data": {
     "51324b32-adc3-4d17-a90e-66b5453935bd": "value",
     "6e0035c3-0d4c-445f-a42b-2d971225447c": "second value",
+    "8a7bfa5e-9828-4b80-a615-cfb6f79728e1": 100,
   },
   "success": true,
 }
@@ -29,27 +30,11 @@ exports[`entities values validation > can validate entities 2`] = `
 
 exports[`entities values validation > can validate entities 3`] = `
 {
-  "entitiesErrors": {
-    "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [
-  {
-    "code": "invalid_type",
-    "expected": "string",
-    "received": "undefined",
-    "path": [],
-    "message": "Required"
-  }
-]],
-    "6e0035c3-0d4c-445f-a42b-2d971225447c": [ZodError: [
-  {
-    "code": "invalid_type",
-    "expected": "string",
-    "received": "undefined",
-    "path": [],
-    "message": "Required"
-  }
-]],
+  "data": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": "value",
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": "second value",
   },
-  "success": false,
+  "success": true,
 }
 `;
 
@@ -80,6 +65,32 @@ exports[`entities values validation > can validate entities 4`] = `
 `;
 
 exports[`entities values validation > can validate entities 5`] = `
+{
+  "entitiesErrors": {
+    "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+    "6e0035c3-0d4c-445f-a42b-2d971225447c": [ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [],
+    "message": "Required"
+  }
+]],
+  },
+  "success": false,
+}
+`;
+
+exports[`entities values validation > can validate entities 6`] = `
 {
   "entitiesErrors": {
     "51324b32-adc3-4d17-a90e-66b5453935bd": [ZodError: [

@@ -30,11 +30,11 @@ export function DefaultDateValueAttribute(props: {
 
   return (
     <div>
-      <Label htmlFor={props.attribute.name}>Default Value</Label>
+      <Label htmlFor={props.attribute.type}>Default Value</Label>
       <Popover>
         <PopoverTrigger asChild>
           <Button
-            id={props.attribute.name}
+            id={props.attribute.type}
             variant={"outline"}
             className={cn(
               "w-full justify-start rounded-md text-left font-normal",

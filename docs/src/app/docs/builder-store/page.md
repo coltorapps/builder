@@ -32,11 +32,11 @@ Now, we can start interacting with the store.
 const personalInformationSection = formBuilderStore.addEntity({
   type: "section",
   attributes: {
-    tile: "Personal Information",
+    title: "Personal Information",
   },
 });
 
-formBuilderStore.addEntity({
+const firstNameField = formBuilderStore.addEntity({
   type: "textField",
   attributes: {
     label: "First Name",
@@ -56,7 +56,14 @@ const lastNameField = formBuilderStore.addEntity({
 
 formBuilderStore.setEntityIndex(lastNameField.id, 0);
 
-formBuilderStore.setEntityAttribute(lastNameField.id, "required", true);
+formBuilderStore.setEntityAttribute(firstNameField.id, "required", false);
+
+formBuilderStore.setEntityAttribute(
+  lastNameField.id,
+  "required",
+  true,
+  "textField", // optional: provide the entity type to enable strict type safety
+);
 ```
 
 We have the capability to retrieve the constructed schema:
@@ -103,16 +110,10 @@ This will be equivalent to:
 
 ## Subscribing to changes
 
-A builder store offers a `subscribe` method that facilitates subscribing to data changes. With each change, you'll receive both the updated data and an array of events that specify what modifications have occurred.
+A builder store offers a `subscribe` method that facilitates subscribing to data changes. With each change, you'll receive both the updated data and the previous data.
 
 ```typescript
-const unsubscribe = formBuilderStore.subscribe((data, events) => {
-  events.forEach((event) => {
-    if (event.name === "EntityAdded") {
-      console.log("An entity was added.", event.payload.entity.id);
-    }
-  });
-});
+const unsubscribe = formBuilderStore.subscribe((data, prevData) => {});
 ```
 
 ## Data breakdown

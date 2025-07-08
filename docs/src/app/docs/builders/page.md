@@ -22,7 +22,9 @@ import { createBuilder } from "@coltorapps/builder";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity],
+  entities: {
+    textField: textFieldEntity,
+  },
 });
 ```
 
@@ -39,7 +41,10 @@ import { sectionEntity } from "./section-entity";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [sectionEntity, textFieldEntity],
+  entities: {
+    section: sectionEntity,
+    textField: textFieldEntity,
+  },
   entitiesExtensions: {
     section: {
       // Can also be set to `true` to allow any children.
@@ -60,7 +65,10 @@ import { sectionEntity } from "./section-entity";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [sectionEntity, textFieldEntity],
+  entities: {
+    section: sectionEntity,
+    textField: textFieldEntity,
+  },
   entitiesExtensions: {
     section: {
       childrenAllowed: ["textField"],
@@ -89,7 +97,7 @@ import { createBuilder } from "@coltorapps/builder";
 import { someEntity } from "./some-entity";
 
 export const formBuilder = createBuilder({
-  entities: [someEntity],
+  entities: { someEntity },
   entitiesExtensions: {
     someEntity: {
       attributes: {
@@ -126,7 +134,9 @@ import { createBuilder } from "@coltorapps/builder";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity],
+  entities: {
+    textField: textFieldEntity,
+  },
   generateEntityId() {
     return generateUUID();
   },
@@ -148,7 +158,9 @@ import { createBuilder } from "@coltorapps/builder";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity],
+  entities: {
+    textField: textFieldEntity,
+  },
   validateSchema(schema) {
     if (Object.keys(schema.entities).length === 0) {
       throw new Error("Add at least one entity");
@@ -169,7 +181,9 @@ import { createBuilder } from "@coltorapps/builder";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity],
+  entities: {
+    textField: textFieldEntity,
+  },
   validateSchema(schema) {
     return { entities: {}, root: [] };
   },

@@ -10,7 +10,7 @@ This function ensures that the input values are valid in conjunction with the bu
 
 ## Reference
 
-### `validateEntitiesValues(values, builder, schema)`
+### `validateEntitiesValues(values, builder, schema)` {% class="break-all" %}
 
 Use the `validateEntitiesValues` function to validate the input values:
 

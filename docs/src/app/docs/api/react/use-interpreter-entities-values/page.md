@@ -10,7 +10,7 @@ This React hook retrieves the values of all entities or the selected ones from a
 
 ## Reference
 
-### `useInterpreterEntitiesValues(entitiesIds?)`
+### `useInterpreterEntitiesValues(entitiesIds?)` {% class="break-all" %}
 
 Use the `useInterpreterEntitiesValues` function to retrieve the values of all entities or the selected ones.
 

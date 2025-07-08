@@ -24,8 +24,9 @@ import { createEntity } from "@coltorapps/builder";
 import { labelAttribute } from "./label-attribute";
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [labelAttribute],
+  attributes: {
+    label: labelAttribute,
+  },
   validate(value) {
     return z.string().optional().parse(value);
   },
@@ -48,7 +49,6 @@ You can throw errors, strings, objects, and virtually anything (however, as a pr
 import { createEntity } from "@coltorapps/builder";
 
 export const textFieldEntity = createEntity({
-  name: "textField",
   validate(value) {
     if (typeof value !== "string") {
       throw new Error("Must be a string");
@@ -79,15 +79,15 @@ import { z } from "zod";
 import { createAttribute, createEntity } from "@coltorapps/builder";
 
 export const requiredAttribute = createAttribute({
-  name: "required",
   validate(value) {
     return z.boolean().parse(value);
   },
 });
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [requiredAttribute],
+  attributes: {
+    label: requiredAttribute,
+  },
   validate(value, context) {
     const schema = z.string();
 
@@ -114,22 +114,22 @@ import { z } from "zod";
 import { createAttribute, createEntity } from "@coltorapps/builder";
 
 export const minLengthAttribute = createAttribute({
-  name: "minLength",
   validate(value) {
     return z.number().parse(value);
   },
 });
 
 export const maxLengthAttribute = createAttribute({
-  name: "maxLength",
   validate(value) {
     return z.number().parse(value);
   },
 });
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [minLengthAttribute, maxLengthAttribute],
+  attributes: {
+    minLength: minLengthAttribute,
+    maxLength: maxLengthAttribute,
+  },
   validate(value, context) {
     return z
       .string()
@@ -178,7 +178,6 @@ We can enforce that an entity must always have a parent using the `parentRequire
 import { createEntity } from "@coltorapps/builder";
 
 export const textFieldEntity = createEntity({
-  name: "textField",
   parentRequired: true,
 });
 ```
@@ -189,7 +188,6 @@ If we want to allow an entity to have child entities, we can achieve this using 
 import { createEntity } from "@coltorapps/builder";
 
 export const sectionEntity = createEntity({
-  name: "section",
   childrenAllowed: true,
 });
 ```
@@ -204,15 +202,15 @@ import { z } from "zod";
 import { createAttribute, createEntity } from "@coltorapps/builder";
 
 export const defaultValueAttribute = createAttribute({
-  name: "defaultValue",
   validate(value) {
     return z.string().optional().parse(value);
   },
 });
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [defaultValueAttribute],
+  attributes: {
+    defaultValue: defaultValueAttribute,
+  },
   validate(value, context) {
     return z.string().optional().parse(value);
   },
@@ -234,18 +232,19 @@ An entity can be conditionally hidden from the UI and excluded from all validati
 
 This method can be useful for establishing conditional entities that depend on other entities. For instance, you may want to display a text field only when another text field has been filled.
 
+The `shouldBeProcessed` method is re-evaluated **on every entity** whenever **any entity’s value changes**.
+
 ```typescript
 import { z } from "zod";
 
 import { createAttribute, createEntity } from "@coltorapps/builder";
 
 export const referenceEntityIdAttribute = createAttribute({
-  name: "referenceEntityId",
   validate(value, context) {
     const referenceId = z.string().uuid().optional().parse(value);
 
     if (!referenceId) {
-      return referenceId;
+      return;
     }
 
     if (!context.schema.entities[referenceId]) {
@@ -261,8 +260,9 @@ export const referenceEntityIdAttribute = createAttribute({
 });
 
 export const textFieldEntity = createEntity({
-  name: "textField",
-  attributes: [referenceEntityIdAttribute],
+  attributes: {
+    referenceEntityId: referenceEntityIdAttribute,
+  },
   validate(value, context) {
     return z.string().optional().parse(value);
   },
@@ -273,7 +273,7 @@ export const textFieldEntity = createEntity({
       return true;
     }
 
-    const referencedEntityValue = context.entitiesValues[referenceEntityId];
+    const referencedEntityValue = context.entities[referenceEntityId]?.value;
 
     return Boolean(referencedEntityValue);
   },
@@ -298,7 +298,6 @@ import { z } from "zod";
 import { createEntity } from "@coltorapps/builder";
 
 export const textFieldEntity = createEntity({
-  name: "textField",
   validate(value) {
     const validatedValue = z.string().optional().parse(value);
 
@@ -310,3 +309,30 @@ export const textFieldEntity = createEntity({
 {% callout title="You should know!" %}
 Transformations are always applied exclusively when using the `validateEntitiesValues` method from the `@coltorapps/builder` package. They are intentionally not applied when validating entities values via the interpreter store, in order to ensure a clear user experience.
 {% /callout %}
+
+## Metadata
+
+Entities support an optional `metadata` field for attaching custom data that may be useful at runtime or during rendering. This field can hold any kind of information you want to associate with an entity definition.
+
+```ts
+import { createEntity } from "@coltorapps/builder";
+
+export const textFieldEntity = createEntity({
+  metadata: {
+    foo: "bar" as const,
+  },
+});
+```
+
+You can access the metadata of an entity definition directly when needed:
+
+```ts
+// From a builder:
+myFormBuilder.entities.textField.metadata;
+// From a builder store:
+myBuilderStore.builder.entities.textField.metadata;
+// From an interpreter store:
+myInterpreterStore.builder.entities.textField.metadata;
+```
+
+The metadata is also always available in the entity entries within the context object passed to `validate`, `defaultValue`, and `shouldBeProcessed`. It is also accessible during rendering in both builder and interpreter entity components on the entity instance.

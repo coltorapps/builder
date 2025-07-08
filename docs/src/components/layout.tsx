@@ -10,6 +10,8 @@ import { Navigation } from "@/components/navigation";
 import { Search } from "@/components/search";
 import clsx from "clsx";
 
+import { Icon } from "./icon";
+
 function GitHubIcon(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
     <svg aria-hidden="true" viewBox="0 0 16 16" {...props}>
@@ -102,7 +104,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex w-full flex-col">
-      <div className="relative isolate flex items-center gap-x-6 overflow-hidden bg-blue-950 px-3.5 py-2.5 sm:before:flex-1">
+      <div className="relative isolate flex items-center justify-center overflow-hidden bg-blue-950 px-3.5 py-2.5">
         <div
           aria-hidden="true"
           className="absolute left-[max(-7rem,calc(50%-52rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
@@ -146,14 +148,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             Let’s talk <span aria-hidden="true">&rarr;</span>
           </a>
         </div>
-        <div className="flex flex-1 justify-end">
-          <button
-            type="button"
-            className="-m-3 p-3 focus-visible:outline-offset-[-4px]"
-          >
-            <span className="sr-only">Dismiss</span>
-          </button>
-        </div>
       </div>
       <Header />
 
@@ -164,11 +158,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="absolute inset-y-0 right-0 w-[50vw] bg-neutral-50 dark:hidden" />
           <div className="absolute bottom-0 right-0 top-16 hidden h-12 w-px bg-gradient-to-t from-neutral-800 dark:block" />
           <div className="absolute bottom-0 right-0 top-28 hidden w-px bg-neutral-800 dark:block" />
-          <div className="sticky top-[4.75rem] -ml-0.5 h-[calc(100vh-4.75rem)] w-64 overflow-y-auto overflow-x-hidden py-16 pl-0.5 pr-8 xl:w-72 xl:pr-16">
+          <div className="sticky top-[4.75rem] -ml-0.5 h-[calc(100vh-4.75rem)] w-64 overflow-y-auto overflow-x-hidden py-16 pl-0.5 pr-8 xl:w-72">
             <Navigation />
           </div>
         </div>
         {children}
+      </div>
+      <div className="fixed bottom-0 flex w-full justify-center">
+        <div className="flex items-center gap-2 rounded-t-md bg-amber-500/20 px-2 py-1 backdrop-blur-sm">
+          <Icon icon="warning" color="amber" className="size-4" />
+          <p className="text-xs font-medium text-amber-50">Canary Branch</p>
+        </div>
       </div>
     </div>
   );

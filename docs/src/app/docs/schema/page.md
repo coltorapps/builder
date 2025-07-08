@@ -21,7 +21,10 @@ import { sectionEntity } from "./section-entity";
 import { textFieldEntity } from "./text-field-entity";
 
 export const formBuilder = createBuilder({
-  entities: [textFieldEntity, sectionEntity],
+  entities: {
+    section: sectionEntity,
+    textField: textFieldEntity,
+  },
 });
 ```
 
@@ -65,7 +68,7 @@ The schema consists of two main keys: `entities` and `root`.
 
 The `entities` key contains objects representing entities instances supported by the builder, like text fields and sections. They are uniquely identified by an ID, and each of these objects includes:
 
-- `type`: The name of the entity definition.
+- `type`: The type of the entity (`textField` or `section` in this case).
 - `attributes`: Attributes values.
 - `parentId` {% badge content="optional" /%}: Holds a reference to the ID of the parent entity.
 - `children` {% badge content="optional" /%}: Represents an array of entities IDs specifying the order of children within a parent entity.

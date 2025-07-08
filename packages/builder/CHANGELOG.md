@@ -1,5 +1,11 @@
 # @coltorapps/builder
 
+## 1.0.0-canary.0
+
+### Major Changes
+
+- Canary release https://canary.builder.coltorapps.com/
+
 ## 0.2.4
 
 ### Patch Changes

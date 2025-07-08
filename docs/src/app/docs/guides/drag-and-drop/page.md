@@ -1,8 +1,8 @@
 ---
-title: Drag & Drop
+title: Drag & drop
 nextjs:
   metadata:
-    title: Drag & Drop
+    title: Drag & drop
     description: Drag and drop guide
 ---
 
@@ -65,12 +65,18 @@ import {
 } from "@coltorapps/builder-react";
 
 import {
-  DatePickerFieldEntity,
+  BuilderDatePickerFieldEntity,
+  BuilderSelectFieldEntity,
+  BuilderTextFieldEntity,
   DndItem,
-  SelectFieldEntity,
-  TextFieldEntity,
 } from "./components";
 import { formBuilder } from "./form-builder";
+
+const components = {
+  textField: BuilderTextFieldEntity,
+  selectField: BuilderSelectFieldEntity,
+  datePickerField: BuilderDatePickerFieldEntity,
+};
 
 export function FormBuilder() {
   const builderStore = useBuilderStore(formBuilder);
@@ -80,16 +86,9 @@ export function FormBuilder() {
   | an array that holds the top-level entities IDs in the
   | hierarchy, determining their order.
   |
-  | Note that we want for the output to refresh and
-  | trigger a re-render only when the store emits the
-  | `RootUpdated` event, signifying that the `root`
-  | has been updated.
+  | The component will re-render only when `root` will update.
   */
-  const {
-    schema: { root },
-  } = useBuilderStoreData(builderStore, (events) =>
-    events.some((event) => event.name === "RootUpdated"),
-  );
+  const rootIds = useBuilderStoreData(builderStore, (data) => data.schema.root);
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -104,7 +103,7 @@ export function FormBuilder() {
       return;
     }
 
-    const index = root.findIndex((id) => id === overId);
+    const index = rootIds.findIndex((id) => id === overId);
 
     /*
     | When an entity is dropped, we can move it
@@ -117,17 +116,10 @@ export function FormBuilder() {
     <DndContext id="dnd" sensors={[mouseSensor]} onDragEnd={handleDragEnd}>
       <SortableContext
         id="sortable"
-        items={Array.from(root)}
+        items={rootIds}
         strategy={verticalListSortingStrategy}
       >
-        <BuilderEntities
-          builderStore={builderStore}
-          components={{
-            textField: TextFieldEntity,
-            selectField: SelectFieldEntity,
-            datePickerField: DatePickerFieldEntity,
-          }}
-        >
+        <BuilderEntities builderStore={builderStore} components={components}>
           {/*
           | We wrap each rendered entity with our `DndItem`
           | component to make it draggable.

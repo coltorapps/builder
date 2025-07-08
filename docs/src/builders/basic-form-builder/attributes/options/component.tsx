@@ -35,7 +35,7 @@ export function OptionsAttribute(props: {
             <div key={index}>
               <div className="flex items-center space-x-2">
                 <Input
-                  name={`${props.attribute.name}-options-${index}`}
+                  name={`${props.attribute.type}-options-${index}`}
                   value={option ?? ""}
                   onChange={(e) => {
                     props.attribute.setValue(

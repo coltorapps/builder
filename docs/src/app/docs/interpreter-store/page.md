@@ -67,20 +67,10 @@ This will be equivalent to:
 
 ## Subscribing to changes
 
-An interpreter store offers a `subscribe` method that facilitates subscribing to data changes. With each change, you'll receive both the updated data and an array of events that specify what modifications have occurred.
+An interpreter store offers a `subscribe` method that facilitates subscribing to data changes. With each change, you'll receive both the updated data and the previous data.
 
 ```typescript
-const unsubscribe = formInterpreterStore.subscribe((data, events) => {
-  events.forEach((event) => {
-    if (event.name === "EntityValueUpdated") {
-      console.log(
-        "An entity value was updated.",
-        event.payload.entityId,
-        event.payload.value,
-      );
-    }
-  });
-});
+const unsubscribe = formInterpreterStore.subscribe((data, prevData) => {});
 ```
 
 ## Data breakdown
@@ -104,7 +94,7 @@ This will produce an output similar to:
 }
 ```
 
-- `entitiesValues`: Represents the values of entities. It can be mutated by interpreter store methods such as `setEntityValue`, `resetEntityValue`, `resetEntitiesValues`, `clearEntityValue`, and `clearEntitiesValues`.
+- `entitiesValues`: Represents the values of entities. It can be mutated by interpreter store methods such as `setEntityValue`, `setEntitiesValues`, `resetEntityValue`, `resetEntitiesValues`, `clearEntityValue`, and `clearEntitiesValues`.
 
 - `entitiesErrors`: Represents validation errors for various entities. It can be mutated by interpreter store methods such as `validateEntityValue`, `validateEntitiesValues`, `setEntityError`, `resetEntityError`, `resetEntitiesErrors`, and `setEntitiesErrors`.
 

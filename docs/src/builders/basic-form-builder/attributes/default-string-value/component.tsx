@@ -19,10 +19,10 @@ export function DefaultStringValueAttribute(props: {
 
   return (
     <div>
-      <Label htmlFor={props.attribute.name}>Default Value</Label>
+      <Label htmlFor={props.attribute.type}>Default Value</Label>
       <Input
-        id={props.attribute.name}
-        name={props.attribute.name}
+        id={props.attribute.type}
+        name={props.attribute.type}
         value={value ?? ""}
         onChange={(e) => {
           props.attribute.setValue(e.target.value);

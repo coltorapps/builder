@@ -11,7 +11,27 @@ export const navigation = [
     links: [
       { title: "React form builder", href: "/docs/guides/form-builder" },
       { title: "Factory pattern", href: "/docs/guides/factory-pattern" },
-      { title: "Drag & Drop", href: "/docs/guides/drag-and-drop" },
+      { title: "Drag & drop", href: "/docs/guides/drag-and-drop" },
+      {
+        title: "Form validation approaches",
+        href: "/docs/guides/form-validation-approaches",
+      },
+      {
+        title: "Entity hierarchies",
+        href: "/docs/guides/entity-hierarchies",
+      },
+      {
+        title: "Virtualization",
+        href: "/docs/guides/virtualization",
+      },
+      {
+        title: "Interdependent attribute values",
+        href: "/docs/guides/interdependent-attribute-values",
+      },
+      {
+        title: "Progressive enhancement",
+        href: "/docs/guides/progressive-enhancement",
+      },
     ],
   },
   {
@@ -43,6 +63,10 @@ export const navigation = [
         title: "validateEntitiesValues",
         href: "/docs/api/validate-entities-values",
       },
+      {
+        title: "EntityAttributesValues",
+        href: "/docs/api/entity-attributes-values",
+      },
     ],
   },
   {
@@ -54,8 +78,44 @@ export const navigation = [
         href: "/docs/api/react/use-builder-store-data",
       },
       {
-        title: "createEntityComponent",
-        href: "/docs/api/react/create-entity-component",
+        title: "BuilderEntityComponentProps",
+        href: "/docs/api/react/builder-entity-component-props",
+      },
+      {
+        title: "BuilderEntityInstance",
+        href: "/docs/api/react/builder-entity-instance",
+      },
+      {
+        title: "AttributeInstance",
+        href: "/docs/api/react/attribute-instance",
+      },
+      {
+        title: "useAttributeValue",
+        href: "/docs/api/react/use-attribute-value",
+      },
+      {
+        title: "useAttributeError",
+        href: "/docs/api/react/use-attribute-error",
+      },
+      {
+        title: "useEntityAttributesValues",
+        href: "/docs/api/react/use-entity-attributes-values",
+      },
+      {
+        title: "useEntityAttributesErrors",
+        href: "/docs/api/react/use-entity-attributes-errors",
+      },
+      {
+        title: "useEntityAdded",
+        href: "/docs/api/react/use-entity-added",
+      },
+      {
+        title: "useEntityDeleted",
+        href: "/docs/api/react/use-entity-deleted",
+      },
+      {
+        title: "useAttributeValueUpdated",
+        href: "/docs/api/react/use-attribute-value-updated",
       },
       {
         title: "<BuilderEntities />",
@@ -66,20 +126,20 @@ export const navigation = [
         href: "/docs/api/react/builder-entity",
       },
       {
-        title: "createAttributeComponent",
-        href: "/docs/api/react/create-attribute-component",
-      },
-      {
-        title: "<BuilderEntityAttributes />",
-        href: "/docs/api/react/builder-entity-attributes",
-      },
-      {
         title: "useInterpreterStore",
         href: "/docs/api/react/use-interpreter-store",
       },
       {
         title: "useInterpreterStoreData",
         href: "/docs/api/react/use-interpreter-store-data",
+      },
+      {
+        title: "InterpreterEntityComponentProps",
+        href: "/docs/api/react/interpreter-entity-component-props",
+      },
+      {
+        title: "InterpreterEntityInstance",
+        href: "/docs/api/react/interpreter-entity-instance",
       },
       {
         title: "<InterpreterEntities />",
@@ -90,8 +150,29 @@ export const navigation = [
         href: "/docs/api/react/interpreter-entity",
       },
       {
-        title: "useInterpreterEntitiesValues",
-        href: "/docs/api/react/use-interpreter-entities-values",
+        title: "useEntityValue",
+        href: "/docs/api/react/use-entity-value",
+      },
+      {
+        title: "useEntityError",
+        href: "/docs/api/react/use-entity-error",
+      },
+      {
+        title: "useEntityValueUpdated",
+        href: "/docs/api/react/use-entity-value-updated",
+      },
+      {
+        title: "useEntityProcessabilityChanged",
+        href: "/docs/api/react/use-entity-processability-changed",
+      },
+    ],
+  },
+  {
+    title: "Upgrade Guides",
+    links: [
+      {
+        title: "Upgrading from 0.x.x to 1.x.x",
+        href: "/docs/upgrade-guides/upgrading-from-0-x-x-to-1-x-x",
       },
     ],
   },
