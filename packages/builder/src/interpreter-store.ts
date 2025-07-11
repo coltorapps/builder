@@ -5,6 +5,7 @@ import {
   validateEntityValue,
   type EntitiesErrors,
   type EntitiesValues,
+  type EntitiesValuesUnion,
   type EntitiesValuesValidationResult,
   type EntityValue,
   type EntityValueValidationResult,
@@ -104,7 +105,9 @@ function deserializeInterpreterStoreData<TBuilder extends Builder>(
 function serializeInternalEntitiesValues<TBuilder extends Builder>(
   entitiesValues: InternalInterpreterStoreData<TBuilder>["entitiesValues"],
 ): InterpreterStoreData<TBuilder>["entitiesValues"] {
-  return Object.fromEntries(entitiesValues);
+  return Object.fromEntries(
+    entitiesValues,
+  ) as InterpreterStoreData<TBuilder>["entitiesValues"];
 }
 
 function serializeInternalEntitiesErrors<TBuilder extends Builder>(
@@ -742,7 +745,7 @@ export function createInterpreterStore<TBuilder extends Builder>(
         });
       }
 
-      return entityValidationResult;
+      return entityValidationResult as unknown as ReturnType<InterpreterStore<TBuilder>['validateEntityValue']>;
     },
     async validateEntitiesValues() {
       const data = getData();
@@ -815,7 +818,9 @@ export function createInterpreterStore<TBuilder extends Builder>(
       return isEntityProcessable(entityId, getData());
     },
     getEntityValue(entityId) {
-      return getData().entitiesValues.get(entityId);
+      return getData().entitiesValues.get(entityId) as EntitiesValuesUnion<
+        TBuilder["entities"]
+      >;
     },
     getEntityError(entityId) {
       return getData().entitiesErrors.get(entityId);
@@ -844,8 +849,16 @@ export interface InterpreterStore<TBuilder extends Builder = Builder> {
   ): ReturnType<Subscribe<InterpreterStoreData<TBuilder>>>;
   builder: TBuilder;
   schema: Schema<TBuilder>;
-  validateEntityValue(entityId: string): Promise<EntityValueValidationResult>;
-  validateEntitiesValues(): Promise<EntitiesValuesValidationResult>;
+  validateEntityValue(entityId: string): Promise<
+    {
+      [K in ExtractStringKeys<
+        TBuilder["entities"]
+      >]: EntityValueValidationResult<TBuilder["entities"][K]>;
+    }[ExtractStringKeys<TBuilder["entities"]>]
+  >;
+  validateEntitiesValues(): Promise<
+    EntitiesValuesValidationResult<TBuilder["entities"]>
+  >;
   setEntityValue<TEntityType extends EntityTypeWithAllowedValue<TBuilder>>(
     entityId: string,
     value: EntityValue<TBuilder["entities"][TEntityType]> | undefined,
@@ -872,6 +885,6 @@ export interface InterpreterStore<TBuilder extends Builder = Builder> {
   isEntityProcessable(entityId: string): boolean;
   getEntityValue(
     entityId: string,
-  ): EntityValue<TBuilder["entities"][string]> | undefined;
+  ): EntitiesValuesUnion<TBuilder["entities"]> | undefined;
   getEntityError(entityId: string): unknown;
 }

@@ -10,13 +10,19 @@ export type EntityValue<TEntity extends Entity = Entity> = Awaited<
   ReturnType<TEntity["validate"]>
 >;
 
+export type EntitiesValuesUnion<TEntities extends Record<string, Entity>> = {
+  [K in keyof TEntities]: unknown extends EntityValue<TEntities[K]>
+    ? never
+    : EntityValue<TEntities[K]>;
+}[keyof TEntities];
+
 export type EntitiesValues<
   TEntities extends Record<string, Entity> = Record<string, Entity>,
-> = Record<string, EntityValue<TEntities[string]>>;
+> = Record<string, EntitiesValuesUnion<TEntities>>;
 
 export type OptionalEntitiesValues<
   TEntities extends Record<string, Entity> = Record<string, Entity>,
-> = Record<string, EntityValue<TEntities[string]> | undefined>;
+> = Record<string, EntitiesValuesUnion<TEntities> | undefined>;
 
 export type EntitiesErrors = Record<string, unknown>;
 
@@ -27,7 +33,10 @@ export type EntitiesValuesValidationResult<
   | { entitiesErrors: EntitiesErrors; success: false };
 
 export type EntityValueValidationResult<TEntity extends Entity = Entity> =
-  | { data: EntityValue<TEntity>; success: true }
+  | {
+      data: unknown extends EntityValue<TEntity> ? never : EntityValue<TEntity>;
+      success: true;
+    }
   | { error: unknown; success: false };
 
 export async function validateEntityValue<TBuilder extends Builder>(
@@ -35,7 +44,7 @@ export async function validateEntityValue<TBuilder extends Builder>(
   entitiesValues: OptionalEntitiesValues<TBuilder["entities"]>,
   builder: TBuilder,
   schema: Schema<TBuilder>,
-): Promise<EntityValueValidationResult> {
+): Promise<EntityValueValidationResult<TBuilder["entities"][string]>> {
   const entity = ensureEntityExists(entityId, schema.entities);
   const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
@@ -59,7 +68,9 @@ export async function validateEntityValue<TBuilder extends Builder>(
         })
       : await entityDefinition.validate(entitiesValues[entityId], context);
 
-    return { success: true, data };
+    return { success: true, data } as EntityValueValidationResult<
+      TBuilder["entities"][string]
+    >;
   } catch (error) {
     return { success: false, error };
   }
@@ -180,9 +191,8 @@ export async function validateEntitiesValues<TBuilder extends Builder>(
     if (!validationResult.success) {
       entitiesErrors[entityId] = validationResult.error;
     } else if (typeof validationResult.data !== "undefined") {
-      newEntitiesValues[entityId] = validationResult.data as EntityValue<
-        TBuilder["entities"][string]
-      >;
+      newEntitiesValues[entityId] =
+        validationResult.data as (typeof newEntitiesValues)[string];
     }
   }
 

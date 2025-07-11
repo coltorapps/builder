@@ -1,4 +1,4 @@
-<div align="center"><strong style="background-color:#ffd230;color:#461901;border-radius:0.5rem;padding:0.2rem 0.5rem;">Canary Release</strong></div>
+<div align="center"><img src="https://img.shields.io/badge/Canary-a65f00"></div>
 <br />
 
 [![Builder](https://raw.githubusercontent.com/coltorapps/builder/main/assets/github-cover-photo.png)](https://builder.coltorapps.com)
@@ -106,7 +106,7 @@ export const formBuilder = createBuilder({
 
 ### Further Reading
 
-For more information about core concepts, React integration, API references, and guides, please visit the documentation at [https://builder.coltorapps.com/](https://builder.coltorapps.com/).
+For more information about core concepts, React integration, API references, and guides, please visit the documentation at [https://canary.builder.coltorapps.com/](https://canary.builder.coltorapps.com/).
 
 ## Development
 

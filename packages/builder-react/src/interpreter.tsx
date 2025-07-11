@@ -106,14 +106,14 @@ export function useInterpreterStoreData<TBuilder extends Builder, TData>(
   const dataCache = useRef(selector(interpreterStore.getData()));
 
   return useSyncExternalStore(
-    (listen) =>
+    (onStoreChange) =>
       interpreterStore.subscribe((data) => {
         const newData = selector(data);
 
         if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
-          listen();
+          onStoreChange();
         }
       }),
     () => dataCache.current,
@@ -149,7 +149,7 @@ Ensure that the builder definition includes an entity of type "${entity.type}".`
     );
   }
 
-  const entityForRender: InterpreterEntityInstance<
+  const entityInstance: InterpreterEntityInstance<
     TBuilder["entities"][Extract<keyof TBuilder["entities"], string>],
     Extract<keyof TBuilder["entities"], string>
   > = {
@@ -169,11 +169,7 @@ Ensure that the builder definition includes an entity of type "${entity.type}".`
       return props.interpreterStore.setEntityError(props.entityId, error);
     },
     validate() {
-      return props.interpreterStore.validateEntityValue(
-        props.entityId,
-      ) as ReturnType<
-        InterpreterEntityInstance<TBuilder["entities"][string]>["validate"]
-      >;
+      return props.interpreterStore.validateEntityValue(props.entityId);
     },
     resetValue() {
       return props.interpreterStore.resetEntityValue(props.entityId);
@@ -241,11 +237,15 @@ To fix this:
   const renderEntity = props.children ?? ((props) => props.children);
 
   return renderEntity({
-    entity: entityForRender,
+    entity: entityInstance,
     children: (
       <EntityComponent
         interpreterStore={props.interpreterStore}
-        entity={entityForRender}
+        entity={
+          entityInstance as unknown as InterpreterEntityInstance<
+            TBuilder["entities"][string]
+          >
+        }
         RenderChild={({ entityId, children }) => (
           <InterpreterEntity
             interpreterStore={props.interpreterStore}
@@ -303,14 +303,14 @@ export function useEntityValue<
   const dataCache = useRef(selector(entity.getValue()));
 
   return useSyncExternalStore(
-    (listen) =>
+    (onStoreChange) =>
       entity.subscribeToValue((data) => {
         const newData = selector(data);
 
         if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
-          listen();
+          onStoreChange();
         }
       }),
     () => dataCache.current,
@@ -329,14 +329,14 @@ export function useEntityError<
   const dataCache = useRef(selector(entity.getError()));
 
   return useSyncExternalStore(
-    (listen) =>
+    (onStoreChange) =>
       entity.subscribeToError((data) => {
         const newData = selector(data);
 
         if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
-          listen();
+          onStoreChange();
         }
       }),
     () => dataCache.current,

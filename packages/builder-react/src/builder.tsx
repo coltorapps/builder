@@ -158,14 +158,14 @@ export function useBuilderStoreData<
   const dataCache = useRef(selector(builderStore.getData()));
 
   return useSyncExternalStore(
-    (listen) =>
+    (onStoreChange) =>
       builderStore.subscribe((data) => {
         const newData = selector(data);
 
         if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
-          listen();
+          onStoreChange();
         }
       }),
     () => dataCache.current,
@@ -319,7 +319,7 @@ Ensure that the builder definition includes an entity of type "${entity.type}".`
     {} as BuilderEntityInstance<TBuilder["entities"][string]>["attributes"],
   );
 
-  const entityForRender: BuilderEntityInstance<
+  const entityInstance: BuilderEntityInstance<
     TBuilder["entities"][string],
     Extract<keyof TBuilder["entities"], string>
   > = {
@@ -438,10 +438,10 @@ Ensure that the builder definition includes an entity of type "${entity.type}".`
   }, [props.children]);
 
   return renderEntity({
-    entity: entityForRender,
+    entity: entityInstance,
     children: (
       <EntityComponent
-        entity={entityForRender}
+        entity={entityInstance}
         builderStore={props.builderStore}
         RenderChild={({ entityId, children }) => (
           <BuilderEntity
@@ -505,14 +505,14 @@ export function useAttributeValue<
   const dataCache = useRef(selector(attribute.getValue()));
 
   return useSyncExternalStore(
-    (listen) =>
+    (onStoreChange) =>
       attribute.subscribeToValue((data) => {
         const newData = selector(data);
 
         if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
-          listen();
+          onStoreChange();
         }
       }),
     () => dataCache.current,
@@ -532,14 +532,14 @@ export function useEntityAttributesValues<
   const dataCache = useRef(selector(entity.getAttributesValues()));
 
   return useSyncExternalStore(
-    (listen) =>
+    (onStoreChange) =>
       entity.subscribeToAttributesValues((data) => {
         const newData = selector(data);
 
         if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
-          listen();
+          onStoreChange();
         }
       }),
     () => dataCache.current,
@@ -555,14 +555,14 @@ export function useAttributeError<TAttribute extends Attribute, TData>(
   const dataCache = useRef(selector(attribute.getError()));
 
   return useSyncExternalStore(
-    (listen) =>
+    (onStoreChange) =>
       attribute.subscribeToError((data) => {
         const newData = selector(data);
 
         if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
-          listen();
+          onStoreChange();
         }
       }),
     () => dataCache.current,
@@ -582,14 +582,14 @@ export function useEntityAttributesErrors<
   const dataCache = useRef(selector(entity.getAttributesErrors()));
 
   return useSyncExternalStore(
-    (listen) =>
+    (onStoreChange) =>
       entity.subscribeToAttributesErrors((data) => {
         const newData = selector(data);
 
         if (!comparator(dataCache.current, newData)) {
           dataCache.current = newData;
 
-          listen();
+          onStoreChange();
         }
       }),
     () => dataCache.current,
