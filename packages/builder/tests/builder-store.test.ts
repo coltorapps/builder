@@ -1288,14 +1288,14 @@ describe("builder store", () => {
 
     builderStore.subscribe(listenerWrapper);
 
-    builderStore.setEntityAttribute(
+    builderStore.setEntityAttributeValue(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "label",
       "New label",
       "select",
     );
 
-    builderStore.setEntityAttribute(
+    builderStore.setEntityAttributeValue(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "maxLength",
       1,
@@ -1333,7 +1333,7 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.setEntityAttribute("invalid", "testAttribute", "", "test"),
+      builderStore.setEntityAttributeValue("invalid", "testAttribute", "", "test"),
     ).toThrowErrorMatchingSnapshot();
   });
 
@@ -1370,7 +1370,7 @@ describe("builder store", () => {
     });
 
     expect(() =>
-      builderStore.setEntityAttribute(
+      builderStore.setEntityAttributeValue(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "testAttribute",
         "",
@@ -1413,7 +1413,7 @@ describe("builder store", () => {
 
     expect(() =>
       // @ts-expect-error Intentional wrong data type
-      builderStore.setEntityAttribute(
+      builderStore.setEntityAttributeValue(
         "6e0035c3-0d4c-445f-a42b-2d971225447c",
         "invalid",
         "",
@@ -2467,14 +2467,14 @@ describe("builder store", () => {
 
     expect(listener).toMatchSnapshot();
 
-    builderStore.setEntityAttribute(
+    builderStore.setEntityAttributeValue(
       "6e0035c3-0d4c-445f-a42b-2d971225447c",
       "title",
       "1",
       "test",
     );
 
-    builderStore.setEntityAttribute(
+    builderStore.setEntityAttributeValue(
       "51324b32-adc3-4d17-a90e-66b5453935bd",
       "title",
       "should fail",

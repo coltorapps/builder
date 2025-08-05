@@ -1618,7 +1618,7 @@ describe("unprocessable entities computation", () => {
       },
     });
 
-    const schema: schemaExports.Schema<typeof builder> = {
+    const schema: schemaExports.ParsedSchema<typeof builder> = {
       entities: {
         "51324b32-adc3-4d17-a90e-66b5453935bd": {
           type: "text",

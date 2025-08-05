@@ -14,7 +14,25 @@ export function insertIntoSetAtIndex<T>(
   return new Set(result);
 }
 
-export type ExtractStringKeys<T extends Record<string, unknown>> = Extract<
-  keyof T,
-  string
->;
+export type Result<
+  TValue = unknown,
+  TError = unknown,
+  TKey extends string = "data",
+> =
+  | ({ success: true } & Record<TKey, TValue>)
+  | { success: false; error: TError };
+
+export type ParsingFunction<
+  TResult extends Result<unknown, unknown>,
+  TContext,
+> = (value: unknown, context: TContext) => TResult;
+
+export type PromisedRefinementResult<TValue, TError = unknown> =
+  | Result<TValue, TError>
+  | Promise<Result<TValue, TError>>;
+
+export type RefinementFunction<
+  TValue,
+  TResult extends PromisedRefinementResult<TValue>,
+  TContext,
+> = (value: TValue, context: TContext) => TResult;

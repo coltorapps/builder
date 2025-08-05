@@ -26,7 +26,7 @@ describe("attribute", () => {
 
     expect(attribute).toMatchSnapshot();
 
-    expect(attribute.validate("test", dummyAttributeContext)).toMatchSnapshot();
+    expect(attribute.parse("test", dummyAttributeContext)).toMatchSnapshot();
   });
 
   it("can validate values", () => {
@@ -37,11 +37,11 @@ describe("attribute", () => {
     });
 
     expect(
-      attribute.validate("valid", dummyAttributeContext),
+      attribute.parse("valid", dummyAttributeContext),
     ).toMatchSnapshot();
 
     expect(() =>
-      attribute.validate(1, dummyAttributeContext),
+      attribute.parse(1, dummyAttributeContext),
     ).toThrowErrorMatchingSnapshot();
   });
 });

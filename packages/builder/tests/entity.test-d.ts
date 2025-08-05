@@ -5,11 +5,11 @@ import { createAttribute, type Attribute } from "../src/attribute";
 import {
   createEntity,
   type AttributeExtension,
-  type ContextEntityEntry,
+  type ContextEntity,
   type Entity,
-  type EntityContext,
+  type EntityRefinementContext,
 } from "../src/entity";
-import { type Schema } from "../src/schema";
+import { type ParsedSchema } from "../src/schema";
 
 describe("entity", () => {
   it("can be created", () => {
@@ -28,9 +28,9 @@ describe("entity", () => {
     });
 
     type Context = {
-      entity: ContextEntityEntry;
-      entities: Record<string, ContextEntityEntry>;
-      schema: Schema;
+      entity: ContextEntity;
+      entities: Record<string, ContextEntity>;
+      schema: ParsedSchema;
     };
 
     expectTypeOf(entity).toEqualTypeOf<{
@@ -73,7 +73,7 @@ describe("entity", () => {
       readonly defaultValue: Attribute<string | undefined>;
     };
 
-    type Context = EntityContext<
+    type Context = EntityRefinementContext<
       Entity<
         {
           readonly label: Attribute<string>;

@@ -1,217 +1,328 @@
 import {
+  AttributeError,
   type Attribute,
-  type AttributeContext,
+  type AttributeRefinementContext,
+  type AttributeRefinementResult,
   type AttributeValue,
 } from "./attribute";
 import { type Builder } from "./builder";
-import {
-  type EntityValue,
-  type OptionalEntitiesValues,
-} from "./entities-values";
-import { type Schema, type SchemaEntityWithId } from "./schema";
-import { type ExtractStringKeys } from "./utils";
+import { type OptionalEntitiesValues } from "./entities-values";
+import { type ParsedSchema, type ParsedSchemaEntityWithId } from "./schema";
+import type {
+  ParsingFunction,
+  PromisedRefinementResult,
+  RefinementFunction,
+  Result,
+} from "./utils";
 
 export type EntityAttributesValues<TEntity extends Entity = Entity> = {
   [K in keyof TEntity["attributes"]]: AttributeValue<TEntity["attributes"][K]>;
 };
 
-export type EntityAttributesErrors<TEntity extends Entity = Entity> = Partial<
-  Record<ExtractStringKeys<TEntity["attributes"]>, unknown>
->;
+export type EntityAttributesRefinementErrors<TEntity extends Entity = Entity> =
+  Partial<{
+    [K in keyof TEntity["attributes"]]: AttributeError<
+      TEntity["attributes"][K]
+    >;
+  }>;
 
-export interface ContextEntityEntry<
+export interface ContextEntity<
   TEntity extends Entity = Entity,
-  TType extends string = string,
-> extends SchemaEntityWithId<TEntity, TType> {
+  TType extends PropertyKey = PropertyKey,
+> {
+  id: string;
+  type: TType;
+  attributes: {
+    [K in keyof TEntity["attributes"]]: {
+      metadata: TEntity["attributes"][K]["metadata"];
+      name: K;
+      value: AttributeValue<TEntity["attributes"][K]>;
+    };
+  };
+  parentId?: string;
+  children?: ReadonlyArray<string>;
   value?: EntityValue<TEntity>;
   metadata: TEntity["metadata"];
 }
 
-export interface EntityContext<
+export interface EntityParsingContext<
   TEntity extends Entity = Entity,
-  TType extends string = string,
-  TEntities extends Record<string, Entity> = Record<string, Entity>,
+  TType extends PropertyKey = PropertyKey,
+  TEntities extends Record<PropertyKey, Entity> = Record<PropertyKey, Entity>,
 > {
-  entity: ContextEntityEntry<TEntity, TType>;
-  schema: Schema<Builder<TEntities>>;
+  entity: Omit<ContextEntity<TEntity, TType>, "value">;
+  schema: ParsedSchema<Builder<TEntities>>;
+}
+
+export interface EntityRefinementContext<
+  TEntity extends Entity = Entity,
+  TType extends PropertyKey = PropertyKey,
+  TEntities extends Record<PropertyKey, Entity> = Record<PropertyKey, Entity>,
+> {
+  entity: Omit<ContextEntity<TEntity, TType>, "value">;
+  schema: ParsedSchema<Builder<TEntities>>;
   entities: Record<
     string,
     {
-      [K in ExtractStringKeys<TEntities>]: ContextEntityEntry<TEntities[K], K>;
-    }[ExtractStringKeys<TEntities>]
+      [K in keyof TEntities]: ContextEntity<TEntities[K], K>;
+    }[keyof TEntities]
   >;
 }
 
-interface AttributeValidationExtensionContext<
-  TEntity extends Entity = Entity,
-  TEntityType extends string = string,
+interface AttributeRefinementOverrideContext<
   TAttribute extends Attribute = Attribute,
-  TEntities extends Record<string, Entity> = Record<string, Entity>,
-> extends AttributeContext<TEntity, TEntityType, TEntities> {
-  validate(value: unknown): ReturnType<TAttribute["validate"]>;
+  TAttributeName extends PropertyKey = PropertyKey,
+  TEntity extends Entity = Entity,
+  TEntityType extends PropertyKey = PropertyKey,
+  TEntities extends Record<PropertyKey, Entity> = Record<PropertyKey, Entity>,
+> extends AttributeRefinementContext<
+    TAttribute,
+    TAttributeName,
+    TEntity,
+    TEntityType,
+    TEntities
+  > {
+  refine(
+    value: AttributeValue<TAttribute>,
+  ): AttributeRefinementResult<TAttribute>;
 }
 
-export interface AttributeExtension<
-  TEntity extends Entity = Entity,
-  TEntityType extends string = string,
+export interface AttributeOverride<
   TAttribute extends Attribute = Attribute,
-  TEntities extends Record<string, Entity> = Record<string, Entity>,
+  TAttributeName extends PropertyKey = PropertyKey,
+  TEntity extends Entity = Entity,
+  TEntityType extends PropertyKey = PropertyKey,
+  TEntities extends Record<PropertyKey, Entity> = Record<PropertyKey, Entity>,
 > {
-  validate?(
-    value: unknown,
-    context: AttributeValidationExtensionContext<
+  refine?(
+    value: AttributeValue<TAttribute>,
+    context: AttributeRefinementOverrideContext<
+      TAttribute,
+      TAttributeName,
       TEntity,
       TEntityType,
-      TAttribute,
       TEntities
     >,
-  ): unknown | Promise<unknown>;
+  ): AttributeRefinementResult<TAttribute>;
 }
 
-export interface AttributeExtensionInput<
-  TEntity extends Entity = Entity,
-  TEntityType extends string = string,
+export interface AttributeOverrideInput<
   TAttribute extends Attribute = Attribute,
-  TEntities extends Record<string, Entity> = Record<string, Entity>,
+  TAttributeName extends PropertyKey = PropertyKey,
+  TEntity extends Entity = Entity,
+  TEntityType extends PropertyKey = PropertyKey,
+  TEntities extends Record<PropertyKey, Entity> = Record<PropertyKey, Entity>,
 > {
-  validate?(
-    value: unknown,
-    context: AttributeValidationExtensionContext<
+  refine?(
+    value: AttributeValue<TAttribute>,
+    context: AttributeRefinementOverrideContext<
+      TAttribute,
+      TAttributeName,
       TEntity,
       TEntityType,
-      TAttribute,
       TEntities
     >,
-  ): AttributeValue<TAttribute> | Promise<AttributeValue<TAttribute>>;
+  ): AttributeRefinementResult<TAttribute>;
 }
 
 export interface Entity<
-  TAttributes extends Record<string, Attribute> = Record<string, Attribute>,
+  TAttributes extends Record<PropertyKey, Attribute> = Record<
+    PropertyKey,
+    Attribute
+  >,
   TValue = unknown,
-  TValueAllowed extends boolean = boolean,
+  TParsingError = unknown,
+  TRefinementError = unknown,
   TMetadata = unknown,
 > {
   attributes: TAttributes;
-  valueAllowed: TValueAllowed;
+  valueAllowed: boolean;
   childrenAllowed: boolean;
   parentRequired: boolean;
-  attributesExtensions: Record<string, AttributeExtension>;
-  validate(
-    value: unknown,
-    context: EntityContext<Entity<TAttributes, unknown, boolean, TMetadata>>,
-  ): TValue;
+  attributesOverrides: Record<PropertyKey, AttributeOverride>;
+  validate: [
+    parse: ParsingFunction<Result<TValue, TParsingError>, EntityParsingContext>,
+    refine: RefinementFunction<
+      unknown,
+      PromisedRefinementResult<TValue, TParsingError | TRefinementError>,
+      EntityRefinementContext
+    >,
+  ];
   defaultValue(
-    context: EntityContext<Entity<TAttributes, unknown, boolean, TMetadata>>,
-  ): TValue extends infer U
-    ? (unknown extends U ? never : U) | undefined
-    : never;
+    context: EntityRefinementContext<
+      Entity<TAttributes, unknown, boolean, TMetadata>
+    >,
+  ): unknown;
   shouldBeProcessed(
-    context: EntityContext<Entity<TAttributes, unknown, boolean, TMetadata>>,
+    context: EntityRefinementContext<
+      Entity<TAttributes, unknown, boolean, TMetadata>
+    >,
   ): boolean;
   metadata: TMetadata;
 }
 
-type OptionalEntityArgs =
-  | "attributes"
-  | "defaultValue"
-  | "validate"
-  | "shouldBeProcessed"
-  | "childrenAllowed"
-  | "metadata"
-  | "parentRequired";
+export type EntityValue<TEntity extends Entity> = Extract<
+  ReturnType<TEntity["validate"][0]>,
+  { success: true }
+>["data"];
 
-interface CreateEntityOptions<
-  TAttributes extends Record<string, Attribute>,
-  TValue,
-  TMetadata,
-> extends Omit<
-      Entity<TAttributes, TValue>,
-      OptionalEntityArgs | "valueAllowed" | "attributesExtensions"
-    >,
-    Partial<
-      Pick<Entity<TAttributes, TValue, boolean, TMetadata>, OptionalEntityArgs>
-    > {
-  attributesExtensions?: {
-    [K in ExtractStringKeys<TAttributes>]?: AttributeExtensionInput<
-      Entity<TAttributes, unknown, boolean, TMetadata>,
-      string,
-      TAttributes[K]
-    >;
-  };
-}
+export type EntityRefinementResult<TEntity extends Entity> = ReturnType<
+  TEntity["validate"][1]
+>;
+
+export type EntityError<TEntity extends Entity> = Extract<
+  EntityRefinementResult<TEntity>,
+  { success: false }
+>["error"];
 
 export function createEntity<
-  const TAttributes extends Record<string, Attribute>,
-  TValue = unknown,
-  TMetadata = unknown,
+  const TAttributes extends Record<PropertyKey, Attribute> = never,
+  TValue = never,
+  TParsingError = never,
+  TRefinementError = never,
+  TMetadata = never,
 >(
-  options?: CreateEntityOptions<TAttributes, TValue, TMetadata>,
+  options?: {
+    attributesOverrides?: {
+      [K in keyof TAttributes]?: AttributeOverrideInput<
+        TAttributes[K],
+        K,
+        Entity<TAttributes, unknown, boolean, TMetadata>,
+        PropertyKey
+      >;
+    };
+    attributes?: TAttributes;
+    childrenAllowed?: boolean;
+    parentRequired?: boolean;
+    defaultValue?(
+      context: EntityRefinementContext<
+        Entity<TAttributes, unknown, boolean, TMetadata>
+      >,
+    ): NoInfer<TValue>;
+    shouldBeProcessed?(
+      context: EntityRefinementContext<
+        Entity<TAttributes, unknown, boolean, TMetadata>
+      >,
+    ): boolean;
+    metadata?: TMetadata;
+  } & (
+    | {
+        validate?: ParsingFunction<
+          Result<TValue, TParsingError>,
+          EntityParsingContext<Entity<TAttributes, unknown, unknown, TMetadata>>
+        >;
+      }
+    | {
+        validate?: [
+          parse: ParsingFunction<
+            Result<TValue, TParsingError>,
+            EntityParsingContext<
+              Entity<TAttributes, unknown, unknown, TMetadata>
+            >
+          >,
+          refine: RefinementFunction<
+            TValue,
+            PromisedRefinementResult<TValue, TParsingError | TRefinementError>,
+            EntityRefinementContext<
+              Entity<TAttributes, unknown, unknown, TMetadata>
+            >
+          >,
+        ];
+      }
+  ),
 ): Entity<
   TAttributes,
-  TValue,
-  unknown extends TValue ? false : true,
-  TMetadata
+  NoInfer<TValue>,
+  NoInfer<TParsingError | TRefinementError>,
+  NoInfer<TMetadata>
 > {
+  const forbidenValueErrorMessage = "Value not allowed.";
+
+  const validate = (
+    options?.validate
+      ? Array.isArray(options.validate)
+        ? options.validate
+        : [
+            options.validate,
+            (value: unknown) => ({ success: true, data: value }),
+          ]
+      : [
+          () => {
+            throw new Error(forbidenValueErrorMessage);
+          },
+          () => {
+            throw new Error(forbidenValueErrorMessage);
+          },
+        ]
+  ) as Entity<
+    TAttributes,
+    TValue,
+    TParsingError | TRefinementError,
+    TMetadata
+  >["validate"];
+
   return {
     ...options,
     metadata: options?.metadata as TMetadata,
     childrenAllowed: options?.childrenAllowed ?? false,
     parentRequired: options?.parentRequired ?? false,
     attributes: options?.attributes ?? ({} as TAttributes),
-    valueAllowed: (typeof options?.validate ===
-      "function") as unknown extends TValue ? false : true,
-    attributesExtensions:
-      (options?.attributesExtensions as Entity["attributesExtensions"]) ?? {},
-    validate:
-      options?.validate ??
-      ((value, ctx) => {
-        if (typeof value !== "undefined") {
-          throw new Error(
-            `Values for entities of type "${ctx.entity.type}" are not allowed.`,
-          );
-        }
-
-        return undefined as TValue;
-      }),
-    defaultValue: options?.defaultValue ?? (() => undefined as never),
-    shouldBeProcessed: options?.shouldBeProcessed ?? (() => true),
+    valueAllowed: Boolean(options?.validate),
+    attributesOverrides:
+      (options?.attributesOverrides as Entity["attributesOverrides"]) ?? {},
+    validate,
+    defaultValue: options?.defaultValue
+      ? (...args) => options?.defaultValue?.(...args)
+      : () => undefined as never,
+    shouldBeProcessed: options?.shouldBeProcessed
+      ? (...args) => options?.shouldBeProcessed?.(...args) ?? true
+      : () => true,
   };
 }
 
-export function ensureEntityTypeMatches(
-  entity: { id: string; type: string },
-  type: string,
-) {
-  if (entity.type !== type) {
-    throw new Error(
-      `Entity with ID "${entity.id}" is of type "${entity.type}" but expected "${type}".`,
-    );
-  }
-}
-
-export function computeContextEntitiesEntry<TBuilder extends Builder>(
-  entity: SchemaEntityWithId<
-    TBuilder["entities"][string],
-    ExtractStringKeys<TBuilder["entities"]>
+export function computeContextEntity<TBuilder extends Builder>(
+  entity: ParsedSchemaEntityWithId<
+    TBuilder["entities"][keyof TBuilder["entities"]],
+    keyof TBuilder["entities"]
   >,
   entityValue: unknown,
   builder: TBuilder,
-): ContextEntityEntry {
+): ContextEntity<
+  TBuilder["entities"][keyof TBuilder["entities"]],
+  keyof TBuilder["entities"]
+> {
+  const entityDefinition = builder.entities[entity.type];
+
+  const attributes: ContextEntity["attributes"] = {};
+
+  for (const key of Reflect.ownKeys(entityDefinition.attributes)) {
+    attributes[key] = {
+      value: entity.attributes[key],
+      metadata: entityDefinition.attributes[key]?.metadata,
+      name: key as never,
+    };
+  }
+
   return {
     ...entity,
     value: entityValue,
-    metadata: builder.entities[entity.type]?.metadata,
+    metadata: entityDefinition?.metadata,
+    attributes: attributes as ContextEntity<
+      TBuilder["entities"][keyof TBuilder["entities"]],
+      keyof TBuilder["entities"]
+    >["attributes"],
   };
 }
-export function computeContextEntitiesEntries<TBuilder extends Builder>(
+
+export function computeContextEntities<TBuilder extends Builder>(
   entitiesValues: OptionalEntitiesValues<TBuilder["entities"]>,
   builder: TBuilder,
-  schema: Schema<TBuilder>,
-): Record<string, ContextEntityEntry> {
+  schema: ParsedSchema<TBuilder>,
+): Record<string, ContextEntity> {
   return Object.fromEntries(
     Object.entries(schema.entities).map(([entityId, entity]) => [
       entityId,
-      computeContextEntitiesEntry(
+      computeContextEntity(
         { ...entity, id: entityId },
         entitiesValues[entityId],
         builder,

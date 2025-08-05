@@ -4,18 +4,20 @@ export type { Builder } from "./builder";
 export { createEntity } from "./entity";
 export type {
   Entity,
-  EntityContext,
-  ContextEntityEntry,
+  EntityValue,
+  EntityRefinementContext,
+  ContextEntity,
   EntityAttributesValues,
-  EntityAttributesErrors,
+  EntityAttributesRefinementErrors,
 } from "./entity";
 
 export { createAttribute } from "./attribute";
 export type {
   Attribute,
   AttributeValue,
-  AttributeContext,
-  AttributeValueValidationResult,
+  AttributeError as AttributeRefinementError,
+  AttributeParseContext,
+  AttributeRefinementContext,
 } from "./attribute";
 
 export { createBuilderStore } from "./builder-store";
@@ -29,23 +31,23 @@ export type {
 } from "./interpreter-store";
 
 export {
-  SchemaValidationError,
-  schemaValidationErrorCodes,
+  SchemaParsingError,
+  SchemaRefinementError,
+  parseSchema,
   validateSchema,
-  validateSchemaShape,
 } from "./schema";
 export type {
-  Schema,
-  SchemaEntity,
-  SchemaEntityWithId,
-  EntitiesAttributesErrors,
-  SchemaValidationErrorCode,
-  SchemaValidationErrorReason,
+  ParsedSchema,
+  ParsedSchemaEntity,
+  ParsedSchemaEntityWithId,
+  ValidatedSchema,
+  ValidatedSchemaEntity,
+  ValidatedSchemaEntityWithId,
+  EntitiesAttributesRefinementErrors,
 } from "./schema";
 
 export { validateEntitiesValues } from "./entities-values";
 export type {
-  EntityValue,
   EntitiesErrors,
   EntitiesValues,
   EntityValueValidationResult,

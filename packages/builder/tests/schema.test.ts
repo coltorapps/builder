@@ -3,23 +3,23 @@ import { z } from "zod";
 
 import { createAttribute, createBuilder, createEntity } from "../src";
 import {
-  schemaValidationErrorCodes,
+  schemaParsingErrorCodes,
   validateSchema,
-  validateSchemaShape,
-  type Schema,
-  type SchemaValidationErrorReason,
+  parseSchema,
+  type ParsedSchema,
+  type SchemaParsingErrorReason,
 } from "../src/schema";
 
 const invalidSchemasCases: Array<{
   schema: unknown;
-  reason: SchemaValidationErrorReason;
+  reason: SchemaParsingErrorReason;
 }> = [
   {
     schema: {
       entities: {},
     },
     reason: {
-      code: schemaValidationErrorCodes.InvalidRootFormat,
+      code: schemaParsingErrorCodes.InvalidRootFormat,
       payload: {},
     },
   },
@@ -29,7 +29,7 @@ const invalidSchemasCases: Array<{
       root: {},
     },
     reason: {
-      code: schemaValidationErrorCodes.InvalidRootFormat,
+      code: schemaParsingErrorCodes.InvalidRootFormat,
       payload: {
         root: {},
       },
@@ -41,7 +41,7 @@ const invalidSchemasCases: Array<{
       root: null,
     },
     reason: {
-      code: schemaValidationErrorCodes.InvalidRootFormat,
+      code: schemaParsingErrorCodes.InvalidRootFormat,
       payload: {
         root: null,
       },
@@ -61,7 +61,7 @@ const invalidSchemasCases: Array<{
       ],
     },
     reason: {
-      code: schemaValidationErrorCodes.DuplicateRootId,
+      code: schemaParsingErrorCodes.DuplicateRootId,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       },
@@ -80,7 +80,7 @@ const invalidSchemasCases: Array<{
       root: [],
     },
     reason: {
-      code: schemaValidationErrorCodes.EmptyRoot,
+      code: schemaParsingErrorCodes.EmptyRoot,
     },
   },
   {
@@ -89,7 +89,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.NonexistentEntityId,
+      code: schemaParsingErrorCodes.NonexistentEntityId,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       },
@@ -101,7 +101,7 @@ const invalidSchemasCases: Array<{
       root: [],
     },
     reason: {
-      code: schemaValidationErrorCodes.InvalidEntitiesFormat,
+      code: schemaParsingErrorCodes.InvalidEntitiesFormat,
       payload: {
         entities: [],
       },
@@ -113,7 +113,7 @@ const invalidSchemasCases: Array<{
       root: [],
     },
     reason: {
-      code: schemaValidationErrorCodes.InvalidEntitiesFormat,
+      code: schemaParsingErrorCodes.InvalidEntitiesFormat,
       payload: {
         entities: null,
       },
@@ -129,7 +129,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.MissingEntityType,
+      code: schemaParsingErrorCodes.MissingEntityType,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       },
@@ -146,7 +146,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.UnknownEntityType,
+      code: schemaParsingErrorCodes.UnknownEntityType,
       payload: {
         entityType: "invalid",
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
@@ -163,7 +163,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.MissingEntityAttributes,
+      code: schemaParsingErrorCodes.MissingEntityAttributes,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       },
@@ -180,7 +180,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.InvalidEntityAttributesFormat,
+      code: schemaParsingErrorCodes.InvalidEntityAttributesFormat,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         entityAttributes: [],
@@ -200,7 +200,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.UnknownEntityAttributeType,
+      code: schemaParsingErrorCodes.UnknownEntityAttributeType,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         attributeName: "invalid",
@@ -219,7 +219,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.NonexistentEntityParent,
+      code: schemaParsingErrorCodes.NonexistentEntityParent,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         entityParentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -238,7 +238,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.SelfEntityReference,
+      code: schemaParsingErrorCodes.SelfEntityReference,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       },
@@ -256,7 +256,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.InvalidChildrenFormat,
+      code: schemaParsingErrorCodes.InvalidChildrenFormat,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
       },
@@ -279,7 +279,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.ChildNotAllowed,
+      code: schemaParsingErrorCodes.ChildNotAllowed,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         childId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -306,7 +306,7 @@ const invalidSchemasCases: Array<{
       ],
     },
     reason: {
-      code: schemaValidationErrorCodes.RootEntityWithParent,
+      code: schemaParsingErrorCodes.RootEntityWithParent,
       payload: {
         entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
       },
@@ -331,7 +331,7 @@ const invalidSchemasCases: Array<{
       ],
     },
     reason: {
-      code: schemaValidationErrorCodes.EntityChildrenMismatch,
+      code: schemaParsingErrorCodes.EntityChildrenMismatch,
       payload: {
         entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
         childId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
@@ -358,7 +358,7 @@ const invalidSchemasCases: Array<{
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     },
     reason: {
-      code: schemaValidationErrorCodes.DuplicateChildId,
+      code: schemaParsingErrorCodes.DuplicateChildId,
       payload: {
         entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
       },
@@ -385,7 +385,7 @@ const invalidSchemasCases: Array<{
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     },
     reason: {
-      code: schemaValidationErrorCodes.EntityParentMismatch,
+      code: schemaParsingErrorCodes.EntityParentMismatch,
       payload: {
         entityId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
         parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
@@ -403,7 +403,7 @@ const invalidSchemasCases: Array<{
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     },
     reason: {
-      code: schemaValidationErrorCodes.ParentRequired,
+      code: schemaParsingErrorCodes.ParentRequired,
       payload: {
         entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
       },
@@ -426,7 +426,7 @@ const invalidSchemasCases: Array<{
       root: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
     },
     reason: {
-      code: schemaValidationErrorCodes.ParentNotAllowed,
+      code: schemaParsingErrorCodes.ParentNotAllowed,
       payload: {
         entityId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
         parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
@@ -467,7 +467,7 @@ describe("schema shape validation", () => {
     });
 
     for (const item of invalidSchemasCases) {
-      const result = validateSchemaShape(item.schema as Schema, builder);
+      const result = parseSchema(item.schema as ParsedSchema, builder);
 
       expect(result).toEqual({
         success: false,
@@ -492,7 +492,7 @@ describe("schema shape validation", () => {
     });
 
     expect(
-      validateSchemaShape(
+      parseSchema(
         {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -515,7 +515,7 @@ describe("schema shape validation", () => {
     });
 
     expect(() =>
-      validateSchemaShape(
+      parseSchema(
         {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -541,7 +541,7 @@ describe("schema shape validation", () => {
     });
 
     expect(() =>
-      validateSchemaShape(
+      parseSchema(
         {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -565,7 +565,7 @@ describe("schema shape validation", () => {
     });
 
     expect(() =>
-      validateSchemaShape(
+      parseSchema(
         {
           entities: {
             "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
@@ -599,7 +599,7 @@ describe("schema shape validation", () => {
       entities: { text: textEntity, section: sectionEntity },
     });
 
-    const schema: Schema = {
+    const schema: ParsedSchema = {
       entities: {
         "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
           type: "text",
@@ -619,7 +619,7 @@ describe("schema shape validation", () => {
       root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
     };
 
-    expect(validateSchemaShape(schema, builder)).toMatchSnapshot();
+    expect(parseSchema(schema, builder)).toMatchSnapshot();
   });
 });
 
@@ -668,7 +668,7 @@ describe("schema validation", () => {
     });
 
     for (const item of invalidSchemasCases) {
-      const result = await validateSchema(item.schema as Schema, builder);
+      const result = await validateSchema(item.schema as ParsedSchema, builder);
 
       expect(result).toEqual({
         success: false,
@@ -721,7 +721,7 @@ describe("schema validation", () => {
     expect(result).toEqual({
       success: false,
       reason: {
-        code: schemaValidationErrorCodes.InvalidSchema,
+        code: schemaParsingErrorCodes.InvalidSchema,
         payload: {
           schemaError: "Label validation failed",
         },

@@ -12,16 +12,16 @@ import {
   type OptionalEntitiesValues,
 } from "./entities-values";
 import {
-  computeContextEntitiesEntries,
-  computeContextEntitiesEntry,
+  computeContextEntities,
+  computeContextEntity,
   ensureEntityTypeMatches,
 } from "./entity";
 import {
   ensureEntityExists,
-  SchemaValidationError,
-  validateSchemaShape,
-  type Schema,
-  type SchemaEntityWithId,
+  SchemaError,
+  parseSchema,
+  type ParsedSchema,
+  type ParsedSchemaEntityWithId,
 } from "./schema";
 import { type Subscribe } from "./subscription-manager";
 import { type ExtractStringKeys } from "./utils";
@@ -49,7 +49,7 @@ export type EntityTypeWithAllowedValue<TBuilder extends Builder> = {
 
 function ensureEntitiesErrorsAreValid<TBuilder extends Builder>(
   entitiesErrors: InterpreterStoreData<TBuilder>["entitiesErrors"],
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
 ): InterpreterStoreData<TBuilder>["entitiesErrors"] {
   if (
     typeof entitiesErrors !== "object" ||
@@ -70,7 +70,7 @@ function ensureEntitiesErrorsAreValid<TBuilder extends Builder>(
 
 function ensureEntitiesValuesAreValid<TBuilder extends Builder>(
   entitiesValues: InterpreterStoreData<TBuilder>["entitiesValues"],
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
 ): InterpreterStoreData<TBuilder>["entitiesValues"] {
   if (
@@ -138,7 +138,7 @@ export function deserializeAndValidateInterpreterStoreData<
   TBuilder extends Builder,
 >(
   data: Omit<InterpreterStoreData<TBuilder>, "unprocessableEntitiesIds">,
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
 ): InternalInterpreterStoreData<TBuilder> {
   const validatedEntitiesValues = ensureEntitiesValuesAreValid(
@@ -162,7 +162,7 @@ export function deserializeAndValidateInterpreterStoreData<
 function resetEntityValue<TBuilder extends Builder>(
   entityId: string,
   entitiesValues: InternalInterpreterStoreData<TBuilder>["entitiesValues"],
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
 ): InternalInterpreterStoreData<TBuilder>["entitiesValues"] {
   const newEntitiesValues = new Map(entitiesValues);
@@ -176,8 +176,8 @@ function resetEntityValue<TBuilder extends Builder>(
   ]?.defaultValue?.bind?.(builder.entitiesExtensions[entity.type]);
 
   const context = {
-    entity: computeContextEntitiesEntry(entity, entitiesValues, builder),
-    entities: computeContextEntitiesEntries(
+    entity: computeContextEntity(entity, entitiesValues, builder),
+    entities: computeContextEntities(
       serializeInternalEntitiesValues(entitiesValues),
       builder,
       schema,
@@ -201,7 +201,7 @@ function resetEntityValue<TBuilder extends Builder>(
 
 function resetEntitiesValues<TBuilder extends Builder>(
   entitiesValues: InternalInterpreterStoreData<TBuilder>["entitiesValues"],
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
   options?: {
     skipAlreadySetEntitiesValues?: boolean;
@@ -231,7 +231,7 @@ function resetEntitiesValues<TBuilder extends Builder>(
 function isEntityValueAllowed(
   entityId: string,
   builder: Builder,
-  schema: Schema<Builder>,
+  schema: ParsedSchema<Builder>,
 ): boolean {
   const entity = ensureEntityExists(entityId, schema.entities);
 
@@ -241,7 +241,7 @@ function isEntityValueAllowed(
 function ensureEntityValueAllowed(
   entityId: string,
   builder: Builder,
-  schema: Schema<Builder>,
+  schema: ParsedSchema<Builder>,
 ): void {
   if (!isEntityValueAllowed(entityId, builder, schema)) {
     const entity = ensureEntityExists(entityId, schema.entities);
@@ -255,7 +255,7 @@ function ensureEntityValueAllowed(
 function ensureEntityErrorAllowed(
   entityId: string,
   builder: Builder,
-  schema: Schema<Builder>,
+  schema: ParsedSchema<Builder>,
 ): void {
   if (!isEntityValueAllowed(entityId, builder, schema)) {
     const entity = ensureEntityExists(entityId, schema.entities);
@@ -269,7 +269,7 @@ function ensureEntityErrorAllowed(
 function ensureEntitiesValuesAllowed(
   entitiesValues: InternalInterpreterStoreData["entitiesValues"],
   builder: Builder,
-  schema: Schema<Builder>,
+  schema: ParsedSchema<Builder>,
 ): void {
   for (const entityId of entitiesValues.keys()) {
     ensureEntityValueAllowed(entityId, builder, schema);
@@ -279,7 +279,7 @@ function ensureEntitiesValuesAllowed(
 function ensureEntitiesErrorsAllowed(
   entitiesErrors: InternalInterpreterStoreData["entitiesErrors"],
   builder: Builder,
-  schema: Schema<Builder>,
+  schema: ParsedSchema<Builder>,
 ): void {
   for (const entityId of entitiesErrors.keys()) {
     ensureEntityErrorAllowed(entityId, builder, schema);
@@ -288,7 +288,7 @@ function ensureEntitiesErrorsAllowed(
 
 function getRecurringChildrenIds(
   entityId: string,
-  schema: Schema,
+  schema: ParsedSchema,
 ): Array<string> {
   const entity = ensureEntityExists(entityId, schema.entities);
 
@@ -306,11 +306,11 @@ function getRecurringChildrenIds(
 }
 
 function computeEntityProcessability<TBuilder extends Builder>(
-  entity: SchemaEntityWithId<
+  entity: ParsedSchemaEntityWithId<
     TBuilder["entities"][string],
     ExtractStringKeys<TBuilder["entities"]>
   >,
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
   data: InternalInterpreterStoreData<TBuilder>,
   builder: TBuilder,
 ): InternalInterpreterStoreData<TBuilder> {
@@ -327,9 +327,9 @@ function computeEntityProcessability<TBuilder extends Builder>(
   ]?.shouldBeProcessed?.bind?.(builder.entitiesExtensions[entity.type]);
 
   const context = {
-    entity: computeContextEntitiesEntry(entity, data.entitiesValues, builder),
+    entity: computeContextEntity(entity, data.entitiesValues, builder),
     schema,
-    entities: computeContextEntitiesEntries(
+    entities: computeContextEntities(
       serializeInternalEntitiesValues(data.entitiesValues),
       builder,
       schema,
@@ -412,7 +412,7 @@ function computeEntityProcessability<TBuilder extends Builder>(
 }
 
 export function computeUnprocessableEntities<TBuilder extends Builder>(
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
   data: InternalInterpreterStoreData<TBuilder>,
   builder: TBuilder,
 ): InternalInterpreterStoreData<TBuilder> {
@@ -477,13 +477,13 @@ export interface InterpreterStoreOptions<TBuilder extends Builder> {
 
 export function createInterpreterStore<TBuilder extends Builder>(
   builder: TBuilder,
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
   options?: InterpreterStoreOptions<TBuilder>,
 ): InterpreterStore<TBuilder> {
-  const schemaValidationResult = validateSchemaShape(schema, builder);
+  const schemaValidationResult = parseSchema(schema, builder);
 
   if (!schemaValidationResult.success) {
-    throw new SchemaValidationError(schemaValidationResult.reason);
+    throw new SchemaError(schemaValidationResult.reason);
   }
 
   let initialStoreData = deserializeAndValidateInterpreterStoreData(
@@ -848,7 +848,7 @@ export interface InterpreterStore<TBuilder extends Builder = Builder> {
     ...args: Parameters<Subscribe<InterpreterStoreData<TBuilder>>>
   ): ReturnType<Subscribe<InterpreterStoreData<TBuilder>>>;
   builder: TBuilder;
-  schema: Schema<TBuilder>;
+  schema: ParsedSchema<TBuilder>;
   validateEntityValue(entityId: string): Promise<
     {
       [K in ExtractStringKeys<

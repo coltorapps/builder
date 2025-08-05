@@ -1,27 +1,26 @@
 import { ensureEntityIsRegistered, type Builder } from "./builder";
 import {
-  computeContextEntitiesEntries,
-  computeContextEntitiesEntry,
+  computeContextEntities,
+  computeContextEntity,
   type Entity,
 } from "./entity";
-import { ensureEntityExists, type Schema } from "./schema";
+import { ensureEntityExists, type ParsedSchema } from "./schema";
 
-export type EntityValue<TEntity extends Entity = Entity> = Awaited<
-  ReturnType<TEntity["validate"]>
->;
-
-export type EntitiesValuesUnion<TEntities extends Record<string, Entity>> = {
-  [K in keyof TEntities]: unknown extends EntityValue<TEntities[K]>
-    ? never
-    : EntityValue<TEntities[K]>;
-}[keyof TEntities];
+// export type EntitiesValuesUnion<TEntities extends Record<PropertyKey, Entity>> = {
+//   [K in keyof TEntities]: unknown extends EntityValue<TEntities[K]>
+//     ? never
+//     : EntityValue<TEntities[K]>;
+// }[keyof TEntities];
+export type EntitiesValuesUnion<TEntities extends Record<PropertyKey, Entity>> =
+  any;
+type EntityValue<TEntity> = any;
 
 export type EntitiesValues<
-  TEntities extends Record<string, Entity> = Record<string, Entity>,
+  TEntities extends Record<PropertyKey, Entity> = Record<PropertyKey, Entity>,
 > = Record<string, EntitiesValuesUnion<TEntities>>;
 
 export type OptionalEntitiesValues<
-  TEntities extends Record<string, Entity> = Record<string, Entity>,
+  TEntities extends Record<PropertyKey, Entity> = Record<PropertyKey, Entity>,
 > = Record<string, EntitiesValuesUnion<TEntities> | undefined>;
 
 export type EntitiesErrors = Record<string, unknown>;
@@ -43,14 +42,14 @@ export async function validateEntityValue<TBuilder extends Builder>(
   entityId: string,
   entitiesValues: OptionalEntitiesValues<TBuilder["entities"]>,
   builder: TBuilder,
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
 ): Promise<EntityValueValidationResult<TBuilder["entities"][string]>> {
   const entity = ensureEntityExists(entityId, schema.entities);
   const entityDefinition = ensureEntityIsRegistered(entity.type, builder);
 
   const context = {
-    entity: computeContextEntitiesEntry(entity, entitiesValues, builder),
-    entities: computeContextEntitiesEntries(entitiesValues, builder, schema),
+    entity: computeContextEntity(entity, entitiesValues, builder),
+    entities: computeContextEntities(entitiesValues, builder, schema),
     schema,
   };
 
@@ -81,7 +80,7 @@ function getEligibleEntitiesIdsForValidationFromEntity<
 >(
   entityId: string,
   entitiesValues: OptionalEntitiesValues<TBuilder["entities"]>,
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
 ): string[] {
   const entity = ensureEntityExists(entityId, schema.entities);
@@ -90,8 +89,8 @@ function getEligibleEntitiesIdsForValidationFromEntity<
 
   const context = {
     schema,
-    entity: computeContextEntitiesEntry(entity, entitiesValues, builder),
-    entities: computeContextEntitiesEntries(entitiesValues, builder, schema),
+    entity: computeContextEntity(entity, entitiesValues, builder),
+    entities: computeContextEntities(entitiesValues, builder, schema),
   };
 
   const computeEntityExtensionShouldBeProcessed = builder.entitiesExtensions[
@@ -132,7 +131,7 @@ function getEligibleEntitiesIdsForValidationFromEntity<
 export function getEligibleEntitiesIdsForValidation<TBuilder extends Builder>(
   entitiesValues: OptionalEntitiesValues<TBuilder["entities"]>,
   builder: TBuilder,
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
 ): string[] {
   let eligibleEntities: string[] = [];
 
@@ -153,7 +152,7 @@ export function getEligibleEntitiesIdsForValidation<TBuilder extends Builder>(
 export async function validateEntitiesValues<TBuilder extends Builder>(
   entitiesValues: unknown,
   builder: TBuilder,
-  schema: Schema<TBuilder>,
+  schema: ParsedSchema<TBuilder>,
 ): Promise<EntitiesValuesValidationResult<TBuilder["entities"]>> {
   const computedEntitiesValues =
     typeof entitiesValues !== "object" ||
