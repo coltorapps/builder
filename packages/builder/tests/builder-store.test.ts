@@ -1,2549 +1,278 @@
-import { describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { Effect } from "effect";
+import { describe, expect, it } from "vitest";
 
+import { SchemaParseError, type AttributeErrorsByEntityId } from "../src";
+import { createAttribute } from "../src/attribute";
+import { createBuilder } from "../src/builder";
 import {
-  createAttribute,
-  createBuilder,
+  AttributeErrorsParsingError,
+  collectEntityDescendants,
   createBuilderStore,
-  createEntity,
-} from "../src";
-import * as schemaExports from "../src/schema";
-import * as uuidExports from "../src/uuid";
+  EntityNotFoundError,
+  parseAttributeErrors,
+} from "../src/builder-store";
+import { createEntity } from "../src/entity";
+import { asResult } from "../src/utils";
+import { assertErrResult, assertOkResult } from "./utils";
 
-describe("builder store", () => {
-  it("can be created without a schema", () => {
-    const validateSchemaShapeMock = vi.spyOn(
-      schemaExports,
-      "validateSchemaShape",
-    );
-
-    const builder = createBuilder({
-      entities: {},
-    });
-
-    const builderStore = createBuilderStore(builder);
-
-    expect(validateSchemaShapeMock).toHaveBeenCalledWith(
-      {
-        entities: {},
-        root: [],
-      },
-      builder,
-    );
-
-    expect(builderStore).toMatchSnapshot();
-  });
-
-  it("can be created with a non-empty schema", () => {
-    const validateSchemaShapeMock = vi.spyOn(
-      schemaExports,
-      "validateSchemaShape",
-    );
-
-    const builder = createBuilder({
-      entities: {
-        text: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "text",
-              attributes: {
-                label: "test",
-              },
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-      },
-    });
-
-    expect(validateSchemaShapeMock).toMatchSnapshot();
-
-    expect(builderStore).toMatchSnapshot();
-  });
-
-  it("can be created with an empty schema", () => {
-    const validateSchemaShapeMock = vi.spyOn(
-      schemaExports,
-      "validateSchemaShape",
-    );
-
-    const builder = createBuilder({
-      entities: {},
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {},
-          root: [],
-        },
-      },
-    });
-
-    expect(validateSchemaShapeMock).toMatchSnapshot();
-
-    expect(builderStore).toMatchSnapshot();
-  });
-
-  it("can retrieve the data", () => {
-    const validateSchemaShapeMock = vi.spyOn(
-      schemaExports,
-      "validateSchemaShape",
-    );
-
-    const builder = createBuilder({
-      entities: {
-        text: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
+describe("collectEntityDescendants", () => {
+  it("should recursively collect descendants of an entity", () => {
     const schema = {
       entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "text",
-          attributes: {
-            label: "test",
-          },
+        a: {
+          type: "",
+        },
+        b: {
+          type: "",
+          children: ["a"],
+        },
+        c: {
+          type: "",
+          children: ["b"],
         },
       },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-    } as const;
+      root: [],
+    };
 
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            label: "Some error",
-          },
-        },
-        schema,
-      },
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(validateSchemaShapeMock).toHaveBeenCalledWith(schema, builder);
+    for (const item of [
+      ["a", []],
+      ["non-existent", []],
+      ["b", ["a"]],
+      ["c", ["b", "a"]],
+    ] as const) {
+      expect(collectEntityDescendants(item[0], schema)).toEqual(item[1]);
+    }
   });
+});
 
-  it("can set the data", () => {
-    const validateSchemaShapeMock = vi.spyOn(
-      schemaExports,
-      "validateSchemaShape",
-    );
-
-    const builder = createBuilder({
-      entities: {
-        text: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {},
-          root: [],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    builderStore.subscribe(listener);
-
-    const schema = {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "text",
-          attributes: {
-            label: "test",
-          },
-        },
-      },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-    } as const;
-
-    builderStore.setData({
-      schema,
-      entitiesAttributesErrors: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          label: "some error",
-        },
-      },
-      schemaError: undefined,
-    });
-
-    expect(validateSchemaShapeMock).toHaveBeenCalledWith(schema, builder);
-
-    expect(listener).toMatchSnapshot();
-
-    expect(builderStore.getData()).toMatchSnapshot();
-  });
-
-  it("can return the data", () => {
-    const builder = createBuilder({
-      entities: {
-        text: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const schema = {
-      entities: {
-        "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-          type: "text",
-          attributes: {
-            label: "test",
-          },
-        },
-      },
-      root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-    } as const;
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            label: "some error",
-          },
-        },
-        schema,
-      },
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
-  });
-
-  it("can delete entities and cascade delete their children", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {},
-          "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {},
-          "3dc165dd-88d4-4884-ac8a-5d107d023e54": {},
-          "49e91328-02bc-4daa-ab56-619554e85cff": {},
-        },
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-              parentId: "c1ab14a4-41db-4531-9a58-4825a9ef6d26",
-            },
-            "c1ab14a4-41db-4531-9a58-4825a9ef6d26": {
-              type: "test",
-              attributes: {},
-              children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-              parentId: "3dc165dd-88d4-4884-ac8a-5d107d023e54",
-            },
-            "3dc165dd-88d4-4884-ac8a-5d107d023e54": {
-              type: "test",
-              attributes: {},
-              children: ["c1ab14a4-41db-4531-9a58-4825a9ef6d26"],
-            },
-            "49e91328-02bc-4daa-ab56-619554e85cff": {
-              type: "test",
-              attributes: {},
-              children: [],
-            },
-          },
-          root: [
-            "3dc165dd-88d4-4884-ac8a-5d107d023e54",
-            "49e91328-02bc-4daa-ab56-619554e85cff",
-          ],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.deleteEntity("3dc165dd-88d4-4884-ac8a-5d107d023e54");
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("throws when trying to delete non existent entity", () => {
-    const builder = createBuilder({ entities: {} });
-
-    expect(() =>
-      createBuilderStore(builder).deleteEntity("test"),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when adding an entity with an already existent ID", () => {
-    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
-      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    );
-
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.addEntity({
-        type: "test",
-        attributes: {},
-      }),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when adding an entity without a parent when parent is required", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          parentRequired: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder);
-
-    expect(() =>
-      builderStore.addEntity({
-        type: "test",
-        attributes: {},
-      }),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when adding an entity to a non allowed parent", () => {
-    const builder = createBuilder({
-      entities: {
-        text: createEntity({
-          parentRequired: true,
-        }),
-        section: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-      entitiesExtensions: {
-        text: {
-          allowedParents: ["text"],
-        },
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "section",
-              attributes: {},
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.addEntity({
-        type: "text",
-        attributes: {},
-        parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-      }),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when adding moving an entity to a non allowed parent", () => {
-    const builder = createBuilder({
-      entities: {
-        text: createEntity(),
-        section: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-      entitiesExtensions: {
-        text: {
-          allowedParents: ["text"],
-        },
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "section",
-              attributes: {},
-            },
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "text",
-              attributes: {},
-            },
-          },
-          root: [
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          ],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.setEntityParent(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "51324b32-adc3-4d17-a90e-66b5453935bd",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when adding an entity to a parent with non-allowed children", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity(),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.addEntity({
-        type: "test",
-        attributes: {},
-        parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-      }),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when moving an entity to the root when parent is required", () => {
-    const builder = createBuilder({
-      entities: {
-        section: createEntity({
-          childrenAllowed: true,
-        }),
-        text: createEntity({
-          parentRequired: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "text",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "section",
-              attributes: {},
-              children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c"),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws moving an entity to a non-allowed parent", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity(),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: [
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          ],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.setEntityParent(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "51324b32-adc3-4d17-a90e-66b5453935bd",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when adding an entity with a non-existent attribute", () => {
-    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
-      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    );
-
-    const builder = createBuilder({
-      entities: {
-        test: createEntity(),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder);
-
-    expect(() =>
-      builderStore.addEntity({
-        type: "test",
+describe("parseAttributeErrors", () => {
+  const builder = createBuilder({
+    entities: {
+      textField: createEntity({
         attributes: {
-          invalid: 1,
+          label: createAttribute({
+            validate: [
+              (value) => ({ success: true, value }),
+              () => ({ success: false, error: "Error" }),
+            ],
+          }),
         },
       }),
-    ).toThrowErrorMatchingSnapshot();
+    },
   });
 
-  it("can add entities to root", () => {
-    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
-      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  const schema = {
+    entities: {
+      entity1: { type: "textField" as const },
+    },
+    root: ["entity1"],
+  };
+
+  it("should succeed with valid errors", () => {
+    const errors = {
+      entity1: { label: "error" },
+    } as unknown as AttributeErrorsByEntityId<typeof builder>;
+
+    const result = Effect.runSync(
+      parseAttributeErrors(errors, schema, builder),
     );
 
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
-
-    builderStore.addEntity({
-      type: "test",
-      attributes: {},
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
+    expect(result).toStrictEqual(errors);
   });
 
-  it("can add entities to root at specific index", () => {
-    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
-      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  it("should fail with invalid entity id", () => {
+    const errors = {
+      invalidId: { label: "error" },
+    } as unknown as AttributeErrorsByEntityId<typeof builder>;
+
+    const result = Effect.runSync(
+      asResult(parseAttributeErrors(errors, schema, builder)),
     );
 
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
+    assertErrResult(result);
 
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
+    expect(result.error).toBeInstanceOf(AttributeErrorsParsingError);
 
-    builderStore.addEntity({
-      type: "test",
-      attributes: {},
-      index: 0,
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
+    expect(result.error.message).toEqual(
+      "Entity ID not found in schema: invalidId",
+    );
   });
 
-  it("can add entities to a parent entity", () => {
-    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
-      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+  it("should fail with invalid attribute", () => {
+    const errors = {
+      entity1: { invalidAttr: "error" },
+    } as unknown as AttributeErrorsByEntityId<typeof builder>;
+
+    const result = Effect.runSync(
+      asResult(parseAttributeErrors(errors, schema, builder)),
     );
 
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
+    assertErrResult(result);
 
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
+    expect(result.error).toBeInstanceOf(AttributeErrorsParsingError);
 
-    builderStore.addEntity({
-      type: "test",
-      attributes: {},
-      parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
-  });
-
-  it("can add entities to a parent entity at a specific index", () => {
-    vi.spyOn(uuidExports, "generateUuid").mockImplementation(
-      () => "6e0035c3-0d4c-445f-a42b-2d971225447c",
+    expect(result.error.message).toEqual(
+      "Attribute 'invalidAttr' not found on entity type 'textField' for entity ID 'entity1'",
     );
-
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-              children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
-            },
-            "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
-
-    builderStore.addEntity({
-      type: "test",
-      attributes: {},
-      parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-      index: 0,
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
   });
+});
 
-  it("can move an entity in root", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity(),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-            },
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: [
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          ],
+describe("createBuilderStore initialization", () => {
+  const builder = createBuilder({
+    entities: {
+      textField: createEntity({
+        attributes: {
+          label: createAttribute({
+            validate: [
+              (value) => ({ success: true, value }),
+              () => ({ success: false, error: "Error" }),
+            ],
+          }),
         },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c", {
-      index: 0,
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c", {
-      index: 1,
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c");
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can move an entity to root", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-              children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-            },
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c");
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can move an entity to root at a specific index", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-              children: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-            },
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.unsetEntityParent("6e0035c3-0d4c-445f-a42b-2d971225447c", {
-      index: 0,
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can move an entity from root to a parent entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-              children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
-            },
-            "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: [
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          ],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.setEntityParent(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-    );
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can move an entity from root to a parent entity at a specific index", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-              children: ["a02cd91c-d982-4e80-8fa4-184e9fe2b0b5"],
-            },
-            "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: [
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          ],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.setEntityParent(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-      { index: 0 },
-    );
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can move an entity in a parent entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-              children: [
-                "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5",
-                "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              ],
-            },
-            "a02cd91c-d982-4e80-8fa4-184e9fe2b0b5": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-          },
-          root: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.setEntityParent(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-      { index: 0 },
-    );
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    builderStore.setEntityParent(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-      { index: 1 },
-    );
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("throws when trying to move a non existent entity", () => {
-    const builder = createBuilder({
-      entities: {},
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {},
-          root: [],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.setEntityParent("invalid", "invalid"),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(() =>
-      builderStore.unsetEntityParent("invalid"),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when trying to move an entity to a non existent parent entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-          ],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.setEntityParent(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "invalid",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when setting a parent id to the only root entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity(),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.setEntityParent(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "some id",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when setting an entity parent id to its grandchild", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-              children: ["51324b32-adc3-4d17-a90e-66b5453935bd"],
-            },
-            "0a97c57c-7743-403c-8105-a8c09eb5ab52": {
-              type: "test",
-              attributes: {},
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-              parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
-              children: ["4fb898fb-7207-4952-8e5e-511953a42e2c"],
-            },
-            "4fb898fb-7207-4952-8e5e-511953a42e2c": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-          },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "0a97c57c-7743-403c-8105-a8c09eb5ab52",
-          ],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.setEntityParent(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "4fb898fb-7207-4952-8e5e-511953a42e2c",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when trying to add an entity to a non existent parent entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity(),
-      },
-    });
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {},
-          root: [],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.addEntity({
-        type: "test",
-        attributes: {},
-        parentId: "invalid",
       }),
-    ).toThrowErrorMatchingSnapshot();
+    },
+    validateEntityId: (id) => typeof id === "string",
   });
 
-  it("can update entity attributes", () => {
-    const builder = createBuilder({
-      entities: {
-        select: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-            required: createAttribute({
-              validate(value) {
-                return z.boolean().parse(value);
-              },
-            }),
-          },
-        }),
-        text: createEntity({
-          attributes: {
-            maxLength: createAttribute({
-              validate(value) {
-                return z.number().parse(value);
-              },
-            }),
-          },
-        }),
+  const validSchema = {
+    entities: {
+      entity1: { type: "textField" as const },
+    },
+    root: ["entity1"],
+  };
+
+  const validAttributeErrors = {
+    entity1: { label: "error" },
+  } as unknown as AttributeErrorsByEntityId<typeof builder>;
+
+  it("should succeed with valid inputs", () => {
+    const result = createBuilderStore(builder, {
+      initialData: {
+        schema: validSchema,
+        attributeErrors: validAttributeErrors,
       },
     });
 
-    const builderStore = createBuilderStore(builder, {
+    assertOkResult(result);
+
+    expect(result.value.getData()).toEqual({
+      schema: validSchema,
+      attributeErrors: validAttributeErrors,
+    });
+  });
+
+  it("should propagate AttributeErrorsParsingError", () => {
+    const result = createBuilderStore(builder, {
       initialData: {
-        entitiesAttributesErrors: {},
+        schema: validSchema,
+        attributeErrors: {
+          entity1: { invalidAttr: "error" },
+        } as unknown as AttributeErrorsByEntityId<typeof builder>,
+      },
+    });
+
+    assertErrResult(result);
+
+    expect(result.error).toBeInstanceOf(AttributeErrorsParsingError);
+  });
+
+  it("should propagate SchemaParseError", () => {
+    const result = createBuilderStore(builder, {
+      initialData: {
         schema: {
           entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "select",
-              attributes: {
-                label: "Old label",
-                required: true,
-              },
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "text",
-              attributes: {
-                maxLength: 1,
-              },
-            },
+            1337: { type: "textField" as const },
           },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-          ],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.setEntityAttributeValue(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "label",
-      "New label",
-      "select",
-    );
-
-    builderStore.setEntityAttributeValue(
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-      "maxLength",
-      1,
-      "text",
-    );
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("throws when updating an attribute of a non-existent entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            testAttribute: createAttribute({
-              validate() {
-                return "string";
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {},
           root: [],
         },
+        attributeErrors: validAttributeErrors,
       },
     });
 
-    expect(() =>
-      builderStore.setEntityAttributeValue("invalid", "testAttribute", "", "test"),
-    ).toThrowErrorMatchingSnapshot();
+    assertErrResult(result);
+
+    expect(result.error).toBeInstanceOf(SchemaParseError);
+  });
+});
+
+describe("createBuilderStore removeEntity", () => {
+  const builder = createBuilder({
+    entities: {
+      textField: createEntity({
+        childrenAllowed: true,
+      }),
+    },
+    validateEntityId: (id) => typeof id === "string",
   });
 
-  it("throws when updating an attribute of an entity of wrong type", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            testAttribute: createAttribute({
-              validate() {
-                return "string";
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                testAttribute: "string",
-              },
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-      },
-    });
-
-    expect(() =>
-      builderStore.setEntityAttributeValue(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "testAttribute",
-        "",
-        // @ts-expect-error Intentional wrong entity type
-        "invalid-entity-type",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("throws when updating an non-existent attribute of an entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            maxLength: createAttribute({
-              validate(value) {
-                return z.number().parse(value);
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              // @ts-expect-error Intentional wrong data type
-              attributes: {},
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-      },
-    });
-
-    expect(() =>
-      // @ts-expect-error Intentional wrong data type
-      builderStore.setEntityAttributeValue(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "invalid",
-        "",
-        "test",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-  });
-
-  it("can change entity's index", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {},
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {},
-              children: [
-                "eedf598e-1422-469a-acb1-b2d8bfabb0f3",
-                "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e",
-              ],
-            },
-            "eedf598e-1422-469a-acb1-b2d8bfabb0f3": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-            "7c3cf1e5-c35d-49c0-80ca-e8000ac8095e": {
-              type: "test",
-              attributes: {},
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-            },
-          },
-          root: [
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-          ],
-        },
-      },
-    });
-
-    builderStore.setEntityIndex("6e0035c3-0d4c-445f-a42b-2d971225447c", 0);
-
-    builderStore.setEntityIndex("7c3cf1e5-c35d-49c0-80ca-e8000ac8095e", 0);
-
-    expect(builderStore.getData()).toMatchSnapshot();
-  });
-
-  it("can validate a single entity attribute", async () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-            description: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-          },
-        }),
-      },
-      entitiesExtensions: {
-        test: {
-          attributes: {
-            description: {
-              validate(value) {
-                return z.string().min(1).parse(value);
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
+  function makeBuilderStore() {
+    const builderStoreResult = createBuilderStore(builder, {
       initialData: {
         schema: {
           entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                // @ts-expect-error Intentional wrong data type
-                label: 1,
-              },
+            entity1: { type: "textField" as const, children: ["entity2"] },
+            entity2: {
+              type: "textField" as const,
+              parentId: "entity1",
+              children: ["entity3"],
             },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              // @ts-expect-error Intentional wrong data type
-              attributes: {
-                description: "",
-              },
-            },
-            "37515819-4f68-4e40-a391-aad5f51c26e2": {
-              type: "test",
-              attributes: {
-                description: "valid",
-                label: "valid",
-              },
-            },
+            entity3: { type: "textField" as const, parentId: "entity2" },
           },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-            "37515819-4f68-4e40-a391-aad5f51c26e2",
-          ],
-        },
-        entitiesAttributesErrors: {},
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    await expect(
-      builderStore.validateEntityAttribute(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "label",
-        "test",
-      ),
-    ).resolves.toMatchSnapshot();
-
-    await expect(
-      builderStore.validateEntityAttribute(
-        "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "label",
-        "test",
-      ),
-    ).resolves.toMatchSnapshot();
-
-    await expect(
-      builderStore.validateEntityAttribute(
-        "51324b32-adc3-4d17-a90e-66b5453935bd",
-        "description",
-        "test",
-      ),
-    ).resolves.toMatchSnapshot();
-
-    await expect(
-      builderStore.validateEntityAttribute(
-        "37515819-4f68-4e40-a391-aad5f51c26e2",
-        "description",
-        "test",
-      ),
-    ).resolves.toMatchSnapshot();
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    await expect(
-      builderStore.validateEntityAttribute("invalid", "label", "test"),
-    ).rejects.toThrowErrorMatchingSnapshot();
-
-    await expect(
-      // @ts-expect-error Intentional wrong data type
-      builderStore.validateEntityAttribute(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "invalid",
-        "test",
-      ),
-    ).rejects.toThrowErrorMatchingSnapshot();
-
-    await expect(
-      builderStore.validateEntityAttribute(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "label",
-        // @ts-expect-error Intentional wrong entity type
-        "invalid",
-      ),
-    ).rejects.toThrowErrorMatchingSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can validate a all attributes of a single entity", async () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-            maxLength: createAttribute({
-              validate(value) {
-                return z.number().parse(value);
-              },
-            }),
-            description: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-          },
-        }),
-      },
-      entitiesExtensions: {
-        test: {
-          attributes: {
-            description: {
-              validate(value) {
-                return z.string().min(1).parse(value);
-              },
-            },
-          },
+          root: ["entity1"],
         },
       },
     });
 
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                // @ts-expect-error Intentional wrong data type
-                label: 1,
-                // @ts-expect-error Intentional wrong data type
-                maxLength: "1",
-                description: "",
-              },
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-        entitiesAttributesErrors: {},
+    assertOkResult(builderStoreResult);
+
+    return builderStoreResult.value;
+  }
+
+  it("should succeed with valid id", () => {
+    const builderStore1 = makeBuilderStore();
+
+    expect(builderStore1.removeEntity("entity1")).toStrictEqual({
+      success: true,
+      value: {
+        entityId: "entity1",
       },
     });
 
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    await builderStore.validateEntityAttributes(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-    );
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    await expect(
-      builderStore.validateEntityAttributes("invalid"),
-    ).rejects.toThrowErrorMatchingSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can validate a all attributes of all entities", async () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-            maxLength: createAttribute({
-              validate(value) {
-                return z.number().parse(value);
-              },
-            }),
-            description: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-          },
-        }),
-      },
-      entitiesExtensions: {
-        test: {
-          attributes: {
-            description: {
-              validate(value) {
-                return z.string().min(1).parse(value);
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                // @ts-expect-error Intentional wrong data type
-                label: 1,
-                maxLength: 1,
-                description: "",
-              },
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {
-                label: "test",
-                // @ts-expect-error Intentional wrong data type
-                maxLength: "1",
-                description: "1",
-              },
-            },
-          },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-          ],
-        },
-        entitiesAttributesErrors: {},
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    await builderStore.validateEntitiesAttributes();
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can set a single entity attribute error", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-            title: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                label: undefined,
-                title: undefined,
-              },
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-        entitiesAttributesErrors: {},
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    expect(
-      builderStore.setEntityAttributeError(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "label",
-        "Some error",
-        "test",
-      ),
-    ).toEqual(undefined);
-
-    expect(
-      builderStore.setEntityAttributeError(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "title",
-        "Title error",
-        "test",
-      ),
-    ).toEqual(undefined);
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(() =>
-      builderStore.setEntityAttributeError("invalid", "title", "error", "test"),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(() =>
-      // @ts-expect-error Intentional wrong data type
-      builderStore.setEntityAttributeError(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "invalid",
-        "error",
-        "test",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(() =>
-      // @ts-expect-error Intentional wrong entity type
-      builderStore.setEntityAttributeError(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "invalid",
-        "error",
-        "invalid",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can set multiple attribute errors for a single entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-            title: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-            description: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                label: undefined,
-                title: undefined,
-                description: undefined,
-              },
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-        entitiesAttributesErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            description: "initial error",
-          },
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    expect(
-      builderStore.setEntityAttributesErrors(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        {
-          label: "some error",
-          title: "another error",
-        },
-        "test",
-      ),
-    ).toEqual(undefined);
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(() =>
-      builderStore.setEntityAttributeError("invalid", "title", "error", "test"),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(() =>
-      // @ts-expect-error Intentional wrong data type
-      builderStore.setEntityAttributesErrors(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        {
-          invalid: "some error",
-        },
-        "test",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(() =>
-      // @ts-expect-error Intentional wrong data type
-      builderStore.setEntityAttributesErrors(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        {
-          invalid: "some error",
-        },
-        "invalid",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can reset a single entity attribute error", () => {
-    const builder = createBuilder({
-      entities: {
-        select: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-            title: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-        text: createEntity({
-          attributes: {
-            maxLength: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "select",
-              attributes: {
-                label: undefined,
-                title: undefined,
-              },
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-        entitiesAttributesErrors: {},
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.setEntityAttributesErrors(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      {
-        label: "label error",
-        title: "title error",
-      },
-      "select",
-    );
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(
-      builderStore.resetEntityAttributeError(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "label",
-        "select",
-      ),
-    ).toEqual(undefined);
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(() =>
-      builderStore.resetEntityAttributeError("invalid", "title", "select"),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(() =>
-      // @ts-expect-error Intentional wrong data type
-      builderStore.resetEntityAttributeError(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "invalid",
-        "select",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(() =>
-      // @ts-expect-error Intentional wrong data type
-      builderStore.resetEntityAttributeError(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-        "invalid",
-        "invalid",
-      ),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can reset all attributes errors for a single entity", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-            title: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                label: undefined,
-                title: undefined,
-              },
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-        entitiesAttributesErrors: {},
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.setEntityAttributesErrors(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      {
-        label: "label error",
-        title: "title error",
-      },
-      "test",
-    );
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(
-      builderStore.resetEntityAttributesErrors(
-        "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      ),
-    ).toEqual(undefined);
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(() =>
-      builderStore.resetEntityAttributesErrors("invalid"),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can reset all attributes errors for all entities", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-            title: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                label: undefined,
-                title: undefined,
-              },
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {
-                label: undefined,
-                title: undefined,
-              },
-            },
-          },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-          ],
-        },
-        entitiesAttributesErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            label: "label error",
-          },
-          "51324b32-adc3-4d17-a90e-66b5453935bd": {
-            title: "title error",
-          },
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(builderStore.resetEntitiesAttributesErrors()).toEqual(undefined);
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can set all attributes errors for all entities", () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-            title: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-            description: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                label: undefined,
-                title: undefined,
-                description: undefined,
-              },
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {
-                label: undefined,
-                title: undefined,
-                description: undefined,
-              },
-            },
-          },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-          ],
-        },
-        entitiesAttributesErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            description: "initial error",
-          },
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.setEntitiesAttributesErrors({
-      "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-        label: "label error",
-      },
-      "51324b32-adc3-4d17-a90e-66b5453935bd": {
-        title: "title error",
-      },
-    });
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can clone entities", () => {
-    const mockUuids = [
-      "49ae95d3-84c0-4d0d-b914-66adde839572",
-      "55c0940d-7450-4b01-baf8-b84c05ea5cee",
-      "38c62f6a-634a-4b94-b0af-9b95e6c1dc82",
-      "0a97c57c-7743-403c-8105-a8c09eb5ab52",
-      "4fb898fb-7207-4952-8e5e-511953a42e2c",
-    ];
-
-    let mockUuidIndex = 0;
-
-    vi.spyOn(uuidExports, "generateUuid").mockImplementation(() => {
-      const uuid = mockUuids[mockUuidIndex++];
-
-      if (!uuid) {
-        throw new Error("Mock UUID not found");
-      }
-
-      return uuid;
-    });
-
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return value;
-              },
-            }),
-          },
-          childrenAllowed: true,
-        }),
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                label: undefined,
-              },
-              children: [
-                "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b",
-                "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d",
-              ],
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {
-                label: undefined,
-              },
-              children: ["3194bbe0-b2f3-4d5c-b118-3cce0f72ff52"],
-            },
-            "8f2336ba-d7a2-4e1e-ad13-2c80cf61499b": {
-              type: "test",
-              attributes: {
-                label: undefined,
-              },
-              parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            },
-            "b5a5a63e-dbfa-485c-bd3c-8dd23b996b7d": {
-              type: "test",
-              attributes: {
-                label: undefined,
-              },
-              parentId: "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            },
-            "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52": {
-              type: "test",
-              attributes: {
-                label: undefined,
-              },
-              parentId: "51324b32-adc3-4d17-a90e-66b5453935bd",
-              children: ["1c2ec3a4-18a8-4785-906e-6465b9b5883b"],
-            },
-            "1c2ec3a4-18a8-4785-906e-6465b9b5883b": {
-              type: "test",
-              attributes: {
-                label: undefined,
-              },
-              parentId: "3194bbe0-b2f3-4d5c-b118-3cce0f72ff52",
-            },
-          },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-          ],
-        },
-      },
-    });
-
-    const listener = vi.fn();
-
-    const listenerWrapper = (...args: unknown[]): unknown => listener(args[1]);
-
-    builderStore.subscribe(listenerWrapper);
-
-    builderStore.cloneEntity("6e0035c3-0d4c-445f-a42b-2d971225447c");
-
-    builderStore.cloneEntity("3194bbe0-b2f3-4d5c-b118-3cce0f72ff52");
-
-    expect(() =>
-      builderStore.cloneEntity("invalid"),
-    ).toThrowErrorMatchingSnapshot();
-
-    expect(builderStore.getData().schema).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-  });
-
-  it("can validate the schema", async () => {
-    const builder = createBuilder({
-      entities: {
-        test: createEntity({
-          attributes: {
-            label: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-            title: createAttribute({
-              validate(value) {
-                return z.string().parse(value);
-              },
-            }),
-          },
-        }),
-      },
-      entitiesExtensions: {
-        test: {
-          attributes: {
-            title: {
-              validate(value) {
-                return z.string().min(1).parse(value);
-              },
-            },
-          },
-        },
-      },
-      validateSchema(schema) {
-        if (
-          Object.values(schema.entities).some(
-            (entity) => entity.attributes.title === "should fail",
-          )
-        ) {
-          throw "Title validation failed";
-        }
-
-        return schema;
-      },
-    });
-
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "test",
-              attributes: {
-                label: "",
-                title: "",
-              },
-            },
-            "51324b32-adc3-4d17-a90e-66b5453935bd": {
-              type: "test",
-              attributes: {
-                label: "",
-                title: "",
-              },
-            },
-          },
-          root: [
-            "6e0035c3-0d4c-445f-a42b-2d971225447c",
-            "51324b32-adc3-4d17-a90e-66b5453935bd",
-          ],
-        },
-        entitiesAttributesErrors: {
-          "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-            label: "initial error",
-          },
-        },
-      },
-    });
-
-    const listener = vi.fn();
-    const listener2 = vi.fn();
-
-    builderStore.subscribe(listener);
-
-    await builderStore.validateSchema();
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
-
-    builderStore.setEntityAttributeValue(
-      "6e0035c3-0d4c-445f-a42b-2d971225447c",
-      "title",
-      "1",
-      "test",
-    );
-
-    builderStore.setEntityAttributeValue(
-      "51324b32-adc3-4d17-a90e-66b5453935bd",
-      "title",
-      "should fail",
-      "test",
-    );
-
-    builderStore.subscribe(listener2);
-
-    await builderStore.validateSchema();
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener2).toMatchSnapshot();
-  });
-
-  it("can set and reset the schema error", () => {
-    const builder = createBuilder({
+    expect(builderStore1.getData().schema).toStrictEqual({
       entities: {},
+      root: [],
     });
 
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        schema: {
-          entities: {},
-          root: [],
-        },
-        entitiesAttributesErrors: {},
+    const builderStore2 = makeBuilderStore();
+
+    expect(builderStore2.removeEntity("entity2")).toStrictEqual({
+      success: true,
+      value: {
+        entityId: "entity2",
       },
     });
 
-    const listener = vi.fn();
-
-    builderStore.subscribe(listener);
-
-    builderStore.setSchemaError("error");
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    builderStore.resetSchemaError();
-
-    expect(builderStore.getData()).toMatchSnapshot();
-
-    expect(listener).toMatchSnapshot();
+    expect(builderStore2.getData().schema).toStrictEqual({
+      entities: {
+        entity1: {
+          attributes: undefined,
+          children: [],
+          type: "textField",
+        },
+      },
+      root: ["entity1"],
+    });
   });
 
-  it("can retrieve an entity", () => {
-    const builder = createBuilder({
-      entities: {
-        text: createEntity(),
-      },
-    });
+  it("should fail with invalid id", () => {
+    const builderStore = makeBuilderStore();
 
-    const builderStore = createBuilderStore(builder, {
-      initialData: {
-        entitiesAttributesErrors: {},
-        schema: {
-          entities: {
-            "6e0035c3-0d4c-445f-a42b-2d971225447c": {
-              type: "text",
-              attributes: {},
-            },
-          },
-          root: ["6e0035c3-0d4c-445f-a42b-2d971225447c"],
-        },
-      },
-    });
+    const removalResult = builderStore.removeEntity("invalidId");
 
-    expect(
-      builderStore.getEntity("6e0035c3-0d4c-445f-a42b-2d971225447c"),
-    ).toMatchSnapshot();
+    assertErrResult(removalResult);
+
+    expect(removalResult.error).toBeInstanceOf(EntityNotFoundError);
+
+    expect(removalResult.error.entityId).toEqual("invalidId");
   });
 });

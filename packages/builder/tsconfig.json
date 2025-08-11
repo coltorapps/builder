@@ -1,4 +1,7 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src", "tests", "tsup.config.ts"]
+  "include": ["src", "tests", "tsup.config.ts", "vitest.config.ts"],
+  "compilerOptions": {
+    "stripInternal": true
+  }
 }

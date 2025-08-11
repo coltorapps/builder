@@ -1,10 +1,10 @@
 import type { Builder } from "./builder";
-import { createEntity, type ContextEntity, type Entity } from "./entity";
-import type { ParsedSchema, ParsedSchemaEntityWithId } from "./schema";
+import { type Entity } from "./entity";
+import { type ParsedSchema } from "./schema-parsing";
 import type {
-  ParsingFunction,
-  PromisedRefinementResult,
-  RefinementFunction,
+  ParseFunction,
+  RefineFunction,
+  RefineResult,
   Result,
 } from "./utils";
 
@@ -14,65 +14,73 @@ export interface ContextAttribute<
 > {
   metadata: TAttribute["metadata"];
   name: TAttributeName;
-  value?: AttributeValue<TAttribute>;
 }
 
 export interface AttributeParseContext<
   TAttribute extends Attribute = Attribute,
 > {
-  attribute: Omit<ContextAttribute<TAttribute>, "value">;
+  attribute: ContextAttribute<TAttribute>;
 }
 
-export interface AttributeRefinementContext<
+export interface AttributeRefineContext<
   TAttribute extends Attribute = Attribute,
   TAttributeName extends PropertyKey = PropertyKey,
   TEntity extends Entity = Entity,
   TEntityType extends PropertyKey = PropertyKey,
-  TEntities extends Record<PropertyKey, Entity> = Record<PropertyKey, Entity>,
+  TBuilder extends Builder = Builder,
 > {
-  attribute: Omit<ContextAttribute<TAttribute, TAttributeName>, "value">;
-  schema: ParsedSchema<Builder<TEntities>>;
-  entity: Omit<ContextEntity<TEntity, TEntityType>, "value">;
+  attribute: ContextAttribute<TAttribute, TAttributeName>;
+  schema: ParsedSchema<TBuilder>;
+  entity: {
+    id: string;
+    type: TEntityType;
+    attributes: {
+      [K in keyof TEntity["attributes"] & string]: {
+        metadata: TEntity["attributes"][K]["metadata"];
+        name: K;
+        value?: AttributeParsedValue<TEntity["attributes"][K]>;
+      };
+    };
+    parentId?: string | undefined;
+    children?: ReadonlyArray<string> | undefined;
+    metadata: TEntity["metadata"];
+  };
 }
 
 export interface Attribute<
   TValue = unknown,
-  TParsingError = unknown,
-  TRefinementError = unknown,
+  TRefineError = unknown,
   TMetadata = unknown,
 > {
   validate: [
-    parse: ParsingFunction<
-      Result<TValue, TParsingError>,
-      AttributeParseContext
-    >,
-    refine: RefinementFunction<
+    parse: ParseFunction<Result<TValue>, AttributeParseContext>,
+    refine: RefineFunction<
       unknown,
-      PromisedRefinementResult<TValue, TParsingError | TRefinementError>,
-      AttributeRefinementContext
+      RefineResult<TValue, TRefineError>,
+      AttributeRefineContext
     >,
   ];
   defaultValue(): unknown;
   metadata: TMetadata;
 }
 
-export type AttributeValue<TAttribute extends Attribute> = Extract<
+export type AttributeParsedValue<TAttribute extends Attribute> = Extract<
   ReturnType<TAttribute["validate"][0]>,
   { success: true }
->["data"];
+>["value"];
 
-export type AttributeRefinementResult<TAttribute extends Attribute> =
-  ReturnType<TAttribute["validate"][1]>;
+export type AttributeRefineResult<TAttribute extends Attribute> = ReturnType<
+  TAttribute["validate"][1]
+>;
 
-export type AttributeError<TAttribute extends Attribute> = Extract<
-  AttributeRefinementResult<TAttribute>,
+export type AttributeRefineError<TAttribute extends Attribute> = Extract<
+  AttributeRefineResult<TAttribute>,
   { success: false }
 >["error"];
 
 export function createAttribute<
   TValue = never,
-  TParsingError = never,
-  TRefinementError = never,
+  TRefineError = never,
   TMetadata = never,
 >(
   options: {
@@ -80,39 +88,31 @@ export function createAttribute<
     metadata?: TMetadata;
   } & (
     | {
-        validate: ParsingFunction<
-          Result<TValue, TParsingError>,
+        validate: ParseFunction<
+          Result<TValue>,
           AttributeParseContext<Attribute<unknown, unknown, TMetadata>>
         >;
       }
     | {
         validate: [
-          parse: ParsingFunction<
-            Result<TValue, TParsingError>,
+          parse: ParseFunction<
+            Result<TValue>,
             AttributeParseContext<Attribute<unknown, unknown, TMetadata>>
           >,
-          refine: RefinementFunction<
+          refine: RefineFunction<
             TValue,
-            PromisedRefinementResult<TValue, TParsingError | TRefinementError>,
-            AttributeRefinementContext<Attribute<unknown, unknown, TMetadata>>
+            RefineResult<TValue, TRefineError>,
+            AttributeRefineContext<Attribute<unknown, unknown, TMetadata>>
           >,
         ];
       }
   ),
-): Attribute<
-  NoInfer<TValue>,
-  NoInfer<TParsingError | TRefinementError>,
-  NoInfer<TMetadata>
-> {
+): Attribute<NoInfer<TValue>, NoInfer<TRefineError>, NoInfer<TMetadata>> {
   const validate = (
     Array.isArray(options.validate)
       ? options.validate
-      : [options.validate, (value: unknown) => ({ success: true, data: value })]
-  ) as Attribute<
-    TValue,
-    TParsingError | TRefinementError,
-    TMetadata
-  >["validate"];
+      : [options.validate, (value: unknown) => ({ success: true, value: value })]
+  ) as Attribute<TValue, TRefineError, TMetadata>["validate"];
 
   return {
     validate,

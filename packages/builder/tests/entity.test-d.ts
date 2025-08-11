@@ -2,99 +2,44 @@ import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
 import { createAttribute, type Attribute } from "../src/attribute";
-import {
-  createEntity,
-  type AttributeExtension,
-  type ContextEntity,
-  type Entity,
-  type EntityRefinementContext,
-} from "../src/entity";
-import { type ParsedSchema } from "../src/schema";
+import { createEntity, type Entity } from "../src/entity";
+import { dataToValueResult } from "./utils";
 
-describe("entity", () => {
-  it("can be created", () => {
-    const entity = createEntity();
-
-    expectTypeOf(entity).toMatchTypeOf<
-      Entity<Record<never, never>, unknown, false>
+describe("createEntity", () => {
+  it("produces correct types", () => {
+    expectTypeOf(createEntity()).toEqualTypeOf<
+      Entity<never, never, never, never>
     >();
-  });
 
-  it("can be created with validator", () => {
-    const entity = createEntity({
-      validate(value) {
-        return z.string().parse(value);
-      },
-    });
+    expectTypeOf(createEntity({})).toEqualTypeOf<
+      Entity<never, never, never, never>
+    >();
 
-    type Context = {
-      entity: ContextEntity;
-      entities: Record<string, ContextEntity>;
-      schema: ParsedSchema;
-    };
-
-    expectTypeOf(entity).toEqualTypeOf<{
-      attributes: Record<string, Attribute<unknown>>;
-      valueAllowed: true;
-      childrenAllowed: boolean;
-      parentRequired: boolean;
-      attributesExtensions: Record<string, AttributeExtension>;
-      validate: (value: unknown, context: Context) => string;
-      defaultValue: (context: Context) => string | undefined;
-      shouldBeProcessed: (context: Context) => boolean;
-      metadata: unknown;
-    }>();
-  });
-
-  it("can be created with attributes", () => {
-    const entity = createEntity({
-      validate(value) {
-        return z.string().parse(value);
-      },
-      childrenAllowed: true,
-      parentRequired: true,
-      attributes: {
-        label: createAttribute({
-          validate(value) {
-            return z.string().parse(value);
-          },
-        }),
-        defaultValue: createAttribute({
-          validate(value) {
-            return z.string().optional().parse(value);
-          },
-        }),
-      },
-      metadata: "test" as const,
-    });
-
-    type Attributes = {
-      readonly label: Attribute<string>;
-      readonly defaultValue: Attribute<string | undefined>;
-    };
-
-    type Context = EntityRefinementContext<
+    expectTypeOf(
+      createEntity({
+        attributes: {
+          label: createAttribute({
+            validate: [
+              (value) => dataToValueResult(z.string().safeParse(value)),
+              (value) => dataToValueResult(z.string().safeParse(value)),
+            ],
+          }),
+        },
+        validate: [
+          (value) => dataToValueResult(z.string().safeParse(value)),
+          (value) => dataToValueResult(z.string().safeParse(value)),
+        ],
+        metadata: "metadata" as const,
+      }),
+    ).toEqualTypeOf<
       Entity<
         {
-          readonly label: Attribute<string>;
-          readonly defaultValue: Attribute<string | undefined>;
+          readonly label: Attribute<string, z.ZodError<string>, never>;
         },
-        unknown,
-        boolean,
-        "test"
+        string,
+        z.ZodError<string>,
+        "metadata"
       >
-    >;
-
-    expectTypeOf(entity).toEqualTypeOf<{
-      attributes: Attributes;
-      attributesExtensions: Record<string, AttributeExtension>;
-      valueAllowed: true;
-      childrenAllowed: boolean;
-      parentRequired: boolean;
-      metadata: "test";
-      validate: (value: unknown, context: Context) => string;
-      defaultValue: (context: Context) => string | undefined;
-      shouldBeProcessed: (context: Context) => boolean;
-    }>();
+    >();
   });
 });

@@ -1,38 +1,33 @@
-export function insertIntoSetAtIndex<T>(
-  set: Set<T>,
-  value: T,
-  index?: number,
-): Set<T> {
-  const newSet = new Set(set);
+import { Effect } from "effect";
 
-  newSet.delete(value);
+export type Ok<TValue = unknown> = { success: true; value: TValue };
 
-  const result = Array.from(newSet);
+export type Err<TError = unknown> = { success: false; error: TError };
 
-  result.splice(index ?? set.size, 0, value);
+export type Result<TValue = unknown, TError = unknown> =
+  | Ok<TValue>
+  | Err<TError>;
 
-  return new Set(result);
-}
-
-export type Result<
-  TValue = unknown,
-  TError = unknown,
-  TKey extends string = "data",
-> =
-  | ({ success: true } & Record<TKey, TValue>)
-  | { success: false; error: TError };
-
-export type ParsingFunction<
-  TResult extends Result<unknown, unknown>,
-  TContext,
-> = (value: unknown, context: TContext) => TResult;
-
-export type PromisedRefinementResult<TValue, TError = unknown> =
+export type RefineResult<TValue, TError = unknown> =
   | Result<TValue, TError>
   | Promise<Result<TValue, TError>>;
 
-export type RefinementFunction<
+export type ParseFunction<TResult extends Result, TContext> = (
+  value: unknown,
+  context: TContext,
+) => TResult;
+
+export type RefineFunction<
   TValue,
-  TResult extends PromisedRefinementResult<TValue>,
+  TResult extends RefineResult<TValue>,
   TContext,
 > = (value: TValue, context: TContext) => TResult;
+
+export function asResult<TValue, TError>(
+  effect: Effect.Effect<TValue, TError>,
+): Effect.Effect<Result<TValue, TError>, never, never> {
+  return Effect.match(effect, {
+    onFailure: (error) => ({ success: false as const, error }),
+    onSuccess: (value) => ({ success: true as const, value }),
+  });
+}

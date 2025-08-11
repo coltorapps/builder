@@ -1,27 +1,28 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createAttribute, type Schema, type SchemaEntityWithId } from "../src";
+import { createAttribute, type Attribute } from "../src/attribute";
+import { dataToValueResult } from "./utils";
 
-describe("attribute", () => {
-  it("can be created", () => {
-    const attribute = createAttribute({
-      validate(value) {
-        return z.string().parse(value);
-      },
-    });
-    interface ContextEntity extends SchemaEntityWithId {
-      metadata: unknown;
-    }
-
-    expectTypeOf(attribute).toEqualTypeOf<{
-      validate: (
-        value: unknown,
-        context: {
-          schema: Schema;
-          entity: ContextEntity;
+describe("createAttribute", () => {
+  it("produces correct types", () => {
+    expectTypeOf(
+      createAttribute({
+        validate: (value) => {
+          return dataToValueResult(z.string().safeParse(value));
         },
-      ) => string;
-    }>();
+        metadata: "metadata" as const,
+      }),
+    ).toEqualTypeOf<Attribute<string, never, "metadata">>();
+
+    expectTypeOf(
+      createAttribute({
+        validate: [
+          (value) => dataToValueResult(z.string().safeParse(value)),
+          (value) => dataToValueResult(z.string().safeParse(value)),
+        ],
+        metadata: "metadata" as const,
+      }),
+    ).toEqualTypeOf<Attribute<string, z.ZodError<string>, "metadata">>();
   });
 });
