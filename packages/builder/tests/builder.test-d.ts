@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createAttribute, type Attribute } from "../src/attribute";
 import { createBuilder, type Builder } from "../src/builder";
 import { createEntity, type Entity } from "../src/entity";
-import { dataToValueResult } from "./utils";
+import { dataResultAsValueResult } from "./utils";
 
 describe("createBuilder", () => {
   it("produces correct types", () => {
@@ -16,21 +16,29 @@ describe("createBuilder", () => {
     expectTypeOf(
       createBuilder({
         entities: {
-          textField: createEntity({
-            attributes: {
-              label: createAttribute({
-                validate: [
-                  (value) => dataToValueResult(z.string().safeParse(value)),
-                  (value) => dataToValueResult(z.string().safeParse(value)),
-                ],
-              }),
+          textField: createEntity(
+            {
+              attributes: {
+                label: createAttribute(
+                  {
+                    parse: (value) =>
+                      dataResultAsValueResult(z.string().safeParse(value)),
+                  },
+                  {
+                    refine: (value) =>
+                      dataResultAsValueResult(z.string().safeParse(value)),
+                  },
+                ),
+              },
+              parse: (value) =>
+                dataResultAsValueResult(z.string().safeParse(value)),
+              metadata: "metadata" as const,
             },
-            validate: [
-              (value) => dataToValueResult(z.string().safeParse(value)),
-              (value) => dataToValueResult(z.string().safeParse(value)),
-            ],
-            metadata: "metadata" as const,
-          }),
+            {
+              refine: (value) =>
+                dataResultAsValueResult(z.string().safeParse(value)),
+            },
+          ),
         },
         refineSchema() {
           return {
@@ -44,9 +52,15 @@ describe("createBuilder", () => {
         {
           readonly textField: Entity<
             {
-              readonly label: Attribute<string, z.ZodError<string>, never>;
+              readonly label: Attribute<
+                string,
+                z.ZodError<string>,
+                z.ZodError<string>,
+                never
+              >;
             },
             string,
+            z.ZodError<string>,
             z.ZodError<string>,
             "metadata"
           >;

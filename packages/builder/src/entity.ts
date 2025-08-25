@@ -1,12 +1,13 @@
 import {
   type Attribute,
-  type AttributeParsedValue,
   type AttributeRefineContext,
-  type AttributeRefineResult,
+  type InferAttributeParsedValue,
+  type InferAttributeRefineResult,
 } from "./attribute";
 import { type Builder } from "./builder";
 import { type ParsedSchema } from "./schema-parsing";
 import type {
+  KeyofStringIntersection,
   ParseFunction,
   RefineFunction,
   RefineResult,
@@ -20,10 +21,10 @@ export interface ContextEntity<
   id: string;
   type: TType;
   attributes: {
-    [K in keyof TEntity["attributes"] & string]: {
+    [K in KeyofStringIntersection<TEntity["attributes"]>]: {
       metadata: TEntity["attributes"][K]["metadata"];
       name: K;
-      value: AttributeParsedValue<TEntity["attributes"][K]>;
+      value: InferAttributeParsedValue<TEntity["attributes"][K]>;
     };
   };
   parentId?: string | undefined;
@@ -35,7 +36,7 @@ export interface ContextEntityWithValue<
   TEntity extends Entity = Entity,
   TType extends string = string,
 > extends ContextEntity<TEntity, TType> {
-  value?: EntityParsedValue<TEntity>;
+  value?: InferEntityParsedValue<TEntity>;
 }
 
 export interface EntityParseContext<
@@ -53,17 +54,22 @@ export interface EntityRefineContext<
   TBuilder extends Builder = Builder,
 > {
   entity: ContextEntity<TEntity, TType>;
-  schema: ParsedSchema<Builder>;
+  schema: ParsedSchema<TBuilder>;
   entities: Record<
     string,
     {
-      [K in keyof TBuilder["entities"] & string]: ContextEntityWithValue<
-        TBuilder["entities"][K],
-        K
-      >;
-    }[keyof TBuilder["entities"] & string]
+      [K in KeyofStringIntersection<
+        TBuilder["entities"]
+      >]: ContextEntityWithValue<TBuilder["entities"][K], K>;
+    }[KeyofStringIntersection<TBuilder["entities"]>]
   >;
 }
+
+export type EntityDefaultValueContext<TEntity extends Entity = Entity> =
+  EntityRefineContext<TEntity>;
+
+export type EntityShouldBeProcessedContext<TEntity extends Entity = Entity> =
+  EntityRefineContext<TEntity>;
 
 interface AttributeRefineOverrideContext<
   TAttribute extends Attribute = Attribute,
@@ -79,8 +85,8 @@ interface AttributeRefineOverrideContext<
     TBuilder
   > {
   refine(
-    value: AttributeParsedValue<TAttribute>,
-  ): AttributeRefineResult<TAttribute>;
+    value: InferAttributeParsedValue<TAttribute>,
+  ): InferAttributeRefineResult<TAttribute>;
 }
 
 export interface AttributeOverride<
@@ -91,7 +97,7 @@ export interface AttributeOverride<
   TBuilder extends Builder = Builder,
 > {
   refine?(
-    value: AttributeParsedValue<TAttribute>,
+    value: InferAttributeParsedValue<TAttribute>,
     context: AttributeRefineOverrideContext<
       TAttribute,
       TAttributeName,
@@ -99,7 +105,7 @@ export interface AttributeOverride<
       TEntityType,
       TBuilder
     >,
-  ): AttributeRefineResult<TAttribute>;
+  ): InferAttributeRefineResult<TAttribute>;
 }
 
 export interface AttributeOverrideInput<
@@ -110,7 +116,7 @@ export interface AttributeOverrideInput<
   TBuilder extends Builder = Builder,
 > {
   refine?(
-    value: AttributeParsedValue<TAttribute>,
+    value: InferAttributeParsedValue<TAttribute>,
     context: AttributeRefineOverrideContext<
       TAttribute,
       TAttributeName,
@@ -118,12 +124,13 @@ export interface AttributeOverrideInput<
       TEntityType,
       TBuilder
     >,
-  ): AttributeRefineResult<TAttribute>;
+  ): InferAttributeRefineResult<TAttribute>;
 }
 
 export interface Entity<
   TAttributes extends Record<string, Attribute> = Record<string, Attribute>,
   TValue = unknown,
+  TParseError = unknown,
   TRefineError = unknown,
   TMetadata = unknown,
 > {
@@ -133,122 +140,187 @@ export interface Entity<
   parentAllowed: boolean;
   parentRequired: boolean;
   attributeOverrides: Record<string, AttributeOverride>;
-  validate: [
-    parse: ParseFunction<Result<TValue>, EntityParseContext>,
-    refine: RefineFunction<
-      unknown,
-      RefineResult<TValue, TRefineError>,
-      EntityRefineContext
-    >,
-  ];
-  defaultValue(
-    context: EntityRefineContext<
-      Entity<TAttributes, unknown, boolean, TMetadata>
+  parse: ParseFunction<Result<TValue, TParseError>, EntityParseContext>;
+  refine: RefineFunction<
+    unknown,
+    RefineResult<TValue, TRefineError>,
+    EntityRefineContext
+  >;
+  defaultValue?(
+    context: EntityDefaultValueContext<
+      Entity<TAttributes, unknown, unknown, unknown, TMetadata>
     >,
   ): unknown;
   shouldBeProcessed(
-    context: EntityRefineContext<
-      Entity<TAttributes, unknown, boolean, TMetadata>
+    context: EntityShouldBeProcessedContext<
+      Entity<TAttributes, unknown, unknown, unknown, TMetadata>
     >,
   ): boolean;
   metadata: TMetadata;
 }
 
-export type EntityParsedValue<TEntity extends Entity> = Extract<
-  ReturnType<TEntity["validate"][0]>,
+export type InferEntityParseResult<TEntity extends Entity> = ReturnType<
+  TEntity["parse"]
+>;
+
+export type InferEntityParseError<TEntity extends Entity> = Extract<
+  InferEntityParseResult<TEntity>,
+  { success: false }
+>["error"];
+
+export type InferEntityParsedValue<TEntity extends Entity> = Extract<
+  InferEntityParseResult<TEntity>,
   { success: true }
 >["value"];
 
-export type EntityRefineResult<TEntity extends Entity> = ReturnType<
-  TEntity["validate"][1]
+export type InferEntityRefineResult<TEntity extends Entity> = ReturnType<
+  TEntity["refine"]
 >;
 
-export type EntityRefineError<TEntity extends Entity> = Extract<
-  EntityRefineResult<TEntity>,
+export type InferEntityRefineError<TEntity extends Entity> = Extract<
+  InferEntityRefineResult<TEntity>,
   { success: false }
 >["error"];
+
+type CreateEntityBaseOptions<
+  TAttributes extends Record<string, Attribute>,
+  TMetadata,
+> = {
+  attributeOverrides?: {
+    [K in KeyofStringIntersection<TAttributes>]?: AttributeOverrideInput<
+      TAttributes[K],
+      K,
+      Entity<TAttributes, unknown, unknown, unknown, NoInfer<TMetadata>>
+    >;
+  };
+  attributes?: TAttributes;
+  childrenAllowed?: boolean;
+  parentAllowed?: boolean;
+  parentRequired?: boolean;
+  shouldBeProcessed?(
+    context: EntityRefineContext<
+      Entity<TAttributes, unknown, unknown, unknown, NoInfer<TMetadata>>
+    >,
+  ): boolean;
+  metadata?: TMetadata;
+};
+
+type CreateEntitySecondOptions<
+  TValue,
+  TRefineError,
+  TAttributes extends Record<string, Attribute>,
+  TMetadata,
+> = {
+  refine?: RefineFunction<
+    TValue,
+    RefineResult<TValue, TRefineError>,
+    EntityRefineContext<
+      Entity<TAttributes, unknown, unknown, unknown, NoInfer<TMetadata>>
+    >
+  >;
+};
+
+export function createEntity<
+  const TAttributes extends Record<string, Attribute> = never,
+  TMetadata = never,
+>(
+  options?: CreateEntityBaseOptions<TAttributes, TMetadata> & {
+    parse?: never;
+    defaultValue?: never;
+  },
+): Entity<NoInfer<TAttributes>, never, never, never, NoInfer<TMetadata>>;
 
 export function createEntity<
   const TAttributes extends Record<string, Attribute> = never,
   TValue = never,
+  TParseError = never,
   TRefineError = never,
   TMetadata = never,
 >(
-  options?: {
-    attributeOverrides?: {
-      [K in keyof TAttributes & string]?: AttributeOverrideInput<
-        TAttributes[K],
-        K,
-        Entity<TAttributes, unknown, boolean, NoInfer<TMetadata>>
-      >;
-    };
-    attributes?: TAttributes;
-    childrenAllowed?: boolean;
-    parentAllowed?: boolean;
-    parentRequired?: boolean;
-    defaultValue?(
-      context: EntityRefineContext<
-        Entity<TAttributes, unknown, boolean, NoInfer<TMetadata>>
+  options: CreateEntityBaseOptions<TAttributes, TMetadata> & {
+    parse: ParseFunction<
+      Result<TValue, TParseError>,
+      EntityParseContext<
+        Entity<TAttributes, unknown, unknown, unknown, NoInfer<TMetadata>>
+      >
+    >;
+    defaultValue?: (
+      context: EntityDefaultValueContext<
+        Entity<TAttributes, unknown, unknown, unknown, TMetadata>
       >,
-    ): NoInfer<TValue>;
-    shouldBeProcessed?(
-      context: EntityRefineContext<
-        Entity<TAttributes, unknown, boolean, NoInfer<TMetadata>>
-      >,
-    ): boolean;
-    metadata?: TMetadata;
-  } & (
-    | {
-        validate?: ParseFunction<
-          Result<TValue>,
-          EntityParseContext<
-            Entity<TAttributes, unknown, unknown, NoInfer<TMetadata>>
-          >
-        >;
-      }
-    | {
-        validate?: [
-          parse: ParseFunction<
-            Result<TValue>,
-            EntityParseContext<
-              Entity<TAttributes, unknown, unknown, NoInfer<TMetadata>>
-            >
-          >,
-          refine: RefineFunction<
-            TValue,
-            RefineResult<TValue, TRefineError>,
-            EntityRefineContext<
-              Entity<TAttributes, unknown, unknown, NoInfer<TMetadata>>
-            >
-          >,
-        ];
-      }
-  ),
+    ) => TValue;
+  },
+  secondOptions?: CreateEntitySecondOptions<
+    TValue,
+    TRefineError,
+    TAttributes,
+    TMetadata
+  >,
 ): Entity<
   NoInfer<TAttributes>,
   NoInfer<TValue>,
+  NoInfer<TParseError>,
+  NoInfer<TRefineError>,
+  NoInfer<TMetadata>
+>;
+
+export function createEntity<
+  const TAttributes extends Record<string, Attribute> = never,
+  TValue = never,
+  TParseError = never,
+  TRefineError = never,
+  TMetadata = never,
+>(
+  options?: CreateEntityBaseOptions<TAttributes, TMetadata> & {
+    parse?: ParseFunction<
+      Result<TValue, TParseError>,
+      EntityParseContext<
+        Entity<TAttributes, unknown, unknown, unknown, NoInfer<TMetadata>>
+      >
+    >;
+    defaultValue?: (
+      context: EntityDefaultValueContext<
+        Entity<TAttributes, unknown, unknown, unknown, TMetadata>
+      >,
+    ) => TValue;
+  },
+  secondOptions?: CreateEntitySecondOptions<
+    TValue,
+    TRefineError,
+    TAttributes,
+    TMetadata
+  >,
+): Entity<
+  NoInfer<TAttributes>,
+  NoInfer<TValue>,
+  NoInfer<TParseError>,
   NoInfer<TRefineError>,
   NoInfer<TMetadata>
 > {
-  const forbidenValueErrorMessage = "Value not allowed.";
+  function forbiddenValueHandler() {
+    throw new Error("Value not allowed");
+  }
 
-  const validate = (
-    options?.validate
-      ? Array.isArray(options.validate)
-        ? options.validate
-        : [
-            options.validate,
-            (value: unknown) => ({ success: true, value: value }),
-          ]
-      : [
-          () => {
-            throw new Error(forbidenValueErrorMessage);
-          },
-          () => {
-            throw new Error(forbidenValueErrorMessage);
-          },
-        ]
-  ) as Entity<TAttributes, TValue, TRefineError, TMetadata>["validate"];
+  const parse =
+    (options?.parse as Entity<
+      TAttributes,
+      TValue,
+      TParseError,
+      TRefineError,
+      TMetadata
+    >["parse"]) ?? forbiddenValueHandler;
+
+  const refine = (
+    options?.parse
+      ? (secondOptions?.refine ?? ((value) => ({ success: true, value })))
+      : forbiddenValueHandler
+  ) as Entity<
+    TAttributes,
+    TValue,
+    TParseError,
+    TRefineError,
+    TMetadata
+  >["refine"];
 
   return {
     ...options,
@@ -257,15 +329,16 @@ export function createEntity<
     parentRequired: options?.parentRequired ?? false,
     parentAllowed: options?.parentAllowed ?? true,
     attributes: options?.attributes ?? ({} as TAttributes),
-    valueAllowed: Boolean(options?.validate),
+    valueAllowed: Boolean(options?.parse),
     attributeOverrides:
       (options?.attributeOverrides as Entity["attributeOverrides"]) ?? {},
-    validate,
-    defaultValue: options?.defaultValue
-      ? (...args) => options?.defaultValue?.(...args)
-      : () => undefined as never,
+    parse,
+    refine,
     shouldBeProcessed: options?.shouldBeProcessed
-      ? (...args) => options?.shouldBeProcessed?.(...args) ?? true
+      ? options?.shouldBeProcessed.bind(options)
       : () => true,
+    ...(options?.defaultValue && {
+      defaultValue: options.defaultValue.bind(options),
+    }),
   };
 }

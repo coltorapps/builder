@@ -7,279 +7,347 @@ import { createBuilder } from "../src/builder";
 import { createEntity } from "../src/entity";
 import { SchemaParseError } from "../src/schema-parsing";
 import {
-  AttributesRefineError,
+  EntitiesAttributesValidationError,
   SchemaRefineError,
   validateSchema,
 } from "../src/schema-validation";
-import { assertErrResult, dataToValueResult } from "./utils";
+import { assertErrResult, dataResultAsValueResult } from "./utils";
 
-const builder = createBuilder({
-  entities: {
-    textField: createEntity({
-      attributes: {
-        stringMin10: createAttribute({
-          validate: [
-            (value) => {
-              return dataToValueResult(z.string().safeParse(value));
+describe("schema validation", () => {
+  const builder = createBuilder({
+    entities: {
+      textField: createEntity({
+        attributes: {
+          stringMin10: createAttribute(
+            {
+              parse: (value) => {
+                return dataResultAsValueResult(z.string().safeParse(value));
+              },
             },
-            (value) => {
-              return dataToValueResult(z.string().min(10).safeParse(value));
+            {
+              refine: (value) => {
+                return dataResultAsValueResult(
+                  z
+                    .string()
+                    .min(10)
+                    .refine(
+                      (value) => value !== "refine will fail",
+                      "refine failed",
+                    )
+                    .safeParse(value),
+                );
+              },
             },
-          ],
-        }),
-        transformedString: createAttribute({
-          validate: [
-            (value) => {
-              return dataToValueResult(
+          ),
+          transformedString: createAttribute(
+            {
+              parse: (value) => {
+                return dataResultAsValueResult(
+                  z
+                    .string()
+                    .transform((value) => value + "-parseTransform")
+                    .safeParse(value),
+                );
+              },
+            },
+            {
+              refine: (value) => {
+                return dataResultAsValueResult(
+                  z
+                    .string()
+                    .transform((value) => value + "-refineTransform")
+                    .safeParse(value),
+                );
+              },
+            },
+          ),
+          overridenEmail: createAttribute(
+            {
+              parse: (value) => {
+                return dataResultAsValueResult(z.string().safeParse(value));
+              },
+            },
+            {
+              refine: (value) => {
+                return dataResultAsValueResult(
+                  z
+                    .string()
+                    .transform((value) => "refineTransform-" + value)
+                    .safeParse(value),
+                );
+              },
+            },
+          ),
+        },
+        attributeOverrides: {
+          overridenEmail: {
+            async refine(value, ctx) {
+              const result = await ctx.refine(value);
+
+              if (!result.success) {
+                return result;
+              }
+
+              return dataResultAsValueResult(
                 z
                   .string()
-                  .transform((value) => value + "-parseTransform")
-                  .safeParse(value),
+                  .email()
+                  .transform(
+                    (value) =>
+                      value + (ctx.entity.attributes.stringMin10.value || ""),
+                  )
+                  .safeParse(result.value),
               );
             },
-            (value) => {
-              return dataToValueResult(
-                z
-                  .string()
-                  .transform((value) => value + "-refineTransform")
-                  .safeParse(value),
-              );
-            },
-          ],
-        }),
-        overridenEmail: createAttribute({
-          validate: [
-            (value) => {
-              return dataToValueResult(z.string().safeParse(value));
-            },
-            (value) => {
-              return dataToValueResult(
-                z
-                  .string()
-                  .transform((value) => "refineTransform-" + value)
-                  .safeParse(value),
-              );
-            },
-          ],
-        }),
-      },
-      attributeOverrides: {
-        overridenEmail: {
-          async refine(value, ctx) {
-            const result = await ctx.refine(value);
-
-            if (!result.success) {
-              return result;
-            }
-
-            return dataToValueResult(
-              z
-                .string()
-                .email()
-                .transform(
-                  (value) =>
-                    value + (ctx.entity.attributes.stringMin10.value || ""),
-                )
-                .safeParse(result.value),
-            );
           },
         },
-      },
-    }),
-  },
-  entityOverrides: {
-    textField: {
-      attributes: {
-        overridenEmail: {
-          async refine(entity, ctx) {
-            const result = await ctx.refine(entity);
+      }),
+    },
+    entityOverrides: {
+      textField: {
+        attributes: {
+          overridenEmail: {
+            async refine(entity, ctx) {
+              const result = await ctx.refine(entity);
 
-            if (!result.success) {
-              return result;
-            }
+              if (!result.success) {
+                return result;
+              }
 
-            return {
-              success: true,
-              value: result.value + "-entityOverride",
-            };
+              return {
+                success: true,
+                value: result.value + "-entityOverride",
+              };
+            },
           },
         },
       },
     },
-  },
-});
-
-const uuid = randomUUID();
-
-describe("schema validation", () => {
-  it("parses the schema and fails on invalid input", async () => {
-    const result = await validateSchema({}, builder);
-
-    assertErrResult(result);
-
-    expect(result.error).toBeInstanceOf(SchemaParseError);
-  });
-
-  it("parses and refines attributes", async () => {
-    const successResult = await validateSchema(
-      {
-        root: [uuid],
-        entities: {
-          [uuid]: {
-            type: "textField",
-            attributes: {
-              stringMin10: "stringMin10",
-              transformedString: "1234567890",
-              overridenEmail: "my@email.com",
-            },
-          },
-        },
-      },
-      builder,
-    );
-
-    expect(successResult).toStrictEqual({
-      success: true,
-      value: {
-        entities: {
-          [uuid]: {
-            type: "textField",
-            attributes: {
-              stringMin10: "stringMin10",
-              transformedString: "1234567890-parseTransform-refineTransform",
-              overridenEmail:
-                "refineTransform-my@email.comstringMin10-entityOverride",
-            },
-          },
-        },
-        root: [uuid],
-      },
-    });
-
-    const failureResult = await validateSchema(
-      {
-        root: [uuid],
-        entities: {
-          [uuid]: {
-            type: "textField",
-            attributes: {
-              stringMin10: "stringMin10",
-              transformedString: "1234567890",
-              overridenEmail: "invalid email",
-            },
-          },
-        },
-      },
-      builder,
-    );
-
-    assertErrResult(failureResult);
-
-    expect(failureResult).toMatchObject({
-      success: false,
-      error: {
-        errors: {
-          [uuid]: {
-            overridenEmail: {
-              issues: [
-                {
-                  validation: "email",
-                  code: "invalid_string",
-                  message: "Invalid email",
-                  path: [],
-                },
-              ],
-              name: "ZodError",
-            },
-          },
-        },
-      },
-    });
-
-    expect(failureResult.error).toBeInstanceOf(AttributesRefineError);
-  });
-
-  it("refines the schema", async () => {
-    const builderWithSchemaRefine = createBuilder({
-      ...builder,
-      refineSchema(schema) {
-        if (
-          schema.entities[uuid]?.attributes.stringMin10 === "refin will fail"
-        ) {
-          return {
-            success: false,
-            error: "refine error",
-          };
-        }
-
+    refineSchema(schema) {
+      if (
+        schema.entities[uuid]?.attributes.stringMin10 ===
+        "schema refine will fail"
+      ) {
         return {
-          success: true,
-          value: schema,
+          success: false,
+          error: "refine error",
         };
-      },
-    });
+      }
 
-    const successResult = await validateSchema(
+      return {
+        success: true,
+        value: schema,
+      };
+    },
+  });
+
+  const uuid = randomUUID();
+
+  describe("success cases", () => {
+    it.each([
       {
-        root: [uuid],
-        entities: {
-          [uuid]: {
-            type: "textField",
-            attributes: {
-              stringMin10: "1234567890",
-              transformedString: "1234567890",
-              overridenEmail: "my@email.com",
+        description: "attributes parsing and refining pass",
+        schema: {
+          root: [uuid],
+          entities: {
+            [uuid]: {
+              type: "textField",
+              attributes: {
+                stringMin10: "stringMin10",
+                transformedString: "1234567890",
+                overridenEmail: "my@email.com",
+              },
             },
           },
         },
-      },
-      builderWithSchemaRefine,
-    );
-
-    expect(successResult).toStrictEqual({
-      value: {
-        entities: {
-          [uuid]: {
-            attributes: {
-              overridenEmail:
-                "refineTransform-my@email.com1234567890-entityOverride",
-              stringMin10: "1234567890",
-              transformedString: "1234567890-parseTransform-refineTransform",
+        expectedResult: {
+          entities: {
+            [uuid]: {
+              type: "textField",
+              attributes: {
+                stringMin10: "stringMin10",
+                transformedString: "1234567890-parseTransform-refineTransform",
+                overridenEmail:
+                  "refineTransform-my@email.comstringMin10-entityOverride",
+              },
             },
-            type: "textField",
           },
+          root: [uuid],
         },
-        root: [uuid],
       },
-      success: true,
-    });
-
-    const failureResult = await validateSchema(
       {
-        root: [uuid],
-        entities: {
-          [uuid]: {
-            type: "textField",
-            attributes: {
-              stringMin10: "refin will fail",
-              transformedString: "1234567890",
-              overridenEmail: "my@email.com",
+        description: "schema refining passes",
+        schema: {
+          root: [uuid],
+          entities: {
+            [uuid]: {
+              type: "textField",
+              attributes: {
+                stringMin10: "1234567890",
+                transformedString: "1234567890",
+                overridenEmail: "my@email.com",
+              },
+            },
+          },
+        },
+        expectedResult: {
+          entities: {
+            [uuid]: {
+              attributes: {
+                overridenEmail:
+                  "refineTransform-my@email.com1234567890-entityOverride",
+                stringMin10: "1234567890",
+                transformedString: "1234567890-parseTransform-refineTransform",
+              },
+              type: "textField",
+            },
+          },
+          root: [uuid],
+        },
+      },
+    ] as const)(
+      "should succeed when $description",
+      async ({ schema, expectedResult }) => {
+        expect(await validateSchema(schema, builder)).toStrictEqual({
+          success: true,
+          value: expectedResult,
+        });
+      },
+    );
+  });
+
+  describe("failure cases", () => {
+    it.each([
+      {
+        description: "invalid schema provided",
+        schema: {},
+        expectedError: {
+          instance: SchemaParseError,
+        },
+      },
+      {
+        description: "schema refining fails",
+        schema: {
+          root: [uuid],
+          entities: {
+            [uuid]: {
+              type: "textField",
+              attributes: {
+                stringMin10: "schema refine will fail",
+                transformedString: "1234567890",
+                overridenEmail: "my@email.com",
+              },
+            },
+          },
+        },
+        expectedError: {
+          instance: SchemaRefineError,
+          properties: {
+            cause: "refine error",
+          },
+        },
+      },
+      {
+        description: "attribute refining fails",
+        schema: {
+          root: [uuid],
+          entities: {
+            [uuid]: {
+              type: "textField",
+              attributes: {
+                stringMin10: "refine will fail",
+                transformedString: "1234567890",
+                overridenEmail: "my@email.com",
+              },
+            },
+          },
+        },
+        expectedError: {
+          instance: EntitiesAttributesValidationError,
+          properties: {
+            errors: {
+              [uuid]: {
+                stringMin10: {
+                  issues: [
+                    {
+                      code: "custom",
+                      message: "refine failed",
+                      path: [],
+                    },
+                  ],
+                  name: "ZodError",
+                },
+              },
             },
           },
         },
       },
-      builderWithSchemaRefine,
-    );
-
-    assertErrResult(failureResult);
-
-    expect(failureResult).toMatchObject({
-      error: {
-        cause: "refine error",
+      {
+        description: "attribute parsing fails",
+        schema: {
+          root: [uuid],
+          entities: {
+            [uuid]: {
+              type: "textField",
+              attributes: {
+                stringMin10: "",
+                transformedString: "1234567890",
+                overridenEmail: "invalid email",
+              },
+            },
+          },
+        },
+        expectedError: {
+          instance: EntitiesAttributesValidationError,
+          properties: {
+            errors: {
+              [uuid]: {
+                overridenEmail: {
+                  issues: [
+                    {
+                      validation: "email",
+                      code: "invalid_string",
+                      message: "Invalid email",
+                      path: [],
+                    },
+                  ],
+                  name: "ZodError",
+                },
+                stringMin10: {
+                  issues: [
+                    {
+                      code: "too_small",
+                      minimum: 10,
+                      type: "string",
+                      inclusive: true,
+                      exact: false,
+                      message: "String must contain at least 10 character(s)",
+                      path: [],
+                    },
+                  ],
+                  name: "ZodError",
+                },
+              },
+            },
+          },
+        },
       },
-      success: false,
-    });
+    ] as const)(
+      "should fail when $description",
+      async ({ schema, expectedError }) => {
+        const result = await validateSchema(schema, builder);
 
-    expect(failureResult.error).toBeInstanceOf(SchemaRefineError);
+        assertErrResult(result);
+
+        expect(result.error).toBeInstanceOf(expectedError.instance);
+
+        if (expectedError.properties) {
+          expect(result).toMatchObject({
+            error: expectedError.properties,
+            success: false,
+          });
+        }
+      },
+    );
   });
 });

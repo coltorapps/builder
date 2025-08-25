@@ -1,6 +1,6 @@
 import { type Err, type Ok, type Result } from "../src/utils";
 
-export function dataToValueResult<TData, TError>(
+export function dataResultAsValueResult<TData, TError>(
   input: { success: true; data: TData } | { success: false; error: TError },
 ): Result<TData, TError> {
   return input.success

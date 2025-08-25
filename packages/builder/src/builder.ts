@@ -1,12 +1,12 @@
 import {
   type AttributeOverrideInput,
   type Entity,
-  type EntityParsedValue,
+  type InferEntityParsedValue,
   type EntityRefineContext,
-  type EntityRefineResult,
+  type InferEntityRefineResult,
 } from "./entity";
 import { type ValidatedSchema } from "./schema-validation";
-import { type RefineResult,  } from "./utils";
+import { type KeyofStringIntersection, type RefineResult } from "./utils";
 import { generateUuid, validateUuid } from "./uuid";
 
 interface BaseEntityOverride {
@@ -18,7 +18,7 @@ interface EntityRefineOverrideContext<
   TType extends string = string,
   TBuilder extends Builder = Builder,
 > extends EntityRefineContext<TEntity, TType, TBuilder> {
-  refine(value: EntityParsedValue<TEntity>): EntityRefineResult<TEntity>;
+  refine(value: InferEntityParsedValue<TEntity>): InferEntityRefineResult<TEntity>;
 }
 
 interface EntityDefaultValueOverrideContext<
@@ -26,7 +26,7 @@ interface EntityDefaultValueOverrideContext<
   TType extends string = string,
   TBuilder extends Builder = Builder,
 > extends EntityRefineContext<TEntity, TType, TBuilder> {
-  defaultValue(): ReturnType<TEntity["defaultValue"]>;
+  defaultValue(): InferEntityParsedValue<TEntity>;
 }
 
 interface EntityShouldBeProcessedOverrideContext<
@@ -43,9 +43,9 @@ export interface EntityOverride<TEntity extends Entity = Entity>
   parentAllowed?: boolean | ReadonlyArray<string>;
   attributes?: Record<string, AttributeOverrideInput>;
   refine?(
-    value: EntityParsedValue<TEntity>,
+    value: InferEntityParsedValue<TEntity>,
     context: EntityRefineOverrideContext<TEntity>,
-  ): EntityRefineResult<TEntity>;
+  ): InferEntityRefineResult<TEntity>;
   defaultValue(context: EntityDefaultValueOverrideContext<TEntity>): unknown;
   shouldBeProcessed(
     context: EntityShouldBeProcessedOverrideContext<TEntity>,
@@ -59,22 +59,24 @@ interface EntityOverrideInput<
 > extends BaseEntityOverride {
   childrenAllowed?:
     | boolean
-    | ReadonlyArray<keyof TBuilder["entities"] & string>;
+    | ReadonlyArray<KeyofStringIntersection<TBuilder["entities"]>>;
   parentAllowed?:
     | boolean
-    | ReadonlyArray<keyof TBuilder["entities"] & string>;
+    | ReadonlyArray<KeyofStringIntersection<TBuilder["entities"]>>;
   refine?: (
-    value: EntityParsedValue<TEntity>,
+    value: InferEntityParsedValue<TEntity>,
     context: EntityRefineOverrideContext<TEntity, TType, TBuilder>,
-  ) => EntityRefineResult<TEntity>;
+  ) => InferEntityRefineResult<TEntity>;
   defaultValue?: (
     context: EntityDefaultValueOverrideContext<TEntity, TType, TBuilder>,
-  ) => EntityParsedValue<TEntity>;
+  ) => InferEntityParsedValue<TEntity>;
   shouldBeProcessed?(
     context: EntityShouldBeProcessedOverrideContext<TEntity, TType, TBuilder>,
   ): boolean;
   attributes?: {
-    [K in keyof TEntity["attributes"] & string]?: AttributeOverrideInput<
+    [K in KeyofStringIntersection<
+      TEntity["attributes"]
+    >]?: AttributeOverrideInput<
       TEntity["attributes"][K],
       K,
       TEntity,
@@ -84,11 +86,11 @@ interface EntityOverrideInput<
   };
 }
 
-export type BuilderSchemaRefineResult<TBuilder extends Builder> =
+export type InferBuilderSchemaRefineResult<TBuilder extends Builder> =
   ReturnType<TBuilder["refineSchema"]>;
 
-export type BuilderSchemaRefineError<TBuilder extends Builder> = Extract<
-  BuilderSchemaRefineResult<TBuilder>,
+export type InferBuilderSchemaRefineError<TBuilder extends Builder> = Extract<
+  InferBuilderSchemaRefineResult<TBuilder>,
   { success: false }
 >["error"];
 
@@ -114,7 +116,7 @@ export function createBuilder<
   generateEntityId?: Builder["generateEntityId"];
   validateEntityId?: Builder["validateEntityId"];
   entityOverrides?: {
-    [K in keyof TEntities & string]?: EntityOverrideInput<
+    [K in KeyofStringIntersection<TEntities>]?: EntityOverrideInput<
       Builder<TEntities>,
       TEntities[K],
       K
@@ -123,10 +125,7 @@ export function createBuilder<
 }): Builder<TEntities, TRefineError> {
   function fallbackRefineSchema(
     data: ValidatedSchema<Builder<TEntities>>,
-  ): RefineResult<
-    ValidatedSchema<Builder<TEntities>>,
-    TRefineError
-  > {
+  ): RefineResult<ValidatedSchema<Builder<TEntities>>, TRefineError> {
     return { success: true, value: data };
   }
 
