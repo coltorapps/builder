@@ -1,9 +1,9 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createAttribute, type Attribute } from "../src/attribute";
+import { createAttributeDefinition, type AttributeDefinition } from "../src/attribute-definition";
 import { createBuilder, type Builder } from "../src/builder";
-import { createEntity, type Entity } from "../src/entity";
+import { createEntityDefinition, type EntityDefinition } from "../src/entity-definition";
 import { dataResultAsValueResult } from "./utils";
 
 describe("createBuilder", () => {
@@ -16,10 +16,10 @@ describe("createBuilder", () => {
     expectTypeOf(
       createBuilder({
         entities: {
-          textField: createEntity(
+          textField: createEntityDefinition(
             {
               attributes: {
-                label: createAttribute(
+                label: createAttributeDefinition(
                   {
                     parse: (value) =>
                       dataResultAsValueResult(z.string().safeParse(value)),
@@ -50,9 +50,9 @@ describe("createBuilder", () => {
     ).toEqualTypeOf<
       Builder<
         {
-          readonly textField: Entity<
+          readonly textField: EntityDefinition<
             {
-              readonly label: Attribute<
+              readonly label: AttributeDefinition<
                 string,
                 z.ZodError<string>,
                 z.ZodError<string>,

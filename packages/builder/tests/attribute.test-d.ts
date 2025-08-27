@@ -1,13 +1,13 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createAttribute, type Attribute } from "../src/attribute";
+import { createAttributeDefinition, type AttributeDefinition } from "../src/attribute-definition";
 import { dataResultAsValueResult } from "./utils";
 
 describe("createAttribute", () => {
   it("produces correct types", () => {
     expectTypeOf(
-      createAttribute({
+      createAttributeDefinition({
         parse: (value) => {
           return {
             success: true,
@@ -16,19 +16,19 @@ describe("createAttribute", () => {
         },
         metadata: "metadata" as const,
       }),
-    ).toEqualTypeOf<Attribute<string, never, never, "metadata">>();
+    ).toEqualTypeOf<AttributeDefinition<string, never, never, "metadata">>();
 
     expectTypeOf(
-      createAttribute({
+      createAttributeDefinition({
         parse: (value) => {
           return dataResultAsValueResult(z.string().safeParse(value));
         },
         metadata: "metadata" as const,
       }),
-    ).toEqualTypeOf<Attribute<string, z.ZodError<string>, never, "metadata">>();
+    ).toEqualTypeOf<AttributeDefinition<string, z.ZodError<string>, never, "metadata">>();
 
     expectTypeOf(
-      createAttribute(
+      createAttributeDefinition(
         {
           parse: (value) =>
             dataResultAsValueResult(z.string().safeParse(value)),
@@ -41,7 +41,7 @@ describe("createAttribute", () => {
         },
       ),
     ).toEqualTypeOf<
-      Attribute<string, z.ZodError<string>, z.ZodError<string>, "metadata">
+      AttributeDefinition<string, z.ZodError<string>, z.ZodError<string>, "metadata">
     >();
   });
 });

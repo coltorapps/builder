@@ -2,23 +2,23 @@ import { randomUUID } from "crypto";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createAttribute } from "../src/attribute";
+import { createAttributeDefinition } from "../src/attribute-definition";
 import { createBuilder } from "../src/builder";
-import { createEntity } from "../src/entity";
+import { createEntityDefinition } from "../src/entity-definition";
 import { SchemaParseError } from "../src/schema-parsing";
 import {
   EntitiesAttributesValidationError,
   SchemaRefineError,
   validateSchema,
 } from "../src/schema-validation";
-import { assertErrResult, dataResultAsValueResult } from "./utils";
+import { assertErrorResult, dataResultAsValueResult } from "./utils";
 
 describe("schema validation", () => {
   const builder = createBuilder({
     entities: {
-      textField: createEntity({
+      textField: createEntityDefinition({
         attributes: {
-          stringMin10: createAttribute(
+          stringMin10: createAttributeDefinition(
             {
               parse: (value) => {
                 return dataResultAsValueResult(z.string().safeParse(value));
@@ -39,7 +39,7 @@ describe("schema validation", () => {
               },
             },
           ),
-          transformedString: createAttribute(
+          transformedString: createAttributeDefinition(
             {
               parse: (value) => {
                 return dataResultAsValueResult(
@@ -61,7 +61,7 @@ describe("schema validation", () => {
               },
             },
           ),
-          overridenEmail: createAttribute(
+          overridenEmail: createAttributeDefinition(
             {
               parse: (value) => {
                 return dataResultAsValueResult(z.string().safeParse(value));
@@ -337,7 +337,7 @@ describe("schema validation", () => {
       async ({ schema, expectedError }) => {
         const result = await validateSchema(schema, builder);
 
-        assertErrResult(result);
+        assertErrorResult(result);
 
         expect(result.error).toBeInstanceOf(expectedError.instance);
 

@@ -1,4 +1,4 @@
-import { type Err, type Ok, type Result } from "../src/utils";
+import { type ErrorResult, type SuccessResult, type Result } from "../src/utils";
 
 export function dataResultAsValueResult<TData, TError>(
   input: { success: true; data: TData } | { success: false; error: TError },
@@ -8,17 +8,17 @@ export function dataResultAsValueResult<TData, TError>(
     : { success: false, error: input.error };
 }
 
-export function assertErrResult<TResult extends Result<unknown, unknown>>(
+export function assertErrorResult<TResult extends Result<unknown, unknown>>(
   result: TResult,
-): asserts result is Extract<TResult, Err> {
+): asserts result is Extract<TResult, ErrorResult> {
   if (result.success) {
     throw new Error("Expected failure");
   }
 }
 
-export function assertOkResult<TResult extends Result<unknown, unknown>>(
+export function assertSuccessResult<TResult extends Result<unknown, unknown>>(
   result: TResult,
-): asserts result is Extract<TResult, Ok> {
+): asserts result is Extract<TResult, SuccessResult> {
   if (!result.success) {
     throw new Error("Expected success");
   }

@@ -1,9 +1,10 @@
+import { randomUUID } from "crypto";
 import { Effect } from "effect";
 import { ParseError } from "effect/ParseResult";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createAttribute } from "../src/attribute";
+import { createAttributeDefinition } from "../src/attribute-definition";
 import { createBuilder } from "../src/builder";
 import {
   collectEntityDescendants,
@@ -13,7 +14,7 @@ import {
   IndexOutOfBoundsError,
   parseEntitiesAttributesErrors,
 } from "../src/builder-store";
-import { createEntity } from "../src/entity";
+import { createEntityDefinition } from "../src/entity-definition";
 import {
   ChildNotAllowedError,
   EntityAttributeParseError,
@@ -34,8 +35,8 @@ import {
 } from "../src/schema-validation";
 import { runSyncAsResult } from "../src/utils";
 import {
-  assertErrResult,
-  assertOkResult,
+  assertErrorResult,
+  assertSuccessResult,
   dataResultAsValueResult,
 } from "./utils";
 
@@ -104,9 +105,9 @@ describe("collectEntityDescendants", () => {
 describe("parseAttributeErrors", () => {
   const builder = createBuilder({
     entities: {
-      textField: createEntity({
+      textField: createEntityDefinition({
         attributes: {
-          label: createAttribute(
+          label: createAttributeDefinition(
             {
               parse: (value) => ({ success: true, value }),
             },
@@ -173,7 +174,7 @@ describe("parseAttributeErrors", () => {
         parseEntitiesAttributesErrors(errors, schema, builder),
       );
 
-      assertErrResult(result);
+      assertErrorResult(result);
 
       expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -188,9 +189,9 @@ describe("builder store", () => {
   describe("initialization", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute(
+            label: createAttributeDefinition(
               {
                 parse: (value) => ({ success: true, value: value }),
               },
@@ -246,7 +247,7 @@ describe("builder store", () => {
         ({ options, expectedData }) => {
           const result = createBuilderStore(builder, options);
 
-          assertOkResult(result);
+          assertSuccessResult(result);
 
           expect(result.value.getData()).toEqual(expectedData);
         },
@@ -295,7 +296,7 @@ describe("builder store", () => {
             initialData,
           });
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -318,7 +319,7 @@ describe("builder store", () => {
   describe("removeEntity", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           childrenAllowed: true,
         }),
       },
@@ -343,7 +344,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -391,7 +392,7 @@ describe("builder store", () => {
 
         const removalResult = builderStore.removeEntity("invalidId");
 
-        assertErrResult(removalResult);
+        assertErrorResult(removalResult);
 
         expect(removalResult.error).toBeInstanceOf(EntityNotFoundError);
 
@@ -405,9 +406,9 @@ describe("builder store", () => {
       function makeBuilderStore() {
         const builder = createBuilder({
           entities: {
-            textField: createEntity({
+            textField: createEntityDefinition({
               attributes: {
-                label: createAttribute({
+                label: createAttributeDefinition({
                   parse: (value) =>
                     dataResultAsValueResult(
                       z
@@ -416,7 +417,7 @@ describe("builder store", () => {
                         .safeParse(value),
                     ),
                 }),
-                withDefault: createAttribute({
+                withDefault: createAttributeDefinition({
                   parse: (value) =>
                     dataResultAsValueResult(
                       z
@@ -428,10 +429,10 @@ describe("builder store", () => {
                 }),
               },
             }),
-            container: createEntity({
+            container: createEntityDefinition({
               childrenAllowed: true,
               attributes: {
-                title: createAttribute({
+                title: createAttributeDefinition({
                   parse: (value) => ({ success: true, value }),
                 }),
               },
@@ -454,7 +455,7 @@ describe("builder store", () => {
           },
         });
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         return result.value;
       }
@@ -628,13 +629,15 @@ describe("builder store", () => {
     });
 
     describe("failure cases", () => {
-      function makeBuilderStore() {
+      function makeBuilderStore(
+        generateEntityId = () => randomUUID() as string,
+      ) {
         const builder = createBuilder({
           entities: {
-            textField: createEntity({
+            textField: createEntityDefinition({
               parentRequired: true,
               attributes: {
-                label: createAttribute({
+                label: createAttributeDefinition({
                   parse: (value) => {
                     if (typeof value === "string" && value.length > 0) {
                       return { success: true, value };
@@ -647,17 +650,17 @@ describe("builder store", () => {
                 }),
               },
             }),
-            container: createEntity({
+            container: createEntityDefinition({
               childrenAllowed: true,
               parentAllowed: true,
             }),
-            restrictedContainer: createEntity({
+            restrictedContainer: createEntityDefinition({
               childrenAllowed: true,
             }),
-            specialField: createEntity({
+            specialField: createEntityDefinition({
               parentRequired: true,
               attributes: {
-                description: createAttribute({
+                description: createAttributeDefinition({
                   parse: (value) => ({ success: true, value }),
                 }),
               },
@@ -680,6 +683,7 @@ describe("builder store", () => {
           },
           validateEntityId: (id) =>
             typeof id === "string" && id.startsWith("valid_"),
+          generateEntityId,
         });
 
         const result = createBuilderStore(builder, {
@@ -700,7 +704,7 @@ describe("builder store", () => {
           },
         });
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         return result.value;
       }
@@ -882,6 +886,20 @@ describe("builder store", () => {
             },
           },
         },
+        {
+          description: "invalid entity ID generated",
+          action: () => {
+            return makeBuilderStore(() => "invalid").addEntity({
+              type: "textField",
+            });
+          },
+          expectedError: {
+            instance: InvalidEntityIdError,
+            payload: {
+              entityId: "invalid",
+            },
+          },
+        },
       ];
 
       it.each(errorTestCases)(
@@ -889,7 +907,7 @@ describe("builder store", () => {
         ({ action, expectedError }) => {
           const result = action();
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -899,10 +917,59 @@ describe("builder store", () => {
     });
   });
 
+  describe("getEntity", () => {
+    const builderStoreResult = createBuilderStore(
+      createBuilder({
+        entities: {
+          textField: createEntityDefinition(),
+        },
+        validateEntityId: (id) => typeof id === "string",
+      }),
+      {
+        initialData: {
+          schema: {
+            entities: {
+              entity1: { type: "textField" },
+            },
+            root: ["entity1"],
+          },
+        },
+      },
+    );
+
+    assertSuccessResult(builderStoreResult);
+
+    describe("success cases", () => {
+      it("should succeed when valid entity ID provided", () => {
+        expect(builderStoreResult.value.getEntity("entity1")).toStrictEqual({
+          success: true,
+          value: {
+            id: "entity1",
+            type: "textField",
+          },
+        });
+      });
+    });
+
+    describe("failure cases", () => {
+      it("should fail when invalid entity ID provided", () => {
+        const result = builderStoreResult.value.getEntity("invalidId");
+
+        assertErrorResult(result);
+
+        expect(result.error).toBeInstanceOf(EntityNotFoundError);
+
+        expect(result.error).toMatchObject({
+          entityId: "invalidId",
+        });
+      });
+    });
+  });
+
   describe("setData", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity(),
+        textField: createEntityDefinition(),
       },
       validateEntityId: (id) => typeof id === "string",
     });
@@ -919,7 +986,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -980,7 +1047,7 @@ describe("builder store", () => {
         for (const test of tests) {
           const result = test.action();
 
-          assertOkResult(result);
+          assertSuccessResult(result);
 
           expect(result.value).toStrictEqual(test.data);
 
@@ -1053,7 +1120,7 @@ describe("builder store", () => {
         const builderStore = makeBuilderStore();
         const result = action(builderStore);
 
-        assertErrResult(result);
+        assertErrorResult(result);
 
         expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -1069,7 +1136,7 @@ describe("builder store", () => {
   describe("setEntityIndex", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           childrenAllowed: true,
         }),
       },
@@ -1091,7 +1158,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -1105,8 +1172,8 @@ describe("builder store", () => {
           builderStore.setEntityIndex("entity3", 1),
         ] as const;
 
-        assertOkResult(results[0]);
-        assertOkResult(results[1]);
+        assertSuccessResult(results[0]);
+        assertSuccessResult(results[1]);
 
         expect([results[0].value, results[1].value]).toStrictEqual([
           { entityId: "entity1", index: 1 },
@@ -1157,7 +1224,7 @@ describe("builder store", () => {
 
           const result = builderStore.setEntityIndex(entityId, index);
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -1170,21 +1237,21 @@ describe("builder store", () => {
   describe("setEntityParent", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           childrenAllowed: true,
           parentAllowed: true,
         }),
-        container: createEntity({
+        container: createEntityDefinition({
           childrenAllowed: true,
           parentAllowed: true,
         }),
-        restrictedField: createEntity({
+        restrictedField: createEntityDefinition({
           parentRequired: true,
         }),
-        noChildrenContainer: createEntity({
+        noChildrenContainer: createEntityDefinition({
           childrenAllowed: false,
         }),
-        rootOnlyEntity: createEntity({
+        rootOnlyEntity: createEntityDefinition({
           parentAllowed: false,
         }),
       },
@@ -1228,7 +1295,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -1437,7 +1504,7 @@ describe("builder store", () => {
 
           const result = action(store);
 
-          assertOkResult(result);
+          assertSuccessResult(result);
 
           expect(result.value).toStrictEqual(expectedResult);
 
@@ -1582,7 +1649,7 @@ describe("builder store", () => {
         ({ action, expectedError }) => {
           const result = action();
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -1595,9 +1662,9 @@ describe("builder store", () => {
   describe("setEntityAttributeValue", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute({
+            label: createAttributeDefinition({
               parse: (value) => {
                 if (typeof value === "string") {
                   return {
@@ -1633,7 +1700,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -1671,7 +1738,7 @@ describe("builder store", () => {
 
           const result = action(store);
 
-          assertOkResult(result);
+          assertSuccessResult(result);
 
           expect(result.value).toStrictEqual(expectedResult);
 
@@ -1749,7 +1816,156 @@ describe("builder store", () => {
             attributeValue,
           );
 
-          assertErrResult(result);
+          assertErrorResult(result);
+
+          expect(result.error).toBeInstanceOf(expectedError.instance);
+
+          expect(result.error).toMatchObject(expectedError.properties);
+        },
+      );
+    });
+  });
+
+  describe("resetEntityAttributeValue", () => {
+    const builder = createBuilder({
+      entities: {
+        textField: createEntityDefinition({
+          attributes: {
+            withDefaultValue: createAttributeDefinition({
+              parse: (value) => {
+                if (typeof value === "string") {
+                  return {
+                    success: true,
+                    value: value + "-transformed",
+                  };
+                }
+
+                return {
+                  success: false,
+                  error: "Label must be a string",
+                };
+              },
+              defaultValue: () => "Default Label",
+            }),
+            withoutDefaultValue: createAttributeDefinition({
+              parse: (value) => {
+                if (typeof value === "string") {
+                  return {
+                    success: true,
+                    value: value + "-transformed",
+                  };
+                }
+
+                return {
+                  success: false,
+                  error: "Label must be a string",
+                };
+              },
+            }),
+          },
+        }),
+      },
+      validateEntityId: (id) => typeof id === "string",
+    });
+
+    function makeBuilderStore() {
+      const builderStoreResult = createBuilderStore(builder, {
+        initialData: {
+          schema: {
+            entities: {
+              entity1: {
+                type: "textField",
+                attributes: {
+                  withDefaultValue: "Custom Value",
+                  withoutDefaultValue: "Custom Value",
+                },
+              },
+            },
+            root: ["entity1"],
+          },
+        },
+      });
+
+      assertSuccessResult(builderStoreResult);
+
+      return builderStoreResult.value;
+    }
+
+    describe("success cases", () => {
+      it("should succeed when valid entity ID and attribute name provided", () => {
+        const store = makeBuilderStore();
+
+        const results = [
+          store.resetEntityAttributeValue("entity1", "withDefaultValue"),
+          store.resetEntityAttributeValue("entity1", "withoutDefaultValue"),
+        ] as const;
+
+        assertSuccessResult(results[0]);
+        assertSuccessResult(results[1]);
+
+        expect(results[0].value).toStrictEqual({
+          entityId: "entity1",
+          attributeName: "withDefaultValue",
+          attributeValue: "Default Label-transformed",
+        });
+
+        expect(results[1].value).toStrictEqual({
+          entityId: "entity1",
+          attributeName: "withoutDefaultValue",
+          attributeValue: undefined,
+        });
+
+        expect(store.getData().schema).toStrictEqual({
+          entities: {
+            entity1: {
+              type: "textField",
+              attributes: {
+                withDefaultValue: "Default Label-transformed",
+              },
+            },
+          },
+          root: ["entity1"],
+        });
+      });
+    });
+
+    describe("failure cases", () => {
+      it.each([
+        {
+          description: "invalid entity ID provided",
+          entityId: "nonExistentEntity",
+          attributeName: "label",
+          expectedError: {
+            instance: EntityNotFoundError,
+            properties: {
+              entityId: "nonExistentEntity",
+            },
+          },
+        },
+        {
+          description: "invalid attribute name provided",
+          entityId: "entity1",
+          attributeName: "nonExistentAttribute",
+          expectedError: {
+            instance: InvalidAttributeNameError,
+            properties: {
+              entityType: "textField",
+              attributeName: "nonExistentAttribute",
+              validAttributeNames: ["withDefaultValue", "withoutDefaultValue"],
+            },
+          },
+        },
+      ] as const)(
+        "should fail when $description",
+        ({ entityId, attributeName, expectedError }) => {
+          const builderStore = makeBuilderStore();
+
+          const result = builderStore.resetEntityAttributeValue(
+            entityId,
+            attributeName,
+          );
+
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -1762,12 +1978,12 @@ describe("builder store", () => {
   describe("clearEntityAttributeValue", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute({
+            label: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
-            required: createAttribute({
+            required: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
           },
@@ -1791,7 +2007,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -1802,7 +2018,7 @@ describe("builder store", () => {
 
         const result = store.clearEntityAttributeValue("entity1", "label");
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
           entityId: "entity1",
@@ -1857,7 +2073,7 @@ describe("builder store", () => {
             attributeName,
           );
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -1870,15 +2086,15 @@ describe("builder store", () => {
   describe("clearEntityAttributesValues", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute({
+            label: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
-            required: createAttribute({
+            required: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
-            minLength: createAttribute({
+            minLength: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
           },
@@ -1902,7 +2118,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -1913,7 +2129,7 @@ describe("builder store", () => {
 
         const result = store.clearEntityAttributesValues("entity1");
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
           entityId: "entity1",
@@ -1937,7 +2153,7 @@ describe("builder store", () => {
         const result =
           builderStore.clearEntityAttributesValues("nonExistentEntity");
 
-        assertErrResult(result);
+        assertErrorResult(result);
 
         expect(result.error).toBeInstanceOf(EntityNotFoundError);
 
@@ -1951,9 +2167,9 @@ describe("builder store", () => {
   describe("setEntityAttributeError", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute({
+            label: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
           },
@@ -1976,7 +2192,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -1991,7 +2207,7 @@ describe("builder store", () => {
           "Error",
         );
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
           entityId: "entity1",
@@ -2046,7 +2262,7 @@ describe("builder store", () => {
             error,
           );
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -2059,12 +2275,12 @@ describe("builder store", () => {
   describe("setEntityAttributesErrors", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute({
+            label: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
-            required: createAttribute({
+            required: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
           },
@@ -2087,7 +2303,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -2101,7 +2317,7 @@ describe("builder store", () => {
           required: "Error Required",
         });
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
           entityId: "entity1",
@@ -2160,7 +2376,7 @@ describe("builder store", () => {
             attributesErrors,
           );
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -2170,22 +2386,271 @@ describe("builder store", () => {
     });
   });
 
-  describe("setEntitiesAttributesErrors", () => {
+  describe("clearEntityAttributeError", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute({
-              parse: (value) => ({ success: true, value }),
-            }),
-            required: createAttribute({
+            label: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
           },
         }),
-        container: createEntity({
+      },
+      validateEntityId: (id) => typeof id === "string",
+    });
+
+    function makeBuilderStore() {
+      const builderStoreResult = createBuilderStore(builder, {
+        initialData: {
+          schema: {
+            entities: {
+              entity1: {
+                type: "textField",
+              },
+            },
+            root: ["entity1"],
+          },
+          entitiesAttributesErrors: {
+            entity1: {
+              label: "Error",
+            },
+          },
+        },
+      });
+
+      assertSuccessResult(builderStoreResult);
+
+      return builderStoreResult.value;
+    }
+
+    describe("success cases", () => {
+      it("should succeed when valid entity ID and attribute name provided", () => {
+        const store = makeBuilderStore();
+
+        const result = store.clearEntityAttributeError("entity1", "label");
+
+        assertSuccessResult(result);
+
+        expect(result.value).toStrictEqual({
+          entityId: "entity1",
+          attributeName: "label",
+        });
+
+        expect(store.getData().entitiesAttributesErrors).toStrictEqual({});
+      });
+    });
+
+    describe("failure cases", () => {
+      it.each([
+        {
+          description: "invalid entity ID provided",
+          entityId: "nonExistentEntity",
+          attributeName: "label",
+          expectedError: {
+            instance: EntityNotFoundError,
+            properties: {
+              entityId: "nonExistentEntity",
+            },
+          },
+        },
+        {
+          description: "invalid attribute name provided",
+          entityId: "entity1",
+          attributeName: "nonExistentAttribute",
+          expectedError: {
+            instance: InvalidAttributeNameError,
+            properties: {
+              entityType: "textField",
+              attributeName: "nonExistentAttribute",
+              validAttributeNames: ["label"],
+            },
+          },
+        },
+      ] as const)(
+        "should fail when $description",
+        ({ entityId, attributeName, expectedError }) => {
+          const builderStore = makeBuilderStore();
+
+          const result = builderStore.clearEntityAttributeError(
+            entityId,
+            attributeName,
+          );
+
+          assertErrorResult(result);
+
+          expect(result.error).toBeInstanceOf(expectedError.instance);
+
+          expect(result.error).toMatchObject(expectedError.properties);
+        },
+      );
+    });
+  });
+
+  describe("clearEntityAttributesErrors", () => {
+    const builder = createBuilder({
+      entities: {
+        textField: createEntityDefinition({
           attributes: {
-            title: createAttribute({
+            label: createAttributeDefinition({
+              parse: (value) => ({ success: true, value }),
+            }),
+            required: createAttributeDefinition({
+              parse: (value) => ({ success: true, value }),
+            }),
+          },
+        }),
+      },
+      validateEntityId: (id) => typeof id === "string",
+    });
+
+    function makeBuilderStore() {
+      const builderStoreResult = createBuilderStore(builder, {
+        initialData: {
+          schema: {
+            entities: {
+              entity1: {
+                type: "textField",
+              },
+              entity2: {
+                type: "textField",
+              },
+            },
+            root: ["entity1", "entity2"],
+          },
+          entitiesAttributesErrors: {
+            entity1: {
+              label: "Error",
+              required: "Error",
+            },
+            entity2: {
+              label: "Label Error",
+              required: "Required Error",
+            },
+          },
+        },
+      });
+
+      assertSuccessResult(builderStoreResult);
+
+      return builderStoreResult.value;
+    }
+
+    describe("success cases", () => {
+      it("should succeed when valid entity ID and attribute names provided", () => {
+        const store = makeBuilderStore();
+
+        const result = store.clearEntityAttributesErrors("entity1");
+
+        assertSuccessResult(result);
+
+        expect(result.value).toStrictEqual({
+          entityId: "entity1",
+        });
+
+        expect(store.getData().entitiesAttributesErrors).toStrictEqual({
+          entity2: {
+            label: "Label Error",
+            required: "Required Error",
+          },
+        });
+      });
+    });
+
+    describe("failure cases", () => {
+      it("should fail when invalid entity ID provided", () => {
+        const builderStore = makeBuilderStore();
+
+        const result =
+          builderStore.clearEntityAttributesErrors("nonExistentEntity");
+
+        assertErrorResult(result);
+
+        expect(result.error).toBeInstanceOf(EntityNotFoundError);
+
+        expect(result.error).toMatchObject({
+          entityId: "nonExistentEntity",
+        });
+      });
+    });
+  });
+
+  describe("clearEntitiesAttributesErrors", () => {
+    describe("success cases", () => {
+      it("should succeed always", () => {
+        const builder = createBuilder({
+          entities: {
+            textField: createEntityDefinition({
+              attributes: {
+                label: createAttributeDefinition({
+                  parse: (value) => ({ success: true, value }),
+                }),
+                required: createAttributeDefinition({
+                  parse: (value) => ({ success: true, value }),
+                }),
+              },
+            }),
+          },
+          validateEntityId: (id) => typeof id === "string",
+        });
+
+        const builderStoreResult = createBuilderStore(builder, {
+          initialData: {
+            schema: {
+              entities: {
+                entity1: {
+                  type: "textField",
+                },
+                entity2: {
+                  type: "textField",
+                },
+              },
+              root: ["entity1", "entity2"],
+            },
+            entitiesAttributesErrors: {
+              entity1: {
+                label: "Error",
+                required: "Error",
+              },
+              entity2: {
+                label: "Label Error",
+                required: "Required Error",
+              },
+            },
+          },
+        });
+
+        assertSuccessResult(builderStoreResult);
+
+        const result = builderStoreResult.value.clearEntitiesAttributesErrors();
+
+        assertSuccessResult(result);
+
+        expect(result.value).toBeUndefined();
+
+        expect(
+          builderStoreResult.value.getData().entitiesAttributesErrors,
+        ).toStrictEqual({});
+      });
+    });
+  });
+
+  describe("setEntitiesAttributesErrors", () => {
+    const builder = createBuilder({
+      entities: {
+        textField: createEntityDefinition({
+          attributes: {
+            label: createAttributeDefinition({
+              parse: (value) => ({ success: true, value }),
+            }),
+            required: createAttributeDefinition({
+              parse: (value) => ({ success: true, value }),
+            }),
+          },
+        }),
+        container: createEntityDefinition({
+          attributes: {
+            title: createAttributeDefinition({
               parse: (value) => ({ success: true, value }),
             }),
           },
@@ -2211,7 +2676,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -2264,7 +2729,7 @@ describe("builder store", () => {
 
           const result = store.setEntitiesAttributesErrors(attributesErrors);
 
-          assertOkResult(result);
+          assertSuccessResult(result);
 
           expect(result.value).toStrictEqual({
             attributesErrors,
@@ -2355,7 +2820,7 @@ describe("builder store", () => {
           const result =
             builderStore.setEntitiesAttributesErrors(attributesErrors);
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -2372,9 +2837,9 @@ describe("builder store", () => {
   describe("validateEntityAttribute", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            parse: createAttribute({
+            parse: createAttributeDefinition({
               parse: (value) => {
                 if (typeof value === "string") {
                   return {
@@ -2389,7 +2854,7 @@ describe("builder store", () => {
                 };
               },
             }),
-            parseAndRefine: createAttribute(
+            parseAndRefine: createAttributeDefinition(
               {
                 parse: (value) => {
                   if (typeof value === "string") {
@@ -2428,7 +2893,7 @@ describe("builder store", () => {
                 },
               },
             ),
-            failedAttribute: createAttribute({
+            failedAttribute: createAttributeDefinition({
               parse: () => {
                 return {
                   success: false,
@@ -2445,7 +2910,7 @@ describe("builder store", () => {
     function makeBuilderStore() {
       const builderStoreResult = createBuilderStore(builder);
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -2566,7 +3031,7 @@ describe("builder store", () => {
             attributeName,
           );
 
-          assertOkResult(result);
+          assertSuccessResult(result);
 
           expect(result.value).toStrictEqual(expectedResult);
 
@@ -2737,7 +3202,7 @@ describe("builder store", () => {
             attributeName,
           );
 
-          assertErrResult(result);
+          assertErrorResult(result);
 
           expect(result.error).toBeInstanceOf(expectedError.instance);
 
@@ -2754,9 +3219,9 @@ describe("builder store", () => {
   describe("validateEntityAttributes", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute(
+            label: createAttributeDefinition(
               {
                 parse: (value) => {
                   if (typeof value !== "string") {
@@ -2781,7 +3246,7 @@ describe("builder store", () => {
                 },
               },
             ),
-            shouldFail: createAttribute(
+            shouldFail: createAttributeDefinition(
               {
                 parse: (value) => {
                   if (typeof value !== "string") {
@@ -2843,7 +3308,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -2854,7 +3319,7 @@ describe("builder store", () => {
 
         const result = await store.validateEntityAttributes("entity1");
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
           entityId: "entity1",
@@ -2886,13 +3351,13 @@ describe("builder store", () => {
       it("should fail when some attributes are invalid", async () => {
         const store = makeBuilderStore();
 
-        assertOkResult(
+        assertSuccessResult(
           store.setEntityAttributeValue("entity1", "shouldFail", "fail"),
         );
 
         const result = await store.validateEntityAttributes("entity1");
 
-        assertErrResult(result);
+        assertErrorResult(result);
 
         expect(result.error).toBeInstanceOf(EntityAttributesValidationError);
 
@@ -2928,9 +3393,9 @@ describe("builder store", () => {
   describe("validateEntitiesAttributes", () => {
     const builder = createBuilder({
       entities: {
-        textField: createEntity({
+        textField: createEntityDefinition({
           attributes: {
-            label: createAttribute(
+            label: createAttributeDefinition(
               {
                 parse: (value) => {
                   if (typeof value !== "string") {
@@ -2996,7 +3461,7 @@ describe("builder store", () => {
         },
       });
 
-      assertOkResult(builderStoreResult);
+      assertSuccessResult(builderStoreResult);
 
       return builderStoreResult.value;
     }
@@ -3007,7 +3472,7 @@ describe("builder store", () => {
 
         const result = await store.validateEntitiesAttributes();
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
           schema: {
@@ -3062,7 +3527,7 @@ describe("builder store", () => {
 
         const result = await store.validateEntitiesAttributes();
 
-        assertErrResult(result);
+        assertErrorResult(result);
 
         expect(result.error).toBeInstanceOf(EntitiesAttributesValidationError);
 
@@ -3102,7 +3567,7 @@ describe("builder store", () => {
   describe("setSchemaError", () => {
     describe("success cases", () => {
       it("should set the schema error", () => {
-        const storeResult = createBuilderStore(
+        const builderStoreResult = createBuilderStore(
           createBuilder({
             entities: {},
             refineSchema: () => ({
@@ -3112,17 +3577,18 @@ describe("builder store", () => {
           }),
         );
 
-        assertOkResult(storeResult);
+        assertSuccessResult(builderStoreResult);
 
-        const result = storeResult.value.setSchemaError("invalid schema");
+        const result =
+          builderStoreResult.value.setSchemaError("invalid schema");
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
           schemaError: "invalid schema",
         });
 
-        expect(storeResult.value.getData().schemaError).toStrictEqual(
+        expect(builderStoreResult.value.getData().schemaError).toStrictEqual(
           "invalid schema",
         );
       });
@@ -3131,8 +3597,8 @@ describe("builder store", () => {
 
   describe("clearSchemaError", () => {
     describe("success cases", () => {
-      it("should clear the schema error", () => {
-        const storeResult = createBuilderStore(
+      it("should succeed always", () => {
+        const builderStoreResult = createBuilderStore(
           createBuilder({
             entities: {},
             refineSchema: () => ({
@@ -3147,15 +3613,15 @@ describe("builder store", () => {
           },
         );
 
-        assertOkResult(storeResult);
+        assertSuccessResult(builderStoreResult);
 
-        const result = storeResult.value.clearSchemaError();
+        const result = builderStoreResult.value.clearSchemaError();
 
-        assertOkResult(result);
+        assertSuccessResult(result);
 
         expect(result.value).toBeUndefined();
 
-        expect(storeResult.value.getData()).toStrictEqual({
+        expect(builderStoreResult.value.getData()).toStrictEqual({
           entitiesAttributesErrors: {},
           schema: {
             entities: {},
@@ -3163,6 +3629,208 @@ describe("builder store", () => {
           },
         });
       });
+    });
+  });
+
+  describe("cloneEntity", () => {
+    describe("success cases", () => {
+      function makeBuilderStore() {
+        let id = 1;
+
+        const builder = createBuilder({
+          entities: {
+            textField: createEntityDefinition({
+              childrenAllowed: true,
+              attributes: {
+                label: createAttributeDefinition({
+                  parse: (value) => ({ success: true, value }),
+                }),
+              },
+            }),
+          },
+          validateEntityId: (id) => typeof id === "string",
+          generateEntityId: () => (id++).toString(),
+        });
+
+        const builderStoreResult = createBuilderStore(builder, {
+          initialData: {
+            schema: {
+              entities: {
+                entity1: {
+                  type: "textField",
+                  children: ["entity2"],
+                  attributes: {
+                    label: "Label",
+                  },
+                },
+                entity2: {
+                  type: "textField",
+                  parentId: "entity1",
+                  children: ["entity3"],
+                },
+                entity3: { type: "textField", parentId: "entity2" },
+              },
+              root: ["entity1"],
+            },
+          },
+        });
+
+        assertSuccessResult(builderStoreResult);
+
+        return builderStoreResult.value;
+      }
+
+      it("should succeed when valid entity ID provided, with and without index", () => {
+        const builderStore = makeBuilderStore();
+
+        const results = [
+          builderStore.cloneEntity("entity1"),
+          builderStore.cloneEntity("entity2", 0),
+        ] as const;
+
+        assertSuccessResult(results[0]);
+
+        assertSuccessResult(results[1]);
+
+        expect(results).toStrictEqual([
+          {
+            success: true,
+            value: {
+              entityId: "entity1",
+              clonedEntityId: "1",
+              index: 1,
+            },
+          },
+          {
+            success: true,
+            value: {
+              entityId: "entity2",
+              clonedEntityId: "4",
+              index: 0,
+            },
+          },
+        ]);
+
+        expect(builderStore.getData().schema).toStrictEqual({
+          entities: {
+            entity1: {
+              type: "textField",
+              children: ["4", "entity2"],
+              attributes: {
+                label: "Label",
+              },
+            },
+            entity2: {
+              type: "textField",
+              parentId: "entity1",
+              children: ["entity3"],
+            },
+            entity3: { type: "textField", parentId: "entity2" },
+            "1": {
+              type: "textField",
+              children: ["2"],
+              attributes: {
+                label: "Label",
+              },
+            },
+            "2": { type: "textField", parentId: "1", children: ["3"] },
+            "3": { type: "textField", parentId: "2" },
+            "4": {
+              children: ["5"],
+              parentId: "entity1",
+              type: "textField",
+            },
+            "5": {
+              parentId: "4",
+              type: "textField",
+            },
+          },
+          root: ["entity1", "1"],
+        });
+      });
+    });
+
+    describe("failure cases", () => {
+      it.each([
+        {
+          description: "invalid entity ID provided",
+          entityId: "nonExistentEntity",
+          expectedError: {
+            instance: EntityNotFoundError,
+            properties: {
+              entityId: "nonExistentEntity",
+            },
+          },
+        },
+        {
+          description: "invalid index provided",
+          entityId: "entity1",
+          index: 2,
+          generatedId: "valid",
+          expectedError: {
+            instance: IndexOutOfBoundsError,
+            properties: {
+              index: 2,
+            },
+          },
+        },
+        {
+          description: "duplicate entity ID generated",
+          entityId: "entity1",
+          generatedId: "entity1",
+          expectedError: {
+            instance: EntityIdAlreadyExistsError,
+            properties: {
+              entityId: "entity1",
+            },
+          },
+        },
+        {
+          description: "invalid entity ID generated",
+          entityId: "entity1",
+          generatedId: "invalid",
+          expectedError: {
+            instance: InvalidEntityIdError,
+            properties: {
+              entityId: "invalid",
+            },
+          },
+        },
+      ] as const)(
+        "should fail with $description",
+        ({ entityId, expectedError, index, generatedId }) => {
+          const builder = createBuilder({
+            entities: {
+              textField: createEntityDefinition(),
+            },
+            validateEntityId: (id) => id !== "invalid",
+            generateEntityId: () => generatedId ?? randomUUID(),
+          });
+
+          const builderStoreResult = createBuilderStore(builder, {
+            initialData: {
+              schema: {
+                entities: {
+                  entity1: {
+                    type: "textField",
+                  },
+                },
+                root: ["entity1"],
+              },
+            },
+          });
+
+          assertSuccessResult(builderStoreResult);
+
+          const result = builderStoreResult.value.cloneEntity(entityId, index);
+
+          assertErrorResult(result);
+
+          expect(result.error).toBeInstanceOf(expectedError.instance);
+
+          expect(result.error).toMatchObject(expectedError.properties);
+        },
+      );
     });
   });
 });

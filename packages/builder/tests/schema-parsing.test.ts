@@ -3,23 +3,23 @@ import { ParseError } from "effect/ParseResult";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createAttribute } from "../src/attribute";
+import { createAttributeDefinition } from "../src/attribute-definition";
 import { createBuilder } from "../src/builder";
-import { createEntity } from "../src/entity";
-import { parseSchema, SchemaParseError } from "../src/schema-parsing";
-import { assertErrResult, dataResultAsValueResult } from "./utils";
+import { createEntityDefinition } from "../src/entity-definition";
+import { parseDraftSchema, SchemaParseError } from "../src/schema-parsing";
+import { assertErrorResult, dataResultAsValueResult } from "./utils";
 
-describe("schema parsing", () => {
+describe("draft schema parsing", () => {
   const builder = createBuilder({
     entities: {
-      textField: createEntity({
+      textField: createEntityDefinition({
         attributes: {
-          string: createAttribute({
+          string: createAttributeDefinition({
             parse: (value) => {
               return dataResultAsValueResult(z.string().safeParse(value));
             },
           }),
-          transformedString: createAttribute({
+          transformedString: createAttributeDefinition({
             parse: (value) => {
               return dataResultAsValueResult(
                 z
@@ -29,22 +29,33 @@ describe("schema parsing", () => {
               );
             },
           }),
+          withDefaultValue: createAttributeDefinition({
+            parse: (value) => {
+              return dataResultAsValueResult(
+                z
+                  .string()
+                  .transform((value) => value.toUpperCase())
+                  .safeParse(value),
+              );
+            },
+            defaultValue: () => "default",
+          }),
         },
       }),
-      withChildrenAllowed: createEntity({
+      withChildrenAllowed: createEntityDefinition({
         childrenAllowed: true,
       }),
-      withOverridenChildrenAllowed: createEntity(),
-      withParentRequired: createEntity({
+      withOverridenChildrenAllowed: createEntityDefinition(),
+      withParentRequired: createEntityDefinition({
         parentRequired: true,
       }),
-      withOverridenParentRequired: createEntity(),
-      withParentNotAllowed: createEntity({
+      withOverridenParentRequired: createEntityDefinition(),
+      withParentNotAllowed: createEntityDefinition({
         parentAllowed: false,
       }),
-      withOverridenParentNotAllowed: createEntity(),
-      withSpecificParentAllowed: createEntity(),
-      withSpecificChildrenAllowed: createEntity(),
+      withOverridenParentNotAllowed: createEntityDefinition(),
+      withSpecificParentAllowed: createEntityDefinition(),
+      withSpecificChildrenAllowed: createEntityDefinition(),
     },
     entityOverrides: {
       withOverridenChildrenAllowed: {
@@ -75,7 +86,7 @@ describe("schema parsing", () => {
   describe("success cases", () => {
     it("should succeed when valid data provided", () => {
       expect(
-        parseSchema(
+        parseDraftSchema(
           {
             root: [uuids[0], uuids[1], uuids[2], uuids[3]],
             entities: {
@@ -108,19 +119,27 @@ describe("schema parsing", () => {
             [uuids[0]]: {
               attributes: {
                 string: "value",
+                withDefaultValue: "DEFAULT",
               },
               type: "textField",
             },
             [uuids[1]]: {
               attributes: {
                 transformedString: "UPPERCASE",
+                withDefaultValue: "DEFAULT",
               },
               type: "textField",
             },
             [uuids[2]]: {
+              attributes: {
+                withDefaultValue: "DEFAULT",
+              },
               type: "textField",
             },
             [uuids[3]]: {
+              attributes: {
+                withDefaultValue: "DEFAULT",
+              },
               type: "textField",
             },
           },
@@ -132,7 +151,7 @@ describe("schema parsing", () => {
   });
 
   describe("failure cases", () => {
-    const invalidInputs = [
+    it.each([
       {
         name: "missing entities and root",
         data: {},
@@ -587,12 +606,10 @@ describe("schema parsing", () => {
           },
         ],
       },
-    ];
+    ])("should fail when $name", (item) => {
+      const result = parseDraftSchema(item.data, builder);
 
-    it.each(invalidInputs)("should fail when $name", (item) => {
-      const result = parseSchema(item.data, builder);
-
-      assertErrResult(result);
+      assertErrorResult(result);
 
       expect(result.error.issues).toStrictEqual(item.issues);
 

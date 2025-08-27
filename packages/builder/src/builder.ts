@@ -1,62 +1,62 @@
 import {
-  type AttributeOverrideInput,
-  type Entity,
-  type InferEntityParsedValue,
-  type EntityRefineContext,
-  type InferEntityRefineResult,
-} from "./entity";
+  type AttributeDefinitionOverrideInput,
+  type EntityDefinition,
+  type InferEntityDefinitionParsedValue,
+  type EntityDefinitionRefineContext,
+  type InferEntityDefinitionRefineResult,
+} from "./entity-definition";
 import { type ValidatedSchema } from "./schema-validation";
 import { type KeyofStringIntersection, type RefineResult } from "./utils";
 import { generateUuid, validateUuid } from "./uuid";
 
-interface BaseEntityOverride {
+interface BaseEntityDefinitionOverride {
   parentRequired?: boolean;
 }
 
-interface EntityRefineOverrideContext<
-  TEntity extends Entity,
+interface EntityDefinitionRefineOverrideContext<
+  TEntity extends EntityDefinition,
   TType extends string = string,
   TBuilder extends Builder = Builder,
-> extends EntityRefineContext<TEntity, TType, TBuilder> {
-  refine(value: InferEntityParsedValue<TEntity>): InferEntityRefineResult<TEntity>;
+> extends EntityDefinitionRefineContext<TEntity, TType, TBuilder> {
+  refine(value: InferEntityDefinitionParsedValue<TEntity>): InferEntityDefinitionRefineResult<TEntity>;
 }
 
-interface EntityDefaultValueOverrideContext<
-  TEntity extends Entity,
+interface EntityDefinitionDefaultValueOverrideContext<
+  TEntity extends EntityDefinition,
   TType extends string = string,
   TBuilder extends Builder = Builder,
-> extends EntityRefineContext<TEntity, TType, TBuilder> {
-  defaultValue(): InferEntityParsedValue<TEntity>;
+> extends EntityDefinitionRefineContext<TEntity, TType, TBuilder> {
+  defaultValue(): InferEntityDefinitionParsedValue<TEntity>;
 }
 
-interface EntityShouldBeProcessedOverrideContext<
-  TEntity extends Entity,
+interface EntityDefinitionShouldBeProcessedOverrideContext<
+  TEntity extends EntityDefinition,
   TType extends string = string,
   TBuilder extends Builder = Builder,
-> extends EntityRefineContext<TEntity, TType, TBuilder> {
+> extends EntityDefinitionRefineContext<TEntity, TType, TBuilder> {
   shouldBeProcessed(): ReturnType<TEntity["shouldBeProcessed"]>;
 }
 
-export interface EntityOverride<TEntity extends Entity = Entity>
-  extends BaseEntityOverride {
+export interface EntityDefinitionOverride<TEntity extends EntityDefinition = EntityDefinition>
+  extends BaseEntityDefinitionOverride {
   childrenAllowed?: boolean | ReadonlyArray<string>;
   parentAllowed?: boolean | ReadonlyArray<string>;
-  attributes?: Record<string, AttributeOverrideInput>;
+  attributes?: Record<string, AttributeDefinitionOverrideInput>;
   refine?(
-    value: InferEntityParsedValue<TEntity>,
-    context: EntityRefineOverrideContext<TEntity>,
-  ): InferEntityRefineResult<TEntity>;
-  defaultValue(context: EntityDefaultValueOverrideContext<TEntity>): unknown;
+    value: InferEntityDefinitionParsedValue<TEntity>,
+    context: EntityDefinitionRefineOverrideContext<TEntity>,
+  ): InferEntityDefinitionRefineResult<TEntity>;
+  defaultValue(context: EntityDefinitionDefaultValueOverrideContext<TEntity>): unknown;
   shouldBeProcessed(
-    context: EntityShouldBeProcessedOverrideContext<TEntity>,
+    context: EntityDefinitionShouldBeProcessedOverrideContext<TEntity>,
   ): boolean;
 }
 
-interface EntityOverrideInput<
+interface EntityDefinitionOverrideInput<
   TBuilder extends Builder,
-  TEntity extends Entity,
+  TEntity extends EntityDefinition,
   TType extends string,
-> extends BaseEntityOverride {
+> extends BaseEntityDefinitionOverride {
   childrenAllowed?:
     | boolean
     | ReadonlyArray<KeyofStringIntersection<TBuilder["entities"]>>;
@@ -64,19 +64,19 @@ interface EntityOverrideInput<
     | boolean
     | ReadonlyArray<KeyofStringIntersection<TBuilder["entities"]>>;
   refine?: (
-    value: InferEntityParsedValue<TEntity>,
-    context: EntityRefineOverrideContext<TEntity, TType, TBuilder>,
-  ) => InferEntityRefineResult<TEntity>;
+    value: InferEntityDefinitionParsedValue<TEntity>,
+    context: EntityDefinitionRefineOverrideContext<TEntity, TType, TBuilder>,
+  ) => InferEntityDefinitionRefineResult<TEntity>;
   defaultValue?: (
-    context: EntityDefaultValueOverrideContext<TEntity, TType, TBuilder>,
-  ) => InferEntityParsedValue<TEntity>;
+    context: EntityDefinitionDefaultValueOverrideContext<TEntity, TType, TBuilder>,
+  ) => InferEntityDefinitionParsedValue<TEntity>;
   shouldBeProcessed?(
-    context: EntityShouldBeProcessedOverrideContext<TEntity, TType, TBuilder>,
+    context: EntityDefinitionShouldBeProcessedOverrideContext<TEntity, TType, TBuilder>,
   ): boolean;
   attributes?: {
     [K in KeyofStringIntersection<
       TEntity["attributes"]
-    >]?: AttributeOverrideInput<
+    >]?: AttributeDefinitionOverrideInput<
       TEntity["attributes"][K],
       K,
       TEntity,
@@ -95,7 +95,7 @@ export type InferBuilderSchemaRefineError<TBuilder extends Builder> = Extract<
 >["error"];
 
 export interface Builder<
-  TEntities extends Record<string, Entity> = Record<string, Entity>,
+  TEntities extends Record<string, EntityDefinition> = Record<string, EntityDefinition>,
   TError = unknown,
 > {
   entities: TEntities;
@@ -104,11 +104,11 @@ export interface Builder<
   refineSchema(
     schema: ValidatedSchema<Builder<TEntities>>,
   ): RefineResult<ValidatedSchema<Builder<TEntities>>, TError>;
-  entityOverrides: Record<string, EntityOverride>;
+  entityOverrides: Record<string, EntityDefinitionOverride>;
 }
 
 export function createBuilder<
-  const TEntities extends Record<string, Entity>,
+  const TEntities extends Record<string, EntityDefinition>,
   TRefineError = never,
 >(options: {
   entities: TEntities;
@@ -116,7 +116,7 @@ export function createBuilder<
   generateEntityId?: Builder["generateEntityId"];
   validateEntityId?: Builder["validateEntityId"];
   entityOverrides?: {
-    [K in KeyofStringIntersection<TEntities>]?: EntityOverrideInput<
+    [K in KeyofStringIntersection<TEntities>]?: EntityDefinitionOverrideInput<
       Builder<TEntities>,
       TEntities[K],
       K

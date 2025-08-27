@@ -11,6 +11,7 @@ import {
 } from "effect";
 
 import { type Builder, type InferBuilderSchemaRefineError } from "./builder";
+import { EntityDefinition } from "./entity-definition";
 import * as schemaParsing from "./schema-parsing";
 import * as schemaValidation from "./schema-validation";
 import {
@@ -26,7 +27,7 @@ import {
 } from "./utils";
 
 interface BuilderStoreData<TBuilder extends Builder = Builder> {
-  schema: schemaParsing.ParsedSchema<TBuilder>;
+  schema: schemaParsing.DraftSchema<TBuilder>;
   entitiesAttributesErrors: schemaValidation.EntitiesAttributesErrors;
   schemaError?: InferBuilderSchemaRefineError<TBuilder> | undefined;
 }
@@ -36,7 +37,7 @@ interface AddEntityPayload<
   TType extends KeyofStringIntersection<
     TBuilder["entities"]
   > = KeyofStringIntersection<TBuilder["entities"]>,
-> extends Omit<schemaParsing.ParsedSchemaEntity<TBuilder, TType>, "children"> {
+> extends Omit<schemaParsing.DraftSchemaEntity<TBuilder, TType>, "children"> {
   id?: string | undefined;
   index?: number | undefined;
 }
@@ -50,13 +51,14 @@ type AddEntityOutput<
 > = ModeOutput<
   TResultMode,
   {
-    entity: schemaParsing.ParsedSchemaEntityWithId<TBuilder, TType>;
+    entity: schemaParsing.DraftSchemaEntityWithId<TBuilder, TType>;
     index: number;
   },
-  | EntityIdAlreadyExistsError
   | IndexOutOfBoundsError
+  | EntityIdAlreadyExistsError
   | schemaParsing.EntityAttributesParseError
-  | schemaParsing.ParseEntityError
+  | schemaParsing.EntityConstraintError
+  | schemaParsing.InvalidEntityIdError
 >;
 
 type ValidateSchemaOutput<
@@ -86,6 +88,24 @@ interface GenericBuilderStore<
   addEntity<TType extends KeyofStringIntersection<TBuilder["entities"]>>(
     payload: AddEntityPayload<TBuilder, TType>,
   ): AddEntityOutput<TResultMode, TBuilder, TType>;
+  getEntity(
+    entityId: string,
+  ): ModeOutput<
+    TResultMode,
+    schemaParsing.DraftSchemaEntityWithId<TBuilder>,
+    schemaParsing.EntityNotFoundError
+  >;
+  cloneEntity(
+    entityId: string,
+    index?: number,
+  ): ModeOutput<
+    TResultMode,
+    { entityId: string; clonedEntityId: string; index: number },
+    | IndexOutOfBoundsError
+    | EntityIdAlreadyExistsError
+    | schemaParsing.InvalidEntityIdError
+    | schemaParsing.EntityNotFoundError
+  >;
   removeEntity(
     entityId: string,
   ): ModeOutput<
@@ -104,7 +124,7 @@ interface GenericBuilderStore<
   setEntityParent(
     entityId: string,
     parentId: string | undefined,
-    index?: number | undefined,
+    index?: number,
   ): ModeOutput<
     TResultMode,
     { entityId: string; parentId?: string | undefined; index: number },
@@ -154,6 +174,39 @@ interface GenericBuilderStore<
     },
     schemaParsing.EntityNotFoundError
   >;
+  resetEntityAttributeValue(
+    entityId: string,
+    attributeName: string,
+  ): ModeOutput<
+    TResultMode,
+    {
+      entityId: string;
+      attributeName: string;
+      attributeValue: unknown;
+    },
+    | schemaParsing.EntityNotFoundError
+    | schemaParsing.InvalidAttributeNameError
+    | schemaParsing.EntityAttributeParseError
+  >;
+  clearEntityAttributeError(
+    entityId: string,
+    attributeName: string,
+  ): ModeOutput<
+    TResultMode,
+    {
+      entityId: string;
+      attributeName: string;
+    },
+    schemaParsing.EntityNotFoundError | schemaParsing.InvalidAttributeNameError
+  >;
+  clearEntityAttributesErrors(entityId: string): ModeOutput<
+    TResultMode,
+    {
+      entityId: string;
+    },
+    schemaParsing.EntityNotFoundError
+  >;
+  clearEntitiesAttributesErrors(): ModeOutput<TResultMode>;
   validateEntityAttribute(
     entityId: string,
     attributeName: string,
@@ -180,7 +233,7 @@ interface GenericBuilderStore<
   validateEntitiesAttributes(): ModeAsyncOutput<
     TResultMode,
     {
-      schema: schemaParsing.ParsedSchema<TBuilder>;
+      schema: schemaParsing.DraftSchema<TBuilder>;
     },
     schemaValidation.EntitiesAttributesValidationError
   >;
@@ -219,10 +272,9 @@ interface GenericBuilderStore<
     TResultMode,
     {
       schemaError: InferBuilderSchemaRefineError<TBuilder>;
-    },
-    never
+    }
   >;
-  clearSchemaError(): ModeOutput<TResultMode, void, never>;
+  clearSchemaError(): ModeOutput<TResultMode>;
   validateSchema(): ValidateSchemaOutput<TResultMode, TBuilder>;
 }
 
@@ -265,7 +317,7 @@ export class IndexOutOfBoundsError extends Data.TaggedError(
 
 export function parseEntitiesAttributesErrors(
   entitiesAttributesErrors: schemaValidation.EntitiesAttributesErrors,
-  schema: schemaParsing.ParsedSchema,
+  schema: schemaParsing.DraftSchema,
   builder: Builder,
 ): Effect.Effect<
   schemaValidation.EntitiesAttributesErrors,
@@ -276,7 +328,7 @@ export function parseEntitiesAttributesErrors(
       Record.toEntries(entitiesAttributesErrors),
       ([entityId, entityErrors]) =>
         pipe(
-          schemaParsing.getParsedEntity(entityId, schema.entities),
+          schemaParsing.getDraftSchemaEntity(entityId, schema.entities),
           Effect.flatMap((entity) =>
             schemaParsing.validateEntityAttributeNames(
               entity.type,
@@ -295,10 +347,10 @@ export function parseEntitiesAttributesErrors(
 
 export function collectEntityDescendants(
   entityId: string,
-  schema: schemaParsing.ParsedSchema,
+  schema: schemaParsing.DraftSchema,
 ): Effect.Effect<ReadonlyArray<string>, schemaParsing.EntityNotFoundError> {
   return pipe(
-    schemaParsing.getParsedEntity(entityId, schema.entities),
+    schemaParsing.getDraftSchemaEntity(entityId, schema.entities),
     Effect.flatMap((entity) =>
       pipe(
         Option.fromNullable(entity.children),
@@ -329,17 +381,19 @@ export function removeEntity(
 ): ReturnType<GenericBuilderStore["removeEntity"]> {
   return pipe(
     Effect.Do,
-    Effect.bind("schema", () => Effect.sync(() => dataStore.state.schema)),
-    Effect.bind("entity", ({ schema }) =>
-      schemaParsing.getParsedEntity(entityId, schema.entities),
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
     ),
-    Effect.bind("filteredEntities", ({ schema }) =>
+    Effect.bind("entity", ({ currentSchema }) =>
+      schemaParsing.getDraftSchemaEntity(entityId, currentSchema.entities),
+    ),
+    Effect.bind("filteredEntities", ({ currentSchema }) =>
       pipe(
-        collectEntityDescendants(entityId, schema),
+        collectEntityDescendants(entityId, currentSchema),
         Effect.map((descendants) => Array.appendAll([entityId], descendants)),
         Effect.map((idsToRemove) =>
           Record.filter(
-            schema.entities,
+            currentSchema.entities,
             (_, id) => !Array.contains(idsToRemove, id),
           ),
         ),
@@ -350,7 +404,7 @@ export function removeEntity(
         Option.fromNullable(entity.parentId),
         Option.map((parentId) =>
           pipe(
-            schemaParsing.getParsedEntity(parentId, filteredEntities),
+            schemaParsing.getDraftSchemaEntity(parentId, filteredEntities),
             Effect.map((parentEntity) =>
               Record.modify(filteredEntities, parentId, (parent) => ({
                 ...parent,
@@ -365,10 +419,10 @@ export function removeEntity(
         Option.getOrElse(() => Effect.succeed(filteredEntities)),
       ),
     ),
-    Effect.bind("newSchema", ({ schema, newEntities }) =>
+    Effect.bind("newSchema", ({ currentSchema, newEntities }) =>
       Effect.succeed({
         entities: newEntities,
-        root: Array.filter(schema.root, (id) => id !== entityId),
+        root: Array.filter(currentSchema.root, (id) => id !== entityId),
       }),
     ),
     Effect.tap(({ newSchema }) =>
@@ -390,16 +444,21 @@ export function setEntityIndex(
 ): ReturnType<GenericBuilderStore["setEntityIndex"]> {
   return pipe(
     Effect.Do,
-    Effect.bind("schema", () => Effect.sync(() => dataStore.state.schema)),
-    Effect.bind("entity", ({ schema }) =>
-      schemaParsing.getParsedEntity(entityId, schema.entities),
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
     ),
-    Effect.bind("updatedSchema", ({ schema, entity }) =>
+    Effect.bind("entity", ({ currentSchema }) =>
+      schemaParsing.getDraftSchemaEntity(entityId, currentSchema.entities),
+    ),
+    Effect.bind("updatedSchema", ({ currentSchema, entity }) =>
       pipe(
         Option.fromNullable(entity.parentId),
         Option.map((parentId) =>
           pipe(
-            schemaParsing.getParsedEntity(parentId, schema.entities),
+            schemaParsing.getDraftSchemaEntity(
+              parentId,
+              currentSchema.entities,
+            ),
             Effect.map((parentEntity) =>
               parentEntity.children
                 ? Array.filter(parentEntity.children, (id) => id !== entityId)
@@ -409,7 +468,7 @@ export function setEntityIndex(
               insertAt(filteredChildren, entityId, index),
             ),
             Effect.map((updatedChildren) =>
-              Struct.evolve(schema, {
+              Struct.evolve(currentSchema, {
                 entities: (entities) =>
                   Record.modify(entities, parentId, (parentEntity) => ({
                     ...parentEntity,
@@ -421,12 +480,12 @@ export function setEntityIndex(
         ),
         Option.getOrElse(() =>
           pipe(
-            Array.filter(schema.root, (id) => id !== entityId),
+            Array.filter(currentSchema.root, (id) => id !== entityId),
             (filteredRoot) =>
               pipe(
                 insertAt(filteredRoot, entityId, index),
                 Effect.map((updatedRoot) =>
-                  Struct.evolve(schema, {
+                  Struct.evolve(currentSchema, {
                     root: () => updatedRoot.array,
                   }),
                 ),
@@ -457,19 +516,28 @@ export function setEntityParent(
 ): ReturnType<GenericBuilderStore["setEntityParent"]> {
   return pipe(
     Effect.Do,
-    Effect.bind("schema", () => Effect.sync(() => dataStore.state.schema)),
-    Effect.bind("entity", ({ schema }) =>
-      schemaParsing.getParsedEntity(entityId, schema.entities),
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
+    ),
+    Effect.bind("entity", ({ currentSchema }) =>
+      schemaParsing.getDraftSchemaEntity(entityId, currentSchema.entities),
     ),
     Effect.tap(({ entity }) =>
-      schemaParsing.validateParentRequired(entity.type, newParentId, builder),
+      schemaParsing.validateParentRequiredness(
+        entity.type,
+        newParentId,
+        builder,
+      ),
     ),
-    Effect.bind("maybeNewParent", ({ schema }) =>
+    Effect.bind("maybeNewParent", ({ currentSchema }) =>
       pipe(
         Option.fromNullable(newParentId),
         Option.map((parentId) =>
           pipe(
-            schemaParsing.getParsedEntity(parentId, schema.entities),
+            schemaParsing.getDraftSchemaEntity(
+              parentId,
+              currentSchema.entities,
+            ),
             Effect.map((parentEntity) => ({
               id: parentId,
               entity: parentEntity,
@@ -484,12 +552,12 @@ export function setEntityParent(
         Option.fromNullable(maybeNewParent),
         Option.map(({ entity: parent }) =>
           Effect.all([
-            schemaParsing.validateEntityParent(
+            schemaParsing.validateEntityParentAllowance(
               entity.type,
               parent.type,
               builder,
             ),
-            schemaParsing.validateEntityChildren(
+            schemaParsing.validateEntityChildrenAllowance(
               parent.type,
               entity.type,
               builder,
@@ -499,14 +567,17 @@ export function setEntityParent(
         Option.getOrElse(() => Effect.void),
       ),
     ),
-    Effect.bind("removed", ({ schema, entity }) =>
+    Effect.bind("removed", ({ currentSchema, entity }) =>
       pipe(
         Option.fromNullable(entity.parentId),
         Option.map((parentId) =>
           pipe(
-            schemaParsing.getParsedEntity(parentId, schema.entities),
+            schemaParsing.getDraftSchemaEntity(
+              parentId,
+              currentSchema.entities,
+            ),
             Effect.map((parentEntity) =>
-              Record.modify(schema.entities, parentId, (parent) => ({
+              Record.modify(currentSchema.entities, parentId, (parent) => ({
                 ...parent,
                 children: Array.filter(
                   parentEntity.children ?? [],
@@ -516,14 +587,14 @@ export function setEntityParent(
             ),
             Effect.map((entities) => ({
               entities,
-              root: Array.filter(schema.root, (id) => id !== entityId),
+              root: Array.filter(currentSchema.root, (id) => id !== entityId),
             })),
           ),
         ),
         Option.getOrElse(() =>
           Effect.succeed({
-            entities: schema.entities,
-            root: Array.filter(schema.root, (id) => id !== entityId),
+            entities: currentSchema.entities,
+            root: Array.filter(currentSchema.root, (id) => id !== entityId),
           }),
         ),
       ),
@@ -533,7 +604,7 @@ export function setEntityParent(
         Option.fromNullable(maybeNewParent),
         Option.map(({ id: parentId }) =>
           pipe(
-            schemaParsing.getParsedEntity(parentId, removed.entities),
+            schemaParsing.getDraftSchemaEntity(parentId, removed.entities),
             Effect.flatMap((parentEntity) =>
               insertAt(
                 parentEntity.children
@@ -568,7 +639,7 @@ export function setEntityParent(
             Effect.map((updatedRoot) => ({
               schema: {
                 entities: Record.modify(removed.entities, entityId, (entity) =>
-                  schemaParsing.cleanParsedEntity(
+                  schemaParsing.cleanDraftSchemaEntity(
                     Struct.omit(entity, "parentId"),
                   ),
                 ),
@@ -582,10 +653,11 @@ export function setEntityParent(
     ),
     Effect.tap(({ result }) =>
       Effect.sync(() =>
-        dataStore.setState((prev) => ({
-          ...prev,
-          schema: result.schema,
-        })),
+        dataStore.setState((prev) =>
+          Struct.evolve(prev, {
+            schema: () => result.schema,
+          }),
+        ),
       ),
     ),
     Effect.map(({ result }) => ({
@@ -620,11 +692,96 @@ function insertAt<T>(
   );
 }
 
+function validateEntityIdUniqueness(
+  entityId: string,
+  entities: schemaParsing.DraftSchema["entities"],
+): Effect.Effect<void, EntityIdAlreadyExistsError> {
+  return Effect.if(Record.has(entities, entityId), {
+    onTrue: () => Effect.fail(new EntityIdAlreadyExistsError({ entityId })),
+    onFalse: () => Effect.void,
+  });
+}
+
+function addEntityToSchema(
+  entityId: string,
+  newEntity: schemaParsing.DraftSchemaEntity,
+  schema: schemaParsing.DraftSchema,
+  index?: number,
+): Effect.Effect<
+  {
+    updatedSchema: schemaParsing.DraftSchema;
+    index: number;
+  },
+  IndexOutOfBoundsError | schemaParsing.EntityNotFoundError
+> {
+  return pipe(
+    Record.set(
+      schema.entities,
+      entityId,
+      schemaParsing.cleanDraftSchemaEntity(newEntity),
+    ),
+    (entities) =>
+      pipe(
+        Option.fromNullable(newEntity.parentId),
+        Option.map((parentId) =>
+          pipe(
+            schemaParsing.getDraftSchemaEntity(parentId, schema.entities),
+            Effect.flatMap((parentEntity) =>
+              pipe(
+                insertAt(parentEntity.children ?? [], entityId, index),
+                Effect.map((updatedChildren) => ({
+                  updatedSchema: Struct.evolve(schema, {
+                    entities: () =>
+                      Record.modify(entities, parentId, (parentEntity) => ({
+                        ...parentEntity,
+                        children: updatedChildren.array,
+                      })),
+                  }),
+                  index: updatedChildren.index,
+                })),
+              ),
+            ),
+          ),
+        ),
+        Option.getOrElse(() =>
+          pipe(
+            insertAt(schema.root, entityId, index),
+            Effect.map((updatedRoot) => ({
+              updatedSchema: Struct.evolve(schema, {
+                entities: () => entities,
+                root: () => updatedRoot.array,
+              }),
+              index: updatedRoot.index,
+            })),
+          ),
+        ),
+      ),
+  );
+}
+
+function generateEntityId(
+  entities: schemaParsing.DraftSchema["entities"],
+  builder: Builder,
+): Effect.Effect<
+  string,
+  schemaParsing.InvalidEntityIdError | EntityIdAlreadyExistsError
+> {
+  return pipe(
+    Effect.sync(() => builder.generateEntityId()),
+    Effect.tap((id) =>
+      Effect.all([
+        schemaParsing.validateEntityId(id, builder),
+        validateEntityIdUniqueness(id, entities),
+      ]),
+    ),
+  );
+}
+
 export function addEntity<
   TBuilder extends Builder,
   TType extends KeyofStringIntersection<TBuilder["entities"]>,
 >(
-  [payload]: Parameters<GenericBuilderStore["addEntity"]>,
+  [payload]: [AddEntityPayload<TBuilder, TType>],
   dataStore: DataStore<BuilderStoreData<TBuilder>>,
   builder: TBuilder,
 ): AddEntityOutput<EffectMode, TBuilder, TType> {
@@ -633,21 +790,27 @@ export function addEntity<
     Effect.bind("currentSchema", () =>
       Effect.sync(() => dataStore.state.schema),
     ),
-    Effect.bind("entityId", () =>
+    Effect.bind("entityId", ({ currentSchema }) =>
       pipe(
         Option.fromNullable(payload.id),
-        Option.map((id) => Effect.succeed(id)),
-        Option.getOrElse(() => Effect.sync(() => builder.generateEntityId())),
+        Option.map((id) =>
+          pipe(
+            Effect.succeed(id),
+            Effect.tap((id) => schemaParsing.validateEntityId(id, builder)),
+            Effect.tap((id) =>
+              validateEntityIdUniqueness(id, currentSchema.entities),
+            ),
+          ),
+        ),
+        Option.getOrElse(() =>
+          generateEntityId(currentSchema.entities, builder),
+        ),
       ),
     ),
-    Effect.tap(({ currentSchema, entityId }) =>
+    Effect.tap(({ currentSchema }) =>
       Effect.all([
-        Record.has(currentSchema.entities, entityId)
-          ? Effect.fail(new EntityIdAlreadyExistsError({ entityId }))
-          : Effect.void,
-        schemaParsing.validateEntity(
+        schemaParsing.validateEntityConstraints(
           {
-            entityId,
             entityType: payload.type,
             attributes: payload.attributes,
             parentId: payload.parentId,
@@ -657,132 +820,212 @@ export function addEntity<
         ),
       ]),
     ),
-    Effect.bind("attributesWithDefaults", () =>
+    Effect.bind("parsedAttributes", () =>
       pipe(
-        Option.fromNullable(builder.entities[payload.type]?.attributes),
-        Option.map((attributeDefinitions) =>
-          pipe(
-            Record.toEntries(attributeDefinitions),
-            Array.filterMap(([key, attributeDefinition]) =>
-              !Record.has(payload.attributes ?? {}, key)
-                ? pipe(
-                    Option.fromNullable(
-                      attributeDefinition.defaultValue?.bind(
-                        attributeDefinition,
-                      ),
-                    ),
-                    Option.map(
-                      (defaultValueFn) =>
-                        [
-                          key,
-                          defaultValueFn({
-                            attribute: {
-                              metadata: attributeDefinition.metadata,
-                              name: key,
-                            },
-                          }),
-                        ] as const,
-                    ),
-                  )
-                : Option.none(),
-            ),
-            Record.fromEntries,
-            (defaultValues) => ({ ...payload.attributes, ...defaultValues }),
-          ),
-        ),
-        Option.getOrElse(() => payload.attributes),
-        (attributes) => Effect.succeed(attributes),
-      ),
-    ),
-    Effect.bind("parsedAttributes", ({ attributesWithDefaults }) =>
-      pipe(
-        schemaParsing.parseAttributes(
+        schemaParsing.parseEntityAttributes(
           payload.type,
-          attributesWithDefaults,
+          schemaParsing.computeEntityAttributesWithDefaults(
+            payload.attributes,
+            payload.type,
+            builder,
+          ),
           builder,
         ),
         (result) =>
-          Record.isEmptyRecord(result.errors)
-            ? Effect.succeed(result.values)
-            : Effect.fail(
+          Effect.if(Record.isEmptyRecord(result.errors), {
+            onTrue: () => Effect.succeed(result.values),
+            onFalse: () =>
+              Effect.fail(
                 new schemaParsing.EntityAttributesParseError({
                   errors: result.errors,
                 }),
               ),
+          }),
       ),
     ),
     Effect.bind("newEntity", ({ parsedAttributes }) =>
       Effect.succeed(
-        schemaParsing.cleanParsedEntity({
+        schemaParsing.cleanDraftSchemaEntity({
           ...payload,
           attributes: parsedAttributes,
         }),
       ),
     ),
     Effect.bind("result", ({ currentSchema, entityId, newEntity }) =>
-      pipe(
-        Record.set(currentSchema.entities, entityId, newEntity),
-        (entities) =>
-          pipe(
-            Option.fromNullable(payload.parentId),
-            Option.map((parentId) =>
-              pipe(
-                schemaParsing.getParsedEntity(parentId, currentSchema.entities),
-                Effect.flatMap((parentEntity) =>
-                  pipe(
-                    insertAt(
-                      parentEntity.children ?? [],
-                      entityId,
-                      payload.index,
-                    ),
-                    Effect.map((updatedChildren) => ({
-                      updatedSchema: {
-                        ...currentSchema,
-                        entities: Record.modify(
-                          entities,
-                          parentId,
-                          (parentEntity) => ({
-                            ...parentEntity,
-                            children: updatedChildren.array,
-                          }),
-                        ),
-                      },
-                      index: updatedChildren.index,
-                    })),
-                  ),
-                ),
-              ),
-            ),
-            Option.getOrElse(() =>
-              pipe(
-                insertAt(currentSchema.root, entityId, payload.index),
-                Effect.map((updatedRoot) => ({
-                  updatedSchema: {
-                    ...currentSchema,
-                    entities,
-                    root: updatedRoot.array,
-                  },
-                  index: updatedRoot.index,
-                })),
-              ),
-            ),
-          ),
-      ),
+      addEntityToSchema(entityId, newEntity, currentSchema, payload.index),
     ),
     Effect.tap(({ result }) =>
       Effect.sync(() =>
-        dataStore.setState((prev) => ({
-          ...prev,
-          schema: result.updatedSchema,
-        })),
+        dataStore.setState((prev) =>
+          Struct.evolve(prev, {
+            schema: () => result.updatedSchema,
+          }),
+        ),
       ),
     ),
     Effect.map(({ newEntity, entityId, result }) => ({
       entity: {
         ...newEntity,
         id: entityId,
-      } as schemaParsing.ParsedSchemaEntityWithId<TBuilder, TType>,
+      },
       index: result.index,
+    })),
+  );
+}
+
+export function getEntity(
+  [entityId]: Parameters<GenericBuilderStore["getEntity"]>,
+  dataStore: DataStore<BuilderStoreData>,
+): ReturnType<GenericBuilderStore["getEntity"]> {
+  return pipe(
+    Effect.sync(() => dataStore.state.schema.entities),
+    Effect.flatMap((entities) =>
+      schemaParsing.getDraftSchemaEntity(entityId, entities),
+    ),
+    Effect.map((entity) => ({
+      ...entity,
+      id: entityId,
+    })),
+  );
+}
+
+export function cloneEntity(
+  [entityId, maybeIndex]: Parameters<GenericBuilderStore["cloneEntity"]>,
+  dataStore: DataStore<BuilderStoreData>,
+  builder: Builder,
+): ReturnType<GenericBuilderStore["cloneEntity"]> {
+  return pipe(
+    Effect.Do,
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
+    ),
+    Effect.bind("source", ({ currentSchema }) =>
+      schemaParsing.getDraftSchemaEntity(entityId, currentSchema.entities),
+    ),
+    Effect.bind("descendants", ({ currentSchema }) =>
+      collectEntityDescendants(entityId, currentSchema),
+    ),
+    Effect.bind("targetIndex", ({ currentSchema, source }) =>
+      pipe(
+        Option.fromNullable(maybeIndex),
+        Option.map((index) => Effect.succeed(index)),
+        Option.getOrElse(() =>
+          pipe(
+            Option.fromNullable(source.parentId),
+            Option.map((parentId) =>
+              pipe(
+                schemaParsing.getDraftSchemaEntity(
+                  parentId,
+                  currentSchema.entities,
+                ),
+                Effect.map((parent) =>
+                  pipe(parent.children ?? [], (kids) =>
+                    pipe(
+                      Array.findFirstIndex(kids, (id) => id === entityId),
+                      Option.map((i) => i + 1),
+                      Option.getOrElse(() => kids.length),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Option.getOrElse(() =>
+              pipe(
+                Array.findFirstIndex(
+                  currentSchema.root,
+                  (id) => id === entityId,
+                ),
+                Option.map((i) => i + 1),
+                Option.getOrElse(() => currentSchema.root.length),
+                (index) => Effect.succeed(index),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+    Effect.bind("rootCloneId", ({ currentSchema }) =>
+      generateEntityId(currentSchema.entities, builder),
+    ),
+    Effect.bind(
+      "rootClone",
+      ({ currentSchema, source, targetIndex, rootCloneId }) =>
+        pipe(
+          source,
+          (entity) => ({
+            type: entity.type,
+            attributes: { ...entity.attributes },
+            parentId: entity.parentId,
+          }),
+          (clonedEntity) =>
+            addEntityToSchema(
+              rootCloneId,
+              clonedEntity,
+              currentSchema,
+              targetIndex,
+            ),
+        ),
+    ),
+    Effect.bind(
+      "folded",
+      ({ currentSchema, descendants, rootClone, rootCloneId }) =>
+        pipe(
+          descendants,
+          Effect.reduce(
+            {
+              schema: rootClone.updatedSchema,
+              idMap: Record.set({}, entityId, rootCloneId),
+            },
+            (acc, originalChildId) =>
+              pipe(
+                generateEntityId(acc.schema.entities, builder),
+                Effect.flatMap((childCloneId) =>
+                  pipe(
+                    schemaParsing.getDraftSchemaEntity(
+                      originalChildId,
+                      currentSchema.entities,
+                    ),
+                    Effect.map((origChild) => ({
+                      type: origChild.type,
+                      attributes: { ...origChild.attributes },
+                      parentId: pipe(
+                        Option.fromNullable(origChild.parentId),
+                        Option.flatMap((oldPid) =>
+                          Option.fromNullable(acc.idMap[oldPid]),
+                        ),
+                        Option.getOrElse(() => undefined),
+                      ),
+                    })),
+                    Effect.flatMap((clonedChild) =>
+                      addEntityToSchema(childCloneId, clonedChild, acc.schema),
+                    ),
+                    Effect.map((result) => ({
+                      schema: result.updatedSchema,
+                      idMap: Record.set(
+                        acc.idMap,
+                        originalChildId,
+                        childCloneId,
+                      ),
+                    })),
+                  ),
+                ),
+              ),
+          ),
+        ),
+    ),
+    Effect.tap(({ folded }) =>
+      Effect.sync(() =>
+        dataStore.setState((s) =>
+          Struct.evolve(s, {
+            schema: () => folded.schema,
+          }),
+        ),
+      ),
+    ),
+    Effect.map(({ rootClone, rootCloneId }) => ({
+      entityId,
+      clonedEntityId: rootCloneId,
+      index: rootClone.index,
     })),
   );
 }
@@ -797,10 +1040,10 @@ function parsePartialBuilderStoreData(
   return pipe(
     Option.fromNullable(partialData?.schema),
     Option.map((schema) =>
-      schemaParsing.parseSchemaEffectfully(schema, builder),
+      schemaParsing.parseDraftSchemaEffectfully(schema, builder),
     ),
     Option.getOrElse(() =>
-      Effect.succeed<schemaParsing.ParsedSchema>({
+      Effect.succeed<schemaParsing.DraftSchema>({
         entities: {},
         root: [],
       }),
@@ -838,6 +1081,21 @@ function setData(
   );
 }
 
+function getEntityDefinition(
+  entityType: string,
+  builder: Builder,
+): Effect.Effect<EntityDefinition> {
+  return pipe(
+    Option.fromNullable(builder.entities[entityType]),
+    Option.map((entityDefinition) => Effect.succeed(entityDefinition)),
+    Option.getOrElse(() =>
+      Effect.dieMessage(
+        `Entity type "${entityType}" not found in builder. This is likely a bug.`,
+      ),
+    ),
+  );
+}
+
 export function setEntityAttributeValue(
   [entityId, attributeName, attributeValue]: Parameters<
     GenericBuilderStore["setEntityAttributeValue"]
@@ -847,21 +1105,27 @@ export function setEntityAttributeValue(
 ): ReturnType<GenericBuilderStore["setEntityAttributeValue"]> {
   return pipe(
     Effect.Do,
-    Effect.bind("schema", () => Effect.sync(() => dataStore.state.schema)),
-    Effect.bind("entity", ({ schema }) =>
-      schemaParsing.getParsedEntity(entityId, schema.entities),
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
+    ),
+    Effect.bind("entity", ({ currentSchema }) =>
+      schemaParsing.getDraftSchemaEntity(entityId, currentSchema.entities),
     ),
     Effect.bind("attributeDefinition", ({ entity }) =>
-      schemaParsing.getAttributeDefinition(
-        entity.type,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        builder.entities[entity.type]!,
-        attributeName,
+      pipe(
+        getEntityDefinition(entity.type, builder),
+        Effect.flatMap((entityDefinition) =>
+          schemaParsing.getAttributeDefinition(
+            entity.type,
+            entityDefinition,
+            attributeName,
+          ),
+        ),
       ),
     ),
     Effect.bind("valueParseResult", ({ attributeDefinition }) =>
       Effect.succeed(
-        schemaParsing.parseAttribute(
+        schemaParsing.parseEntityAttribute(
           attributeName,
           attributeValue,
           attributeDefinition,
@@ -882,26 +1146,23 @@ export function setEntityAttributeValue(
         onRight: (value) =>
           pipe(
             Effect.sync(() =>
-              dataStore.setState((prevState) => ({
-                ...prevState,
-                schema: {
-                  ...prevState.schema,
-                  entities: pipe(
-                    Record.modify(
-                      prevState.schema.entities,
-                      entityId,
-                      (existingEntity) =>
-                        schemaParsing.cleanParsedEntity({
-                          ...existingEntity,
-                          attributes: {
-                            ...existingEntity.attributes,
-                            [attributeName]: value,
-                          },
-                        }),
-                    ),
-                  ),
-                },
-              })),
+              dataStore.setState((prevState) =>
+                Struct.evolve(prevState, {
+                  schema: (schema) =>
+                    Struct.evolve(schema, {
+                      entities: (entities) =>
+                        Record.modify(entities, entityId, (existingEntity) =>
+                          schemaParsing.cleanDraftSchemaEntity({
+                            ...existingEntity,
+                            attributes: {
+                              ...existingEntity.attributes,
+                              [attributeName]: value,
+                            },
+                          }),
+                        ),
+                    }),
+                }),
+              ),
             ),
             Effect.flatMap(() =>
               Effect.succeed({
@@ -916,6 +1177,73 @@ export function setEntityAttributeValue(
   );
 }
 
+export function resetEntityAttributeValue(
+  [entityId, attributeName]: Parameters<
+    GenericBuilderStore["resetEntityAttributeValue"]
+  >,
+  dataStore: DataStore<BuilderStoreData>,
+  builder: Builder,
+): ReturnType<GenericBuilderStore["resetEntityAttributeValue"]> {
+  return pipe(
+    Effect.Do,
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
+    ),
+    Effect.bind("entity", ({ currentSchema }) =>
+      schemaParsing.getDraftSchemaEntity(entityId, currentSchema.entities),
+    ),
+    Effect.bind("attributeDefinition", ({ entity }) =>
+      pipe(
+        getEntityDefinition(entity.type, builder),
+        Effect.flatMap((entityDefinition) =>
+          schemaParsing.getAttributeDefinition(
+            entity.type,
+            entityDefinition,
+            attributeName,
+          ),
+        ),
+      ),
+    ),
+    Effect.flatMap(({ attributeDefinition }) =>
+      pipe(
+        Option.fromNullable(
+          attributeDefinition.defaultValue?.bind(attributeDefinition),
+        ),
+        Option.map((defaultValueFn) =>
+          setEntityAttributeValue(
+            [
+              entityId,
+              attributeName,
+              defaultValueFn({
+                attribute: {
+                  metadata: attributeDefinition.metadata,
+                  name: attributeName,
+                },
+              }),
+            ],
+            dataStore,
+            builder,
+          ),
+        ),
+        Option.getOrElse(() =>
+          pipe(
+            clearEntityAttributeValue(
+              [entityId, attributeName],
+              dataStore,
+              builder,
+            ),
+            Effect.map(() => ({
+              entityId,
+              attributeName,
+              attributeValue: undefined,
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 export function clearEntityAttributeValue(
   [entityId, attributeName]: Parameters<
     GenericBuilderStore["clearEntityAttributeValue"]
@@ -926,7 +1254,7 @@ export function clearEntityAttributeValue(
   return pipe(
     Effect.sync(() => dataStore.state.schema.entities),
     Effect.flatMap((entities) =>
-      schemaParsing.getParsedEntity(entityId, entities),
+      schemaParsing.getDraftSchemaEntity(entityId, entities),
     ),
     Effect.tap((entity) =>
       schemaParsing.validateEntityAttributeName(
@@ -937,23 +1265,25 @@ export function clearEntityAttributeValue(
     ),
     Effect.tap((entity) =>
       Effect.sync(() =>
-        dataStore.setState((prevState) => ({
-          ...prevState,
-          schema: {
-            ...prevState.schema,
-            entities: Record.set(
-              prevState.schema.entities,
-              entityId,
-              schemaParsing.cleanParsedEntity({
-                ...entity,
-                attributes: Record.remove(
-                  entity.attributes ?? {},
-                  attributeName,
-                ),
+        dataStore.setState((prevState) =>
+          Struct.evolve(prevState, {
+            schema: (schema) =>
+              Struct.evolve(schema, {
+                entities: (entities) =>
+                  Record.set(
+                    entities,
+                    entityId,
+                    schemaParsing.cleanDraftSchemaEntity({
+                      ...entity,
+                      attributes: Record.remove(
+                        entity.attributes ?? {},
+                        attributeName,
+                      ),
+                    }),
+                  ),
               }),
-            ),
-          },
-        })),
+          }),
+        ),
       ),
     ),
     Effect.flatMap(() => Effect.succeed({ entityId, attributeName })),
@@ -967,26 +1297,106 @@ export function clearEntityAttributesValues(
   return pipe(
     Effect.sync(() => dataStore.state.schema.entities),
     Effect.flatMap((entities) =>
-      schemaParsing.getParsedEntity(entityId, entities),
+      schemaParsing.getDraftSchemaEntity(entityId, entities),
     ),
     Effect.tap((entity) =>
       Effect.sync(() =>
-        dataStore.setState((prevState) => ({
-          ...prevState,
-          schema: {
-            ...prevState.schema,
-            entities: Record.set(
-              prevState.schema.entities,
-              entityId,
-              schemaParsing.cleanParsedEntity(
-                Struct.omit(entity, "attributes"),
-              ),
-            ),
-          },
-        })),
+        dataStore.setState((prevState) =>
+          Struct.evolve(prevState, {
+            schema: (schema) =>
+              Struct.evolve(schema, {
+                entities: (entities) =>
+                  Record.set(
+                    entities,
+                    entityId,
+                    schemaParsing.cleanDraftSchemaEntity(
+                      Struct.omit(entity, "attributes"),
+                    ),
+                  ),
+              }),
+          }),
+        ),
       ),
     ),
     Effect.flatMap(() => Effect.succeed({ entityId })),
+  );
+}
+
+export function clearEntityAttributeError(
+  [entityId, attributeName]: Parameters<
+    GenericBuilderStore["clearEntityAttributeError"]
+  >,
+  dataStore: DataStore<BuilderStoreData>,
+  builder: Builder,
+): ReturnType<GenericBuilderStore["clearEntityAttributeError"]> {
+  return pipe(
+    Effect.sync(() => dataStore.state.schema.entities),
+    Effect.flatMap((entities) =>
+      schemaParsing.getDraftSchemaEntity(entityId, entities),
+    ),
+    Effect.tap((entity) =>
+      schemaParsing.validateEntityAttributeName(
+        entity.type,
+        attributeName,
+        builder,
+      ),
+    ),
+    Effect.tap(() =>
+      Effect.sync(() =>
+        dataStore.setState((prevState) =>
+          Struct.evolve(prevState, {
+            entitiesAttributesErrors: (errors) =>
+              schemaValidation.cleanEntitiesAttributeErrors(
+                Record.set(
+                  errors,
+                  entityId,
+                  Record.remove(errors[entityId] ?? {}, attributeName),
+                ),
+              ),
+          }),
+        ),
+      ),
+    ),
+    Effect.flatMap(() => Effect.succeed({ entityId, attributeName })),
+  );
+}
+
+export function clearEntityAttributesErrors(
+  [entityId]: Parameters<GenericBuilderStore["clearEntityAttributesErrors"]>,
+  dataStore: DataStore<BuilderStoreData>,
+): ReturnType<GenericBuilderStore["clearEntityAttributesErrors"]> {
+  return pipe(
+    Effect.sync(() => dataStore.state.schema.entities),
+    Effect.tap((entities) =>
+      schemaParsing.validateEntityIdExistance(entityId, entities),
+    ),
+    Effect.tap(() =>
+      Effect.sync(() =>
+        dataStore.setState((prevState) =>
+          Struct.evolve(prevState, {
+            entitiesAttributesErrors: (errors) =>
+              schemaValidation.cleanEntitiesAttributeErrors(
+                Record.remove(errors, entityId),
+              ),
+          }),
+        ),
+      ),
+    ),
+    Effect.flatMap(() => Effect.succeed({ entityId })),
+  );
+}
+
+export function clearEntitiesAttributesErrors(
+  dataStore: DataStore<BuilderStoreData>,
+): ReturnType<GenericBuilderStore["clearEntitiesAttributesErrors"]> {
+  return pipe(
+    Effect.sync(() =>
+      dataStore.setState((prevState) =>
+        Struct.evolve(prevState, {
+          entitiesAttributesErrors: () => ({}),
+        }),
+      ),
+    ),
   );
 }
 
@@ -999,28 +1409,34 @@ export function validateEntityAttribute(
 ): ReturnType<GenericBuilderStore["validateEntityAttribute"]> {
   return pipe(
     Effect.Do,
-    Effect.bind("schema", () => Effect.sync(() => dataStore.state.schema)),
-    Effect.bind("entity", ({ schema }) =>
-      schemaParsing.getParsedEntity(entityId, schema.entities),
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
+    ),
+    Effect.bind("entity", ({ currentSchema }) =>
+      schemaParsing.getDraftSchemaEntity(entityId, currentSchema.entities),
     ),
     Effect.bind("attributeDefinition", ({ entity }) =>
-      schemaParsing.getAttributeDefinition(
-        entity.type,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        builder.entities[entity.type]!,
-        attributeName,
+      pipe(
+        getEntityDefinition(entity.type, builder),
+        Effect.flatMap((entityDefinition) =>
+          schemaParsing.getAttributeDefinition(
+            entity.type,
+            entityDefinition,
+            attributeName,
+          ),
+        ),
       ),
     ),
     Effect.bind(
       "validatedValueResult",
-      ({ entity, attributeDefinition, schema }) =>
+      ({ entity, attributeDefinition, currentSchema }) =>
         schemaValidation.validateEntityAttribute(
           entityId,
           entity,
           attributeName,
           entity.attributes?.[attributeName],
           attributeDefinition,
-          schema,
+          currentSchema,
           builder,
         ),
     ),
@@ -1029,21 +1445,22 @@ export function validateEntityAttribute(
         onLeft: (error) =>
           pipe(
             Effect.sync(() =>
-              dataStore.setState((prevState) => ({
-                ...prevState,
-                entitiesAttributesErrors:
-                  schemaValidation.cleanEntitiesAttributeErrors(
-                    Record.set(
-                      prevState.entitiesAttributesErrors,
-                      entityId,
+              dataStore.setState((prevState) =>
+                Struct.evolve(prevState, {
+                  entitiesAttributesErrors: (entitiesAttributesErrors) =>
+                    schemaValidation.cleanEntitiesAttributeErrors(
                       Record.set(
-                        prevState.entitiesAttributesErrors[entityId] ?? {},
-                        attributeName,
-                        error,
+                        entitiesAttributesErrors,
+                        entityId,
+                        Record.set(
+                          entitiesAttributesErrors[entityId] ?? {},
+                          attributeName,
+                          error,
+                        ),
                       ),
                     ),
-                  ),
-              })),
+                }),
+              ),
             ),
             Effect.flatMap(() =>
               Effect.fail(
@@ -1059,37 +1476,34 @@ export function validateEntityAttribute(
         onRight: (value) =>
           pipe(
             Effect.sync(() =>
-              dataStore.setState((prevState) => ({
-                ...prevState,
-                schema: {
-                  ...prevState.schema,
-                  entities: pipe(
-                    Record.modify(
-                      prevState.schema.entities,
-                      entityId,
-                      (existingEntity) =>
-                        schemaParsing.cleanParsedEntity({
-                          ...existingEntity,
-                          attributes: {
-                            ...existingEntity.attributes,
-                            [attributeName]: value,
-                          },
-                        }),
-                    ),
-                  ),
-                },
-                entitiesAttributesErrors:
-                  schemaValidation.cleanEntitiesAttributeErrors(
-                    Record.set(
-                      prevState.entitiesAttributesErrors,
-                      entityId,
-                      Record.remove(
-                        prevState.entitiesAttributesErrors[entityId] ?? {},
-                        attributeName,
+              dataStore.setState((prevState) =>
+                Struct.evolve(prevState, {
+                  schema: (schema) =>
+                    Struct.evolve(schema, {
+                      entities: (entities) =>
+                        Record.modify(entities, entityId, (existingEntity) =>
+                          schemaParsing.cleanDraftSchemaEntity({
+                            ...existingEntity,
+                            attributes: {
+                              ...existingEntity.attributes,
+                              [attributeName]: value,
+                            },
+                          }),
+                        ),
+                    }),
+                  entitiesAttributesErrors: (entitiesAttributesErrors) =>
+                    schemaValidation.cleanEntitiesAttributeErrors(
+                      Record.set(
+                        entitiesAttributesErrors,
+                        entityId,
+                        Record.remove(
+                          entitiesAttributesErrors[entityId] ?? {},
+                          attributeName,
+                        ),
                       ),
                     ),
-                  ),
-              })),
+                }),
+              ),
             ),
             Effect.flatMap(() =>
               Effect.succeed({
@@ -1111,62 +1525,58 @@ export function validateEntityAttributes(
 ): ReturnType<GenericBuilderStore["validateEntityAttributes"]> {
   return pipe(
     Effect.Do,
-    Effect.bind("schema", () => Effect.sync(() => dataStore.state.schema)),
-    Effect.bind("entity", ({ schema }) =>
-      schemaParsing.getParsedEntity(entityId, schema.entities),
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
     ),
-    Effect.bind("validatedAttributes", ({ entity, schema }) =>
+    Effect.bind("entity", ({ currentSchema }) =>
+      schemaParsing.getDraftSchemaEntity(entityId, currentSchema.entities),
+    ),
+    Effect.bind("validatedAttributes", ({ entity, currentSchema }) =>
       schemaValidation.validateEntityAttributes(
         entityId,
         entity,
-        schema,
+        currentSchema,
         builder,
       ),
     ),
-    Effect.flatMap(({ validatedAttributes, schema }) =>
+    Effect.flatMap(({ validatedAttributes, currentSchema }) =>
       pipe(
         Effect.succeed({
-          ...schema.entities[entityId]?.attributes,
+          ...currentSchema.entities[entityId]?.attributes,
           ...validatedAttributes.values,
         }),
         Effect.tap((attributes) =>
           Effect.sync(() =>
-            dataStore.setState((prevState) => ({
-              ...prevState,
-              schema: {
-                ...prevState.schema,
-                entities: Record.modify(
-                  prevState.schema.entities,
-                  entityId,
-                  (existingEntity) =>
-                    schemaParsing.cleanParsedEntity({
-                      ...existingEntity,
-                      attributes,
-                    }),
-                ),
-              },
-              entitiesAttributesErrors:
-                schemaValidation.cleanEntitiesAttributeErrors(
-                  Record.set(
-                    prevState.entitiesAttributesErrors,
-                    entityId,
-                    validatedAttributes.errors,
+            dataStore.setState((prevState) =>
+              Struct.evolve(prevState, {
+                schema: (schema) =>
+                  Struct.evolve(schema, {
+                    entities: (entities) =>
+                      Record.modify(entities, entityId, (existingEntity) =>
+                        schemaParsing.cleanDraftSchemaEntity({
+                          ...existingEntity,
+                          attributes,
+                        }),
+                      ),
+                  }),
+                entitiesAttributesErrors: (errors) =>
+                  schemaValidation.cleanEntitiesAttributeErrors(
+                    Record.set(errors, entityId, validatedAttributes.errors),
                   ),
-                ),
-            })),
+              }),
+            ),
           ),
         ),
         Effect.flatMap((attributes) =>
-          Record.isEmptyRecord(validatedAttributes.errors)
-            ? Effect.succeed({
-                entityId,
-                attributes,
-              })
-            : Effect.fail(
+          Effect.if(Record.isEmptyRecord(validatedAttributes.errors), {
+            onTrue: () => Effect.succeed({ entityId, attributes }),
+            onFalse: () =>
+              Effect.fail(
                 new schemaValidation.EntityAttributesValidationError({
                   errors: validatedAttributes.errors,
                 }),
               ),
+          }),
         ),
       ),
     ),
@@ -1179,11 +1589,13 @@ export function validateEntitiesAttributes(
 ): ReturnType<GenericBuilderStore["validateEntitiesAttributes"]> {
   return pipe(
     Effect.Do,
-    Effect.bind("schema", () => Effect.sync(() => dataStore.state.schema)),
-    Effect.bind("validationResult", ({ schema }) =>
-      schemaValidation.validateEntitiesAttributes(schema, builder),
+    Effect.bind("currentSchema", () =>
+      Effect.sync(() => dataStore.state.schema),
     ),
-    Effect.flatMap(({ validationResult, schema }) =>
+    Effect.bind("validationResult", ({ currentSchema }) =>
+      schemaValidation.validateEntitiesAttributes(currentSchema, builder),
+    ),
+    Effect.flatMap(({ validationResult, currentSchema }) =>
       pipe(
         Effect.sync(() =>
           dataStore.setState((prevState) =>
@@ -1200,17 +1612,20 @@ export function validateEntitiesAttributes(
           ),
         ),
         Effect.flatMap(() =>
-          Record.isEmptyRecord(validationResult.attributeErrors)
-            ? Effect.succeed({
-                schema: Struct.evolve(schema, {
+          Effect.if(Record.isEmptyRecord(validationResult.attributeErrors), {
+            onTrue: () =>
+              Effect.succeed({
+                schema: Struct.evolve(currentSchema, {
                   entities: () => validationResult.entities,
                 }),
-              })
-            : Effect.fail(
+              }),
+            onFalse: () =>
+              Effect.fail(
                 new schemaValidation.EntitiesAttributesValidationError({
                   errors: validationResult.attributeErrors,
                 }),
               ),
+          }),
         ),
       ),
     ),
@@ -1260,7 +1675,7 @@ export function setEntityAttributeError(
   return pipe(
     Effect.sync(() => dataStore.state.schema.entities),
     Effect.flatMap((entities) =>
-      schemaParsing.getParsedEntity(entityId, entities),
+      schemaParsing.getDraftSchemaEntity(entityId, entities),
     ),
     Effect.tap((entity) =>
       schemaParsing.validateEntityAttributeName(
@@ -1303,7 +1718,7 @@ export function setEntityAttributesErrors(
   return pipe(
     Effect.sync(() => dataStore.state.schema.entities),
     Effect.flatMap((entities) =>
-      schemaParsing.getParsedEntity(entityId, entities),
+      schemaParsing.getDraftSchemaEntity(entityId, entities),
     ),
     Effect.tap((entity) =>
       schemaParsing.validateEntityAttributeNames(
@@ -1390,12 +1805,16 @@ export function createEffectfulBuilderStore<TBuilder extends Builder>(
           getBuilder: () => builder,
           getData: () => dataStore.state,
           addEntity: (...args) => addEntity(args, dataStore, builder),
+          getEntity: (...args) => getEntity(args, dataStore),
+          cloneEntity: (...args) => cloneEntity(args, dataStore, builder),
           removeEntity: (...args) => removeEntity(args, dataStore),
           setEntityIndex: (...args) => setEntityIndex(args, dataStore),
           setEntityParent: (...args) =>
             setEntityParent(args, dataStore, builder),
           setEntityAttributeValue: (...args) =>
             setEntityAttributeValue(args, dataStore, builder),
+          resetEntityAttributeValue: (...args) =>
+            resetEntityAttributeValue(args, dataStore, builder),
           clearEntityAttributeValue: (...args) =>
             clearEntityAttributeValue(args, dataStore, builder),
           clearEntityAttributesValues: (...args) =>
@@ -1406,6 +1825,12 @@ export function createEffectfulBuilderStore<TBuilder extends Builder>(
             validateEntityAttributes(args, dataStore, builder),
           validateEntitiesAttributes: () =>
             validateEntitiesAttributes(dataStore, builder),
+          clearEntityAttributeError: (...args) =>
+            clearEntityAttributeError(args, dataStore, builder),
+          clearEntityAttributesErrors: (...args) =>
+            clearEntityAttributesErrors(args, dataStore),
+          clearEntitiesAttributesErrors: () =>
+            clearEntitiesAttributesErrors(dataStore),
           setEntityAttributeError: (...args) =>
             setEntityAttributeError(args, dataStore, builder),
           setEntityAttributesErrors: (...args) =>
@@ -1439,6 +1864,10 @@ export function createBuilderStore<TBuilder extends Builder>(
             ...builderStore,
             addEntity: (...args) =>
               runSyncAsResult(builderStore.addEntity(...args)),
+            getEntity: (...args) =>
+              runSyncAsResult(builderStore.getEntity(...args)),
+            cloneEntity: (...args) =>
+              runSyncAsResult(builderStore.cloneEntity(...args)),
             removeEntity: (...args) =>
               runSyncAsResult(builderStore.removeEntity(...args)),
             setEntityIndex: (...args) =>
@@ -1447,6 +1876,8 @@ export function createBuilderStore<TBuilder extends Builder>(
               runSyncAsResult(builderStore.setEntityParent(...args)),
             setEntityAttributeValue: (...args) =>
               runSyncAsResult(builderStore.setEntityAttributeValue(...args)),
+            resetEntityAttributeValue: (...args) =>
+              runSyncAsResult(builderStore.resetEntityAttributeValue(...args)),
             clearEntityAttributeValue: (...args) =>
               runSyncAsResult(builderStore.clearEntityAttributeValue(...args)),
             clearEntityAttributesValues: (...args) =>
@@ -1461,6 +1892,14 @@ export function createBuilderStore<TBuilder extends Builder>(
               ),
             validateEntitiesAttributes: () =>
               runPromiseAsResult(builderStore.validateEntitiesAttributes()),
+            clearEntityAttributeError: (...args) =>
+              runSyncAsResult(builderStore.clearEntityAttributeError(...args)),
+            clearEntityAttributesErrors: (...args) =>
+              runSyncAsResult(
+                builderStore.clearEntityAttributesErrors(...args),
+              ),
+            clearEntitiesAttributesErrors: () =>
+              runSyncAsResult(builderStore.clearEntitiesAttributesErrors()),
             setEntityAttributeError: (...args) =>
               runSyncAsResult(builderStore.setEntityAttributeError(...args)),
             setEntityAttributesErrors: (...args) =>

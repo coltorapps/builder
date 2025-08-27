@@ -12,16 +12,19 @@ import {
 } from "effect";
 import { type ReadonlyRecord } from "effect/Record";
 
-import { type Attribute, type InferAttributeParsedValue } from "./attribute";
+import {
+  type AttributeDefinition,
+  type InferAttributeDefinitionParsedValue,
+} from "./attribute-definition";
 import { type Builder } from "./builder";
-import { type Entity } from "./entity";
+import { type EntityDefinition } from "./entity-definition";
 import {
   runSyncAsResult,
   type KeyofStringIntersection,
   type Result,
 } from "./utils";
 
-export interface ParsedSchemaEntity<
+export interface DraftSchemaEntity<
   TBuilder extends Builder = Builder,
   TType extends KeyofStringIntersection<
     TBuilder["entities"]
@@ -30,7 +33,7 @@ export interface ParsedSchemaEntity<
   readonly type: TType;
   readonly attributes?:
     | {
-        readonly [K2 in keyof TBuilder["entities"][TType]["attributes"]]?: InferAttributeParsedValue<
+        readonly [K2 in keyof TBuilder["entities"][TType]["attributes"]]?: InferAttributeDefinitionParsedValue<
           TBuilder["entities"][TType]["attributes"][K2]
         >;
       }
@@ -39,20 +42,20 @@ export interface ParsedSchemaEntity<
   readonly children?: ReadonlyArray<string> | undefined;
 }
 
-export interface ParsedSchemaEntityWithId<
+export interface DraftSchemaEntityWithId<
   TBuilder extends Builder = Builder,
   TType extends KeyofStringIntersection<
     TBuilder["entities"]
   > = KeyofStringIntersection<TBuilder["entities"]>,
-> extends ParsedSchemaEntity<TBuilder, TType> {
+> extends DraftSchemaEntity<TBuilder, TType> {
   readonly id: string;
 }
 
-export interface ParsedSchema<TBuilder extends Builder = Builder> {
+export interface DraftSchema<TBuilder extends Builder = Builder> {
   readonly entities: ReadonlyRecord<
     string,
     {
-      [K in KeyofStringIntersection<TBuilder["entities"]>]: ParsedSchemaEntity<
+      [K in KeyofStringIntersection<TBuilder["entities"]>]: DraftSchemaEntity<
         TBuilder,
         K
       >;
@@ -69,7 +72,7 @@ export class SchemaParseError extends Data.TaggedError("SchemaParseError")<{
 }> {}
 
 type SchemaParseResult<TBuilder extends Builder = Builder> = Result<
-  ParsedSchema<TBuilder>,
+  DraftSchema<TBuilder>,
   SchemaParseError
 >;
 
@@ -143,9 +146,10 @@ export function validateEntityId(
   entityId: string,
   builder: Builder,
 ): Effect.Effect<void, InvalidEntityIdError> {
-  return builder.validateEntityId(entityId)
-    ? Effect.void
-    : Effect.fail(new InvalidEntityIdError({ entityId }));
+  return Effect.if(builder.validateEntityId(entityId), {
+    onTrue: () => Effect.void,
+    onFalse: () => Effect.fail(new InvalidEntityIdError({ entityId })),
+  });
 }
 
 export function validateEntityAttributeName<
@@ -189,7 +193,7 @@ export function validateEntityAttributeNames(
   );
 }
 
-export function validateParentRequired(
+export function validateParentRequiredness(
   entityType: string,
   parentId: string | undefined,
   builder: Builder,
@@ -200,27 +204,29 @@ export function validateParentRequired(
         builder.entities[entityType]?.parentRequired,
     ),
     Option.map((parentRequired) =>
-      parentRequired && !parentId
-        ? Effect.fail(new ParentRequiredError({ entityType }))
-        : Effect.void,
+      Effect.if(parentRequired && !parentId, {
+        onTrue: () => Effect.fail(new ParentRequiredError({ entityType })),
+        onFalse: () => Effect.void,
+      }),
     ),
     Option.getOrElse(() => Effect.void),
   );
 }
 
-export function validateEntityIdExists(
+export function validateEntityIdExistance(
   entityId: string,
-  entities: ParsedSchema["entities"],
+  entities: DraftSchema["entities"],
 ): Effect.Effect<void, EntityNotFoundError> {
-  return Record.has(entities, entityId)
-    ? Effect.void
-    : Effect.fail(new EntityNotFoundError({ entityId }));
+  return Effect.if(Record.has(entities, entityId), {
+    onTrue: () => Effect.void,
+    onFalse: () => Effect.fail(new EntityNotFoundError({ entityId })),
+  });
 }
 
-export function getParsedEntity(
+export function getDraftSchemaEntity(
   entityId: string,
-  entities: ParsedSchema["entities"],
-): Effect.Effect<ParsedSchemaEntity, EntityNotFoundError> {
+  entities: DraftSchema["entities"],
+): Effect.Effect<DraftSchemaEntity, EntityNotFoundError> {
   return pipe(
     Record.get(entities, entityId),
     Option.map((entity) => Effect.succeed(entity)),
@@ -230,9 +236,9 @@ export function getParsedEntity(
 
 export function getAttributeDefinition(
   entityType: string,
-  entityDefinition: Entity,
+  entityDefinition: EntityDefinition,
   attributeName: string,
-): Effect.Effect<Attribute, InvalidAttributeNameError> {
+): Effect.Effect<AttributeDefinition, InvalidAttributeNameError> {
   return pipe(
     Record.get(entityDefinition.attributes, attributeName),
     Option.map((attributeDefinition) => Effect.succeed(attributeDefinition)),
@@ -252,17 +258,19 @@ export function validateEntityType(
   entityType: string,
   builder: Builder,
 ): Effect.Effect<void, InvalidEntityTypeError> {
-  return Record.has(builder.entities, entityType)
-    ? Effect.void
-    : Effect.fail(
+  return Effect.if(Record.has(builder.entities, entityType), {
+    onTrue: () => Effect.void,
+    onFalse: () =>
+      Effect.fail(
         new InvalidEntityTypeError({
           entityType,
           validEntityTypes: Record.keys(builder.entities),
         }),
-      );
+      ),
+  });
 }
 
-export function validateEntityChildren(
+export function validateEntityChildrenAllowance(
   parentEntityType: string,
   childEntityType: string,
   builder: Builder,
@@ -273,30 +281,34 @@ export function validateEntityChildren(
         builder.entities[parentEntityType]?.childrenAllowed,
     ),
     Match.when(Match.boolean, (childrenAllowed) =>
-      !childrenAllowed
-        ? Effect.fail(
+      Effect.if(!childrenAllowed, {
+        onTrue: () =>
+          Effect.fail(
             new ChildNotAllowedError({
               entityType: parentEntityType,
               allowedChildren: [],
             }),
-          )
-        : Effect.void,
+          ),
+        onFalse: () => Effect.void,
+      }),
     ),
     Match.when(Match.defined, (allowedChildren) =>
-      Array.contains(allowedChildren, childEntityType)
-        ? Effect.void
-        : Effect.fail(
+      Effect.if(Array.contains(allowedChildren, childEntityType), {
+        onTrue: () => Effect.void,
+        onFalse: () =>
+          Effect.fail(
             new ChildNotAllowedError({
               entityType: parentEntityType,
               allowedChildren,
             }),
           ),
+      }),
     ),
     Match.orElse(() => Effect.void),
   );
 }
 
-export function validateEntityParent(
+export function validateEntityParentAllowance(
   entityType: string,
   parentEntityType: string,
   builder: Builder,
@@ -307,47 +319,55 @@ export function validateEntityParent(
         builder.entities[entityType]?.parentAllowed,
     ),
     Match.when(Match.boolean, (parentAllowed) =>
-      !parentAllowed
-        ? Effect.fail(
+      Effect.if(!parentAllowed, {
+        onTrue: () =>
+          Effect.fail(
             new ParentNotAllowedError({
               entityType,
               allowedParents: [],
             }),
-          )
-        : Effect.void,
+          ),
+        onFalse: () => Effect.void,
+      }),
     ),
     Match.when(Match.defined, (allowedParents) =>
-      Array.contains(allowedParents, parentEntityType)
-        ? Effect.void
-        : Effect.fail(
+      Effect.if(Array.contains(allowedParents, parentEntityType), {
+        onTrue: () => Effect.void,
+        onFalse: () =>
+          Effect.fail(
             new ParentNotAllowedError({
               entityType,
               allowedParents,
             }),
           ),
+      }),
     ),
     Match.orElse(() => Effect.void),
   );
 }
 
-export function cleanParsedEntity(
-  entity: ParsedSchemaEntity,
-): ParsedSchemaEntity {
+export function cleanDraftSchemaEntity<
+  TBuilder extends Builder,
+  TType extends KeyofStringIntersection<TBuilder["entities"]>,
+>(
+  entity: DraftSchemaEntity<TBuilder, TType>,
+): DraftSchemaEntity<TBuilder, TType> {
   return {
     type: entity.type,
-    ...(entity.parentId !== undefined && { parentId: entity.parentId }),
-    ...(entity.children !== undefined && { children: entity.children }),
-    ...(entity.attributes &&
-      !Record.isEmptyRecord(entity.attributes) && {
-        attributes: entity.attributes,
-      }),
+    ...(entity.parentId !== undefined ? { parentId: entity.parentId } : {}),
+    ...(entity.children !== undefined ? { children: entity.children } : {}),
+    ...(entity.attributes && !Record.isEmptyRecord(entity.attributes)
+      ? {
+          attributes: entity.attributes,
+        }
+      : {}),
   };
 }
 
-export function parseAttribute(
+export function parseEntityAttribute(
   attributeName: string,
   attributeValue: unknown,
-  attributeDefinition: Attribute,
+  attributeDefinition: AttributeDefinition,
 ): Either.Either<unknown, unknown> {
   return pipe(
     attributeDefinition.parse(attributeValue, {
@@ -361,18 +381,62 @@ export function parseAttribute(
   );
 }
 
-export function parseAttributes(
+export function computeEntityAttributesWithDefaults(
+  attributes: DraftSchemaEntity["attributes"],
+  entityType: string,
+  builder: Builder,
+): DraftSchemaEntity["attributes"] {
+  return pipe(
+    Option.fromNullable(builder.entities[entityType]?.attributes),
+    Option.map((attributeDefinitions) =>
+      pipe(
+        Record.toEntries(attributeDefinitions),
+        Array.filterMap(([key, attributeDefinition]) =>
+          !Record.has(attributes ?? {}, key)
+            ? pipe(
+                Option.fromNullable(
+                  attributeDefinition.defaultValue?.bind(attributeDefinition),
+                ),
+                Option.map(
+                  (defaultValueFn) =>
+                    [
+                      key,
+                      defaultValueFn({
+                        attribute: {
+                          metadata: attributeDefinition.metadata,
+                          name: key,
+                        },
+                      }),
+                    ] as const,
+                ),
+              )
+            : Option.none(),
+        ),
+        Record.fromEntries,
+        (defaultValues) => ({ ...attributes, ...defaultValues }),
+      ),
+    ),
+    Option.getOrElse(() => attributes),
+  );
+}
+
+export function parseEntityAttributes(
   entityType: string,
   attributes: Record<string, unknown> | undefined,
   builder: Builder,
   options?: SchemaParseOptions,
 ): {
   errors: EntityAttributeParseErrors;
-  values: ParsedSchemaEntity["attributes"];
+  values: DraftSchemaEntity["attributes"];
 } {
   return pipe(
     Option.fromNullable(
-      attributes ?? (options?.parseMissingAttributes === true ? {} : undefined),
+      computeEntityAttributesWithDefaults(
+        attributes ??
+          (options?.parseMissingAttributes === true ? {} : undefined),
+        entityType,
+        builder,
+      ),
     ),
     Option.map((attrs) =>
       pipe(
@@ -386,7 +450,7 @@ export function parseAttributes(
             ),
             Array.partitionMap(([key, attributeDefinition]) =>
               pipe(
-                parseAttribute(key, attrs[key], attributeDefinition),
+                parseEntityAttribute(key, attrs[key], attributeDefinition),
                 Either.match({
                   onLeft: (error) => Either.left([key, error] as const),
                   onRight: (value) => Either.right([key, value] as const),
@@ -407,15 +471,13 @@ export function parseAttributes(
 }
 
 interface ValidateEntityContext {
-  entityId: string;
   entityType: string;
   attributes?: Record<string, unknown> | undefined;
   parentId?: string | undefined;
-  entities: ParsedSchema["entities"];
+  entities: DraftSchema["entities"];
 }
 
-export type ParseEntityError =
-  | InvalidEntityIdError
+export type EntityConstraintError =
   | InvalidEntityTypeError
   | ParentRequiredError
   | InvalidAttributeNameError
@@ -423,14 +485,13 @@ export type ParseEntityError =
   | ChildNotAllowedError
   | ParentNotAllowedError;
 
-export function validateEntity(
+export function validateEntityConstraints(
   context: ValidateEntityContext,
   builder: Builder,
-): Effect.Effect<void, ParseEntityError> {
+): Effect.Effect<void, EntityConstraintError> {
   return Effect.all([
-    validateEntityId(context.entityId, builder),
     validateEntityType(context.entityType, builder),
-    validateParentRequired(context.entityType, context.parentId, builder),
+    validateParentRequiredness(context.entityType, context.parentId, builder),
     validateEntityAttributeNames(
       context.entityType,
       Record.keys(context.attributes ?? {}),
@@ -439,7 +500,7 @@ export function validateEntity(
     pipe(
       Option.fromNullable(context.parentId),
       Option.map((parentId) =>
-        validateEntityIdExists(parentId, context.entities),
+        validateEntityIdExistance(parentId, context.entities),
       ),
       Option.getOrElse(() => Effect.void),
     ),
@@ -447,15 +508,15 @@ export function validateEntity(
       Option.fromNullable(context.parentId),
       Option.map((parentId) =>
         pipe(
-          getParsedEntity(parentId, context.entities),
+          getDraftSchemaEntity(parentId, context.entities),
           Effect.flatMap((parentEntity) =>
             Effect.all([
-              validateEntityChildren(
+              validateEntityChildrenAllowance(
                 parentEntity.type,
                 context.entityType,
                 builder,
               ),
-              validateEntityParent(
+              validateEntityParentAllowance(
                 context.entityType,
                 parentEntity.type,
                 builder,
@@ -506,7 +567,12 @@ function makeEntityParseSchema(builder: Builder, options?: SchemaParseOptions) {
       Schema.transformOrFail(entitySchema, entitySchema, {
         decode: (entity, _, ast) =>
           pipe(
-            parseAttributes(entity.type, entity.attributes, builder, options),
+            parseEntityAttributes(
+              entity.type,
+              entity.attributes,
+              builder,
+              options,
+            ),
             ({ errors, values }) =>
               pipe(
                 errors,
@@ -529,7 +595,7 @@ function makeEntityParseSchema(builder: Builder, options?: SchemaParseOptions) {
                         new ParseResult.Composite(ast, entity, issues),
                       )
                     : ParseResult.succeed(
-                        cleanParsedEntity({
+                        cleanDraftSchemaEntity({
                           ...entity,
                           attributes: values,
                         }),
@@ -558,16 +624,18 @@ function makeEntitiesParseSchema(
         Record.toEntries(entities),
         Array.findFirst(([entityId, entity]) =>
           pipe(
-            validateEntity(
-              {
-                entityId,
-                entityType: entity.type,
-                attributes: entity.attributes,
-                parentId: entity.parentId,
-                entities,
-              },
-              builder,
-            ),
+            Effect.all([
+              validateEntityId(entityId, builder),
+              validateEntityConstraints(
+                {
+                  entityType: entity.type,
+                  attributes: entity.attributes,
+                  parentId: entity.parentId,
+                  entities,
+                },
+                builder,
+              ),
+            ]),
             Effect.match({
               onSuccess: () => Option.none(),
               onFailure: (error) => Option.some({ entityId, error }),
@@ -752,7 +820,7 @@ function makeEntitiesParseSchema(
   );
 }
 
-function makeParseSchema(builder: Builder, options?: SchemaParseOptions) {
+function makeParseDraftSchema(builder: Builder, options?: SchemaParseOptions) {
   return pipe(
     pipe(
       Schema.Struct({
@@ -821,13 +889,13 @@ function makeParseSchema(builder: Builder, options?: SchemaParseOptions) {
   );
 }
 
-export function internalParseSchema(
+export function parseDraftSchemaWithOptions(
   input: unknown,
   builder: Builder,
   options?: SchemaParseOptions,
-): Effect.Effect<ParsedSchema, SchemaParseError> {
+): Effect.Effect<DraftSchema, SchemaParseError> {
   return pipe(
-    Schema.decodeUnknown(makeParseSchema(builder, options), {
+    Schema.decodeUnknown(makeParseDraftSchema(builder, options), {
       onExcessProperty: "error",
       errors: "all",
     })(input),
@@ -843,16 +911,16 @@ export function internalParseSchema(
   );
 }
 
-export function parseSchemaEffectfully<TBuilder extends Builder>(
+export function parseDraftSchemaEffectfully<TBuilder extends Builder>(
   input: unknown,
   builder: TBuilder,
-): Effect.Effect<ParsedSchema<TBuilder>, SchemaParseError> {
-  return internalParseSchema(input, builder);
+): Effect.Effect<DraftSchema<TBuilder>, SchemaParseError> {
+  return parseDraftSchemaWithOptions(input, builder);
 }
 
-export function parseSchema<TBuilder extends Builder>(
+export function parseDraftSchema<TBuilder extends Builder>(
   input: unknown,
   builder: TBuilder,
 ): SchemaParseResult<TBuilder> {
-  return runSyncAsResult(parseSchemaEffectfully(input, builder));
+  return runSyncAsResult(parseDraftSchemaEffectfully(input, builder));
 }

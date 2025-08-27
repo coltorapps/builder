@@ -1,16 +1,16 @@
 import { Effect } from "effect";
 
-export type Ok<TValue = unknown> = {
+export type SuccessResult<TValue = unknown> = {
   success: true;
   value: TValue;
   error?: never;
 };
 
-export type Err<TError = unknown> = { success: false; error: TError };
+export type ErrorResult<TError = unknown> = { success: false; error: TError };
 
 export type Result<TValue = unknown, TError = unknown> =
-  | Ok<TValue>
-  | Err<TError>;
+  | SuccessResult<TValue>
+  | ErrorResult<TError>;
 
 export type RefineResult<TValue, TError = unknown> =
   | Result<TValue, TError>
@@ -37,7 +37,7 @@ export interface ResultMode {
   kind: "result";
 }
 
-export type ModeOutput<F, O, E> = F extends EffectMode
+export type ModeOutput<F, O = void, E = never> = F extends EffectMode
   ? Effect.Effect<O, E>
   : Result<O, E>;
 
