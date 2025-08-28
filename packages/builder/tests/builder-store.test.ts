@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { createAttributeDefinition } from "../src/attribute-definition";
-import { createBuilder } from "../src/builder";
+import { createBuilderDefinition } from "../src/builder-definition";
 import {
   collectEntityDescendants,
   createBuilderStore,
@@ -17,6 +17,7 @@ import {
 import { createEntityDefinition } from "../src/entity-definition";
 import {
   ChildNotAllowedError,
+  EntitiesAttributesErrors,
   EntityAttributeParseError,
   EntityAttributesParseError,
   EntityNotFoundError,
@@ -25,13 +26,14 @@ import {
   InvalidEntityTypeError,
   ParentNotAllowedError,
   ParentRequiredError,
+  parseDraftSchema,
+  parseSchema,
   SchemaParseError,
 } from "../src/schema-parsing";
 import {
   EntitiesAttributesValidationError,
   EntityAttributesValidationError,
   EntityAttributeValidationError,
-  type EntitiesAttributesErrors,
 } from "../src/schema-validation";
 import { runSyncAsResult } from "../src/utils";
 import {
@@ -46,14 +48,17 @@ describe("collectEntityDescendants", () => {
       entities: {
         a: {
           type: "",
+          attributes: {},
         },
         b: {
           type: "",
           children: ["a"],
+          attributes: {},
         },
         c: {
           type: "",
           children: ["b"],
+          attributes: {},
         },
       },
       root: [],
@@ -103,7 +108,7 @@ describe("collectEntityDescendants", () => {
 });
 
 describe("parseAttributeErrors", () => {
-  const builder = createBuilder({
+  const builder = createBuilderDefinition({
     entities: {
       textField: createEntityDefinition({
         attributes: {
@@ -122,7 +127,7 @@ describe("parseAttributeErrors", () => {
 
   const schema = {
     entities: {
-      entity1: { type: "textField" },
+      entity1: { type: "textField", attributes: {} },
     },
     root: ["entity1"],
   } as const;
@@ -187,7 +192,7 @@ describe("parseAttributeErrors", () => {
 
 describe("builder store", () => {
   describe("initialization", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -207,10 +212,10 @@ describe("builder store", () => {
 
     const validSchema = {
       entities: {
-        entity1: { type: "textField" as const },
+        entity1: { type: "textField", attributes: {} },
       },
       root: ["entity1"],
-    };
+    } as const;
 
     const validAttributeErrors = {
       entity1: { label: "error" },
@@ -279,7 +284,7 @@ describe("builder store", () => {
           initialData: {
             schema: {
               entities: {
-                1337: { type: "textField" },
+                1337: { type: "textField", attributes: {} },
               },
               root: [],
             },
@@ -317,7 +322,7 @@ describe("builder store", () => {
   });
 
   describe("removeEntity", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           childrenAllowed: true,
@@ -331,13 +336,22 @@ describe("builder store", () => {
         initialData: {
           schema: {
             entities: {
-              entity1: { type: "textField", children: ["entity2"] },
+              entity1: {
+                type: "textField",
+                children: ["entity2"],
+                attributes: {},
+              },
               entity2: {
                 type: "textField",
                 parentId: "entity1",
                 children: ["entity3"],
+                attributes: {},
               },
-              entity3: { type: "textField", parentId: "entity2" },
+              entity3: {
+                type: "textField",
+                parentId: "entity2",
+                attributes: {},
+              },
             },
             root: ["entity1"],
           },
@@ -350,7 +364,7 @@ describe("builder store", () => {
     }
 
     describe("success cases", () => {
-      it("should succeed with valid id", () => {
+      it("should succeed when valid ID provided", () => {
         const builderStore1 = makeBuilderStore();
 
         expect(builderStore1.removeEntity("entity1")).toStrictEqual({
@@ -379,6 +393,7 @@ describe("builder store", () => {
             entity1: {
               children: [],
               type: "textField",
+              attributes: {},
             },
           },
           root: ["entity1"],
@@ -404,7 +419,7 @@ describe("builder store", () => {
   describe("addEntity", () => {
     describe("success cases", () => {
       function makeBuilderStore() {
-        const builder = createBuilder({
+        const builder = createBuilderDefinition({
           entities: {
             textField: createEntityDefinition({
               attributes: {
@@ -448,6 +463,7 @@ describe("builder store", () => {
                 container1: {
                   type: "container",
                   children: [],
+                  attributes: {},
                 },
               },
               root: ["container1"],
@@ -529,6 +545,7 @@ describe("builder store", () => {
             container1: {
               children: [],
               type: "container",
+              attributes: {},
             },
             entity1: {
               attributes: {
@@ -607,6 +624,7 @@ describe("builder store", () => {
             container1: {
               children: ["entity2", "entity1"],
               type: "container",
+              attributes: {},
             },
             entity1: {
               type: "textField",
@@ -632,7 +650,7 @@ describe("builder store", () => {
       function makeBuilderStore(
         generateEntityId = () => randomUUID() as string,
       ) {
-        const builder = createBuilder({
+        const builder = createBuilderDefinition({
           entities: {
             textField: createEntityDefinition({
               parentRequired: true,
@@ -693,10 +711,12 @@ describe("builder store", () => {
                 valid_container1: {
                   type: "container",
                   parentId: "valid_restricted1",
+                  attributes: {},
                 },
                 valid_restricted1: {
                   type: "restrictedContainer",
                   children: ["valid_container1"],
+                  attributes: {},
                 },
               },
               root: ["valid_restricted1"],
@@ -919,7 +939,7 @@ describe("builder store", () => {
 
   describe("getEntity", () => {
     const builderStoreResult = createBuilderStore(
-      createBuilder({
+      createBuilderDefinition({
         entities: {
           textField: createEntityDefinition(),
         },
@@ -929,7 +949,7 @@ describe("builder store", () => {
         initialData: {
           schema: {
             entities: {
-              entity1: { type: "textField" },
+              entity1: { type: "textField", attributes: {} },
             },
             root: ["entity1"],
           },
@@ -946,6 +966,7 @@ describe("builder store", () => {
           value: {
             id: "entity1",
             type: "textField",
+            attributes: {},
           },
         });
       });
@@ -966,8 +987,78 @@ describe("builder store", () => {
     });
   });
 
+  describe("getEntity", () => {
+    const builderStoreResult = createBuilderStore(
+      createBuilderDefinition({
+        entities: {
+          textField: createEntityDefinition({
+            childrenAllowed: true,
+          }),
+        },
+        validateEntityId: (id) => typeof id === "string",
+      }),
+      {
+        initialData: {
+          schema: {
+            entities: {
+              entity1: { type: "textField", attributes: {} },
+              entity2: {
+                type: "textField",
+                children: ["entity3", "entity4"],
+                attributes: {},
+              },
+              entity3: {
+                type: "textField",
+                parentId: "entity2",
+                attributes: {},
+              },
+              entity4: {
+                type: "textField",
+                parentId: "entity2",
+                attributes: {},
+              },
+            },
+            root: ["entity1", "entity2"],
+          },
+        },
+      },
+    );
+
+    assertSuccessResult(builderStoreResult);
+
+    describe("success cases", () => {
+      it("should succeed when valid entity ID provided", () => {
+        expect([
+          builderStoreResult.value.getEntityIndex("entity1"),
+          builderStoreResult.value.getEntityIndex("entity2"),
+          builderStoreResult.value.getEntityIndex("entity3"),
+          builderStoreResult.value.getEntityIndex("entity4"),
+        ]).toStrictEqual([
+          { success: true, value: 0 },
+          { success: true, value: 1 },
+          { success: true, value: 0 },
+          { success: true, value: 1 },
+        ]);
+      });
+    });
+
+    describe("failure cases", () => {
+      it("should fail when invalid entity ID provided", () => {
+        const result = builderStoreResult.value.getEntityIndex("invalidId");
+
+        assertErrorResult(result);
+
+        expect(result.error).toBeInstanceOf(EntityNotFoundError);
+
+        expect(result.error).toMatchObject({
+          entityId: "invalidId",
+        });
+      });
+    });
+  });
+
   describe("setData", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition(),
       },
@@ -979,7 +1070,7 @@ describe("builder store", () => {
         initialData: {
           schema: {
             entities: {
-              entity1: { type: "textField" },
+              entity1: { type: "textField", attributes: {} },
             },
             root: ["entity1"],
           },
@@ -1001,7 +1092,7 @@ describe("builder store", () => {
               builderStore.setData({
                 schema: {
                   entities: {
-                    entity2: { type: "textField" },
+                    entity2: { type: "textField", attributes: {} },
                   },
                   root: ["entity2"],
                 },
@@ -1010,7 +1101,7 @@ describe("builder store", () => {
             data: {
               schema: {
                 entities: {
-                  entity2: { type: "textField" },
+                  entity2: { type: "textField", attributes: {} },
                 },
                 root: ["entity2"],
               },
@@ -1022,7 +1113,7 @@ describe("builder store", () => {
               builderStore.setData({
                 schema: {
                   entities: {
-                    entity2: { type: "textField" },
+                    entity2: { type: "textField", attributes: {} },
                   },
                   root: ["entity2"],
                 },
@@ -1034,6 +1125,7 @@ describe("builder store", () => {
                 entities: {
                   entity2: {
                     type: "textField",
+                    attributes: {},
                   },
                 },
                 root: ["entity2"],
@@ -1064,7 +1156,7 @@ describe("builder store", () => {
             builderStore.setData({
               schema: {
                 entities: {
-                  entity1: { type: "textField" },
+                  entity1: { type: "textField", attributes: {} },
                 },
                 root: ["entity1"],
               },
@@ -1086,7 +1178,7 @@ describe("builder store", () => {
             builderStore.setData({
               schema: {
                 entities: {
-                  entity1: { type: "textField" },
+                  entity1: { type: "textField", attributes: {} },
                 },
                 root: ["entity1"],
               },
@@ -1134,7 +1226,7 @@ describe("builder store", () => {
   });
 
   describe("setEntityIndex", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           childrenAllowed: true,
@@ -1148,10 +1240,27 @@ describe("builder store", () => {
         initialData: {
           schema: {
             entities: {
-              entity1: { type: "textField" },
-              entity2: { type: "textField", children: ["entity3", "entity4"] },
-              entity3: { type: "textField", parentId: "entity2" },
-              entity4: { type: "textField", parentId: "entity2" },
+              entity1: { type: "textField", attributes: {} },
+              entity2: {
+                type: "textField",
+                children: ["entity3", "entity4", "entity5"],
+                attributes: {},
+              },
+              entity3: {
+                type: "textField",
+                parentId: "entity2",
+                attributes: {},
+              },
+              entity4: {
+                type: "textField",
+                parentId: "entity2",
+                attributes: {},
+              },
+              entity5: {
+                type: "textField",
+                parentId: "entity2",
+                attributes: {},
+              },
             },
             root: ["entity1", "entity2"],
           },
@@ -1170,10 +1279,12 @@ describe("builder store", () => {
         const results = [
           builderStore.setEntityIndex("entity1", 1),
           builderStore.setEntityIndex("entity3", 1),
+          builderStore.setEntityIndex("entity5", (index) => index - 2),
         ] as const;
 
         assertSuccessResult(results[0]);
         assertSuccessResult(results[1]);
+        assertSuccessResult(results[2]);
 
         expect([results[0].value, results[1].value]).toStrictEqual([
           { entityId: "entity1", index: 1 },
@@ -1182,10 +1293,15 @@ describe("builder store", () => {
 
         expect(builderStore.getData().schema).toStrictEqual({
           entities: {
-            entity1: { type: "textField" },
-            entity2: { type: "textField", children: ["entity4", "entity3"] },
-            entity3: { type: "textField", parentId: "entity2" },
-            entity4: { type: "textField", parentId: "entity2" },
+            entity1: { type: "textField", attributes: {} },
+            entity2: {
+              type: "textField",
+              children: ["entity5", "entity4", "entity3"],
+              attributes: {},
+            },
+            entity3: { type: "textField", parentId: "entity2", attributes: {} },
+            entity4: { type: "textField", parentId: "entity2", attributes: {} },
+            entity5: { type: "textField", parentId: "entity2", attributes: {} },
           },
           root: ["entity2", "entity1"],
         });
@@ -1235,7 +1351,7 @@ describe("builder store", () => {
   });
 
   describe("setEntityParent", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           childrenAllowed: true,
@@ -1274,14 +1390,33 @@ describe("builder store", () => {
         initialData: {
           schema: {
             entities: {
-              entity1: { type: "textField" },
-              entity2: { type: "textField" },
-              container1: { type: "container", children: ["entity3"] },
-              entity3: { type: "textField", parentId: "container1" },
-              container2: { type: "container", children: ["entity4"] },
-              entity4: { type: "restrictedField", parentId: "container2" },
-              rootOnlyEntity1: { type: "rootOnlyEntity" },
-              noChildrenContainer1: { type: "noChildrenContainer" },
+              entity1: { type: "textField", attributes: {} },
+              entity2: { type: "textField", attributes: {} },
+              container1: {
+                type: "container",
+                children: ["entity3"],
+                attributes: {},
+              },
+              entity3: {
+                type: "textField",
+                parentId: "container1",
+                attributes: {},
+              },
+              container2: {
+                type: "container",
+                children: ["entity4"],
+                attributes: {},
+              },
+              entity4: {
+                type: "restrictedField",
+                parentId: "container2",
+                attributes: {},
+              },
+              rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
+              noChildrenContainer1: {
+                type: "noChildrenContainer",
+                attributes: {},
+              },
             },
             root: [
               "entity1",
@@ -1313,17 +1448,37 @@ describe("builder store", () => {
           },
           expectedSchema: {
             entities: {
-              entity1: { type: "textField", parentId: "container1" },
-              entity2: { type: "textField" },
+              entity1: {
+                type: "textField",
+                parentId: "container1",
+                attributes: {},
+              },
+              entity2: { type: "textField", attributes: {} },
               container1: {
                 type: "container",
                 children: ["entity3", "entity1"],
+                attributes: {},
               },
-              entity3: { type: "textField", parentId: "container1" },
-              container2: { type: "container", children: ["entity4"] },
-              entity4: { type: "restrictedField", parentId: "container2" },
-              rootOnlyEntity1: { type: "rootOnlyEntity" },
-              noChildrenContainer1: { type: "noChildrenContainer" },
+              entity3: {
+                type: "textField",
+                parentId: "container1",
+                attributes: {},
+              },
+              container2: {
+                type: "container",
+                children: ["entity4"],
+                attributes: {},
+              },
+              entity4: {
+                type: "restrictedField",
+                parentId: "container2",
+                attributes: {},
+              },
+              rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
+              noChildrenContainer1: {
+                type: "noChildrenContainer",
+                attributes: {},
+              },
             },
             root: [
               "entity2",
@@ -1337,7 +1492,7 @@ describe("builder store", () => {
         {
           description: "move entity from root to parent with index",
           action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity2", "container1", 0),
+            store.setEntityParent("entity2", "container1", { index: 0 }),
           expectedResult: {
             entityId: "entity2",
             parentId: "container1",
@@ -1345,17 +1500,37 @@ describe("builder store", () => {
           },
           expectedSchema: {
             entities: {
-              entity1: { type: "textField" },
-              entity2: { type: "textField", parentId: "container1" },
+              entity1: { type: "textField", attributes: {} },
+              entity2: {
+                type: "textField",
+                parentId: "container1",
+                attributes: {},
+              },
               container1: {
                 type: "container",
                 children: ["entity2", "entity3"],
+                attributes: {},
               },
-              entity3: { type: "textField", parentId: "container1" },
-              container2: { type: "container", children: ["entity4"] },
-              entity4: { type: "restrictedField", parentId: "container2" },
-              rootOnlyEntity1: { type: "rootOnlyEntity" },
-              noChildrenContainer1: { type: "noChildrenContainer" },
+              entity3: {
+                type: "textField",
+                parentId: "container1",
+                attributes: {},
+              },
+              container2: {
+                type: "container",
+                children: ["entity4"],
+                attributes: {},
+              },
+              entity4: {
+                type: "restrictedField",
+                parentId: "container2",
+                attributes: {},
+              },
+              rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
+              noChildrenContainer1: {
+                type: "noChildrenContainer",
+                attributes: {},
+              },
             },
             root: [
               "entity1",
@@ -1377,14 +1552,14 @@ describe("builder store", () => {
           },
           expectedSchema: {
             entities: {
-              entity1: { type: "textField" },
-              entity2: { type: "textField" },
-              container1: { type: "container", children: [] },
-              entity3: { type: "textField" },
-              container2: { type: "container", children: ["entity4"] },
-              entity4: { type: "restrictedField", parentId: "container2" },
-              rootOnlyEntity1: { type: "rootOnlyEntity" },
-              noChildrenContainer1: { type: "noChildrenContainer" },
+              entity1: { type: "textField", attributes: {} },
+              entity2: { type: "textField", attributes: {} },
+              container1: { type: "container", children: [], attributes: {} },
+              entity3: { type: "textField", attributes: {} },
+              container2: { type: "container", children: ["entity4"], attributes: {} },
+              entity4: { type: "restrictedField", parentId: "container2", attributes: {} },
+              rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
+              noChildrenContainer1: { type: "noChildrenContainer", attributes: {} },
             },
             root: [
               "entity1",
@@ -1400,7 +1575,7 @@ describe("builder store", () => {
         {
           description: "move entity from parent to root with index",
           action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity3", undefined, 0),
+            store.setEntityParent("entity3", undefined, { index: 0 }),
           expectedResult: {
             entityId: "entity3",
             index: 0,
@@ -1408,14 +1583,14 @@ describe("builder store", () => {
           },
           expectedSchema: {
             entities: {
-              entity1: { type: "textField" },
-              entity2: { type: "textField" },
-              container1: { type: "container", children: [] },
-              entity3: { type: "textField" },
-              container2: { type: "container", children: ["entity4"] },
-              entity4: { type: "restrictedField", parentId: "container2" },
-              rootOnlyEntity1: { type: "rootOnlyEntity" },
-              noChildrenContainer1: { type: "noChildrenContainer" },
+              entity1: { type: "textField", attributes: {} },
+              entity2: { type: "textField", attributes: {} },
+              container1: { type: "container", children: [], attributes: {} },
+              entity3: { type: "textField", attributes: {} },
+              container2: { type: "container", children: ["entity4"], attributes: {} },
+              entity4: { type: "restrictedField", parentId: "container2", attributes: {} },
+              rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
+              noChildrenContainer1: { type: "noChildrenContainer", attributes: {} },
             },
             root: [
               "entity3",
@@ -1440,17 +1615,18 @@ describe("builder store", () => {
           },
           expectedSchema: {
             entities: {
-              entity1: { type: "textField" },
-              entity2: { type: "textField" },
+              entity1: { type: "textField", attributes: {} },
+              entity2: { type: "textField", attributes: {} },
               container1: {
                 type: "container",
                 children: ["entity3", "entity4"],
+                attributes: {},
               },
-              entity3: { type: "textField", parentId: "container1" },
-              container2: { type: "container", children: [] },
-              entity4: { type: "restrictedField", parentId: "container1" },
-              rootOnlyEntity1: { type: "rootOnlyEntity" },
-              noChildrenContainer1: { type: "noChildrenContainer" },
+              entity3: { type: "textField", parentId: "container1", attributes: {} },
+              container2: { type: "container", children: [], attributes: {} },
+              entity4: { type: "restrictedField", parentId: "container1", attributes: {} },
+              rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
+              noChildrenContainer1: { type: "noChildrenContainer", attributes: {} },
             },
             root: [
               "entity1",
@@ -1465,7 +1641,7 @@ describe("builder store", () => {
         {
           description: "move entity from parent to another parent with index",
           action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity3", "container2", 0),
+            store.setEntityParent("entity3", "container2", { index: 0 }),
           expectedResult: {
             entityId: "entity3",
             parentId: "container2",
@@ -1473,17 +1649,18 @@ describe("builder store", () => {
           },
           expectedSchema: {
             entities: {
-              entity1: { type: "textField" },
-              entity2: { type: "textField" },
-              container1: { type: "container", children: [] },
-              entity3: { type: "textField", parentId: "container2" },
+              entity1: { type: "textField", attributes: {} },
+              entity2: { type: "textField", attributes: {} },
+              container1: { type: "container", children: [], attributes: {} },
+              entity3: { type: "textField", parentId: "container2", attributes: {} },
               container2: {
                 type: "container",
                 children: ["entity3", "entity4"],
+                attributes: {},
               },
-              entity4: { type: "restrictedField", parentId: "container2" },
-              rootOnlyEntity1: { type: "rootOnlyEntity" },
-              noChildrenContainer1: { type: "noChildrenContainer" },
+              entity4: { type: "restrictedField", parentId: "container2", attributes: {} },
+              rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
+              noChildrenContainer1: { type: "noChildrenContainer", attributes: {} },
             },
             root: [
               "entity1",
@@ -1544,11 +1721,9 @@ describe("builder store", () => {
         {
           description: "index out of bounds in new parent",
           action: () => {
-            return makeBuilderStore().setEntityParent(
-              "entity1",
-              "container1",
-              100,
-            );
+            return makeBuilderStore().setEntityParent("entity1", "container1", {
+              index: 100,
+            });
           },
           expectedError: {
             instance: IndexOutOfBoundsError,
@@ -1558,11 +1733,9 @@ describe("builder store", () => {
         {
           description: "index out of bounds in root",
           action: () => {
-            return makeBuilderStore().setEntityParent(
-              "entity3",
-              undefined,
-              100,
-            );
+            return makeBuilderStore().setEntityParent("entity3", undefined, {
+              index: 100,
+            });
           },
           expectedError: {
             instance: IndexOutOfBoundsError,
@@ -1572,11 +1745,9 @@ describe("builder store", () => {
         {
           description: "negative index out of bounds",
           action: () => {
-            return makeBuilderStore().setEntityParent(
-              "entity1",
-              "container1",
-              -1,
-            );
+            return makeBuilderStore().setEntityParent("entity1", "container1", {
+              index: -1,
+            });
           },
           expectedError: {
             instance: IndexOutOfBoundsError,
@@ -1660,7 +1831,7 @@ describe("builder store", () => {
   });
 
   describe("setEntityAttributeValue", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -1827,7 +1998,7 @@ describe("builder store", () => {
   });
 
   describe("resetEntityAttributeValue", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -1976,7 +2147,7 @@ describe("builder store", () => {
   });
 
   describe("clearEntityAttributeValue", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2084,7 +2255,7 @@ describe("builder store", () => {
   });
 
   describe("clearEntityAttributesValues", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2139,6 +2310,7 @@ describe("builder store", () => {
           entities: {
             entity1: {
               type: "textField",
+              attributes: {},
             },
           },
           root: ["entity1"],
@@ -2165,7 +2337,7 @@ describe("builder store", () => {
   });
 
   describe("setEntityAttributeError", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2185,6 +2357,7 @@ describe("builder store", () => {
             entities: {
               entity1: {
                 type: "textField",
+                attributes: {},
               },
             },
             root: ["entity1"],
@@ -2273,7 +2446,7 @@ describe("builder store", () => {
   });
 
   describe("setEntityAttributesErrors", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2296,6 +2469,7 @@ describe("builder store", () => {
             entities: {
               entity1: {
                 type: "textField",
+                attributes: {},
               },
             },
             root: ["entity1"],
@@ -2387,7 +2561,7 @@ describe("builder store", () => {
   });
 
   describe("clearEntityAttributeError", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2407,6 +2581,7 @@ describe("builder store", () => {
             entities: {
               entity1: {
                 type: "textField",
+                attributes: {},
               },
             },
             root: ["entity1"],
@@ -2488,7 +2663,7 @@ describe("builder store", () => {
   });
 
   describe("clearEntityAttributesErrors", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2511,9 +2686,11 @@ describe("builder store", () => {
             entities: {
               entity1: {
                 type: "textField",
+                attributes: {},
               },
               entity2: {
                 type: "textField",
+                attributes: {},
               },
             },
             root: ["entity1", "entity2"],
@@ -2578,7 +2755,7 @@ describe("builder store", () => {
   describe("clearEntitiesAttributesErrors", () => {
     describe("success cases", () => {
       it("should succeed always", () => {
-        const builder = createBuilder({
+        const builder = createBuilderDefinition({
           entities: {
             textField: createEntityDefinition({
               attributes: {
@@ -2600,9 +2777,11 @@ describe("builder store", () => {
               entities: {
                 entity1: {
                   type: "textField",
+                  attributes: {},
                 },
                 entity2: {
                   type: "textField",
+                  attributes: {},
                 },
               },
               root: ["entity1", "entity2"],
@@ -2636,7 +2815,7 @@ describe("builder store", () => {
   });
 
   describe("setEntitiesAttributesErrors", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2666,9 +2845,11 @@ describe("builder store", () => {
             entities: {
               entity1: {
                 type: "textField",
+                attributes: {},
               },
               entity2: {
                 type: "container",
+                attributes: {},
               },
             },
             root: ["entity1", "entity2"],
@@ -2835,7 +3016,7 @@ describe("builder store", () => {
   });
 
   describe("validateEntityAttribute", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -3081,6 +3262,7 @@ describe("builder store", () => {
               entities: {
                 entity1: {
                   type: "textField",
+                  attributes: {},
                 },
               },
               root: ["entity1"],
@@ -3106,6 +3288,7 @@ describe("builder store", () => {
               entities: {
                 entity1: {
                   type: "textField",
+                  attributes: {},
                 },
               },
               root: ["entity1"],
@@ -3121,6 +3304,7 @@ describe("builder store", () => {
               entities: {
                 entity1: {
                   type: "textField",
+                  attributes: {},
                 },
               },
               root: ["entity1"],
@@ -3217,7 +3401,7 @@ describe("builder store", () => {
   });
 
   describe("validateEntityAttributes", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -3391,7 +3575,7 @@ describe("builder store", () => {
   });
 
   describe("validateEntitiesAttributes", () => {
-    const builder = createBuilder({
+    const builder = createBuilderDefinition({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -3552,9 +3736,11 @@ describe("builder store", () => {
             entities: {
               entity1: {
                 type: "textField",
+                attributes: {},
               },
               entity2: {
                 type: "textField",
+                attributes: {},
               },
             },
             root: ["entity1", "entity2"],
@@ -3568,7 +3754,7 @@ describe("builder store", () => {
     describe("success cases", () => {
       it("should set the schema error", () => {
         const builderStoreResult = createBuilderStore(
-          createBuilder({
+          createBuilderDefinition({
             entities: {},
             refineSchema: () => ({
               success: false,
@@ -3599,7 +3785,7 @@ describe("builder store", () => {
     describe("success cases", () => {
       it("should succeed always", () => {
         const builderStoreResult = createBuilderStore(
-          createBuilder({
+          createBuilderDefinition({
             entities: {},
             refineSchema: () => ({
               success: false,
@@ -3637,7 +3823,7 @@ describe("builder store", () => {
       function makeBuilderStore() {
         let id = 1;
 
-        const builder = createBuilder({
+        const builder = createBuilderDefinition({
           entities: {
             textField: createEntityDefinition({
               childrenAllowed: true,
@@ -3667,8 +3853,13 @@ describe("builder store", () => {
                   type: "textField",
                   parentId: "entity1",
                   children: ["entity3"],
+                  attributes: {},
                 },
-                entity3: { type: "textField", parentId: "entity2" },
+                entity3: {
+                  type: "textField",
+                  parentId: "entity2",
+                  attributes: {},
+                },
               },
               root: ["entity1"],
             },
@@ -3685,7 +3876,7 @@ describe("builder store", () => {
 
         const results = [
           builderStore.cloneEntity("entity1"),
-          builderStore.cloneEntity("entity2", 0),
+          builderStore.cloneEntity("entity2", { index: 0 }),
         ] as const;
 
         assertSuccessResult(results[0]);
@@ -3724,8 +3915,9 @@ describe("builder store", () => {
               type: "textField",
               parentId: "entity1",
               children: ["entity3"],
+              attributes: {},
             },
-            entity3: { type: "textField", parentId: "entity2" },
+            entity3: { type: "textField", parentId: "entity2", attributes: {} },
             "1": {
               type: "textField",
               children: ["2"],
@@ -3733,16 +3925,23 @@ describe("builder store", () => {
                 label: "Label",
               },
             },
-            "2": { type: "textField", parentId: "1", children: ["3"] },
-            "3": { type: "textField", parentId: "2" },
+            "2": {
+              type: "textField",
+              parentId: "1",
+              children: ["3"],
+              attributes: {},
+            },
+            "3": { type: "textField", parentId: "2", attributes: {} },
             "4": {
               children: ["5"],
               parentId: "entity1",
               type: "textField",
+              attributes: {},
             },
             "5": {
               parentId: "4",
               type: "textField",
+              attributes: {},
             },
           },
           root: ["entity1", "1"],
@@ -3799,7 +3998,7 @@ describe("builder store", () => {
       ] as const)(
         "should fail with $description",
         ({ entityId, expectedError, index, generatedId }) => {
-          const builder = createBuilder({
+          const builder = createBuilderDefinition({
             entities: {
               textField: createEntityDefinition(),
             },
@@ -3813,6 +4012,7 @@ describe("builder store", () => {
                 entities: {
                   entity1: {
                     type: "textField",
+                    attributes: {},
                   },
                 },
                 root: ["entity1"],
@@ -3822,7 +4022,10 @@ describe("builder store", () => {
 
           assertSuccessResult(builderStoreResult);
 
-          const result = builderStoreResult.value.cloneEntity(entityId, index);
+          const result = builderStoreResult.value.cloneEntity(
+            entityId,
+            index ? { index } : undefined,
+          );
 
           assertErrorResult(result);
 

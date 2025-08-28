@@ -4,85 +4,84 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { createAttributeDefinition } from "../src/attribute-definition";
-import { createBuilder } from "../src/builder";
+import { createBuilderDefinition } from "../src/builder-definition";
 import { createEntityDefinition } from "../src/entity-definition";
-import { parseDraftSchema, SchemaParseError } from "../src/schema-parsing";
+import {
+  parseDraftSchema,
+  parseSchema,
+  SchemaParseError,
+} from "../src/schema-parsing";
 import { assertErrorResult, dataResultAsValueResult } from "./utils";
 
-describe("draft schema parsing", () => {
-  const builder = createBuilder({
-    entities: {
-      textField: createEntityDefinition({
-        attributes: {
-          string: createAttributeDefinition({
-            parse: (value) => {
-              return dataResultAsValueResult(z.string().safeParse(value));
-            },
-          }),
-          transformedString: createAttributeDefinition({
-            parse: (value) => {
-              return dataResultAsValueResult(
-                z
-                  .string()
-                  .transform((value) => value.toUpperCase())
-                  .safeParse(value),
-              );
-            },
-          }),
-          withDefaultValue: createAttributeDefinition({
-            parse: (value) => {
-              return dataResultAsValueResult(
-                z
-                  .string()
-                  .transform((value) => value.toUpperCase())
-                  .safeParse(value),
-              );
-            },
-            defaultValue: () => "default",
-          }),
-        },
-      }),
-      withChildrenAllowed: createEntityDefinition({
-        childrenAllowed: true,
-      }),
-      withOverridenChildrenAllowed: createEntityDefinition(),
-      withParentRequired: createEntityDefinition({
-        parentRequired: true,
-      }),
-      withOverridenParentRequired: createEntityDefinition(),
-      withParentNotAllowed: createEntityDefinition({
-        parentAllowed: false,
-      }),
-      withOverridenParentNotAllowed: createEntityDefinition(),
-      withSpecificParentAllowed: createEntityDefinition(),
-      withSpecificChildrenAllowed: createEntityDefinition(),
+const builder = createBuilderDefinition({
+  entities: {
+    textField: createEntityDefinition({
+      attributes: {
+        string: createAttributeDefinition({
+          parse: (value) => {
+            return dataResultAsValueResult(z.string().safeParse(value));
+          },
+        }),
+        transformedString: createAttributeDefinition({
+          parse: (value) => {
+            return dataResultAsValueResult(
+              z
+                .string()
+                .transform((value) => value.toUpperCase())
+                .safeParse(value),
+            );
+          },
+        }),
+        withDefaultValue: createAttributeDefinition({
+          parse: (value) => {
+            return dataResultAsValueResult(
+              z
+                .string()
+                .transform((value) => value.toUpperCase())
+                .safeParse(value),
+            );
+          },
+          defaultValue: () => "default",
+        }),
+      },
+    }),
+    withChildrenAllowed: createEntityDefinition({
+      childrenAllowed: true,
+    }),
+    withOverridenChildrenAllowed: createEntityDefinition(),
+    withParentRequired: createEntityDefinition({
+      parentRequired: true,
+    }),
+    withOverridenParentRequired: createEntityDefinition(),
+    withParentNotAllowed: createEntityDefinition({
+      parentAllowed: false,
+    }),
+    withOverridenParentNotAllowed: createEntityDefinition(),
+    withSpecificParentAllowed: createEntityDefinition(),
+    withSpecificChildrenAllowed: createEntityDefinition(),
+  },
+  entityOverrides: {
+    withOverridenChildrenAllowed: {
+      childrenAllowed: true,
     },
-    entityOverrides: {
-      withOverridenChildrenAllowed: {
-        childrenAllowed: true,
-      },
-      withOverridenParentRequired: {
-        parentRequired: true,
-      },
-      withOverridenParentNotAllowed: {
-        parentAllowed: false,
-      },
-      withSpecificParentAllowed: {
-        parentAllowed: ["withOverridenChildrenAllowed"],
-      },
-      withSpecificChildrenAllowed: {
-        childrenAllowed: ["textField"],
-      },
+    withOverridenParentRequired: {
+      parentRequired: true,
     },
-  });
+    withOverridenParentNotAllowed: {
+      parentAllowed: false,
+    },
+    withSpecificParentAllowed: {
+      parentAllowed: ["withOverridenChildrenAllowed"],
+    },
+    withSpecificChildrenAllowed: {
+      childrenAllowed: ["textField"],
+    },
+  },
+});
 
-  const uuids = [
-    randomUUID(),
-    randomUUID(),
-    randomUUID(),
-    randomUUID(),
-  ] as const;
+const uuids = [randomUUID(), randomUUID(), randomUUID(), randomUUID()] as const;
 
+describe("parseDraftSchema", () => {
   describe("success cases", () => {
     it("should succeed when valid data provided", () => {
       expect(
@@ -108,6 +107,7 @@ describe("draft schema parsing", () => {
               },
               [uuids[3]]: {
                 type: "textField",
+                attributes: {},
               },
             },
           },
@@ -211,9 +211,22 @@ describe("draft schema parsing", () => {
             message: "Expected Attributes, actual []",
             path: ["entities", uuids[0], "attributes"],
           },
+        ],
+      },
+      {
+        name: "attributes not provided",
+        data: {
+          root: [uuids[0]],
+          entities: {
+            [uuids[0]]: {
+              type: "textField",
+            },
+          },
+        },
+        issues: [
           {
-            _tag: "Type",
-            message: "Expected undefined, actual []",
+            _tag: "Missing",
+            message: "is missing",
             path: ["entities", uuids[0], "attributes"],
           },
         ],
@@ -264,7 +277,7 @@ describe("draft schema parsing", () => {
         name: "entities map has invalid id key",
         data: {
           root: ["id"],
-          entities: { id: { type: "textField" } },
+          entities: { id: { type: "textField", attributes: {} } },
         },
         issues: [
           {
@@ -278,7 +291,7 @@ describe("draft schema parsing", () => {
         name: "entity type is not one of allowed types",
         data: {
           root: ["id"],
-          entities: { id: { type: "invalid type" } },
+          entities: { id: { type: "invalid type", attributes: {} } },
         },
         issues: [
           {
@@ -293,7 +306,7 @@ describe("draft schema parsing", () => {
         name: "entity type is missing",
         data: {
           root: ["id"],
-          entities: { id: {} },
+          entities: { id: { attributes: {} } },
         },
         issues: [
           {
@@ -310,6 +323,7 @@ describe("draft schema parsing", () => {
           entities: {
             [uuids[1]]: {
               type: "textField",
+              attributes: {},
             },
           },
         },
@@ -329,9 +343,11 @@ describe("draft schema parsing", () => {
           entities: {
             [uuids[1]]: {
               type: "textField",
+              attributes: {},
             },
             [uuids[0]]: {
               type: "textField",
+              attributes: {},
             },
           },
         },
@@ -351,6 +367,7 @@ describe("draft schema parsing", () => {
             [uuids[1]]: {
               type: "withChildrenAllowed",
               parentId: uuids[1],
+              attributes: {},
             },
           },
         },
@@ -370,6 +387,7 @@ describe("draft schema parsing", () => {
             [uuids[1]]: {
               type: "textField",
               parentId: "invalid",
+              attributes: {},
             },
           },
         },
@@ -388,10 +406,12 @@ describe("draft schema parsing", () => {
           entities: {
             [uuids[1]]: {
               type: "withChildrenAllowed",
+              attributes: {},
             },
             [uuids[0]]: {
               type: "withChildrenAllowed",
               parentId: uuids[1],
+              attributes: {},
             },
           },
         },
@@ -411,9 +431,11 @@ describe("draft schema parsing", () => {
             [uuids[1]]: {
               type: "textField",
               children: [uuids[0]],
+              attributes: {},
             },
             [uuids[0]]: {
               type: "textField",
+              attributes: {},
             },
           },
         },
@@ -433,10 +455,12 @@ describe("draft schema parsing", () => {
             [uuids[1]]: {
               type: "textField",
               children: [uuids[0]],
+              attributes: {},
             },
             [uuids[0]]: {
               type: "textField",
               parentId: uuids[1],
+              attributes: {},
             },
           },
         },
@@ -455,6 +479,7 @@ describe("draft schema parsing", () => {
           entities: {
             [uuids[1]]: {
               type: "withParentRequired",
+              attributes: {},
             },
           },
         },
@@ -473,6 +498,7 @@ describe("draft schema parsing", () => {
           entities: {
             [uuids[1]]: {
               type: "withOverridenParentRequired",
+              attributes: {},
             },
           },
         },
@@ -492,10 +518,12 @@ describe("draft schema parsing", () => {
             [uuids[1]]: {
               type: "withParentNotAllowed",
               parentId: uuids[0],
+              attributes: {},
             },
             [uuids[0]]: {
               type: "withChildrenAllowed",
               children: [uuids[1]],
+              attributes: {},
             },
           },
         },
@@ -515,10 +543,12 @@ describe("draft schema parsing", () => {
             [uuids[1]]: {
               type: "withOverridenParentNotAllowed",
               parentId: uuids[0],
+              attributes: {},
             },
             [uuids[0]]: {
               type: "withChildrenAllowed",
               children: [uuids[1]],
+              attributes: {},
             },
           },
         },
@@ -538,10 +568,12 @@ describe("draft schema parsing", () => {
             [uuids[1]]: {
               type: "withSpecificParentAllowed",
               parentId: uuids[0],
+              attributes: {},
             },
             [uuids[0]]: {
               type: "withChildrenAllowed",
               children: [uuids[1]],
+              attributes: {},
             },
           },
         },
@@ -562,10 +594,12 @@ describe("draft schema parsing", () => {
             [uuids[1]]: {
               type: "withParentRequired",
               parentId: uuids[0],
+              attributes: {},
             },
             [uuids[0]]: {
               type: "withSpecificChildrenAllowed",
               children: [uuids[1]],
+              attributes: {},
             },
           },
         },

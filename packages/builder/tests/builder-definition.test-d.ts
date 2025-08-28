@@ -1,20 +1,29 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createAttributeDefinition, type AttributeDefinition } from "../src/attribute-definition";
-import { createBuilder, type Builder } from "../src/builder";
-import { createEntityDefinition, type EntityDefinition } from "../src/entity-definition";
+import {
+  createAttributeDefinition,
+  type AttributeDefinition,
+} from "../src/attribute-definition";
+import {
+  createBuilderDefinition,
+  type BuilderDefinition,
+} from "../src/builder-definition";
+import {
+  createEntityDefinition,
+  type EntityDefinition,
+} from "../src/entity-definition";
 import { dataResultAsValueResult } from "./utils";
 
-describe("createBuilder", () => {
+describe("createBuilderDefinition", () => {
   it("produces correct types", () => {
-    expectTypeOf(createBuilder({ entities: {} })).toEqualTypeOf<
+    expectTypeOf(createBuilderDefinition({ entities: {} })).toEqualTypeOf<
       // eslint-disable-next-line @typescript-eslint/ban-types
-      Builder<{}, never>
+      BuilderDefinition<{}, never>
     >();
 
     expectTypeOf(
-      createBuilder({
+      createBuilderDefinition({
         entities: {
           textField: createEntityDefinition(
             {
@@ -48,7 +57,7 @@ describe("createBuilder", () => {
         },
       }),
     ).toEqualTypeOf<
-      Builder<
+      BuilderDefinition<
         {
           readonly textField: EntityDefinition<
             {

@@ -1,18 +1,7 @@
-import {
-  type AttributeDefinition,
-  type AttributeDefinitionRefineContext,
-  type InferAttributeDefinitionParsedValue,
-  type InferAttributeDefinitionRefineResult,
-} from "./attribute-definition";
-import { type Builder } from "./builder";
-import { type DraftSchema } from "./schema-parsing";
-import type {
-  KeyofStringIntersection,
-  ParseFunction,
-  RefineFunction,
-  RefineResult,
-  Result,
-} from "./utils";
+import type * as attributeDefinition from "./attribute-definition";
+import type * as builderDefinition from "./builder-definition";
+import type * as schemaParsing from "./schema-parsing";
+import type * as utils from "./utils";
 
 export interface ContextEntityInstance<
   TEntity extends EntityDefinition = EntityDefinition,
@@ -21,10 +10,12 @@ export interface ContextEntityInstance<
   id: string;
   type: TType;
   attributes: {
-    [K in KeyofStringIntersection<TEntity["attributes"]>]: {
+    [K in utils.KeyofStringIntersection<TEntity["attributes"]>]: {
       metadata: TEntity["attributes"][K]["metadata"];
       name: K;
-      value: InferAttributeDefinitionParsedValue<TEntity["attributes"][K]>;
+      value: attributeDefinition.InferAttributeDefinitionParsedValue<
+        TEntity["attributes"][K]
+      >;
     };
   };
   parentId?: string | undefined;
@@ -42,26 +33,28 @@ export interface ContextEntityInstanceWithValue<
 export interface EntityDefinitionParseContext<
   TEntity extends EntityDefinition = EntityDefinition,
   TType extends string = string,
-  TBuilder extends Builder = Builder,
+  TBuilder extends
+    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
 > {
   entity: ContextEntityInstance<TEntity, TType>;
-  schema: DraftSchema<TBuilder>;
+  schema: schemaParsing.DraftSchema<TBuilder>;
 }
 
 export interface EntityDefinitionRefineContext<
   TEntity extends EntityDefinition = EntityDefinition,
   TType extends string = string,
-  TBuilder extends Builder = Builder,
+  TBuilder extends
+    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
 > {
   entity: ContextEntityInstance<TEntity, TType>;
-  schema: DraftSchema<TBuilder>;
+  schema: schemaParsing.DraftSchema<TBuilder>;
   entities: Record<
     string,
     {
-      [K in KeyofStringIntersection<
+      [K in utils.KeyofStringIntersection<
         TBuilder["entities"]
       >]: ContextEntityInstanceWithValue<TBuilder["entities"][K], K>;
-    }[KeyofStringIntersection<TBuilder["entities"]>]
+    }[utils.KeyofStringIntersection<TBuilder["entities"]>]
   >;
 }
 
@@ -74,12 +67,14 @@ export type EntityDefinitionShouldBeProcessedContext<
 > = EntityDefinitionRefineContext<TEntity>;
 
 interface AttributeDefinitionRefineOverrideContext<
-  TAttribute extends AttributeDefinition = AttributeDefinition,
+  TAttribute extends
+    attributeDefinition.AttributeDefinition = attributeDefinition.AttributeDefinition,
   TAttributeName extends string = string,
   TEntity extends EntityDefinition = EntityDefinition,
   TEntityType extends string = string,
-  TBuilder extends Builder = Builder,
-> extends AttributeDefinitionRefineContext<
+  TBuilder extends
+    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+> extends attributeDefinition.AttributeDefinitionRefineContext<
     TAttribute,
     TAttributeName,
     TEntity,
@@ -87,19 +82,21 @@ interface AttributeDefinitionRefineOverrideContext<
     TBuilder
   > {
   refine(
-    value: InferAttributeDefinitionParsedValue<TAttribute>,
-  ): InferAttributeDefinitionRefineResult<TAttribute>;
+    value: attributeDefinition.InferAttributeDefinitionParsedValue<TAttribute>,
+  ): attributeDefinition.InferAttributeDefinitionRefineResult<TAttribute>;
 }
 
 export interface AttributeDefinitionOverride<
-  TAttribute extends AttributeDefinition = AttributeDefinition,
+  TAttribute extends
+    attributeDefinition.AttributeDefinition = attributeDefinition.AttributeDefinition,
   TAttributeName extends string = string,
   TEntity extends EntityDefinition = EntityDefinition,
   TEntityType extends string = string,
-  TBuilder extends Builder = Builder,
+  TBuilder extends
+    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
 > {
   refine?(
-    value: InferAttributeDefinitionParsedValue<TAttribute>,
+    value: attributeDefinition.InferAttributeDefinitionParsedValue<TAttribute>,
     context: AttributeDefinitionRefineOverrideContext<
       TAttribute,
       TAttributeName,
@@ -107,18 +104,20 @@ export interface AttributeDefinitionOverride<
       TEntityType,
       TBuilder
     >,
-  ): InferAttributeDefinitionRefineResult<TAttribute>;
+  ): attributeDefinition.InferAttributeDefinitionRefineResult<TAttribute>;
 }
 
 export interface AttributeDefinitionOverrideInput<
-  TAttribute extends AttributeDefinition = AttributeDefinition,
+  TAttribute extends
+    attributeDefinition.AttributeDefinition = attributeDefinition.AttributeDefinition,
   TAttributeName extends string = string,
   TEntity extends EntityDefinition = EntityDefinition,
   TEntityType extends string = string,
-  TBuilder extends Builder = Builder,
+  TBuilder extends
+    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
 > {
   refine?(
-    value: InferAttributeDefinitionParsedValue<TAttribute>,
+    value: attributeDefinition.InferAttributeDefinitionParsedValue<TAttribute>,
     context: AttributeDefinitionRefineOverrideContext<
       TAttribute,
       TAttributeName,
@@ -126,14 +125,14 @@ export interface AttributeDefinitionOverrideInput<
       TEntityType,
       TBuilder
     >,
-  ): InferAttributeDefinitionRefineResult<TAttribute>;
+  ): attributeDefinition.InferAttributeDefinitionRefineResult<TAttribute>;
 }
 
 export interface EntityDefinition<
-  TAttributes extends Record<string, AttributeDefinition> = Record<
+  TAttributes extends Record<
     string,
-    AttributeDefinition
-  >,
+    attributeDefinition.AttributeDefinition
+  > = Record<string, attributeDefinition.AttributeDefinition>,
   TValue = unknown,
   TParseError = unknown,
   TRefineError = unknown,
@@ -145,13 +144,13 @@ export interface EntityDefinition<
   parentAllowed: boolean;
   parentRequired: boolean;
   attributeOverrides: Record<string, AttributeDefinitionOverride>;
-  parse: ParseFunction<
-    Result<TValue, TParseError>,
+  parse: utils.ParseFunction<
+    utils.Result<TValue, TParseError>,
     EntityDefinitionParseContext
   >;
-  refine: RefineFunction<
+  refine: utils.RefineFunction<
     unknown,
-    RefineResult<TValue, TRefineError>,
+    utils.RefineResult<TValue, TRefineError>,
     EntityDefinitionRefineContext
   >;
   defaultValue?(
@@ -193,11 +192,11 @@ export type InferEntityDefinitionRefineError<TEntity extends EntityDefinition> =
   >["error"];
 
 type CreateEntityDefinitionOptions<
-  TAttributes extends Record<string, AttributeDefinition>,
+  TAttributes extends Record<string, attributeDefinition.AttributeDefinition>,
   TMetadata,
 > = {
   attributeOverrides?: {
-    [K in KeyofStringIntersection<TAttributes>]?: AttributeDefinitionOverrideInput<
+    [K in utils.KeyofStringIntersection<TAttributes>]?: AttributeDefinitionOverrideInput<
       TAttributes[K],
       K,
       EntityDefinition<
@@ -230,12 +229,12 @@ type CreateEntityDefinitionOptions<
 type CreateEntityDefinitionSecondOptions<
   TValue,
   TRefineError,
-  TAttributes extends Record<string, AttributeDefinition>,
+  TAttributes extends Record<string, attributeDefinition.AttributeDefinition>,
   TMetadata,
 > = {
-  refine?: RefineFunction<
+  refine?: utils.RefineFunction<
     TValue,
-    RefineResult<TValue, TRefineError>,
+    utils.RefineResult<TValue, TRefineError>,
     EntityDefinitionRefineContext<
       EntityDefinition<
         TAttributes,
@@ -249,7 +248,10 @@ type CreateEntityDefinitionSecondOptions<
 };
 
 export function createEntityDefinition<
-  const TAttributes extends Record<string, AttributeDefinition> = never,
+  const TAttributes extends Record<
+    string,
+    attributeDefinition.AttributeDefinition
+  > = never,
   TMetadata = never,
 >(
   options?: CreateEntityDefinitionOptions<TAttributes, TMetadata> & {
@@ -265,15 +267,18 @@ export function createEntityDefinition<
 >;
 
 export function createEntityDefinition<
-  const TAttributes extends Record<string, AttributeDefinition> = never,
+  const TAttributes extends Record<
+    string,
+    attributeDefinition.AttributeDefinition
+  > = never,
   TValue = never,
   TParseError = never,
   TRefineError = never,
   TMetadata = never,
 >(
   options: CreateEntityDefinitionOptions<TAttributes, TMetadata> & {
-    parse: ParseFunction<
-      Result<TValue, TParseError>,
+    parse: utils.ParseFunction<
+      utils.Result<TValue, TParseError>,
       EntityDefinitionParseContext<
         EntityDefinition<
           TAttributes,
@@ -305,15 +310,18 @@ export function createEntityDefinition<
 >;
 
 export function createEntityDefinition<
-  const TAttributes extends Record<string, AttributeDefinition> = never,
+  const TAttributes extends Record<
+    string,
+    attributeDefinition.AttributeDefinition
+  > = never,
   TValue = never,
   TParseError = never,
   TRefineError = never,
   TMetadata = never,
 >(
   options?: CreateEntityDefinitionOptions<TAttributes, TMetadata> & {
-    parse?: ParseFunction<
-      Result<TValue, TParseError>,
+    parse?: utils.ParseFunction<
+      utils.Result<TValue, TParseError>,
       EntityDefinitionParseContext<
         EntityDefinition<
           TAttributes,

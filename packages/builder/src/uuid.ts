@@ -1,11 +1,22 @@
 export function generateUuid(): string {
-  const cryptoModule = crypto as Crypto | undefined;
+  const cryptoLike: unknown = globalThis?.crypto;
 
-  if (cryptoModule?.randomUUID) {
-    return cryptoModule.randomUUID();
+  if (
+    typeof cryptoLike === "object" &&
+    cryptoLike !== null &&
+    "randomUUID" in cryptoLike &&
+    typeof cryptoLike.randomUUID === "function"
+  ) {
+    const result = cryptoLike.randomUUID();
+
+    if (typeof result === "string") {
+      return result;
+    }
   }
 
-  throw new Error("Failed to generate a random UUID.");
+  throw new Error(
+    "This environment does not support generating UUIDs with the Crypto module. Consider providing your own entity ID generation logic on the builder, or polyfilling the Crypto module.",
+  );
 }
 
 export function validateUuid(id: string): boolean {

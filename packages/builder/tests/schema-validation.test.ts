@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { createAttributeDefinition } from "../src/attribute-definition";
-import { createBuilder } from "../src/builder";
+import { createBuilderDefinition } from "../src/builder-definition";
 import { createEntityDefinition } from "../src/entity-definition";
 import { SchemaParseError } from "../src/schema-parsing";
 import {
@@ -14,7 +14,7 @@ import {
 import { assertErrorResult, dataResultAsValueResult } from "./utils";
 
 describe("schema validation", () => {
-  const builder = createBuilder({
+  const builder = createBuilderDefinition({
     entities: {
       textField: createEntityDefinition({
         attributes: {

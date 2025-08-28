@@ -1,13 +1,7 @@
-import type { Builder } from "./builder";
-import { type EntityDefinition } from "./entity-definition";
-import { type DraftSchema } from "./schema-parsing";
-import type {
-  KeyofStringIntersection,
-  ParseFunction,
-  RefineFunction,
-  RefineResult,
-  Result,
-} from "./utils";
+import type * as builderDefinition from "./builder-definition";
+import type * as entityDefinition from "./entity-definition";
+import type * as schemaParsing from "./schema-parsing";
+import type * as utils from "./utils";
 
 export interface ContextAttributeDefinition<
   TAttribute extends AttributeDefinition = AttributeDefinition,
@@ -30,17 +24,19 @@ export type AttributeDefinitionDefaultValueContext<
 export interface AttributeDefinitionRefineContext<
   TAttribute extends AttributeDefinition = AttributeDefinition,
   TAttributeName extends string = string,
-  TEntity extends EntityDefinition = EntityDefinition,
+  TEntity extends
+    entityDefinition.EntityDefinition = entityDefinition.EntityDefinition,
   TEntityType extends string = string,
-  TBuilder extends Builder = Builder,
+  TBuilder extends
+    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
 > {
   attribute: ContextAttributeDefinition<TAttribute, TAttributeName>;
-  schema: DraftSchema<TBuilder>;
+  schema: schemaParsing.DraftSchema<TBuilder>;
   entity: {
     id: string;
     type: TEntityType;
     attributes: {
-      [K in KeyofStringIntersection<TEntity["attributes"]>]: {
+      [K in utils.KeyofStringIntersection<TEntity["attributes"]>]: {
         metadata: TEntity["attributes"][K]["metadata"];
         name: K;
         value?: InferAttributeDefinitionParsedValue<TEntity["attributes"][K]>;
@@ -58,13 +54,13 @@ export interface AttributeDefinition<
   TRefineError = unknown,
   TMetadata = unknown,
 > {
-  parse: ParseFunction<
-    Result<TValue, TParseError>,
+  parse: utils.ParseFunction<
+    utils.Result<TValue, TParseError>,
     AttributeDefinitionParseContext
   >;
-  refine: RefineFunction<
+  refine: utils.RefineFunction<
     unknown,
-    RefineResult<TValue, TRefineError>,
+    utils.RefineResult<TValue, TRefineError>,
     AttributeDefinitionRefineContext
   >;
   defaultValue?(ctx: AttributeDefinitionDefaultValueContext): TValue;
@@ -108,8 +104,8 @@ export function createAttributeDefinition<
 >(
   options: {
     metadata?: TMetadata;
-    parse: ParseFunction<
-      Result<TValue, TParseError>,
+    parse: utils.ParseFunction<
+      utils.Result<TValue, TParseError>,
       AttributeDefinitionParseContext<
         AttributeDefinition<unknown, unknown, unknown, TMetadata>
       >
@@ -121,9 +117,9 @@ export function createAttributeDefinition<
     ): TValue;
   },
   secondOptions?: {
-    refine?: RefineFunction<
+    refine?: utils.RefineFunction<
       TValue,
-      RefineResult<TValue, TRefineError>,
+      utils.RefineResult<TValue, TRefineError>,
       AttributeDefinitionRefineContext<
         AttributeDefinition<unknown, unknown, unknown, TMetadata>
       >

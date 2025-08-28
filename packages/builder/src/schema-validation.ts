@@ -1,50 +1,18 @@
-import { Array, Data, Effect, Either, Option, pipe, Record } from "effect";
-import { type ReadonlyRecord } from "effect/Record";
+import * as A from "effect/Array";
+import * as D from "effect/Data";
+import * as E from "effect/Effect";
+import * as Ei from "effect/Either";
+import { pipe } from "effect/Function";
+import * as O from "effect/Option";
+import * as R from "effect/Record";
+import * as S from "effect/Struct";
 
-import { type AttributeDefinition } from "./attribute-definition";
-import { type Builder, type InferBuilderSchemaRefineError } from "./builder";
-import {
-  cleanDraftSchemaEntity,
-  parseDraftSchemaWithOptions,
-  parseEntityAttribute,
-  type DraftSchema,
-  type DraftSchemaEntity,
-  type SchemaParseError,
-} from "./schema-parsing";
-import {
-  runPromiseAsResult,
-  type KeyofStringIntersection,
-  type Result,
-} from "./utils";
+import type * as attributeDefinition from "./attribute-definition";
+import type * as builderDefinition from "./builder-definition";
+import * as schemaParsing from "./schema-parsing";
+import * as utils from "./utils";
 
-export type ValidatedSchemaEntity<
-  TBuilder extends Builder = Builder,
-  TType extends KeyofStringIntersection<
-    TBuilder["entities"]
-  > = KeyofStringIntersection<TBuilder["entities"]>,
-> = Omit<DraftSchemaEntity<TBuilder, TType>, "attributes"> & {
-  readonly attributes: Required<
-    Exclude<DraftSchemaEntity<TBuilder, TType>["attributes"], undefined>
-  >;
-};
-
-export interface ValidatedSchema<TBuilder extends Builder = Builder> {
-  readonly entities: ReadonlyRecord<
-    string,
-    {
-      [K in KeyofStringIntersection<
-        TBuilder["entities"]
-      >]: ValidatedSchemaEntity<TBuilder, K>;
-    }[KeyofStringIntersection<TBuilder["entities"]>]
-  >;
-  readonly root: ReadonlyArray<string>;
-}
-
-export type EntityAttributesErrors = Record<string, unknown>;
-
-export type EntitiesAttributesErrors = Record<string, EntityAttributesErrors>;
-
-export class EntityAttributeValidationError extends Data.TaggedError(
+export class EntityAttributeValidationError extends D.TaggedError(
   "EntityAttributeValidationError",
 )<{
   readonly entityId: string;
@@ -53,38 +21,44 @@ export class EntityAttributeValidationError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
-export class EntityAttributesValidationError extends Data.TaggedError(
+export class EntityAttributesValidationError extends D.TaggedError(
   "EntityAttributesValidationError",
 )<{
-  readonly errors: EntityAttributesErrors;
+  readonly errors: schemaParsing.EntityAttributesErrors;
 }> {}
 
-export class EntitiesAttributesValidationError extends Data.TaggedError(
+export class EntitiesAttributesValidationError extends D.TaggedError(
   "EntitiesAttributesValidationError",
 )<{
-  readonly errors: EntitiesAttributesErrors;
+  readonly errors: schemaParsing.EntitiesAttributesErrors;
 }> {}
 
 export class SchemaRefineError<
-  TBuilder extends Builder = Builder,
-> extends Data.TaggedError("SchemaRefineError")<{
-  readonly cause: InferBuilderSchemaRefineError<TBuilder>;
+  TBuilder extends
+    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+> extends D.TaggedError("SchemaRefineError")<{
+  readonly cause: builderDefinition.InferBuilderDefinitionSchemaRefineError<TBuilder>;
 }> {}
 
-type SchemaValidationResult<TBuilder extends Builder = Builder> = Result<
-  ValidatedSchema<TBuilder>,
-  SchemaParseError | EntitiesAttributesValidationError | SchemaRefineError
+type SchemaValidationResult<
+  TBuilder extends
+    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+> = utils.Result<
+  schemaParsing.ParsedSchema<TBuilder>,
+  | schemaParsing.SchemaParseError
+  | EntitiesAttributesValidationError
+  | SchemaRefineError
 >;
 
 export function validateEntityAttribute(
   entityId: string,
-  entity: DraftSchemaEntity,
+  entity: schemaParsing.DraftSchemaEntity,
   attributeName: string,
   attributeValue: unknown,
-  attributeDefinition: AttributeDefinition,
-  schema: DraftSchema,
-  builder: Builder,
-): Effect.Effect<Either.Either<unknown, unknown>> {
+  attributeDefinition: attributeDefinition.AttributeDefinition,
+  schema: schemaParsing.DraftSchema,
+  builder: builderDefinition.BuilderDefinition,
+): E.Effect<Ei.Either<unknown, unknown>> {
   return pipe(
     {
       attribute: {
@@ -96,11 +70,11 @@ export function validateEntityAttribute(
         id: entityId,
         type: entity.type,
         attributes: pipe(
-          Option.fromNullable(schema.entities[entityId]?.attributes),
-          Option.map((attributes) =>
+          O.fromNullable(schema.entities[entityId]?.attributes),
+          O.map((attributes) =>
             pipe(
-              Record.toEntries(attributes),
-              Array.map(
+              R.toEntries(attributes),
+              A.map(
                 ([key, value]) =>
                   [
                     key,
@@ -113,10 +87,10 @@ export function validateEntityAttribute(
                     },
                   ] as const,
               ),
-              Record.fromEntries,
+              R.fromEntries,
             ),
           ),
-          Option.getOrElse(() => ({})),
+          O.getOrElse(() => ({})),
         ),
         parentId: schema.entities[entityId]?.parentId,
         children: schema.entities[entityId]?.children,
@@ -125,20 +99,20 @@ export function validateEntityAttribute(
     },
     (baseContext) =>
       pipe(
-        Option.fromNullable(
+        O.fromNullable(
           builder.entityOverrides?.[entity.type]?.attributes?.[
             attributeName
           ]?.refine?.bind(
             builder.entityOverrides?.[entity.type]?.attributes?.[attributeName],
           ),
         ),
-        Option.map(
+        O.map(
           (bRefine) => (val: unknown) =>
             bRefine(val, {
               ...baseContext,
               refine: (innerVal) =>
                 pipe(
-                  Option.fromNullable(
+                  O.fromNullable(
                     builder.entities[entity.type]?.attributeOverrides?.[
                       attributeName
                     ]?.refine?.bind(
@@ -147,22 +121,22 @@ export function validateEntityAttribute(
                       ],
                     ),
                   ),
-                  Option.map((eRefine) =>
+                  O.map((eRefine) =>
                     eRefine(innerVal, {
                       ...baseContext,
                       refine: (value) =>
                         attributeDefinition.refine(value, baseContext),
                     }),
                   ),
-                  Option.getOrElse(() =>
+                  O.getOrElse(() =>
                     attributeDefinition.refine(innerVal, baseContext),
                   ),
                 ),
             }),
         ),
-        Option.orElse(() =>
+        O.orElse(() =>
           pipe(
-            Option.fromNullable(
+            O.fromNullable(
               builder.entities[entity.type]?.attributeOverrides?.[
                 attributeName
               ]?.refine?.bind(
@@ -171,7 +145,7 @@ export function validateEntityAttribute(
                 ],
               ),
             ),
-            Option.map(
+            O.map(
               (eRefine) => (val: unknown) =>
                 eRefine(val, {
                   ...baseContext,
@@ -181,27 +155,27 @@ export function validateEntityAttribute(
             ),
           ),
         ),
-        Option.getOrElse(
+        O.getOrElse(
           () => (val: unknown) => attributeDefinition.refine(val, baseContext),
         ),
         (refineFn) =>
           pipe(
             !Boolean(entity.attributes && attributeName in entity.attributes)
-              ? parseEntityAttribute(
+              ? schemaParsing.parseEntityAttribute(
                   attributeName,
                   attributeValue,
                   attributeDefinition,
                 )
-              : Either.right(attributeValue),
-            Either.match({
-              onLeft: (error) => Effect.succeed(Either.left(error)),
+              : Ei.right(attributeValue),
+            Ei.match({
+              onLeft: (error) => E.succeed(Ei.left(error)),
               onRight: (parsedValue) =>
                 pipe(
-                  Effect.promise(() => Promise.resolve(refineFn(parsedValue))),
-                  Effect.map((result) =>
+                  E.promise(() => Promise.resolve(refineFn(parsedValue))),
+                  E.map((result) =>
                     result.success
-                      ? Either.right(result.value)
-                      : Either.left(result.error),
+                      ? Ei.right(result.value)
+                      : Ei.left(result.error),
                   ),
                 ),
             }),
@@ -212,19 +186,19 @@ export function validateEntityAttribute(
 
 export function validateEntityAttributes(
   entityId: string,
-  entity: DraftSchemaEntity,
-  schema: DraftSchema,
-  builder: Builder,
-): Effect.Effect<{
-  errors: EntityAttributesErrors;
-  values: DraftSchemaEntity["attributes"];
+  entity: schemaParsing.DraftSchemaEntity,
+  schema: schemaParsing.DraftSchema,
+  builder: builderDefinition.BuilderDefinition,
+): E.Effect<{
+  errors: schemaParsing.EntityAttributesErrors;
+  values: schemaParsing.DraftSchemaEntity["attributes"];
 }> {
   return pipe(
-    Option.fromNullable(builder.entities[entity.type]?.attributes),
-    Option.map((attributes) =>
+    O.fromNullable(builder.entities[entity.type]?.attributes),
+    O.map((attributes) =>
       pipe(
-        Record.toEntries(attributes),
-        Array.map(([attributeName, attributeDefinition]) =>
+        R.toEntries(attributes),
+        A.map(([attributeName, attributeDefinition]) =>
           pipe(
             validateEntityAttribute(
               entityId,
@@ -235,86 +209,83 @@ export function validateEntityAttributes(
               schema,
               builder,
             ),
-            Effect.map((eitherResult) =>
-              Either.match(eitherResult, {
-                onLeft: (error) => [attributeName, Either.left(error)] as const,
-                onRight: (value) =>
-                  [attributeName, Either.right(value)] as const,
+            E.map((eitherResult) =>
+              Ei.match(eitherResult, {
+                onLeft: (error) => [attributeName, Ei.left(error)] as const,
+                onRight: (value) => [attributeName, Ei.right(value)] as const,
               }),
             ),
           ),
         ),
-        Effect.all,
-        Effect.map((results) =>
+        E.all,
+        E.map((results) =>
           pipe(
-            Array.partitionMap(results, ([attributeName, either]) =>
-              Either.match(either, {
-                onLeft: (error) => Either.left([attributeName, error] as const),
-                onRight: (value) =>
-                  Either.right([attributeName, value] as const),
+            A.partitionMap(results, ([attributeName, either]) =>
+              Ei.match(either, {
+                onLeft: (error) => Ei.left([attributeName, error] as const),
+                onRight: (value) => Ei.right([attributeName, value] as const),
               }),
             ),
             ([errors, values]) => ({
-              errors: Record.fromEntries(errors),
-              values: Record.fromEntries(values),
+              errors: R.fromEntries(errors),
+              values: R.fromEntries(values),
             }),
           ),
         ),
       ),
     ),
-    Option.getOrElse(() => Effect.succeed({ errors: {}, values: {} })),
+    O.getOrElse(() => E.succeed({ errors: {}, values: {} })),
   );
 }
 
 export function cleanEntitiesAttributeErrors(
-  entitiesAttributeErrors: EntitiesAttributesErrors,
-): EntitiesAttributesErrors {
+  entitiesAttributeErrors: schemaParsing.EntitiesAttributesErrors,
+): schemaParsing.EntitiesAttributesErrors {
   return pipe(
     entitiesAttributeErrors,
-    Record.filter((entityErrors) => !Record.isEmptyRecord(entityErrors)),
+    R.filter((entityErrors) => !R.isEmptyRecord(entityErrors)),
   );
 }
 
 export function validateEntitiesAttributes(
-  schema: DraftSchema,
-  builder: Builder,
-): Effect.Effect<{
-  entities: DraftSchema["entities"];
-  attributeErrors: EntitiesAttributesErrors;
+  schema: schemaParsing.DraftSchema,
+  builder: builderDefinition.BuilderDefinition,
+): E.Effect<{
+  entities: schemaParsing.DraftSchema["entities"];
+  attributeErrors: schemaParsing.EntitiesAttributesErrors;
 }> {
   return pipe(
-    Record.toEntries(schema.entities),
-    Array.map(([entityId, entity]) =>
+    R.toEntries(schema.entities),
+    A.map(([entityId, entity]) =>
       pipe(
         validateEntityAttributes(entityId, entity, schema, builder),
-        Effect.map((result) => [entityId, result, entity] as const),
+        E.map((result) => [entityId, result, entity] as const),
       ),
     ),
-    Effect.all,
-    Effect.map((entityResults) =>
+    E.all,
+    E.map((entityResults) =>
       pipe(entityResults, (results) => ({
         entities: pipe(
           results,
-          Array.map(
+          A.map(
             ([entityId, result, entity]) =>
               [
                 entityId,
-                cleanDraftSchemaEntity({
-                  ...entity,
-                  attributes: result.values,
+                S.evolve(entity, {
+                  attributes: () => result.values,
                 }),
               ] as const,
           ),
-          Record.fromEntries,
+          R.fromEntries,
         ),
         attributeErrors: pipe(
           results,
-          Array.filterMap(([entityId, result]) =>
-            Record.isEmptyRecord(result.errors)
-              ? Option.none()
-              : Option.some([entityId, result.errors] as const),
+          A.filterMap(([entityId, result]) =>
+            R.isEmptyRecord(result.errors)
+              ? O.none()
+              : O.some([entityId, result.errors] as const),
           ),
-          Record.fromEntries,
+          R.fromEntries,
           cleanEntitiesAttributeErrors,
         ),
       })),
@@ -322,16 +293,18 @@ export function validateEntitiesAttributes(
   );
 }
 
-export function refineSchema<TBuilder extends Builder>(
-  schema: ValidatedSchema<TBuilder>,
+export function refineSchema<
+  TBuilder extends builderDefinition.BuilderDefinition,
+>(
+  schema: schemaParsing.ParsedSchema<TBuilder>,
   builder: TBuilder,
-): Effect.Effect<ValidatedSchema<TBuilder>, SchemaRefineError> {
+): E.Effect<schemaParsing.ParsedSchema<TBuilder>, SchemaRefineError> {
   return pipe(
-    Effect.promise(() => Promise.resolve(builder.refineSchema(schema))),
-    Effect.flatMap((result) =>
+    E.promise(() => Promise.resolve(builder.refineSchema(schema))),
+    E.flatMap((result) =>
       result.success
-        ? Effect.succeed(result.value as ValidatedSchema<TBuilder>)
-        : Effect.fail(
+        ? E.succeed(result.value as schemaParsing.ParsedSchema<TBuilder>)
+        : E.fail(
             new SchemaRefineError({
               cause: result.error,
             }),
@@ -340,26 +313,30 @@ export function refineSchema<TBuilder extends Builder>(
   );
 }
 
-export function validateSchemaEffectfully<TBuilder extends Builder>(
+export function validateSchemaEffectfully<
+  TBuilder extends builderDefinition.BuilderDefinition,
+>(
   input: unknown,
   builder: TBuilder,
-): Effect.Effect<
-  ValidatedSchema<TBuilder>,
-  SchemaParseError | EntitiesAttributesValidationError | SchemaRefineError
+): E.Effect<
+  schemaParsing.ParsedSchema<TBuilder>,
+  | schemaParsing.SchemaParseError
+  | EntitiesAttributesValidationError
+  | SchemaRefineError
 > {
   return pipe(
-    parseDraftSchemaWithOptions(input, builder, {
+    schemaParsing.parseSchemaWithOptions(input, builder, {
       parseMissingAttributes: true,
     }),
-    Effect.flatMap((schema) =>
+    E.flatMap((schema) =>
       pipe(
         validateEntitiesAttributes(schema, builder),
-        Effect.flatMap((result) =>
+        E.flatMap((result) =>
           pipe(
-            Effect.if(Record.isEmptyRecord(result.attributeErrors), {
-              onTrue: () => Effect.succeed(result.entities),
+            E.if(R.isEmptyRecord(result.attributeErrors), {
+              onTrue: () => E.succeed(result.entities),
               onFalse: () =>
-                Effect.fail(
+                E.fail(
                   new EntitiesAttributesValidationError({
                     errors: result.attributeErrors,
                   }),
@@ -367,9 +344,9 @@ export function validateSchemaEffectfully<TBuilder extends Builder>(
             }),
           ),
         ),
-        Effect.flatMap((entities) =>
+        E.flatMap((entities) =>
           refineSchema(
-            { ...schema, entities } as ValidatedSchema<TBuilder>,
+            S.evolve(schema, { entities: () => entities }),
             builder,
           ),
         ),
@@ -378,9 +355,11 @@ export function validateSchemaEffectfully<TBuilder extends Builder>(
   );
 }
 
-export function validateSchema<TBuilder extends Builder>(
+export function validateSchema<
+  TBuilder extends builderDefinition.BuilderDefinition,
+>(
   input: unknown,
   builder: TBuilder,
 ): Promise<SchemaValidationResult<TBuilder>> {
-  return runPromiseAsResult(validateSchemaEffectfully(input, builder));
+  return utils.runPromiseAsResult(validateSchemaEffectfully(input, builder));
 }

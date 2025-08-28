@@ -1,4 +1,7 @@
-import { Effect } from "effect";
+import { Store as DataStore } from "@tanstack/store";
+import * as E from "effect/Effect";
+
+import type * as builderDefinition from "./builder-definition";
 
 export type SuccessResult<TValue = unknown> = {
   success: true;
@@ -38,30 +41,61 @@ export interface ResultMode {
 }
 
 export type ModeOutput<F, O = void, E = never> = F extends EffectMode
-  ? Effect.Effect<O, E>
+  ? E.Effect<O, E>
   : Result<O, E>;
 
 export type ModeAsyncOutput<F, O, E> = F extends EffectMode
-  ? Effect.Effect<O, E>
+  ? E.Effect<O, E>
   : Promise<Result<O, E>>;
 
+export interface GenericStore<
+  TBuilder extends builderDefinition.BuilderDefinition,
+  TData,
+> {
+  /** @internal */
+  _getUnsafeDataStore(): DataStore<TData>;
+  getBuilder(): TBuilder;
+  getData(): Readonly<TData>;
+  subscribe(
+    listener: (currentValue: TData, prevValue: TData) => void,
+  ): () => void;
+}
+
+export function makeGenericStore<
+  TBuilder extends builderDefinition.BuilderDefinition,
+  TData,
+>(
+  builder: TBuilder,
+  dataStore: DataStore<TData>,
+): GenericStore<TBuilder, TData> {
+  return {
+    _getUnsafeDataStore: () => dataStore,
+    getBuilder: () => builder,
+    getData: () => dataStore.state,
+    subscribe: (listener) =>
+      dataStore.subscribe(({ currentVal, prevVal }) =>
+        listener(currentVal, prevVal),
+      ),
+  };
+}
+
 export function flatMapAsResult<TValue, TError>(
-  effect: Effect.Effect<TValue, TError>,
-): Effect.Effect<Result<TValue, TError>, never, never> {
-  return Effect.match(effect, {
+  effect: E.Effect<TValue, TError>,
+): E.Effect<Result<TValue, TError>, never, never> {
+  return E.match(effect, {
     onFailure: (error) => ({ success: false as const, error }),
     onSuccess: (value) => ({ success: true as const, value }),
   });
 }
 
 export function runSyncAsResult<TValue, TError>(
-  effect: Effect.Effect<TValue, TError>,
+  effect: E.Effect<TValue, TError>,
 ): Result<TValue, TError> {
-  return Effect.runSync(flatMapAsResult(effect));
+  return E.runSync(flatMapAsResult(effect));
 }
 
 export function runPromiseAsResult<TValue, TError>(
-  effect: Effect.Effect<TValue, TError>,
+  effect: E.Effect<TValue, TError>,
 ): Promise<Result<TValue, TError>> {
-  return Effect.runPromise(flatMapAsResult(effect));
+  return E.runPromise(flatMapAsResult(effect));
 }
