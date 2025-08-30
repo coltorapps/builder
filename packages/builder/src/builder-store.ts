@@ -824,7 +824,7 @@ export function addEntity<
         schemaParsing.validateEntityConstraints(
           {
             entityType: payload.type,
-            attributes: payload.attributes,
+            attributes: payload.attributes ?? {},
             parentId: payload.parentId,
             entities: currentSchema.entities,
           },

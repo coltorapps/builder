@@ -386,7 +386,7 @@ export function computeEntityAttributesWithDefaults(
       pipe(
         R.toEntries(attributeDefinitions),
         A.filterMap(([key, attributeDefinition]) =>
-          !R.has(attributes ?? {}, key)
+          !R.has(attributes, key)
             ? pipe(
                 O.fromNullable(
                   attributeDefinition.defaultValue?.bind(attributeDefinition),
@@ -461,7 +461,7 @@ export function parseEntityAttributes(
 
 interface ValidateEntityContext {
   entityType: string;
-  attributes?: Record<string, unknown> | undefined;
+  attributes: Record<string, unknown>;
   parentId?: string | undefined;
   entities: DraftSchema["entities"];
 }
@@ -483,7 +483,7 @@ export function validateEntityConstraints(
     validateParentRequiredness(context.entityType, context.parentId, builder),
     validateEntityAttributeNames(
       context.entityType,
-      R.keys(context.attributes ?? {}),
+      R.keys(context.attributes),
       builder,
     ),
     pipe(
