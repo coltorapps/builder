@@ -3,78 +3,70 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { createAttributeDefinition } from "../src/attribute-definition";
-import { createBuilderDefinition } from "../src/builder-definition";
+import { createBuilder } from "../src/builder";
 import { createEntityDefinition } from "../src/entity-definition";
-import { SchemaParseError } from "../src/schema-parsing";
+import { SchemaStructuralError } from "../src/schema-parsing";
 import {
   EntitiesAttributesValidationError,
   SchemaRefineError,
   validateSchema,
 } from "../src/schema-validation";
-import { assertErrorResult, dataResultAsValueResult } from "./utils";
+import { assertErrorResult } from "./utils";
 
 describe("schema validation", () => {
-  const builder = createBuilderDefinition({
+  const builder = createBuilder({
     entities: {
       textField: createEntityDefinition({
         attributes: {
           stringMin10: createAttributeDefinition(
             {
               parse: (value) => {
-                return dataResultAsValueResult(z.string().safeParse(value));
+                return z.string().safeParse(value);
               },
             },
             {
               refine: (value) => {
-                return dataResultAsValueResult(
-                  z
-                    .string()
-                    .min(10)
-                    .refine(
-                      (value) => value !== "refine will fail",
-                      "refine failed",
-                    )
-                    .safeParse(value),
-                );
+                return z
+                  .string()
+                  .min(10)
+                  .refine(
+                    (value) => value !== "refine will fail",
+                    "refine failed",
+                  )
+                  .safeParse(value);
               },
             },
           ),
           transformedString: createAttributeDefinition(
             {
               parse: (value) => {
-                return dataResultAsValueResult(
-                  z
-                    .string()
-                    .transform((value) => value + "-parseTransform")
-                    .safeParse(value),
-                );
+                return z
+                  .string()
+                  .transform((value) => value + "-parseTransform")
+                  .safeParse(value);
               },
             },
             {
               refine: (value) => {
-                return dataResultAsValueResult(
-                  z
-                    .string()
-                    .transform((value) => value + "-refineTransform")
-                    .safeParse(value),
-                );
+                return z
+                  .string()
+                  .transform((value) => value + "-refineTransform")
+                  .safeParse(value);
               },
             },
           ),
           overridenEmail: createAttributeDefinition(
             {
               parse: (value) => {
-                return dataResultAsValueResult(z.string().safeParse(value));
+                return z.string().safeParse(value);
               },
             },
             {
               refine: (value) => {
-                return dataResultAsValueResult(
-                  z
-                    .string()
-                    .transform((value) => "refineTransform-" + value)
-                    .safeParse(value),
-                );
+                return z
+                  .string()
+                  .transform((value) => "refineTransform-" + value)
+                  .safeParse(value);
               },
             },
           ),
@@ -88,16 +80,14 @@ describe("schema validation", () => {
                 return result;
               }
 
-              return dataResultAsValueResult(
-                z
-                  .string()
-                  .email()
-                  .transform(
-                    (value) =>
-                      value + (ctx.entity.attributes.stringMin10.value || ""),
-                  )
-                  .safeParse(result.value),
-              );
+              return z
+                .string()
+                .email()
+                .transform(
+                  (value) =>
+                    value + (ctx.entity.attributes.stringMin10.value || ""),
+                )
+                .safeParse(result.value);
             },
           },
         },
@@ -222,7 +212,7 @@ describe("schema validation", () => {
         description: "invalid schema provided",
         schema: {},
         expectedError: {
-          instance: SchemaParseError,
+          instance: SchemaStructuralError,
         },
       },
       {

@@ -1,9 +1,14 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
-import { createAttributeDefinition, type AttributeDefinition } from "../src/attribute-definition";
-import { createEntityDefinition, type EntityDefinition } from "../src/entity-definition";
-import { dataResultAsValueResult } from "./utils";
+import {
+  createAttributeDefinition,
+  type AttributeDefinition,
+} from "../src/attribute-definition";
+import {
+  createEntityDefinition,
+  type EntityDefinition,
+} from "../src/entity-definition";
 
 describe("createEntity", () => {
   it("produces correct types", () => {
@@ -20,17 +25,15 @@ describe("createEntity", () => {
         attributes: {
           label: createAttributeDefinition(
             {
-              parse: (value) =>
-                dataResultAsValueResult(z.string().safeParse(value)),
+              parse: (value) => z.string().safeParse(value),
               defaultValue: () => "123",
             },
             {
-              refine: (value) =>
-                dataResultAsValueResult(z.string().safeParse(value)),
+              refine: (value) => z.string().safeParse(value),
             },
           ),
         },
-        parse: (value) => dataResultAsValueResult(z.string().safeParse(value)),
+        parse: (value) => z.string().safeParse(value),
         defaultValue: () => "123",
         metadata: "metadata" as const,
       }),
@@ -57,24 +60,20 @@ describe("createEntity", () => {
           attributes: {
             label: createAttributeDefinition(
               {
-                parse: (value) =>
-                  dataResultAsValueResult(z.string().safeParse(value)),
+                parse: (value) => z.string().safeParse(value),
                 defaultValue: () => "123",
               },
               {
-                refine: (value) =>
-                  dataResultAsValueResult(z.string().safeParse(value)),
+                refine: (value) => z.string().safeParse(value),
               },
             ),
           },
-          parse: (value) =>
-            dataResultAsValueResult(z.string().safeParse(value)),
+          parse: (value) => z.string().safeParse(value),
           defaultValue: () => "123",
           metadata: "metadata" as const,
         },
         {
-          refine: (value) =>
-            dataResultAsValueResult(z.string().safeParse(value)),
+          refine: (value) => z.string().safeParse(value),
         },
       ),
     ).toEqualTypeOf<

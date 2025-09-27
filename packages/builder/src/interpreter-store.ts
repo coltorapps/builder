@@ -1,21 +1,19 @@
 import { Store as DataStore } from "@tanstack/store";
-import * as A from "effect/Array";
-import * as D from "effect/Data";
 import * as E from "effect/Effect";
-import * as Ei from "effect/Either";
 import { pipe } from "effect/Function";
-import * as O from "effect/Option";
-import * as R from "effect/Record";
 
-import type * as builderDefinition from "./builder-definition";
+import type * as builder from "./builder";
 import type * as entityDefinition from "./entity-definition";
+import {
+  EffectMode,
+  GenericStore,
+  makeGenericStore,
+  ResultMode,
+} from "./generic-store";
 import * as schemaParsing from "./schema-parsing";
-import * as schemaValidation from "./schema-validation";
-import * as utils from "./utils";
 
 interface InterpreterStoreData<
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+  TBuilder extends builder.Builder = builder.Builder,
 > {
   entitiesValues: Record<
     string,
@@ -33,30 +31,26 @@ interface InterpreterStoreData<
 }
 
 interface GenericInterpreterStore<
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
-  TResultMode = utils.EffectMode,
-> extends utils.GenericStore<TBuilder, InterpreterStoreData<TBuilder>> {}
+  TBuilder extends builder.Builder = builder.Builder,
+  TResultMode = EffectMode,
+> extends GenericStore<TBuilder, InterpreterStoreData<TBuilder>> {}
 
-export type EffectfulInterpreterStore<
-  TBuilder extends builderDefinition.BuilderDefinition,
-> = GenericInterpreterStore<TBuilder, utils.EffectMode>;
+export type EffectfulInterpreterStore<TBuilder extends builder.Builder> =
+  GenericInterpreterStore<TBuilder, EffectMode>;
 
-export type InterpreterStore<
-  TBuilder extends builderDefinition.BuilderDefinition,
-> = GenericInterpreterStore<TBuilder, utils.ResultMode>;
+export type InterpreterStore<TBuilder extends builder.Builder> =
+  GenericInterpreterStore<TBuilder, ResultMode>;
 
-type CreateInterpreterStoreError = schemaParsing.SchemaParseError;
+type CreateInterpreterStoreError = schemaParsing.SchemaStructuralError;
 
 interface CreateInterpreterStoreOptions<
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+  TBuilder extends builder.Builder = builder.Builder,
 > {
   initialData?: Partial<InterpreterStoreData<TBuilder>>;
 }
 
 export function createEffectfulInterpreterStore<
-  TBuilder extends builderDefinition.BuilderDefinition,
+  TBuilder extends builder.Builder,
 >(
   builder: TBuilder,
   schema: schemaParsing.ParsedSchema<TBuilder>,
@@ -74,7 +68,7 @@ export function createEffectfulInterpreterStore<
           unprocessableEntityIds: [],
         }),
         (dataStore): EffectfulInterpreterStore<TBuilder> => ({
-          ...utils.makeGenericStore(builder, dataStore),
+          ...makeGenericStore(builder, dataStore),
         }),
       ),
     ),

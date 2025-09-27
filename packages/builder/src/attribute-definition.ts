@@ -1,20 +1,31 @@
-import type * as builderDefinition from "./builder-definition";
-import type * as entityDefinition from "./entity-definition";
-import type * as schemaParsing from "./schema-parsing";
-import type * as utils from "./utils";
+import { Builder } from "./builder";
+import { EntityDefinition } from "./entity-definition";
+import { DraftSchema } from "./schema-parsing";
+import {
+  KeyofStringIntersection,
+  normalizeResult,
+  ParseFunction,
+  RefineFunction,
+  RefineResult,
+  Result,
+  UnnormalizedParseFunction,
+  UnnormalizedRefineFunction,
+  UnnormalizedRefineResult,
+  UnnormalizedResult,
+} from "./utils";
 
 export interface ContextAttributeDefinition<
   TAttribute extends AttributeDefinition = AttributeDefinition,
   TAttributeName extends string = string,
 > {
-  metadata: TAttribute["metadata"];
-  name: TAttributeName;
+  readonly metadata: TAttribute["metadata"];
+  readonly name: TAttributeName;
 }
 
 export interface AttributeDefinitionParseContext<
   TAttribute extends AttributeDefinition = AttributeDefinition,
 > {
-  attribute: ContextAttributeDefinition<TAttribute>;
+  readonly attribute: ContextAttributeDefinition<TAttribute>;
 }
 
 export type AttributeDefinitionDefaultValueContext<
@@ -24,27 +35,27 @@ export type AttributeDefinitionDefaultValueContext<
 export interface AttributeDefinitionRefineContext<
   TAttribute extends AttributeDefinition = AttributeDefinition,
   TAttributeName extends string = string,
-  TEntity extends
-    entityDefinition.EntityDefinition = entityDefinition.EntityDefinition,
+  TEntity extends EntityDefinition = EntityDefinition,
   TEntityType extends string = string,
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+  TBuilder extends Builder = Builder,
 > {
-  attribute: ContextAttributeDefinition<TAttribute, TAttributeName>;
-  schema: schemaParsing.DraftSchema<TBuilder>;
-  entity: {
-    id: string;
-    type: TEntityType;
-    attributes: {
-      [K in utils.KeyofStringIntersection<TEntity["attributes"]>]: {
-        metadata: TEntity["attributes"][K]["metadata"];
-        name: K;
-        value?: InferAttributeDefinitionParsedValue<TEntity["attributes"][K]>;
+  readonly attribute: ContextAttributeDefinition<TAttribute, TAttributeName>;
+  readonly schema: DraftSchema<TBuilder>;
+  readonly entity: {
+    readonly id: string;
+    readonly type: TEntityType;
+    readonly attributes: {
+      [K in KeyofStringIntersection<TEntity["attributes"]>]: {
+        readonly metadata: TEntity["attributes"][K]["metadata"];
+        readonly name: K;
+        readonly value:
+          | InferAttributeDefinitionParsedValue<TEntity["attributes"][K]>
+          | undefined;
       };
     };
-    parentId?: string | undefined;
-    children?: ReadonlyArray<string> | undefined;
-    metadata: TEntity["metadata"];
+    readonly parentId: string | undefined;
+    readonly children: ReadonlyArray<string> | undefined;
+    readonly metadata: TEntity["metadata"];
   };
 }
 
@@ -54,17 +65,25 @@ export interface AttributeDefinition<
   TRefineError = unknown,
   TMetadata = unknown,
 > {
-  parse: utils.ParseFunction<
-    utils.Result<TValue, TParseError>,
-    AttributeDefinitionParseContext
+  readonly parse: ParseFunction<
+    Result<TValue, TParseError>,
+    AttributeDefinitionParseContext<
+      AttributeDefinition<unknown, unknown, unknown, TMetadata>
+    >
   >;
-  refine: utils.RefineFunction<
+  readonly refine: RefineFunction<
     unknown,
-    utils.RefineResult<TValue, TRefineError>,
-    AttributeDefinitionRefineContext
+    RefineResult<TValue, TRefineError>,
+    AttributeDefinitionRefineContext<
+      AttributeDefinition<unknown, unknown, unknown, TMetadata>
+    >
   >;
-  defaultValue?(ctx: AttributeDefinitionDefaultValueContext): TValue;
-  metadata: TMetadata;
+  readonly defaultValue?: (
+    ctx: AttributeDefinitionDefaultValueContext<
+      AttributeDefinition<unknown, unknown, unknown, TMetadata>
+    >,
+  ) => TValue;
+  readonly metadata: TMetadata;
 }
 
 export type InferAttributeDefinitionParseResult<
@@ -96,6 +115,12 @@ export type InferAttributeDefinitionRefineError<
   { success: false }
 >["error"];
 
+export type InferAttributeDefinitionError<
+  TAttribute extends AttributeDefinition,
+> =
+  | InferAttributeDefinitionParseError<TAttribute>
+  | InferAttributeDefinitionRefineError<TAttribute>;
+
 export function createAttributeDefinition<
   TValue = never,
   TParseError = never,
@@ -104,8 +129,8 @@ export function createAttributeDefinition<
 >(
   options: {
     metadata?: TMetadata;
-    parse: utils.ParseFunction<
-      utils.Result<TValue, TParseError>,
+    parse: UnnormalizedParseFunction<
+      UnnormalizedResult<TValue, TParseError>,
       AttributeDefinitionParseContext<
         AttributeDefinition<unknown, unknown, unknown, TMetadata>
       >
@@ -117,9 +142,9 @@ export function createAttributeDefinition<
     ): TValue;
   },
   secondOptions?: {
-    refine?: utils.RefineFunction<
+    refine?: UnnormalizedRefineFunction<
       TValue,
-      utils.RefineResult<TValue, TRefineError>,
+      UnnormalizedRefineResult<TValue, TRefineError>,
       AttributeDefinitionRefineContext<
         AttributeDefinition<unknown, unknown, unknown, TMetadata>
       >
@@ -132,24 +157,19 @@ export function createAttributeDefinition<
   NoInfer<TMetadata>
 > {
   return {
-    parse: options.parse as AttributeDefinition<
-      TValue,
-      TParseError,
-      TRefineError,
-      TMetadata
-    >["parse"],
-    refine: (secondOptions?.refine ??
-      ((value) => ({ success: true, value: value }))) as AttributeDefinition<
-      TValue,
-      TParseError,
-      TRefineError,
-      TMetadata
-    >["refine"],
+    ...options,
+    parse: (...args) =>
+      normalizeResult(
+        options.parse(...(args as Parameters<typeof options.parse>)),
+      ),
+    refine: async (...args) =>
+      secondOptions?.refine
+        ? normalizeResult(
+            await secondOptions.refine(
+              ...(args as Parameters<typeof secondOptions.refine>),
+            ),
+          )
+        : { success: true, value: args[0] as TValue },
     metadata: options?.metadata as TMetadata,
-    ...(options?.defaultValue
-      ? {
-          defaultValue: options.defaultValue.bind(options),
-        }
-      : {}),
   };
 }

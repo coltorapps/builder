@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Be consistent with my coding style. FP only, Effect only, no imperative or procedural JS coding.

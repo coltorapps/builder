@@ -1,102 +1,117 @@
-import type * as attributeDefinition from "./attribute-definition";
-import type * as builderDefinition from "./builder-definition";
-import type * as schemaParsing from "./schema-parsing";
-import type * as utils from "./utils";
+import { pipe } from "effect/Function";
+import * as O from "effect/Option";
+import * as R from "effect/Record";
 
-export interface ContextEntityInstance<
+import {
+  AttributeDefinition,
+  AttributeDefinitionRefineContext,
+  InferAttributeDefinitionParsedValue,
+  InferAttributeDefinitionRefineError,
+  InferAttributeDefinitionRefineResult,
+} from "./attribute-definition";
+import { Builder } from "./builder";
+import { DraftSchema } from "./schema-parsing";
+import {
+  KeyofStringIntersection,
+  normalizeResult,
+  ParseFunction,
+  RefineFunction,
+  RefineResult,
+  Result,
+  UnnormalizedParseFunction,
+  UnnormalizedRefineFunction,
+  UnnormalizedRefineResult,
+  UnnormalizedResult,
+} from "./utils";
+
+interface ContextEntityInstance<
   TEntity extends EntityDefinition = EntityDefinition,
   TType extends string = string,
 > {
-  id: string;
-  type: TType;
-  attributes: {
-    [K in utils.KeyofStringIntersection<TEntity["attributes"]>]: {
-      metadata: TEntity["attributes"][K]["metadata"];
-      name: K;
-      value: attributeDefinition.InferAttributeDefinitionParsedValue<
+  readonly id: string;
+  readonly type: TType;
+  readonly attributes: {
+    [K in KeyofStringIntersection<TEntity["attributes"]>]: {
+      readonly metadata: TEntity["attributes"][K]["metadata"];
+      readonly name: K;
+      readonly value: InferAttributeDefinitionParsedValue<
         TEntity["attributes"][K]
       >;
     };
   };
-  parentId?: string | undefined;
-  children?: ReadonlyArray<string> | undefined;
-  metadata: TEntity["metadata"];
+  readonly parentId: string | undefined;
+  readonly children: ReadonlyArray<string> | undefined;
+  readonly metadata: TEntity["metadata"];
 }
 
-export interface ContextEntityInstanceWithValue<
+interface ContextEntityInstanceWithValue<
   TEntity extends EntityDefinition = EntityDefinition,
   TType extends string = string,
 > extends ContextEntityInstance<TEntity, TType> {
-  value?: InferEntityDefinitionParsedValue<TEntity>;
+  readonly value: InferEntityDefinitionParsedValue<TEntity> | undefined;
 }
 
-export interface EntityDefinitionParseContext<
+interface EntityDefinitionParseContext<
   TEntity extends EntityDefinition = EntityDefinition,
   TType extends string = string,
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+  TBuilder extends Builder = Builder,
 > {
-  entity: ContextEntityInstance<TEntity, TType>;
-  schema: schemaParsing.DraftSchema<TBuilder>;
+  readonly entity: ContextEntityInstance<TEntity, TType>;
+  readonly schema: DraftSchema<TBuilder>;
 }
 
 export interface EntityDefinitionRefineContext<
   TEntity extends EntityDefinition = EntityDefinition,
   TType extends string = string,
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+  TBuilder extends Builder = Builder,
 > {
-  entity: ContextEntityInstance<TEntity, TType>;
-  schema: schemaParsing.DraftSchema<TBuilder>;
-  entities: Record<
+  readonly entity: ContextEntityInstance<TEntity, TType>;
+  readonly schema: DraftSchema<TBuilder>;
+  readonly entities: Record<
     string,
     {
-      [K in utils.KeyofStringIntersection<
+      [K in KeyofStringIntersection<
         TBuilder["entities"]
       >]: ContextEntityInstanceWithValue<TBuilder["entities"][K], K>;
-    }[utils.KeyofStringIntersection<TBuilder["entities"]>]
+    }[KeyofStringIntersection<TBuilder["entities"]>]
   >;
 }
 
-export type EntityDefinitionDefaultValueContext<
+type EntityDefinitionDefaultValueContext<
   TEntity extends EntityDefinition = EntityDefinition,
 > = EntityDefinitionRefineContext<TEntity>;
 
-export type EntityDefinitionShouldBeProcessedContext<
+type EntityDefinitionShouldBeProcessedContext<
   TEntity extends EntityDefinition = EntityDefinition,
 > = EntityDefinitionRefineContext<TEntity>;
 
 interface AttributeDefinitionRefineOverrideContext<
-  TAttribute extends
-    attributeDefinition.AttributeDefinition = attributeDefinition.AttributeDefinition,
+  TAttribute extends AttributeDefinition = AttributeDefinition,
   TAttributeName extends string = string,
   TEntity extends EntityDefinition = EntityDefinition,
   TEntityType extends string = string,
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
-> extends attributeDefinition.AttributeDefinitionRefineContext<
+  TBuilder extends Builder = Builder,
+> extends AttributeDefinitionRefineContext<
     TAttribute,
     TAttributeName,
     TEntity,
     TEntityType,
     TBuilder
   > {
-  refine(
-    value: attributeDefinition.InferAttributeDefinitionParsedValue<TAttribute>,
-  ): attributeDefinition.InferAttributeDefinitionRefineResult<TAttribute>;
+  readonly refine: (
+    value: InferAttributeDefinitionParsedValue<TAttribute>,
+  ) => InferAttributeDefinitionRefineResult<TAttribute>;
 }
 
 export interface AttributeDefinitionOverride<
-  TAttribute extends
-    attributeDefinition.AttributeDefinition = attributeDefinition.AttributeDefinition,
+  TAttribute extends AttributeDefinition = AttributeDefinition,
   TAttributeName extends string = string,
   TEntity extends EntityDefinition = EntityDefinition,
   TEntityType extends string = string,
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+  TBuilder extends Builder = Builder,
 > {
-  refine?(
-    value: attributeDefinition.InferAttributeDefinitionParsedValue<TAttribute>,
+  readonly refine?: (
+    value: InferAttributeDefinitionParsedValue<TAttribute>,
     context: AttributeDefinitionRefineOverrideContext<
       TAttribute,
       TAttributeName,
@@ -104,20 +119,18 @@ export interface AttributeDefinitionOverride<
       TEntityType,
       TBuilder
     >,
-  ): attributeDefinition.InferAttributeDefinitionRefineResult<TAttribute>;
+  ) => InferAttributeDefinitionRefineResult<TAttribute>;
 }
 
 export interface AttributeDefinitionOverrideInput<
-  TAttribute extends
-    attributeDefinition.AttributeDefinition = attributeDefinition.AttributeDefinition,
+  TAttribute extends AttributeDefinition = AttributeDefinition,
   TAttributeName extends string = string,
   TEntity extends EntityDefinition = EntityDefinition,
   TEntityType extends string = string,
-  TBuilder extends
-    builderDefinition.BuilderDefinition = builderDefinition.BuilderDefinition,
+  TBuilder extends Builder = Builder,
 > {
-  refine?(
-    value: attributeDefinition.InferAttributeDefinitionParsedValue<TAttribute>,
+  readonly refine?: (
+    value: InferAttributeDefinitionParsedValue<TAttribute>,
     context: AttributeDefinitionRefineOverrideContext<
       TAttribute,
       TAttributeName,
@@ -125,45 +138,48 @@ export interface AttributeDefinitionOverrideInput<
       TEntityType,
       TBuilder
     >,
-  ): attributeDefinition.InferAttributeDefinitionRefineResult<TAttribute>;
+  ) => UnnormalizedRefineResult<
+    InferAttributeDefinitionParsedValue<TAttribute>,
+    InferAttributeDefinitionRefineError<TAttribute>
+  >;
 }
 
 export interface EntityDefinition<
-  TAttributes extends Record<
+  TAttributes extends Record<string, AttributeDefinition> = Record<
     string,
-    attributeDefinition.AttributeDefinition
-  > = Record<string, attributeDefinition.AttributeDefinition>,
+    AttributeDefinition
+  >,
   TValue = unknown,
   TParseError = unknown,
   TRefineError = unknown,
   TMetadata = unknown,
 > {
-  attributes: TAttributes;
-  valueAllowed: boolean;
-  childrenAllowed: boolean;
-  parentAllowed: boolean;
-  parentRequired: boolean;
-  attributeOverrides: Record<string, AttributeDefinitionOverride>;
-  parse: utils.ParseFunction<
-    utils.Result<TValue, TParseError>,
+  readonly attributes: TAttributes;
+  readonly valueAllowed: boolean;
+  readonly childrenAllowed: boolean;
+  readonly parentAllowed: boolean;
+  readonly parentRequired: boolean;
+  readonly attributeOverrides: Record<string, AttributeDefinitionOverride>;
+  readonly parse: ParseFunction<
+    Result<TValue, TParseError>,
     EntityDefinitionParseContext
   >;
-  refine: utils.RefineFunction<
+  readonly refine: RefineFunction<
     unknown,
-    utils.RefineResult<TValue, TRefineError>,
+    RefineResult<TValue, TRefineError>,
     EntityDefinitionRefineContext
   >;
-  defaultValue?(
+  readonly defaultValue?: (
     context: EntityDefinitionDefaultValueContext<
       EntityDefinition<TAttributes, unknown, unknown, unknown, TMetadata>
     >,
-  ): unknown;
-  shouldBeProcessed(
+  ) => unknown;
+  readonly shouldBeProcessed: (
     context: EntityDefinitionShouldBeProcessedContext<
       EntityDefinition<TAttributes, unknown, unknown, unknown, TMetadata>
     >,
-  ): boolean;
-  metadata: TMetadata;
+  ) => boolean;
+  readonly metadata: TMetadata;
 }
 
 export type InferEntityDefinitionParseResult<TEntity extends EntityDefinition> =
@@ -192,11 +208,11 @@ export type InferEntityDefinitionRefineError<TEntity extends EntityDefinition> =
   >["error"];
 
 type CreateEntityDefinitionOptions<
-  TAttributes extends Record<string, attributeDefinition.AttributeDefinition>,
+  TAttributes extends Record<string, AttributeDefinition>,
   TMetadata,
 > = {
   attributeOverrides?: {
-    [K in utils.KeyofStringIntersection<TAttributes>]?: AttributeDefinitionOverrideInput<
+    [K in KeyofStringIntersection<TAttributes>]?: AttributeDefinitionOverrideInput<
       TAttributes[K],
       K,
       EntityDefinition<
@@ -229,12 +245,12 @@ type CreateEntityDefinitionOptions<
 type CreateEntityDefinitionSecondOptions<
   TValue,
   TRefineError,
-  TAttributes extends Record<string, attributeDefinition.AttributeDefinition>,
+  TAttributes extends Record<string, AttributeDefinition>,
   TMetadata,
 > = {
-  refine?: utils.RefineFunction<
+  refine?: UnnormalizedRefineFunction<
     TValue,
-    utils.RefineResult<TValue, TRefineError>,
+    UnnormalizedRefineResult<TValue, TRefineError>,
     EntityDefinitionRefineContext<
       EntityDefinition<
         TAttributes,
@@ -247,81 +263,37 @@ type CreateEntityDefinitionSecondOptions<
   >;
 };
 
-export function createEntityDefinition<
-  const TAttributes extends Record<
-    string,
-    attributeDefinition.AttributeDefinition
-  > = never,
-  TMetadata = never,
+export function normalizeAttributeOverrides<
+  TAttributeOverrides extends Record<string, AttributeDefinitionOverrideInput>,
 >(
-  options?: CreateEntityDefinitionOptions<TAttributes, TMetadata> & {
-    parse?: never;
-    defaultValue?: never;
-  },
-): EntityDefinition<
-  NoInfer<TAttributes>,
-  never,
-  never,
-  never,
-  NoInfer<TMetadata>
->;
+  attributeOverrides: TAttributeOverrides,
+): Record<string, AttributeDefinitionOverride> {
+  return R.map(attributeOverrides, (override) =>
+    pipe(
+      O.fromNullable(override.refine),
+      O.map(
+        (refine) =>
+          ({
+            ...override,
+            refine: async (...args: Parameters<typeof refine>) =>
+              normalizeResult(await refine(...args)),
+          }) satisfies AttributeDefinitionOverride,
+      ),
+      O.getOrElse(() => override as AttributeDefinitionOverride),
+    ),
+  );
+}
 
 export function createEntityDefinition<
-  const TAttributes extends Record<
-    string,
-    attributeDefinition.AttributeDefinition
-  > = never,
-  TValue = never,
-  TParseError = never,
-  TRefineError = never,
-  TMetadata = never,
->(
-  options: CreateEntityDefinitionOptions<TAttributes, TMetadata> & {
-    parse: utils.ParseFunction<
-      utils.Result<TValue, TParseError>,
-      EntityDefinitionParseContext<
-        EntityDefinition<
-          TAttributes,
-          unknown,
-          unknown,
-          unknown,
-          NoInfer<TMetadata>
-        >
-      >
-    >;
-    defaultValue?: (
-      context: EntityDefinitionDefaultValueContext<
-        EntityDefinition<TAttributes, unknown, unknown, unknown, TMetadata>
-      >,
-    ) => TValue;
-  },
-  secondOptions?: CreateEntityDefinitionSecondOptions<
-    TValue,
-    TRefineError,
-    TAttributes,
-    TMetadata
-  >,
-): EntityDefinition<
-  NoInfer<TAttributes>,
-  NoInfer<TValue>,
-  NoInfer<TParseError>,
-  NoInfer<TRefineError>,
-  NoInfer<TMetadata>
->;
-
-export function createEntityDefinition<
-  const TAttributes extends Record<
-    string,
-    attributeDefinition.AttributeDefinition
-  > = never,
+  const TAttributes extends Record<string, AttributeDefinition> = never,
   TValue = never,
   TParseError = never,
   TRefineError = never,
   TMetadata = never,
 >(
   options?: CreateEntityDefinitionOptions<TAttributes, TMetadata> & {
-    parse?: utils.ParseFunction<
-      utils.Result<TValue, TParseError>,
+    parse?: UnnormalizedParseFunction<
+      UnnormalizedResult<TValue, TParseError>,
       EntityDefinitionParseContext<
         EntityDefinition<
           TAttributes,
@@ -355,25 +327,37 @@ export function createEntityDefinition<
     throw new Error("Value not allowed");
   }
 
-  const parse =
-    (options?.parse as EntityDefinition<
-      TAttributes,
-      TValue,
-      TParseError,
-      TRefineError,
-      TMetadata
-    >["parse"]) ?? forbiddenValueHandler;
-
-  const refine = (
+  const parse = ((...args) =>
     options?.parse
-      ? (secondOptions?.refine ?? ((value) => ({ success: true, value })))
-      : forbiddenValueHandler
-  ) as EntityDefinition<
+      ? normalizeResult(
+          options?.parse(...(args as Parameters<typeof options.parse>)),
+        )
+      : forbiddenValueHandler()) as EntityDefinition<
     TAttributes,
     TValue,
     TParseError,
     TRefineError,
     TMetadata
+  >["parse"];
+
+  const refine = pipe(
+    O.fromNullable(options?.parse),
+    O.map(() =>
+      pipe(
+        O.fromNullable(secondOptions?.refine),
+        O.map(
+          (refine) => async (args: Parameters<typeof refine>) =>
+            normalizeResult(await refine(...args)),
+        ),
+        O.getOrElse(() => (value: TValue) => ({ success: true, value })),
+      ),
+    ),
+    O.getOrElse(() => forbiddenValueHandler),
+  ) as EntityDefinition<
+    TAttributes,
+    TValue,
+    TParseError,
+    TRefineError
   >["refine"];
 
   return {
@@ -384,9 +368,9 @@ export function createEntityDefinition<
     parentAllowed: options?.parentAllowed ?? true,
     attributes: options?.attributes ?? ({} as TAttributes),
     valueAllowed: Boolean(options?.parse),
-    attributeOverrides:
-      (options?.attributeOverrides as EntityDefinition["attributeOverrides"]) ??
-      {},
+    attributeOverrides: normalizeAttributeOverrides(
+      options?.attributeOverrides ?? {},
+    ),
     parse,
     refine,
     shouldBeProcessed: options?.shouldBeProcessed

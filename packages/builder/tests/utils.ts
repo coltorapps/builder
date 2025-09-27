@@ -1,12 +1,8 @@
-import { type ErrorResult, type SuccessResult, type Result } from "../src/utils";
-
-export function dataResultAsValueResult<TData, TError>(
-  input: { success: true; data: TData } | { success: false; error: TError },
-): Result<TData, TError> {
-  return input.success
-    ? { success: true, value: input.data }
-    : { success: false, error: input.error };
-}
+import {
+  type ErrorResult,
+  type Result,
+  type SuccessResult,
+} from "../src/utils";
 
 export function assertErrorResult<TResult extends Result<unknown, unknown>>(
   result: TResult,

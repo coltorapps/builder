@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { createAttributeDefinition } from "../src/attribute-definition";
-import { createBuilderDefinition } from "../src/builder-definition";
+import { createBuilder } from "../src/builder";
 import {
   collectEntityDescendants,
   createBuilderStore,
@@ -15,32 +15,27 @@ import {
   parseEntitiesAttributesErrors,
 } from "../src/builder-store";
 import { createEntityDefinition } from "../src/entity-definition";
+import { createAttributeRef, createEntityRef } from "../src/generic-store";
 import {
   ChildNotAllowedError,
-  EntitiesAttributesErrors,
   EntityAttributeParseError,
   EntityAttributesParseError,
-  EntityNotFoundError,
   InvalidAttributeNameError,
   InvalidEntityIdError,
   InvalidEntityTypeError,
   ParentNotAllowedError,
   ParentRequiredError,
-  parseDraftSchema,
-  parseSchema,
-  SchemaParseError,
+  ReferencedEntityNotFoundError,
+  SchemaStructuralError,
 } from "../src/schema-parsing";
 import {
+  EntitiesAttributesErrors,
   EntitiesAttributesValidationError,
   EntityAttributesValidationError,
   EntityAttributeValidationError,
 } from "../src/schema-validation";
-import { runSyncAsResult } from "../src/utils";
-import {
-  assertErrorResult,
-  assertSuccessResult,
-  dataResultAsValueResult,
-} from "./utils";
+import { Result, runSyncAsResult } from "../src/utils";
+import { assertErrorResult, assertSuccessResult } from "./utils";
 
 describe("collectEntityDescendants", () => {
   describe("success cases", () => {
@@ -101,14 +96,14 @@ describe("collectEntityDescendants", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: new EntityNotFoundError({ entityId: "non-existent" }),
+        error: new ReferencedEntityNotFoundError({ entityId: "non-existent" }),
       });
     });
   });
 });
 
 describe("parseAttributeErrors", () => {
-  const builder = createBuilderDefinition({
+  const builder = createBuilder({
     entities: {
       textField: createEntityDefinition({
         attributes: {
@@ -155,7 +150,7 @@ describe("parseAttributeErrors", () => {
         },
         expectedError: {
           instance: EntitiesAttributesErrorsParseError,
-          causeInstance: EntityNotFoundError,
+          causeInstance: ReferencedEntityNotFoundError,
           cause: { entityId: "invalidId" },
         },
       },
@@ -192,7 +187,7 @@ describe("parseAttributeErrors", () => {
 
 describe("builder store", () => {
   describe("initialization", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -219,7 +214,7 @@ describe("builder store", () => {
 
     const validAttributeErrors = {
       entity1: { label: "error" },
-    };
+    } as unknown as EntitiesAttributesErrors<typeof builder>;
 
     describe("success cases", () => {
       it.each([
@@ -228,12 +223,16 @@ describe("builder store", () => {
           options: {
             initialData: {
               schema: validSchema,
-              entitiesAttributesErrors: validAttributeErrors,
+              errors: {
+                attributes: validAttributeErrors,
+              },
             },
           },
           expectedData: {
             schema: validSchema,
-            entitiesAttributesErrors: validAttributeErrors,
+            errors: {
+              attributes: validAttributeErrors,
+            },
           },
         },
         {
@@ -244,7 +243,9 @@ describe("builder store", () => {
               entities: {},
               root: [],
             },
-            entitiesAttributesErrors: {},
+            errors: {
+              attributes: {},
+            },
           },
         },
       ] as const)(
@@ -265,8 +266,10 @@ describe("builder store", () => {
           description: "invalid attribute errors provided",
           initialData: {
             schema: validSchema,
-            entitiesAttributesErrors: {
-              entity1: { invalidAttr: "error" },
+            errors: {
+              attributes: {
+                entity1: { invalidAttr: "error" },
+              } as unknown as EntitiesAttributesErrors<typeof builder>,
             },
           },
           expectedError: {
@@ -288,10 +291,12 @@ describe("builder store", () => {
               },
               root: [],
             },
-            entitiesAttributesErrors: validAttributeErrors,
+            errors: {
+              attributes: validAttributeErrors,
+            },
           },
           expectedError: {
-            instance: SchemaParseError,
+            instance: SchemaStructuralError,
           },
         },
       ] as const)(
@@ -322,7 +327,7 @@ describe("builder store", () => {
   });
 
   describe("removeEntity", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           childrenAllowed: true,
@@ -367,10 +372,16 @@ describe("builder store", () => {
       it("should succeed when valid ID provided", () => {
         const builderStore1 = makeBuilderStore();
 
-        expect(builderStore1.removeEntity("entity1")).toStrictEqual({
+        expect(
+          builderStore1.removeEntity(createEntityRef("textField", "entity1")),
+        ).toStrictEqual({
           success: true,
           value: {
-            entityId: "entity1",
+            removedEntityRefs: [
+              createEntityRef("textField", "entity1"),
+              createEntityRef("textField", "entity2"),
+              createEntityRef("textField", "entity3"),
+            ],
           },
         });
 
@@ -381,10 +392,15 @@ describe("builder store", () => {
 
         const builderStore2 = makeBuilderStore();
 
-        expect(builderStore2.removeEntity("entity2")).toStrictEqual({
+        expect(
+          builderStore2.removeEntity(createEntityRef("textField", "entity2")),
+        ).toStrictEqual({
           success: true,
           value: {
-            entityId: "entity2",
+            removedEntityRefs: [
+              createEntityRef("textField", "entity2"),
+              createEntityRef("textField", "entity3"),
+            ],
           },
         });
 
@@ -405,11 +421,15 @@ describe("builder store", () => {
       it("should fail with invalid id", () => {
         const builderStore = makeBuilderStore();
 
-        const removalResult = builderStore.removeEntity("invalidId");
+        const removalResult = builderStore.removeEntity(
+          createEntityRef("textField", "invalidId"),
+        );
 
         assertErrorResult(removalResult);
 
-        expect(removalResult.error).toBeInstanceOf(EntityNotFoundError);
+        expect(removalResult.error).toBeInstanceOf(
+          ReferencedEntityNotFoundError,
+        );
 
         expect(removalResult.error.entityId).toEqual("invalidId");
       });
@@ -419,27 +439,23 @@ describe("builder store", () => {
   describe("addEntity", () => {
     describe("success cases", () => {
       function makeBuilderStore() {
-        const builder = createBuilderDefinition({
+        const builder = createBuilder({
           entities: {
             textField: createEntityDefinition({
               attributes: {
                 label: createAttributeDefinition({
                   parse: (value) =>
-                    dataResultAsValueResult(
-                      z
-                        .string()
-                        .transform((s) => s + "-transformed")
-                        .safeParse(value),
-                    ),
+                    z
+                      .string()
+                      .transform((s) => s + "-transformed")
+                      .safeParse(value),
                 }),
                 withDefault: createAttributeDefinition({
                   parse: (value) =>
-                    dataResultAsValueResult(
-                      z
-                        .string()
-                        .transform((s) => s + "-transformed")
-                        .safeParse(value),
-                    ),
+                    z
+                      .string()
+                      .transform((s) => s + "-transformed")
+                      .safeParse(value),
                   defaultValue: () => "default",
                 }),
               },
@@ -508,6 +524,10 @@ describe("builder store", () => {
                 },
                 type: "textField",
                 id: "entity1",
+                ref: {
+                  id: "entity1",
+                  type: "textField",
+                },
               },
               index: 1,
             },
@@ -521,6 +541,10 @@ describe("builder store", () => {
                 attributes: {
                   withDefault: "default-transformed",
                 },
+                ref: {
+                  id: "entity2",
+                  type: "textField",
+                },
               },
               index: 2,
             },
@@ -533,6 +557,10 @@ describe("builder store", () => {
                 id: "entity3",
                 attributes: {
                   withDefault: "default-transformed",
+                },
+                ref: {
+                  id: "entity3",
+                  type: "textField",
                 },
               },
               index: 0,
@@ -599,6 +627,10 @@ describe("builder store", () => {
                 attributes: {
                   withDefault: "default-transformed",
                 },
+                ref: {
+                  id: "entity1",
+                  type: "textField",
+                },
               },
               index: 0,
             },
@@ -612,6 +644,10 @@ describe("builder store", () => {
                 parentId: "container1",
                 attributes: {
                   withDefault: "default-transformed",
+                },
+                ref: {
+                  id: "entity2",
+                  type: "textField",
                 },
               },
               index: 0,
@@ -650,7 +686,7 @@ describe("builder store", () => {
       function makeBuilderStore(
         generateEntityId = () => randomUUID() as string,
       ) {
-        const builder = createBuilderDefinition({
+        const builder = createBuilder({
           entities: {
             textField: createEntityDefinition({
               parentRequired: true,
@@ -851,7 +887,7 @@ describe("builder store", () => {
             });
           },
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             payload: { entityId: "nonExistentParent" },
           },
         },
@@ -939,9 +975,15 @@ describe("builder store", () => {
 
   describe("getEntity", () => {
     const builderStoreResult = createBuilderStore(
-      createBuilderDefinition({
+      createBuilder({
         entities: {
-          textField: createEntityDefinition(),
+          textField: createEntityDefinition({
+            attributes: {
+              label: createAttributeDefinition({
+                parse: (value) => ({ success: true, value: value }),
+              }),
+            },
+          }),
         },
         validateEntityId: (id) => typeof id === "string",
       }),
@@ -950,8 +992,9 @@ describe("builder store", () => {
           schema: {
             entities: {
               entity1: { type: "textField", attributes: {} },
+              entity2: { type: "textField", attributes: { label: "Label" } },
             },
-            root: ["entity1"],
+            root: ["entity1", "entity2"],
           },
         },
       },
@@ -961,12 +1004,59 @@ describe("builder store", () => {
 
     describe("success cases", () => {
       it("should succeed when valid entity ID provided", () => {
-        expect(builderStoreResult.value.getEntity("entity1")).toStrictEqual({
+        expect(
+          builderStoreResult.value.getEntity(
+            createEntityRef("textField", "entity1"),
+          ),
+        ).toStrictEqual({
           success: true,
           value: {
             id: "entity1",
             type: "textField",
-            attributes: {},
+            attributes: {
+              label: {
+                value: undefined,
+                ref: {
+                  name: "label",
+                  entityRef: {
+                    id: "entity1",
+                    type: "textField",
+                  },
+                },
+              },
+            },
+            ref: {
+              id: "entity1",
+              type: "textField",
+            },
+          },
+        });
+
+        expect(
+          builderStoreResult.value.getEntity(
+            createEntityRef("textField", "entity2"),
+          ),
+        ).toStrictEqual({
+          success: true,
+          value: {
+            id: "entity2",
+            type: "textField",
+            attributes: {
+              label: {
+                value: "Label",
+                ref: {
+                  name: "label",
+                  entityRef: {
+                    id: "entity2",
+                    type: "textField",
+                  },
+                },
+              },
+            },
+            ref: {
+              id: "entity2",
+              type: "textField",
+            },
           },
         });
       });
@@ -974,11 +1064,13 @@ describe("builder store", () => {
 
     describe("failure cases", () => {
       it("should fail when invalid entity ID provided", () => {
-        const result = builderStoreResult.value.getEntity("invalidId");
+        const result = builderStoreResult.value.getEntity(
+          createEntityRef("textField", "invalidId"),
+        );
 
         assertErrorResult(result);
 
-        expect(result.error).toBeInstanceOf(EntityNotFoundError);
+        expect(result.error).toBeInstanceOf(ReferencedEntityNotFoundError);
 
         expect(result.error).toMatchObject({
           entityId: "invalidId",
@@ -987,9 +1079,9 @@ describe("builder store", () => {
     });
   });
 
-  describe("getEntity", () => {
+  describe("getEntityIndex", () => {
     const builderStoreResult = createBuilderStore(
-      createBuilderDefinition({
+      createBuilder({
         entities: {
           textField: createEntityDefinition({
             childrenAllowed: true,
@@ -1029,10 +1121,18 @@ describe("builder store", () => {
     describe("success cases", () => {
       it("should succeed when valid entity ID provided", () => {
         expect([
-          builderStoreResult.value.getEntityIndex("entity1"),
-          builderStoreResult.value.getEntityIndex("entity2"),
-          builderStoreResult.value.getEntityIndex("entity3"),
-          builderStoreResult.value.getEntityIndex("entity4"),
+          builderStoreResult.value.getEntityIndex(
+            createEntityRef("textField", "entity1"),
+          ),
+          builderStoreResult.value.getEntityIndex(
+            createEntityRef("textField", "entity2"),
+          ),
+          builderStoreResult.value.getEntityIndex(
+            createEntityRef("textField", "entity3"),
+          ),
+          builderStoreResult.value.getEntityIndex(
+            createEntityRef("textField", "entity4"),
+          ),
         ]).toStrictEqual([
           { success: true, value: 0 },
           { success: true, value: 1 },
@@ -1044,11 +1144,13 @@ describe("builder store", () => {
 
     describe("failure cases", () => {
       it("should fail when invalid entity ID provided", () => {
-        const result = builderStoreResult.value.getEntityIndex("invalidId");
+        const result = builderStoreResult.value.getEntityIndex(
+          createEntityRef("textField", "invalidId"),
+        );
 
         assertErrorResult(result);
 
-        expect(result.error).toBeInstanceOf(EntityNotFoundError);
+        expect(result.error).toBeInstanceOf(ReferencedEntityNotFoundError);
 
         expect(result.error).toMatchObject({
           entityId: "invalidId",
@@ -1058,7 +1160,7 @@ describe("builder store", () => {
   });
 
   describe("setData", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition(),
       },
@@ -1096,7 +1198,9 @@ describe("builder store", () => {
                   },
                   root: ["entity2"],
                 },
-                entitiesAttributesErrors: {},
+                errors: {
+                  attributes: {} as EntitiesAttributesErrors<typeof builder>,
+                },
               }),
             data: {
               schema: {
@@ -1105,7 +1209,9 @@ describe("builder store", () => {
                 },
                 root: ["entity2"],
               },
-              entitiesAttributesErrors: {},
+              errors: {
+                attributes: {},
+              },
             },
           },
           {
@@ -1117,8 +1223,10 @@ describe("builder store", () => {
                   },
                   root: ["entity2"],
                 },
-                schemaError: "error" as never,
-                entitiesAttributesErrors: {},
+                errors: {
+                  schema: "error" as never,
+                  attributes: {} as EntitiesAttributesErrors<typeof builder>,
+                },
               }),
             data: {
               schema: {
@@ -1130,8 +1238,10 @@ describe("builder store", () => {
                 },
                 root: ["entity2"],
               },
-              entitiesAttributesErrors: {},
-              schemaError: "error",
+              errors: {
+                attributes: {} as EntitiesAttributesErrors<typeof builder>,
+                schema: "error",
+              },
             },
           },
         ];
@@ -1160,13 +1270,15 @@ describe("builder store", () => {
                 },
                 root: ["entity1"],
               },
-              entitiesAttributesErrors: {
-                invalidId: { invalidAttr: "error" },
+              errors: {
+                attributes: {
+                  invalidId: { invalidAttr: "error" },
+                } as unknown as EntitiesAttributesErrors<typeof builder>,
               },
             }),
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
-            causeInstance: EntityNotFoundError,
+            causeInstance: ReferencedEntityNotFoundError,
             cause: {
               entityId: "invalidId",
             },
@@ -1182,8 +1294,10 @@ describe("builder store", () => {
                 },
                 root: ["entity1"],
               },
-              entitiesAttributesErrors: {
-                entity1: { invalidAttr: "error" },
+              errors: {
+                attributes: {
+                  entity1: { invalidAttr: "error" },
+                } as unknown as EntitiesAttributesErrors<typeof builder>,
               },
             }),
           expectedError: {
@@ -1201,10 +1315,12 @@ describe("builder store", () => {
           action: (builderStore: ReturnType<typeof makeBuilderStore>) =>
             builderStore.setData({
               schema: {} as never,
-              entitiesAttributesErrors: {},
+              errors: {
+                attributes: {} as EntitiesAttributesErrors<typeof builder>,
+              },
             }),
           expectedError: {
-            instance: SchemaParseError,
+            instance: SchemaStructuralError,
             causeInstance: ParseError,
           },
         },
@@ -1226,7 +1342,7 @@ describe("builder store", () => {
   });
 
   describe("setEntityIndex", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           childrenAllowed: true,
@@ -1277,9 +1393,18 @@ describe("builder store", () => {
         const builderStore = makeBuilderStore();
 
         const results = [
-          builderStore.setEntityIndex("entity1", 1),
-          builderStore.setEntityIndex("entity3", 1),
-          builderStore.setEntityIndex("entity5", (index) => index - 2),
+          builderStore.setEntityIndex(
+            createEntityRef("textField", "entity1"),
+            1,
+          ),
+          builderStore.setEntityIndex(
+            createEntityRef("textField", "entity3"),
+            1,
+          ),
+          builderStore.setEntityIndex(
+            createEntityRef("textField", "entity5"),
+            (index) => index - 2,
+          ),
         ] as const;
 
         assertSuccessResult(results[0]);
@@ -1287,8 +1412,8 @@ describe("builder store", () => {
         assertSuccessResult(results[2]);
 
         expect([results[0].value, results[1].value]).toStrictEqual([
-          { entityId: "entity1", index: 1 },
-          { entityId: "entity3", index: 1 },
+          { entityRef: createEntityRef("textField", "entity1"), index: 1 },
+          { entityRef: createEntityRef("textField", "entity3"), index: 1 },
         ]);
 
         expect(builderStore.getData().schema).toStrictEqual({
@@ -1315,7 +1440,7 @@ describe("builder store", () => {
           entityId: "invalidId",
           index: 1,
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "invalidId",
             },
@@ -1338,7 +1463,10 @@ describe("builder store", () => {
         ({ entityId, index, expectedError }) => {
           const builderStore = makeBuilderStore();
 
-          const result = builderStore.setEntityIndex(entityId, index);
+          const result = builderStore.setEntityIndex(
+            createEntityRef("textField", entityId),
+            index,
+          );
 
           assertErrorResult(result);
 
@@ -1351,7 +1479,7 @@ describe("builder store", () => {
   });
 
   describe("setEntityParent", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           childrenAllowed: true,
@@ -1439,11 +1567,14 @@ describe("builder store", () => {
       const successTestCases = [
         {
           description: "move entity from root to parent without index",
-          action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity1", "container1"),
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) =>
+            builderStore.setEntityParent(
+              createEntityRef("textField", "entity1"),
+              createEntityRef("container", "container1"),
+            ),
           expectedResult: {
-            entityId: "entity1",
-            parentId: "container1",
+            entityRef: createEntityRef("textField", "entity1"),
+            parentRef: createEntityRef("container", "container1"),
             index: 1,
           },
           expectedSchema: {
@@ -1491,11 +1622,15 @@ describe("builder store", () => {
         },
         {
           description: "move entity from root to parent with index",
-          action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity2", "container1", { index: 0 }),
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) =>
+            builderStore.setEntityParent(
+              createEntityRef("textField", "entity2"),
+              createEntityRef("container", "container1"),
+              { index: 0 },
+            ),
           expectedResult: {
-            entityId: "entity2",
-            parentId: "container1",
+            entityRef: createEntityRef("textField", "entity2"),
+            parentRef: createEntityRef("container", "container1"),
             index: 0,
           },
           expectedSchema: {
@@ -1543,12 +1678,15 @@ describe("builder store", () => {
         },
         {
           description: "move entity from parent to root without index",
-          action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity3", undefined),
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) =>
+            builderStore.setEntityParent(
+              createEntityRef("textField", "entity3"),
+              undefined,
+            ),
           expectedResult: {
-            entityId: "entity3",
+            entityRef: createEntityRef("textField", "entity3"),
             index: 6,
-            parentId: undefined,
+            parentRef: undefined,
           },
           expectedSchema: {
             entities: {
@@ -1556,10 +1694,21 @@ describe("builder store", () => {
               entity2: { type: "textField", attributes: {} },
               container1: { type: "container", children: [], attributes: {} },
               entity3: { type: "textField", attributes: {} },
-              container2: { type: "container", children: ["entity4"], attributes: {} },
-              entity4: { type: "restrictedField", parentId: "container2", attributes: {} },
+              container2: {
+                type: "container",
+                children: ["entity4"],
+                attributes: {},
+              },
+              entity4: {
+                type: "restrictedField",
+                parentId: "container2",
+                attributes: {},
+              },
               rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
-              noChildrenContainer1: { type: "noChildrenContainer", attributes: {} },
+              noChildrenContainer1: {
+                type: "noChildrenContainer",
+                attributes: {},
+              },
             },
             root: [
               "entity1",
@@ -1574,12 +1723,16 @@ describe("builder store", () => {
         },
         {
           description: "move entity from parent to root with index",
-          action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity3", undefined, { index: 0 }),
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) =>
+            builderStore.setEntityParent(
+              createEntityRef("textField", "entity3"),
+              undefined,
+              { index: 0 },
+            ),
           expectedResult: {
-            entityId: "entity3",
+            entityRef: createEntityRef("textField", "entity3"),
             index: 0,
-            parentId: undefined,
+            parentRef: undefined,
           },
           expectedSchema: {
             entities: {
@@ -1587,10 +1740,21 @@ describe("builder store", () => {
               entity2: { type: "textField", attributes: {} },
               container1: { type: "container", children: [], attributes: {} },
               entity3: { type: "textField", attributes: {} },
-              container2: { type: "container", children: ["entity4"], attributes: {} },
-              entity4: { type: "restrictedField", parentId: "container2", attributes: {} },
+              container2: {
+                type: "container",
+                children: ["entity4"],
+                attributes: {},
+              },
+              entity4: {
+                type: "restrictedField",
+                parentId: "container2",
+                attributes: {},
+              },
               rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
-              noChildrenContainer1: { type: "noChildrenContainer", attributes: {} },
+              noChildrenContainer1: {
+                type: "noChildrenContainer",
+                attributes: {},
+              },
             },
             root: [
               "entity3",
@@ -1606,11 +1770,14 @@ describe("builder store", () => {
         {
           description:
             "move entity from parent to another parent without index",
-          action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity4", "container1"),
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) =>
+            builderStore.setEntityParent(
+              createEntityRef("textField", "entity4"),
+              createEntityRef("container", "container1"),
+            ),
           expectedResult: {
-            entityId: "entity4",
-            parentId: "container1",
+            entityRef: createEntityRef("textField", "entity4"),
+            parentRef: createEntityRef("container", "container1"),
             index: 1,
           },
           expectedSchema: {
@@ -1622,11 +1789,22 @@ describe("builder store", () => {
                 children: ["entity3", "entity4"],
                 attributes: {},
               },
-              entity3: { type: "textField", parentId: "container1", attributes: {} },
+              entity3: {
+                type: "textField",
+                parentId: "container1",
+                attributes: {},
+              },
               container2: { type: "container", children: [], attributes: {} },
-              entity4: { type: "restrictedField", parentId: "container1", attributes: {} },
+              entity4: {
+                type: "restrictedField",
+                parentId: "container1",
+                attributes: {},
+              },
               rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
-              noChildrenContainer1: { type: "noChildrenContainer", attributes: {} },
+              noChildrenContainer1: {
+                type: "noChildrenContainer",
+                attributes: {},
+              },
             },
             root: [
               "entity1",
@@ -1640,11 +1818,15 @@ describe("builder store", () => {
         },
         {
           description: "move entity from parent to another parent with index",
-          action: (store: ReturnType<typeof makeBuilderStore>) =>
-            store.setEntityParent("entity3", "container2", { index: 0 }),
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) =>
+            builderStore.setEntityParent(
+              createEntityRef("textField", "entity3"),
+              createEntityRef("container", "container2"),
+              { index: 0 },
+            ),
           expectedResult: {
-            entityId: "entity3",
-            parentId: "container2",
+            entityRef: createEntityRef("textField", "entity3"),
+            parentRef: createEntityRef("container", "container2"),
             index: 0,
           },
           expectedSchema: {
@@ -1652,15 +1834,26 @@ describe("builder store", () => {
               entity1: { type: "textField", attributes: {} },
               entity2: { type: "textField", attributes: {} },
               container1: { type: "container", children: [], attributes: {} },
-              entity3: { type: "textField", parentId: "container2", attributes: {} },
+              entity3: {
+                type: "textField",
+                parentId: "container2",
+                attributes: {},
+              },
               container2: {
                 type: "container",
                 children: ["entity3", "entity4"],
                 attributes: {},
               },
-              entity4: { type: "restrictedField", parentId: "container2", attributes: {} },
+              entity4: {
+                type: "restrictedField",
+                parentId: "container2",
+                attributes: {},
+              },
               rootOnlyEntity1: { type: "rootOnlyEntity", attributes: {} },
-              noChildrenContainer1: { type: "noChildrenContainer", attributes: {} },
+              noChildrenContainer1: {
+                type: "noChildrenContainer",
+                attributes: {},
+              },
             },
             root: [
               "entity1",
@@ -1696,12 +1889,12 @@ describe("builder store", () => {
           description: "entity ID not found in schema",
           action: () => {
             return makeBuilderStore().setEntityParent(
-              "nonExistentEntity",
-              "container1",
+              createEntityRef("textField", "nonExistentEntity"),
+              createEntityRef("container", "container1"),
             );
           },
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             payload: { entityId: "nonExistentEntity" },
           },
         },
@@ -1709,21 +1902,25 @@ describe("builder store", () => {
           description: "new parent ID not found in schema",
           action: () => {
             return makeBuilderStore().setEntityParent(
-              "entity1",
-              "nonExistentParent",
+              createEntityRef("textField", "entity1"),
+              createEntityRef("container", "nonExistentParent"),
             );
           },
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             payload: { entityId: "nonExistentParent" },
           },
         },
         {
           description: "index out of bounds in new parent",
           action: () => {
-            return makeBuilderStore().setEntityParent("entity1", "container1", {
-              index: 100,
-            });
+            return makeBuilderStore().setEntityParent(
+              createEntityRef("textField", "entity1"),
+              createEntityRef("container", "container1"),
+              {
+                index: 100,
+              },
+            );
           },
           expectedError: {
             instance: IndexOutOfBoundsError,
@@ -1733,9 +1930,13 @@ describe("builder store", () => {
         {
           description: "index out of bounds in root",
           action: () => {
-            return makeBuilderStore().setEntityParent("entity3", undefined, {
-              index: 100,
-            });
+            return makeBuilderStore().setEntityParent(
+              createEntityRef("textField", "entity3"),
+              undefined,
+              {
+                index: 100,
+              },
+            );
           },
           expectedError: {
             instance: IndexOutOfBoundsError,
@@ -1745,9 +1946,13 @@ describe("builder store", () => {
         {
           description: "negative index out of bounds",
           action: () => {
-            return makeBuilderStore().setEntityParent("entity1", "container1", {
-              index: -1,
-            });
+            return makeBuilderStore().setEntityParent(
+              createEntityRef("textField", "entity1"),
+              createEntityRef("container", "container1"),
+              {
+                index: -1,
+              },
+            );
           },
           expectedError: {
             instance: IndexOutOfBoundsError,
@@ -1757,7 +1962,10 @@ describe("builder store", () => {
         {
           description: "entity requires parent but moving to root",
           action: () => {
-            return makeBuilderStore().setEntityParent("entity4", undefined);
+            return makeBuilderStore().setEntityParent(
+              createEntityRef("textField", "entity4"),
+              undefined,
+            );
           },
           expectedError: {
             instance: ParentRequiredError,
@@ -1768,8 +1976,8 @@ describe("builder store", () => {
           description: "parent type not allowed by child entity",
           action: () => {
             return makeBuilderStore().setEntityParent(
-              "entity1",
-              "noChildrenContainer1",
+              createEntityRef("textField", "entity1"),
+              createEntityRef("noChildrenContainer", "noChildrenContainer1"),
             );
           },
           expectedError: {
@@ -1784,8 +1992,8 @@ describe("builder store", () => {
           description: "child type not allowed by parent entity",
           action: () => {
             return makeBuilderStore().setEntityParent(
-              "noChildrenContainer1",
-              "container1",
+              createEntityRef("noChildrenContainer", "noChildrenContainer1"),
+              createEntityRef("container", "container1"),
             );
           },
           expectedError: {
@@ -1801,8 +2009,8 @@ describe("builder store", () => {
             "child type not allowed by parent entity (override restrictions)",
           action: () => {
             return makeBuilderStore().setEntityParent(
-              "rootOnlyEntity1",
-              "container1",
+              createEntityRef("rootOnlyEntity", "rootOnlyEntity1"),
+              createEntityRef("container", "container1"),
             );
           },
           expectedError: {
@@ -1831,7 +2039,7 @@ describe("builder store", () => {
   });
 
   describe("setEntityAttributeValue", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -1880,16 +2088,14 @@ describe("builder store", () => {
       it.each([
         {
           description: "valid attribute name and value provided",
-          action: (store: ReturnType<typeof makeBuilderStore>) => {
-            return store.setEntityAttributeValue(
-              "entity1",
-              "label",
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) => {
+            return builderStore.setEntityAttributeValue(
+              createAttributeRef("textField", "entity1", "label"),
               "New Label",
             );
           },
           expectedResult: {
-            entityId: "entity1",
-            attributeName: "label",
+            attributeRef: createAttributeRef("textField", "entity1", "label"),
             attributeValue: "New Label-transformed",
           },
           expectedSchema: {
@@ -1926,7 +2132,7 @@ describe("builder store", () => {
           attributeName: "label",
           attributeValue: "Some Value",
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "nonExistentEntity",
             },
@@ -1982,9 +2188,8 @@ describe("builder store", () => {
           const builderStore = makeBuilderStore();
 
           const result = builderStore.setEntityAttributeValue(
-            entityId,
-            attributeName,
-            attributeValue,
+            createAttributeRef("textField", entityId, attributeName as never),
+            attributeValue as never,
           );
 
           assertErrorResult(result);
@@ -1998,7 +2203,7 @@ describe("builder store", () => {
   });
 
   describe("resetEntityAttributeValue", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2067,22 +2272,32 @@ describe("builder store", () => {
         const store = makeBuilderStore();
 
         const results = [
-          store.resetEntityAttributeValue("entity1", "withDefaultValue"),
-          store.resetEntityAttributeValue("entity1", "withoutDefaultValue"),
+          store.resetEntityAttributeValue(
+            createAttributeRef("textField", "entity1", "withDefaultValue"),
+          ),
+          store.resetEntityAttributeValue(
+            createAttributeRef("textField", "entity1", "withoutDefaultValue"),
+          ),
         ] as const;
 
         assertSuccessResult(results[0]);
         assertSuccessResult(results[1]);
 
         expect(results[0].value).toStrictEqual({
-          entityId: "entity1",
-          attributeName: "withDefaultValue",
+          attributeRef: createAttributeRef(
+            "textField",
+            "entity1",
+            "withDefaultValue",
+          ),
           attributeValue: "Default Label-transformed",
         });
 
         expect(results[1].value).toStrictEqual({
-          entityId: "entity1",
-          attributeName: "withoutDefaultValue",
+          attributeRef: createAttributeRef(
+            "textField",
+            "entity1",
+            "withoutDefaultValue",
+          ),
           attributeValue: undefined,
         });
 
@@ -2107,7 +2322,7 @@ describe("builder store", () => {
           entityId: "nonExistentEntity",
           attributeName: "label",
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "nonExistentEntity",
             },
@@ -2132,8 +2347,7 @@ describe("builder store", () => {
           const builderStore = makeBuilderStore();
 
           const result = builderStore.resetEntityAttributeValue(
-            entityId,
-            attributeName,
+            createAttributeRef("textField", entityId, attributeName as never),
           );
 
           assertErrorResult(result);
@@ -2147,7 +2361,7 @@ describe("builder store", () => {
   });
 
   describe("clearEntityAttributeValue", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2187,13 +2401,14 @@ describe("builder store", () => {
       it("should succeed when valid entity ID and attribute name provided", () => {
         const store = makeBuilderStore();
 
-        const result = store.clearEntityAttributeValue("entity1", "label");
+        const result = store.clearEntityAttributeValue(
+          createAttributeRef("textField", "entity1", "label"),
+        );
 
         assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
-          entityId: "entity1",
-          attributeName: "label",
+          attributeRef: createAttributeRef("textField", "entity1", "label"),
         });
 
         expect(store.getData().schema).toStrictEqual({
@@ -2215,7 +2430,7 @@ describe("builder store", () => {
           entityId: "nonExistentEntity",
           attributeName: "label",
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "nonExistentEntity",
             },
@@ -2240,8 +2455,7 @@ describe("builder store", () => {
           const builderStore = makeBuilderStore();
 
           const result = builderStore.clearEntityAttributeValue(
-            entityId,
-            attributeName,
+            createAttributeRef("textField", entityId, attributeName as never),
           );
 
           assertErrorResult(result);
@@ -2255,7 +2469,7 @@ describe("builder store", () => {
   });
 
   describe("clearEntityAttributesValues", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2298,12 +2512,14 @@ describe("builder store", () => {
       it("should succeed when valid entity ID provided", () => {
         const store = makeBuilderStore();
 
-        const result = store.clearEntityAttributesValues("entity1");
+        const result = store.clearEntityAttributesValues(
+          createEntityRef("textField", "entity1"),
+        );
 
         assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
-          entityId: "entity1",
+          entityRef: createEntityRef("textField", "entity1"),
         });
 
         expect(store.getData().schema).toStrictEqual({
@@ -2322,12 +2538,13 @@ describe("builder store", () => {
       it("should fail when invalid entity ID provided", () => {
         const builderStore = makeBuilderStore();
 
-        const result =
-          builderStore.clearEntityAttributesValues("nonExistentEntity");
+        const result = builderStore.clearEntityAttributesValues(
+          createEntityRef("textField", "nonExistentEntity"),
+        );
 
         assertErrorResult(result);
 
-        expect(result.error).toBeInstanceOf(EntityNotFoundError);
+        expect(result.error).toBeInstanceOf(ReferencedEntityNotFoundError);
 
         expect(result.error).toMatchObject({
           entityId: "nonExistentEntity",
@@ -2337,12 +2554,15 @@ describe("builder store", () => {
   });
 
   describe("setEntityAttributeError", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
             label: createAttributeDefinition({
-              parse: (value) => ({ success: true, value }),
+              parse: (value): Result<unknown, "Error"> => ({
+                success: true,
+                value,
+              }),
             }),
           },
         }),
@@ -2375,20 +2595,19 @@ describe("builder store", () => {
         const store = makeBuilderStore();
 
         const result = store.setEntityAttributeError(
-          "entity1",
-          "label",
+          createAttributeRef("textField", "entity1", "label"),
           "Error",
         );
 
         assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
-          entityId: "entity1",
+          entityRef: createEntityRef("textField", "entity1"),
           attributeName: "label",
           attributeError: "Error",
         });
 
-        expect(store.getData().entitiesAttributesErrors).toStrictEqual({
+        expect(store.getData().errors.attributes).toStrictEqual({
           entity1: {
             label: "Error",
           },
@@ -2404,7 +2623,7 @@ describe("builder store", () => {
           attributeName: "label",
           error: "Error",
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "nonExistentEntity",
             },
@@ -2430,9 +2649,8 @@ describe("builder store", () => {
           const builderStore = makeBuilderStore();
 
           const result = builderStore.setEntityAttributeError(
-            entityId,
-            attributeName,
-            error,
+            createAttributeRef("textField", entityId, attributeName as never),
+            error as never,
           );
 
           assertErrorResult(result);
@@ -2446,15 +2664,21 @@ describe("builder store", () => {
   });
 
   describe("setEntityAttributesErrors", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
             label: createAttributeDefinition({
-              parse: (value) => ({ success: true, value }),
+              parse: (value): Result<unknown, string> => ({
+                success: true,
+                value,
+              }),
             }),
             required: createAttributeDefinition({
-              parse: (value) => ({ success: true, value }),
+              parse: (value): Result<unknown, string> => ({
+                success: true,
+                value,
+              }),
             }),
           },
         }),
@@ -2486,22 +2710,25 @@ describe("builder store", () => {
       it("should succeed when valid entity ID and attribute names provided", () => {
         const store = makeBuilderStore();
 
-        const result = store.setEntityAttributesErrors("entity1", {
-          label: "Error Label",
-          required: "Error Required",
-        });
+        const result = store.setEntityAttributesErrors(
+          createEntityRef("textField", "entity1"),
+          {
+            label: "Error Label",
+            required: "Error Required",
+          },
+        );
 
         assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
-          entityId: "entity1",
+          entityRef: createEntityRef("textField", "entity1"),
           attributesErrors: {
             label: "Error Label",
             required: "Error Required",
           },
         });
 
-        expect(store.getData().entitiesAttributesErrors).toStrictEqual({
+        expect(store.getData().errors.attributes).toStrictEqual({
           entity1: {
             label: "Error Label",
             required: "Error Required",
@@ -2519,7 +2746,7 @@ describe("builder store", () => {
             label: "Error",
           },
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "nonExistentEntity",
             },
@@ -2546,7 +2773,7 @@ describe("builder store", () => {
           const builderStore = makeBuilderStore();
 
           const result = builderStore.setEntityAttributesErrors(
-            entityId,
+            createEntityRef("textField", entityId),
             attributesErrors,
           );
 
@@ -2561,7 +2788,7 @@ describe("builder store", () => {
   });
 
   describe("clearEntityAttributeError", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2586,10 +2813,12 @@ describe("builder store", () => {
             },
             root: ["entity1"],
           },
-          entitiesAttributesErrors: {
-            entity1: {
-              label: "Error",
-            },
+          errors: {
+            attributes: {
+              entity1: {
+                label: "Error",
+              },
+            } as unknown as EntitiesAttributesErrors<typeof builder>,
           },
         },
       });
@@ -2603,16 +2832,17 @@ describe("builder store", () => {
       it("should succeed when valid entity ID and attribute name provided", () => {
         const store = makeBuilderStore();
 
-        const result = store.clearEntityAttributeError("entity1", "label");
+        const result = store.clearEntityAttributeError(
+          createAttributeRef("textField", "entity1", "label"),
+        );
 
         assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
-          entityId: "entity1",
-          attributeName: "label",
+          attributeRef: createAttributeRef("textField", "entity1", "label"),
         });
 
-        expect(store.getData().entitiesAttributesErrors).toStrictEqual({});
+        expect(store.getData().errors.attributes).toStrictEqual({});
       });
     });
 
@@ -2623,7 +2853,7 @@ describe("builder store", () => {
           entityId: "nonExistentEntity",
           attributeName: "label",
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "nonExistentEntity",
             },
@@ -2648,8 +2878,7 @@ describe("builder store", () => {
           const builderStore = makeBuilderStore();
 
           const result = builderStore.clearEntityAttributeError(
-            entityId,
-            attributeName,
+            createAttributeRef("textField", entityId, attributeName as never),
           );
 
           assertErrorResult(result);
@@ -2663,7 +2892,7 @@ describe("builder store", () => {
   });
 
   describe("clearEntityAttributesErrors", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -2695,15 +2924,17 @@ describe("builder store", () => {
             },
             root: ["entity1", "entity2"],
           },
-          entitiesAttributesErrors: {
-            entity1: {
-              label: "Error",
-              required: "Error",
-            },
-            entity2: {
-              label: "Label Error",
-              required: "Required Error",
-            },
+          errors: {
+            attributes: {
+              entity1: {
+                label: "Error",
+                required: "Error",
+              },
+              entity2: {
+                label: "Label Error",
+                required: "Required Error",
+              },
+            } as unknown as EntitiesAttributesErrors<typeof builder>,
           },
         },
       });
@@ -2717,15 +2948,17 @@ describe("builder store", () => {
       it("should succeed when valid entity ID and attribute names provided", () => {
         const store = makeBuilderStore();
 
-        const result = store.clearEntityAttributesErrors("entity1");
+        const result = store.clearEntityAttributesErrors(
+          createEntityRef("textField", "entity1"),
+        );
 
         assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
-          entityId: "entity1",
+          entityRef: createEntityRef("textField", "entity1"),
         });
 
-        expect(store.getData().entitiesAttributesErrors).toStrictEqual({
+        expect(store.getData().errors.attributes).toStrictEqual({
           entity2: {
             label: "Label Error",
             required: "Required Error",
@@ -2738,12 +2971,13 @@ describe("builder store", () => {
       it("should fail when invalid entity ID provided", () => {
         const builderStore = makeBuilderStore();
 
-        const result =
-          builderStore.clearEntityAttributesErrors("nonExistentEntity");
+        const result = builderStore.clearEntityAttributesErrors(
+          createEntityRef("textField", "nonExistentEntity"),
+        );
 
         assertErrorResult(result);
 
-        expect(result.error).toBeInstanceOf(EntityNotFoundError);
+        expect(result.error).toBeInstanceOf(ReferencedEntityNotFoundError);
 
         expect(result.error).toMatchObject({
           entityId: "nonExistentEntity",
@@ -2755,7 +2989,7 @@ describe("builder store", () => {
   describe("clearEntitiesAttributesErrors", () => {
     describe("success cases", () => {
       it("should succeed always", () => {
-        const builder = createBuilderDefinition({
+        const builder = createBuilder({
           entities: {
             textField: createEntityDefinition({
               attributes: {
@@ -2786,15 +3020,17 @@ describe("builder store", () => {
               },
               root: ["entity1", "entity2"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                label: "Error",
-                required: "Error",
-              },
-              entity2: {
-                label: "Label Error",
-                required: "Required Error",
-              },
+            errors: {
+              attributes: {
+                entity1: {
+                  label: "Error",
+                  required: "Error",
+                },
+                entity2: {
+                  label: "Label Error",
+                  required: "Required Error",
+                },
+              } as unknown as EntitiesAttributesErrors<typeof builder>,
             },
           },
         });
@@ -2808,29 +3044,38 @@ describe("builder store", () => {
         expect(result.value).toBeUndefined();
 
         expect(
-          builderStoreResult.value.getData().entitiesAttributesErrors,
+          builderStoreResult.value.getData().errors.attributes,
         ).toStrictEqual({});
       });
     });
   });
 
   describe("setEntitiesAttributesErrors", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
             label: createAttributeDefinition({
-              parse: (value) => ({ success: true, value }),
+              parse: (value): Result<unknown, string> => ({
+                success: true,
+                value,
+              }),
             }),
             required: createAttributeDefinition({
-              parse: (value) => ({ success: true, value }),
+              parse: (value): Result<unknown, string> => ({
+                success: true,
+                value,
+              }),
             }),
           },
         }),
         container: createEntityDefinition({
           attributes: {
             title: createAttributeDefinition({
-              parse: (value) => ({ success: true, value }),
+              parse: (value): Result<unknown, string> => ({
+                success: true,
+                value,
+              }),
             }),
           },
         }),
@@ -2854,6 +3099,9 @@ describe("builder store", () => {
             },
             root: ["entity1", "entity2"],
           },
+          errors: {
+            attributes: {} as EntitiesAttributesErrors<typeof builder>,
+          },
         },
       });
 
@@ -2874,7 +3122,7 @@ describe("builder store", () => {
             entity2: {
               title: "Title Error",
             },
-          },
+          } as unknown as EntitiesAttributesErrors<typeof builder>,
           expectedData: {
             entity1: {
               label: "Label Error",
@@ -2887,7 +3135,7 @@ describe("builder store", () => {
         },
         {
           description: "empty entities attribute errors provided",
-          attributesErrors: {},
+          attributesErrors: {} as EntitiesAttributesErrors<typeof builder>,
           expectedData: {},
         },
         {
@@ -2896,7 +3144,7 @@ describe("builder store", () => {
             entity1: {
               label: "Label Error",
             },
-          },
+          } as unknown as EntitiesAttributesErrors<typeof builder>,
           expectedData: {
             entity1: {
               label: "Label Error",
@@ -2916,9 +3164,7 @@ describe("builder store", () => {
             attributesErrors,
           });
 
-          expect(store.getData().entitiesAttributesErrors).toStrictEqual(
-            expectedData,
-          );
+          expect(store.getData().errors.attributes).toStrictEqual(expectedData);
         },
       );
     });
@@ -2931,10 +3177,10 @@ describe("builder store", () => {
             nonExistentEntity: {
               label: "Error",
             },
-          },
+          } as unknown as EntitiesAttributesErrors<typeof builder>,
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
-            causeInstance: EntityNotFoundError,
+            causeInstance: ReferencedEntityNotFoundError,
             cause: {
               entityId: "nonExistentEntity",
             },
@@ -2946,7 +3192,7 @@ describe("builder store", () => {
             entity1: {
               nonExistentAttribute: "Error",
             },
-          },
+          } as unknown as EntitiesAttributesErrors<typeof builder>,
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: InvalidAttributeNameError,
@@ -2966,10 +3212,10 @@ describe("builder store", () => {
             nonExistentEntity: {
               label: "Invalid Error",
             },
-          },
+          } as unknown as EntitiesAttributesErrors<typeof builder>,
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
-            causeInstance: EntityNotFoundError,
+            causeInstance: ReferencedEntityNotFoundError,
             cause: {
               entityId: "nonExistentEntity",
             },
@@ -2982,7 +3228,7 @@ describe("builder store", () => {
               label: "Valid Error",
               nonExistentAttribute: "Invalid Error",
             },
-          },
+          } as unknown as EntitiesAttributesErrors<typeof builder>,
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: InvalidAttributeNameError,
@@ -3016,7 +3262,7 @@ describe("builder store", () => {
   });
 
   describe("validateEntityAttribute", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -3112,17 +3358,18 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                parse: "must be a string",
-                parseAndRefine: "must be a string",
-                failedAttribute: "failure",
-              },
-            } as unknown as EntitiesAttributesErrors,
+            errors: {
+              attributes: {
+                entity1: {
+                  parse: "must be a string",
+                  parseAndRefine: "must be a string",
+                  failedAttribute: "failure",
+                },
+              } as unknown as EntitiesAttributesErrors<typeof builder>,
+            },
           },
           expectedResult: {
-            entityId: "entity1",
-            attributeName: "parse",
+            attributeRef: createAttributeRef("textField", "entity1", "parse"),
             attributeValue: "-parsed",
           },
           expectedData: {
@@ -3138,12 +3385,14 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                failedAttribute: "failure",
-                parseAndRefine: "must be a string",
+            errors: {
+              attributes: {
+                entity1: {
+                  failedAttribute: "failure",
+                  parseAndRefine: "must be a string",
+                },
               },
-            } as unknown as EntitiesAttributesErrors,
+            },
           },
         },
         {
@@ -3163,15 +3412,20 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                failedAttribute: "failure",
-              },
-            } as unknown as EntitiesAttributesErrors,
+            errors: {
+              attributes: {
+                entity1: {
+                  failedAttribute: "failure",
+                },
+              } as unknown as EntitiesAttributesErrors<typeof builder>,
+            },
           },
           expectedResult: {
-            entityId: "entity1",
-            attributeName: "parseAndRefine",
+            attributeRef: createAttributeRef(
+              "textField",
+              "entity1",
+              "parseAndRefine",
+            ),
             attributeValue: "long enough string-parsed-refined",
           },
           expectedData: {
@@ -3187,9 +3441,11 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                failedAttribute: "failure",
+            errors: {
+              attributes: {
+                entity1: {
+                  failedAttribute: "failure",
+                },
               },
             },
           },
@@ -3208,8 +3464,7 @@ describe("builder store", () => {
           store.setData(initialData);
 
           const result = await store.validateEntityAttribute(
-            entityId,
-            attributeName,
+            createAttributeRef("textField", entityId, attributeName),
           );
 
           assertSuccessResult(result);
@@ -3228,7 +3483,7 @@ describe("builder store", () => {
           entityId: "nonExistentEntity",
           attributeName: "parse",
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "nonExistentEntity",
             },
@@ -3238,7 +3493,9 @@ describe("builder store", () => {
               entities: {},
               root: [],
             },
-            entitiesAttributesErrors: {},
+            errors: {
+              attributes: {} as EntitiesAttributesErrors<typeof builder>,
+            },
           },
         },
         {
@@ -3267,7 +3524,9 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {},
+            errors: {
+              attributes: {} as EntitiesAttributesErrors<typeof builder>,
+            },
           },
         },
         {
@@ -3293,10 +3552,12 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                parse: "must be a string",
-              },
+            errors: {
+              attributes: {
+                entity1: {
+                  parse: "must be a string",
+                },
+              } as unknown as EntitiesAttributesErrors<typeof builder>,
             },
           },
           expectedData: {
@@ -3309,10 +3570,12 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                parse: "must be a string",
-              },
+            errors: {
+              attributes: {
+                entity1: {
+                  parse: "must be a string",
+                },
+              } as unknown as EntitiesAttributesErrors<typeof builder>,
             },
           },
         },
@@ -3342,10 +3605,12 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                parseAndRefine: "Refine fail",
-              },
+            errors: {
+              attributes: {
+                entity1: {
+                  parseAndRefine: "Refine fail",
+                },
+              } as unknown as EntitiesAttributesErrors<typeof builder>,
             },
           },
           expectedData: {
@@ -3361,10 +3626,12 @@ describe("builder store", () => {
               },
               root: ["entity1"],
             },
-            entitiesAttributesErrors: {
-              entity1: {
-                parseAndRefine: "Refine fail",
-              },
+            errors: {
+              attributes: {
+                entity1: {
+                  parseAndRefine: "Refine fail",
+                },
+              } as unknown as EntitiesAttributesErrors<typeof builder>,
             },
           },
         },
@@ -3382,8 +3649,7 @@ describe("builder store", () => {
           store.setData(initialData);
 
           const result = await store.validateEntityAttribute(
-            entityId,
-            attributeName,
+            createAttributeRef("textField", entityId, attributeName as never),
           );
 
           assertErrorResult(result);
@@ -3401,7 +3667,7 @@ describe("builder store", () => {
   });
 
   describe("validateEntityAttributes", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -3483,11 +3749,13 @@ describe("builder store", () => {
             },
             root: ["entity1"],
           },
-          entitiesAttributesErrors: {
-            entity1: {
-              label: "must be a string",
-              shouldFail: "must not be 'fail'",
-            },
+          errors: {
+            attributes: {
+              entity1: {
+                label: "must be a string",
+                shouldFail: "must not be 'fail'",
+              },
+            } as unknown as EntitiesAttributesErrors<typeof builder>,
           },
         },
       });
@@ -3501,12 +3769,14 @@ describe("builder store", () => {
       it("should succeed when all attributes are valid", async () => {
         const store = makeBuilderStore();
 
-        const result = await store.validateEntityAttributes("entity1");
+        const result = await store.validateEntityAttributes(
+          createEntityRef("textField", "entity1"),
+        );
 
         assertSuccessResult(result);
 
         expect(result.value).toStrictEqual({
-          entityId: "entity1",
+          entityRef: createEntityRef("textField", "entity1"),
           attributes: {
             label: "New Label-parsed-refined",
             shouldFail: "Ok for now-parsed-refined",
@@ -3526,7 +3796,9 @@ describe("builder store", () => {
             },
             root: ["entity1"],
           },
-          entitiesAttributesErrors: {},
+          errors: {
+            attributes: {},
+          },
         });
       });
     });
@@ -3536,10 +3808,15 @@ describe("builder store", () => {
         const store = makeBuilderStore();
 
         assertSuccessResult(
-          store.setEntityAttributeValue("entity1", "shouldFail", "fail"),
+          store.setEntityAttributeValue(
+            createAttributeRef("textField", "entity1", "shouldFail"),
+            "fail",
+          ),
         );
 
-        const result = await store.validateEntityAttributes("entity1");
+        const result = await store.validateEntityAttributes(
+          createEntityRef("textField", "entity1"),
+        );
 
         assertErrorResult(result);
 
@@ -3564,9 +3841,11 @@ describe("builder store", () => {
             },
             root: ["entity1"],
           },
-          entitiesAttributesErrors: {
-            entity1: {
-              shouldFail: "must not be 'fail-parsed'",
+          errors: {
+            attributes: {
+              entity1: {
+                shouldFail: "must not be 'fail-parsed'",
+              },
             },
           },
         });
@@ -3575,7 +3854,7 @@ describe("builder store", () => {
   });
 
   describe("validateEntitiesAttributes", () => {
-    const builder = createBuilderDefinition({
+    const builder = createBuilder({
       entities: {
         textField: createEntityDefinition({
           attributes: {
@@ -3637,10 +3916,12 @@ describe("builder store", () => {
             },
             root: ["entity1", "entity2"],
           },
-          entitiesAttributesErrors: {
-            entity1: {
-              label: "must be a string",
-            },
+          errors: {
+            attributes: {
+              entity1: {
+                label: "must be a string",
+              },
+            } as unknown as EntitiesAttributesErrors<typeof builder>,
           },
         },
       });
@@ -3696,7 +3977,9 @@ describe("builder store", () => {
             },
             root: ["entity1", "entity2"],
           },
-          entitiesAttributesErrors: {},
+          errors: {
+            attributes: {},
+          },
         });
       });
     });
@@ -3705,9 +3988,15 @@ describe("builder store", () => {
       it("should fail when some attributes are invalid", async () => {
         const store = makeBuilderStore();
 
-        store.setEntityAttributeValue("entity1", "label", "fail");
+        store.setEntityAttributeValue(
+          createAttributeRef("textField", "entity1", "label"),
+          "fail",
+        );
 
-        store.setEntityAttributeValue("entity2", "label", "fail");
+        store.setEntityAttributeValue(
+          createAttributeRef("textField", "entity2", "label"),
+          "fail",
+        );
 
         const result = await store.validateEntitiesAttributes();
 
@@ -3724,12 +4013,14 @@ describe("builder store", () => {
         });
 
         expect(store.getData()).toStrictEqual({
-          entitiesAttributesErrors: {
-            entity1: {
-              label: "must not be 'fail-parsed'",
-            },
-            entity2: {
-              label: "must not be 'fail-parsed'",
+          errors: {
+            attributes: {
+              entity1: {
+                label: "must not be 'fail-parsed'",
+              },
+              entity2: {
+                label: "must not be 'fail-parsed'",
+              },
             },
           },
           schema: {
@@ -3754,7 +4045,7 @@ describe("builder store", () => {
     describe("success cases", () => {
       it("should set the schema error", () => {
         const builderStoreResult = createBuilderStore(
-          createBuilderDefinition({
+          createBuilder({
             entities: {},
             refineSchema: () => ({
               success: false,
@@ -3774,7 +4065,7 @@ describe("builder store", () => {
           schemaError: "invalid schema",
         });
 
-        expect(builderStoreResult.value.getData().schemaError).toStrictEqual(
+        expect(builderStoreResult.value.getData().errors.schema).toStrictEqual(
           "invalid schema",
         );
       });
@@ -3785,7 +4076,7 @@ describe("builder store", () => {
     describe("success cases", () => {
       it("should succeed always", () => {
         const builderStoreResult = createBuilderStore(
-          createBuilderDefinition({
+          createBuilder({
             entities: {},
             refineSchema: () => ({
               success: false,
@@ -3794,7 +4085,9 @@ describe("builder store", () => {
           }),
           {
             initialData: {
-              schemaError: "invalid schema",
+              errors: {
+                schema: "invalid schema",
+              },
             },
           },
         );
@@ -3808,7 +4101,9 @@ describe("builder store", () => {
         expect(result.value).toBeUndefined();
 
         expect(builderStoreResult.value.getData()).toStrictEqual({
-          entitiesAttributesErrors: {},
+          errors: {
+            attributes: {},
+          },
           schema: {
             entities: {},
             root: [],
@@ -3823,7 +4118,7 @@ describe("builder store", () => {
       function makeBuilderStore() {
         let id = 1;
 
-        const builder = createBuilderDefinition({
+        const builder = createBuilder({
           entities: {
             textField: createEntityDefinition({
               childrenAllowed: true,
@@ -3875,8 +4170,10 @@ describe("builder store", () => {
         const builderStore = makeBuilderStore();
 
         const results = [
-          builderStore.cloneEntity("entity1"),
-          builderStore.cloneEntity("entity2", { index: 0 }),
+          builderStore.cloneEntity(createEntityRef("textField", "entity1")),
+          builderStore.cloneEntity(createEntityRef("textField", "entity2"), {
+            index: 0,
+          }),
         ] as const;
 
         assertSuccessResult(results[0]);
@@ -3887,16 +4184,16 @@ describe("builder store", () => {
           {
             success: true,
             value: {
-              entityId: "entity1",
-              clonedEntityId: "1",
+              sourceEntityRef: createEntityRef("textField", "entity1"),
+              clonedEntityRef: createEntityRef("textField", "1"),
               index: 1,
             },
           },
           {
             success: true,
             value: {
-              entityId: "entity2",
-              clonedEntityId: "4",
+              sourceEntityRef: createEntityRef("textField", "entity2"),
+              clonedEntityRef: createEntityRef("textField", "4"),
               index: 0,
             },
           },
@@ -3955,7 +4252,7 @@ describe("builder store", () => {
           description: "invalid entity ID provided",
           entityId: "nonExistentEntity",
           expectedError: {
-            instance: EntityNotFoundError,
+            instance: ReferencedEntityNotFoundError,
             properties: {
               entityId: "nonExistentEntity",
             },
@@ -3998,7 +4295,7 @@ describe("builder store", () => {
       ] as const)(
         "should fail with $description",
         ({ entityId, expectedError, index, generatedId }) => {
-          const builder = createBuilderDefinition({
+          const builder = createBuilder({
             entities: {
               textField: createEntityDefinition(),
             },
@@ -4023,7 +4320,7 @@ describe("builder store", () => {
           assertSuccessResult(builderStoreResult);
 
           const result = builderStoreResult.value.cloneEntity(
-            entityId,
+            createEntityRef("textField", entityId),
             index ? { index } : undefined,
           );
 
