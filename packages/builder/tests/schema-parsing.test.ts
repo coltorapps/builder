@@ -9,16 +9,14 @@ import { createEntityDefinition } from "../src/entity-definition";
 import {
   ChildNotAllowedError,
   EntitiesAttributesParseError,
-  EntityAttributeParseError,
   InvalidEntityIdError,
   InvalidEntityTypeError,
   ParentNotAllowedError,
   ParentRequiredError,
   parseDraftSchema,
-  parseSchema,
-  ReferencedEntityNotFoundError,
   SchemaStructuralError,
 } from "../src/schema-parsing";
+import { createEntityRef } from "../src/utils";
 import { assertErrorResult } from "./utils";
 
 const builder = createBuilder({
@@ -351,6 +349,7 @@ describe("parseDraftSchema", () => {
         expectedError: {
           instance: InvalidEntityTypeError,
           payload: {
+            entityId: uuids[0],
             entityType: "invalid type",
             validEntityTypes: [
               "textField",
@@ -573,7 +572,9 @@ describe("parseDraftSchema", () => {
         expectedError: {
           instance: ChildNotAllowedError,
           payload: {
-            entityType: "textField",
+            entityRef: createEntityRef("textField", uuids[1]),
+            disallowedChildEntityType: "textField",
+            allowedChildren: [],
           },
         },
       },
@@ -591,7 +592,7 @@ describe("parseDraftSchema", () => {
         expectedError: {
           instance: ParentRequiredError,
           payload: {
-            entityType: "withParentRequired",
+            entityRef: createEntityRef("withParentRequired", uuids[1]),
           },
         },
       },
@@ -609,7 +610,7 @@ describe("parseDraftSchema", () => {
         expectedError: {
           instance: ParentRequiredError,
           payload: {
-            entityType: "withOverridenParentRequired",
+            entityRef: createEntityRef("withOverridenParentRequired", uuids[1]),
           },
         },
       },
@@ -633,7 +634,8 @@ describe("parseDraftSchema", () => {
         expectedError: {
           instance: ParentNotAllowedError,
           payload: {
-            entityType: "withParentNotAllowed",
+            entityRef: createEntityRef("withParentNotAllowed", uuids[1]),
+            disallowedParentEntityType: "withChildrenAllowed",
             allowedParents: [],
           },
         },
@@ -658,7 +660,11 @@ describe("parseDraftSchema", () => {
         expectedError: {
           instance: ParentNotAllowedError,
           payload: {
-            entityType: "withOverridenParentNotAllowed",
+            entityRef: createEntityRef(
+              "withOverridenParentNotAllowed",
+              uuids[1],
+            ),
+            disallowedParentEntityType: "withChildrenAllowed",
             allowedParents: [],
           },
         },
@@ -683,7 +689,8 @@ describe("parseDraftSchema", () => {
         expectedError: {
           instance: ParentNotAllowedError,
           payload: {
-            entityType: "withSpecificParentAllowed",
+            entityRef: createEntityRef("withSpecificParentAllowed", uuids[1]),
+            disallowedParentEntityType: "withChildrenAllowed",
             allowedParents: ["withOverridenChildrenAllowed"],
           },
         },
@@ -708,7 +715,8 @@ describe("parseDraftSchema", () => {
         expectedError: {
           instance: ChildNotAllowedError,
           payload: {
-            entityType: "withSpecificChildrenAllowed",
+            entityRef: createEntityRef("withSpecificChildrenAllowed", uuids[0]),
+            disallowedChildEntityType: "withParentRequired",
             allowedChildren: ["textField"],
           },
         },

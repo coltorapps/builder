@@ -7,7 +7,6 @@ import { z } from "zod";
 import { createAttributeDefinition } from "../src/attribute-definition";
 import { createBuilder } from "../src/builder";
 import {
-  collectEntityDescendants,
   createBuilderStore,
   EntitiesAttributesErrorsParseError,
   EntityIdAlreadyExistsError,
@@ -15,9 +14,9 @@ import {
   parseEntitiesAttributesErrors,
 } from "../src/builder-store";
 import { createEntityDefinition } from "../src/entity-definition";
-import { createAttributeRef, createEntityRef } from "../src/generic-store";
 import {
   ChildNotAllowedError,
+  collectEntityDescendants,
   EntityAttributeParseError,
   EntityAttributesParseError,
   InvalidAttributeNameError,
@@ -29,12 +28,18 @@ import {
   SchemaStructuralError,
 } from "../src/schema-parsing";
 import {
-  EntitiesAttributesErrors,
   EntitiesAttributesValidationError,
   EntityAttributesValidationError,
   EntityAttributeValidationError,
+  type EntitiesAttributesErrors,
+  type RawEntitiesAttributesErrors,
 } from "../src/schema-validation";
-import { Result, runSyncAsResult } from "../src/utils";
+import {
+  createAttributeRef,
+  createEntityRef,
+  runSyncAsResult,
+  type Result,
+} from "../src/utils";
 import { assertErrorResult, assertSuccessResult } from "./utils";
 
 describe("collectEntityDescendants", () => {
@@ -163,7 +168,7 @@ describe("parseAttributeErrors", () => {
           instance: EntitiesAttributesErrorsParseError,
           causeInstance: InvalidAttributeNameError,
           cause: {
-            entityType: "textField",
+            entityRef: createEntityRef("textField", "entity1"),
             attributeName: "invalidAttr",
             validAttributeNames: ["label"],
           },
@@ -171,7 +176,11 @@ describe("parseAttributeErrors", () => {
       },
     ])("should fail when $description", ({ errors, expectedError }) => {
       const result = runSyncAsResult(
-        parseEntitiesAttributesErrors(errors, schema, builder),
+        parseEntitiesAttributesErrors(
+          errors as RawEntitiesAttributesErrors<typeof builder>,
+          schema,
+          builder,
+        ),
       );
 
       assertErrorResult(result);
@@ -276,7 +285,7 @@ describe("builder store", () => {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: InvalidAttributeNameError,
             cause: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "invalidAttr",
               validAttributeNames: ["label"],
             },
@@ -777,7 +786,10 @@ describe("builder store", () => {
           },
           expectedError: {
             instance: InvalidEntityTypeError,
-            payload: { entityType: "nonExistentType" },
+            payload: {
+              entityId: "valid_entity1",
+              entityType: "nonExistentType",
+            },
           },
         },
         {
@@ -790,7 +802,9 @@ describe("builder store", () => {
           },
           expectedError: {
             instance: EntityIdAlreadyExistsError,
-            payload: { entityId: "valid_container1" },
+            payload: {
+              entityRef: createEntityRef("container", "valid_container1"),
+            },
           },
         },
         {
@@ -854,7 +868,7 @@ describe("builder store", () => {
           },
           expectedError: {
             instance: ParentRequiredError,
-            payload: { entityType: "textField" },
+            payload: { entityRef: createEntityRef("textField", "valid_id") },
           },
         },
         {
@@ -871,7 +885,7 @@ describe("builder store", () => {
           expectedError: {
             instance: InvalidAttributeNameError,
             payload: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "valid_id"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["label"],
             },
@@ -903,7 +917,11 @@ describe("builder store", () => {
           expectedError: {
             instance: ChildNotAllowedError,
             payload: {
-              entityType: "restrictedContainer",
+              entityRef: createEntityRef(
+                "restrictedContainer",
+                "valid_restricted1",
+              ),
+              disallowedChildEntityType: "textField",
               allowedChildren: ["container", "specialField"],
             },
           },
@@ -920,7 +938,8 @@ describe("builder store", () => {
           expectedError: {
             instance: ParentNotAllowedError,
             payload: {
-              entityType: "specialField",
+              entityRef: createEntityRef("specialField", "valid_specialfield1"),
+              disallowedParentEntityType: "container",
               allowedParents: ["restrictedContainer"],
             },
           },
@@ -938,6 +957,7 @@ describe("builder store", () => {
           expectedError: {
             instance: EntityAttributesParseError,
             payload: {
+              entityRef: createEntityRef("textField", "valid_id"),
               errors: { label: "Label must be a non-empty string" },
             },
           },
@@ -1304,7 +1324,7 @@ describe("builder store", () => {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: InvalidAttributeNameError,
             cause: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "invalidAttr",
               validAttributeNames: [],
             },
@@ -1772,11 +1792,11 @@ describe("builder store", () => {
             "move entity from parent to another parent without index",
           action: (builderStore: ReturnType<typeof makeBuilderStore>) =>
             builderStore.setEntityParent(
-              createEntityRef("textField", "entity4"),
+              createEntityRef("restrictedField", "entity4"),
               createEntityRef("container", "container1"),
             ),
           expectedResult: {
-            entityRef: createEntityRef("textField", "entity4"),
+            entityRef: createEntityRef("restrictedField", "entity4"),
             parentRef: createEntityRef("container", "container1"),
             index: 1,
           },
@@ -1963,13 +1983,15 @@ describe("builder store", () => {
           description: "entity requires parent but moving to root",
           action: () => {
             return makeBuilderStore().setEntityParent(
-              createEntityRef("textField", "entity4"),
+              createEntityRef("restrictedField", "entity4"),
               undefined,
             );
           },
           expectedError: {
             instance: ParentRequiredError,
-            payload: { entityType: "restrictedField" },
+            payload: {
+              entityRef: createEntityRef("restrictedField", "entity4"),
+            },
           },
         },
         {
@@ -1983,7 +2005,8 @@ describe("builder store", () => {
           expectedError: {
             instance: ParentNotAllowedError,
             payload: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
+              disallowedParentEntityType: "noChildrenContainer",
               allowedParents: ["container"],
             },
           },
@@ -1999,7 +2022,8 @@ describe("builder store", () => {
           expectedError: {
             instance: ChildNotAllowedError,
             payload: {
-              entityType: "container",
+              entityRef: createEntityRef("container", "container1"),
+              disallowedChildEntityType: "noChildrenContainer",
               allowedChildren: ["textField", "restrictedField"],
             },
           },
@@ -2016,7 +2040,8 @@ describe("builder store", () => {
           expectedError: {
             instance: ParentNotAllowedError,
             payload: {
-              entityType: "rootOnlyEntity",
+              entityRef: createEntityRef("rootOnlyEntity", "rootOnlyEntity1"),
+              disallowedParentEntityType: "container",
               allowedParents: [],
             },
           },
@@ -2146,7 +2171,7 @@ describe("builder store", () => {
           expectedError: {
             instance: InvalidAttributeNameError,
             properties: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["label"],
             },
@@ -2160,9 +2185,7 @@ describe("builder store", () => {
           expectedError: {
             instance: EntityAttributeParseError,
             properties: {
-              entityId: "entity1",
-              entityType: "textField",
-              attributeName: "label",
+              attributeRef: createAttributeRef("textField", "entity1", "label"),
               cause: "Label must be a string",
             },
           },
@@ -2175,9 +2198,7 @@ describe("builder store", () => {
           expectedError: {
             instance: EntityAttributeParseError,
             properties: {
-              entityId: "entity1",
-              entityType: "textField",
-              attributeName: "label",
+              attributeRef: createAttributeRef("textField", "entity1", "label"),
               cause: "Label must be a string",
             },
           },
@@ -2335,7 +2356,7 @@ describe("builder store", () => {
           expectedError: {
             instance: InvalidAttributeNameError,
             properties: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["withDefaultValue", "withoutDefaultValue"],
             },
@@ -2443,7 +2464,7 @@ describe("builder store", () => {
           expectedError: {
             instance: InvalidAttributeNameError,
             properties: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["label", "required"],
             },
@@ -2637,7 +2658,7 @@ describe("builder store", () => {
           expectedError: {
             instance: InvalidAttributeNameError,
             properties: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["label"],
             },
@@ -2761,7 +2782,7 @@ describe("builder store", () => {
           expectedError: {
             instance: InvalidAttributeNameError,
             properties: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["label", "required"],
             },
@@ -2866,7 +2887,7 @@ describe("builder store", () => {
           expectedError: {
             instance: InvalidAttributeNameError,
             properties: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["label"],
             },
@@ -3197,7 +3218,7 @@ describe("builder store", () => {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: InvalidAttributeNameError,
             cause: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["label", "required"],
             },
@@ -3233,7 +3254,7 @@ describe("builder store", () => {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: InvalidAttributeNameError,
             cause: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: ["label", "required"],
             },
@@ -3505,7 +3526,7 @@ describe("builder store", () => {
           expectedError: {
             instance: InvalidAttributeNameError,
             properties: {
-              entityType: "textField",
+              entityRef: createEntityRef("textField", "entity1"),
               attributeName: "nonExistentAttribute",
               validAttributeNames: [
                 "parse",
@@ -3536,9 +3557,7 @@ describe("builder store", () => {
           expectedError: {
             instance: EntityAttributeValidationError,
             properties: {
-              entityId: "entity1",
-              entityType: "textField",
-              attributeName: "parse",
+              attributeRef: createAttributeRef("textField", "entity1", "parse"),
               cause: "must be a string",
             },
           },
@@ -3586,9 +3605,11 @@ describe("builder store", () => {
           expectedError: {
             instance: EntityAttributeValidationError,
             properties: {
-              entityId: "entity1",
-              entityType: "textField",
-              attributeName: "parseAndRefine",
+              attributeRef: createAttributeRef(
+                "textField",
+                "entity1",
+                "parseAndRefine",
+              ),
               cause: "Refine fail",
             },
           },
@@ -3823,6 +3844,7 @@ describe("builder store", () => {
         expect(result.error).toBeInstanceOf(EntityAttributesValidationError);
 
         expect(result.error).toMatchObject({
+          entityRef: createEntityRef("textField", "entity1"),
           errors: {
             shouldFail: "must not be 'fail-parsed'",
           },
@@ -4277,7 +4299,7 @@ describe("builder store", () => {
           expectedError: {
             instance: EntityIdAlreadyExistsError,
             properties: {
-              entityId: "entity1",
+              entityRef: createEntityRef("textField", "entity1"),
             },
           },
         },

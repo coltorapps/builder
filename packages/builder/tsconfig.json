@@ -3,6 +3,6 @@
   "include": ["src", "tests", "tsup.config.ts", "vitest.config.ts"],
   "compilerOptions": {
     "stripInternal": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": true
   }
 }

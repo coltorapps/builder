@@ -1,44 +1,213 @@
-import { describe } from "node:test";
-import { it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createAttributeDefinition } from "../src/attribute-definition";
 import { createBuilder } from "../src/builder";
-import { parseEntitiesValues } from "../src/entities-values-parsing";
+import {
+  EntitiesValuesStructuralError,
+  EntityUnprocessableError,
+  EntityValueNotAllowedError,
+  parseDraftEntitiesValues,
+  parseEntitiesValues,
+} from "../src/entities-values-parsing";
 import { createEntityDefinition } from "../src/entity-definition";
-import { validateSchema } from "../src/schema-validation";
+import { createEntityRef } from "../src/utils";
+import { ReferencedEntityNotFoundError, SchemaStructuralError } from "../src/schema-parsing";
 
-describe("test", () => {
-  it("test", () => {
-    const builder = createBuilder({
-      entities: {
-        textField: createEntityDefinition({
-          parse(value) {
-            return z.string().safeParse(value);
+const builder = createBuilder({
+  entities: {
+    unprocessableSection: createEntityDefinition({
+      shouldBeProcessed: () => false,
+      childrenAllowed: true,
+    }),
+    textField: createEntityDefinition({
+      parse: (value) => z.string().toUpperCase().safeParse(value),
+    }),
+    selectField: createEntityDefinition({
+      parse: (value) => z.string().toUpperCase().optional().safeParse(value),
+    }),
+    valueProhibited: createEntityDefinition(),
+  },
+  validateEntityId: (id) => typeof id === "string",
+});
+
+describe("parseEntitiesValues", () => {
+  describe("success cases", () => {
+    it("should succeed when valid entities values provided", () => {
+      const schema = {
+        entities: {
+          textField: {
+            type: "textField",
+            attributes: {},
           },
-          attributes: {
-            label: createAttributeDefinition({
-              parse: (value) => {
-                return z.string().safeParse(value);
-              },
-            }),
+          selectField: {
+            type: "selectField",
+            attributes: {},
           },
-          shouldBeProcessed: (ctx) => ctx.entity.id === "textField2",
-        }),
-      },
-      validateEntityId: (id) => typeof id === "string",
+        },
+        root: ["textField", "selectField"],
+      } as const;
+
+      const result = parseEntitiesValues(
+        { textField: "value" },
+        schema,
+        builder,
+      );
+
+      expect(result).toStrictEqual({
+        success: true,
+        value: {
+          textField: "VALUE",
+          selectField: undefined,
+        },
+      });
     });
+  });
 
-    const schema = {
-      entities: {
-        textField: { type: "textField", attributes: { label: 'a' } },
-        textField2: { type: "textField", attributes: { label: 'a' } },
+  describe("failure cases", () => {
+    it.each([
+      {
+        description: "unprocessable entities values provided",
+        schema: {
+          entities: {
+            unprocessableSection: {
+              type: "unprocessableSection",
+              attributes: {},
+              children: ["textField"],
+            },
+            textField: {
+              type: "textField",
+              attributes: {},
+              parentId: "unprocessableSection",
+            },
+          },
+          root: ["unprocessableSection"],
+        } as const,
+        values: { textField: "123" },
+        expectedError: {
+          instance: EntityUnprocessableError,
+          payload: {
+            entityRef: createEntityRef("textField", "textField"),
+            sourceEntityRef: createEntityRef(
+              "unprocessableSection",
+              "unprocessableSection",
+            ),
+          },
+        },
       },
-      root: ["textField", "textField2"],
-    } as const;
+      {
+        description: "prohibited entities values provided",
+        schema: {
+          entities: {
+            valueProhibited: {
+              type: "valueProhibited",
+              attributes: {},
+            },
+          },
+          root: ["valueProhibited"],
+        } as const,
+        values: { valueProhibited: 123 },
+        expectedError: {
+          instance: EntityValueNotAllowedError,
+          payload: {
+            entityRef: createEntityRef("valueProhibited", "valueProhibited"),
+          },
+        },
+      },
+      {
+        description: "invalid schema provided",
+        schema: {
+          entities: {},
+          root: ["invalid"],
+        },
+        values: {},
+        expectedError: {
+          instance: SchemaStructuralError,
+          payload: {
+            issues: [
+              {
+                _tag: "Type",
+                path: ["root", 0],
+                message: "Invalid ID reference",
+              },
+            ],
+          },
+        },
+      },
+      {
+        description: "invalid entities values shape provided",
+        schema: {
+          entities: {},
+          root: [],
+        },
+        values: "invalid",
+        expectedError: {
+          instance: EntitiesValuesStructuralError,
+          payload: {
+            issues: [
+              {
+                _tag: "Type",
+                path: [],
+                message: 'Expected EntitiesValues, actual "invalid"',
+              },
+            ],
+          },
+        },
+      },
+      {
+        description: "invalid entity reference provided",
+        schema: {
+          entities: {},
+          root: [],
+        },
+        values: {
+          invalid: 123,
+        },
+        expectedError: {
+          instance: ReferencedEntityNotFoundError,
+          payload: {
+            entityId: "invalid",
+          },
+        },
+      },
+    ])("should fail when $description", ({ values, schema, expectedError }) => {
+      const result = parseEntitiesValues(values, schema, builder);
 
-    const result = parseEntitiesValues({ textField2: "2" }, schema, builder);
+      expect(result.error).toBeInstanceOf(expectedError.instance);
 
-    console.log(JSON.stringify(result, null, 2));
+      expect(result.error).toMatchObject(expectedError.payload);
+    });
+  });
+});
+
+describe("parseDraftEntitiesValues", () => {
+  describe("success cases", () => {
+    it("should succeed when valid and partial entities values provided", () => {
+      const schema = {
+        entities: {
+          textField1: {
+            type: "textField",
+            attributes: {},
+          },
+          textField2: {
+            type: "textField",
+            attributes: {},
+          },
+        },
+        root: ["textField1", "textField2"],
+      } as const;
+
+      const result = parseDraftEntitiesValues(
+        { textField1: "value" },
+        schema,
+        builder,
+      );
+
+      expect(result).toStrictEqual({
+        success: true,
+        value: {
+          textField1: "VALUE",
+        },
+      });
+    });
   });
 });

@@ -1,17 +1,17 @@
-import { Builder } from "./builder";
-import { EntityDefinition } from "./entity-definition";
-import { DraftSchema } from "./schema-parsing";
+import { type Builder } from "./builder";
+import { type EntityDefinition } from "./entity-definition";
+import { type DraftSchema } from "./schema-parsing";
 import {
-  KeyofStringIntersection,
   normalizeResult,
-  ParseFunction,
-  RefineFunction,
-  RefineResult,
-  Result,
-  UnnormalizedParseFunction,
-  UnnormalizedRefineFunction,
-  UnnormalizedRefineResult,
-  UnnormalizedResult,
+  type KeyofStringIntersection,
+  type ParseFunction,
+  type RefineFunction,
+  type RefineResult,
+  type Result,
+  type UnnormalizedParseFunction,
+  type UnnormalizedRefineFunction,
+  type UnnormalizedRefineResult,
+  type UnnormalizedResult,
 } from "./utils";
 
 export interface ContextAttributeDefinition<
@@ -128,21 +128,21 @@ export function createAttributeDefinition<
   TMetadata = never,
 >(
   options: {
-    metadata?: TMetadata;
-    parse: UnnormalizedParseFunction<
+    readonly metadata?: TMetadata;
+    readonly parse: UnnormalizedParseFunction<
       UnnormalizedResult<TValue, TParseError>,
       AttributeDefinitionParseContext<
         AttributeDefinition<unknown, unknown, unknown, TMetadata>
       >
     >;
-    defaultValue?(
+    readonly defaultValue?: (
       ctx: AttributeDefinitionDefaultValueContext<
         AttributeDefinition<unknown, unknown, unknown, TMetadata>
       >,
-    ): TValue;
+    ) => TValue;
   },
   secondOptions?: {
-    refine?: UnnormalizedRefineFunction<
+    readonly refine?: UnnormalizedRefineFunction<
       TValue,
       UnnormalizedRefineResult<TValue, TRefineError>,
       AttributeDefinitionRefineContext<

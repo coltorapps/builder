@@ -3,35 +3,63 @@ import * as D from "effect/Data";
 import * as E from "effect/Effect";
 import * as Ei from "effect/Either";
 import { pipe } from "effect/Function";
+import * as HM from "effect/HashMap";
+import * as HS from "effect/HashSet";
 import * as O from "effect/Option";
 import * as P from "effect/ParseResult";
 import * as R from "effect/Record";
 import * as S from "effect/Schema";
 
-import { Builder, getEntityDefinitionDangerously } from "./builder";
 import {
-  EntityDefinition,
-  InferEntityDefinitionParsedValue,
+  getEntityDefinitionDangerously,
+  type Builder,
+  type BuilderBrand,
+} from "./builder";
+import {
+  type EntityDefinition,
+  type EntityDefinitionRefineContext,
+  type InferEntityDefinitionParsedValue,
 } from "./entity-definition";
 import {
-  ParsedSchema,
+  collectEntityDescendants,
+  getSchemaEntityById,
   parseSchemaEffectfully,
-  ParseSchemaError,
-  ReferencedEntityNotFoundError,
+  validateSchemaEntityIdExists,
+  type ParsedSchema,
+  type ParseSchemaError,
+  type ReferencedEntityNotFoundError,
 } from "./schema-parsing";
-import { Result, runSyncAsResult } from "./utils";
+import {
+  createEntityRef,
+  runSyncAsResult,
+  type EntityRef,
+  type Result,
+} from "./utils";
 
-export class EntityValueNotAllowedError extends D.TaggedError(
-  "EntityValueNotAllowedError",
-)<{
-  readonly entityId: string;
-  readonly entityType: string;
+type RawEntitiesValues<TBuilder extends Builder> = Record<
+  string,
+  InferEntityDefinitionParsedValue<
+    TBuilder["entities"][keyof TBuilder["entities"]]
+  >
+>;
+
+type DraftEntitiesValues<TBuilder extends Builder> =
+  RawEntitiesValues<TBuilder> & BuilderBrand<TBuilder>;
+
+type EntitiesValues<TBuilder extends Builder> = RawEntitiesValues<TBuilder> &
+  BuilderBrand<TBuilder>;
+
+export class EntityValueNotAllowedError<
+  TBuilder extends Builder = Builder,
+> extends D.TaggedError("EntityValueNotAllowedError")<{
+  readonly entityRef: EntityRef<TBuilder>;
 }> {}
 
-export class EntityUnprocessableError extends D.TaggedError(
-  "EntityUnprocessableError",
-)<{
-  readonly entityId: string;
+export class EntityUnprocessableError<
+  TBuilder extends Builder = Builder,
+> extends D.TaggedError("EntityUnprocessableError")<{
+  readonly entityRef: EntityRef<TBuilder>;
+  readonly sourceEntityRef: EntityRef<TBuilder>;
 }> {}
 
 export class EntitiesValuesStructuralError extends D.TaggedError(
@@ -49,141 +77,230 @@ export class EntitiesValuesParseError extends D.TaggedError(
   readonly errors: EntitiesValuesParseErrors;
 }> {}
 
-type ParseEntityValueError =
-  | EntityValueNotAllowedError
+export type UnprocessableEntities = HM.HashMap<string, { sourceId: string }>;
+
+type ParseEntityValueError<TBuilder extends Builder = Builder> =
+  | EntityValueNotAllowedError<TBuilder>
   | ReferencedEntityNotFoundError
-  | EntityUnprocessableError;
+  | EntityUnprocessableError<TBuilder>;
 
 function parseEntityValue(
   entityId: string,
   entityType: string,
   entityValue: unknown,
   entityDef: EntityDefinition,
-  entitiesValues: Record<string, unknown>,
   schema: ParsedSchema,
-  builder: Builder,
 ): E.Effect<Ei.Either<unknown, unknown>, ParseEntityValueError> {
   return pipe(
-    R.get(schema.entities, entityId),
-    O.map((entity) =>
+    getSchemaEntityById(entityId, schema.entities),
+    E.flatMap((entity) =>
       pipe(
-        E.fail(new EntityValueNotAllowedError({ entityId, entityType })),
-        E.unless(() => entityDef.valueAllowed),
-        E.flatMap(() => E.fail(new EntityUnprocessableError({ entityId }))),
-        E.unless(() =>
-          pipe(
-            {
-              entity: {
-                id: entityId,
-                type: entityType,
-                attributes: pipe(
-                  R.toEntries(entity.attributes),
-                  A.map(
-                    ([attributeName, attributeValue]) =>
-                      [
-                        attributeName,
-                        {
-                          metadata:
-                            entityDef.attributes[attributeName]?.metadata,
-                          name: attributeName,
-                          value: attributeValue,
-                        },
-                      ] as const,
-                  ),
-                  R.fromEntries,
-                ),
-                parentId: entity.parentId,
-                children: entity.children,
-                metadata: entityDef.metadata,
-              },
-              schema,
-              entities: pipe(
-                R.toEntries(schema.entities),
-                A.map(
-                  ([id, ent]) =>
-                    [
-                      id,
-                      {
-                        id,
-                        type: ent.type,
-                        attributes: pipe(
-                          R.toEntries(ent.attributes),
-                          A.map(
-                            ([key, val]) =>
-                              [
-                                key,
-                                {
-                                  metadata:
-                                    builder.entities[ent.type]?.attributes?.[
-                                      key
-                                    ]?.metadata,
-                                  name: key,
-                                  value: val,
-                                },
-                              ] as const,
-                          ),
-                          R.fromEntries,
-                        ),
-                        parentId: ent.parentId,
-                        children: ent.children,
-                        metadata: builder.entities[ent.type]?.metadata,
-                        value: entitiesValues[id],
-                      },
-                    ] as const,
-                ),
-                R.fromEntries,
-              ),
-            },
-            (baseContext) =>
-              pipe(
-                O.fromNullable(
-                  builder.entityOverrides?.[entityType]?.shouldBeProcessed,
-                ),
-                O.map((override) =>
-                  override({
-                    ...baseContext,
-                    shouldBeProcessed: () =>
-                      entityDef.shouldBeProcessed(baseContext),
-                  }),
-                ),
-                O.getOrElse(() => entityDef.shouldBeProcessed(baseContext)),
-              ),
-          ),
+        E.fail(
+          new EntityValueNotAllowedError({
+            entityRef: createEntityRef(entityType, entityId),
+          }),
         ),
+        E.unless(() => entityDef.valueAllowed),
         E.map(() =>
           pipe(
-            entityDef.parse(entityValue, {
-              entity: {
-                id: entityId,
-                type: entityType,
-                attributes: pipe(
-                  R.toEntries(entity.attributes),
-                  A.map(
-                    ([key, val]) =>
-                      [
-                        key,
-                        {
-                          metadata: entityDef.attributes[key]?.metadata,
-                          name: key,
-                          value: val,
-                        },
-                      ] as const,
-                  ),
-                  R.fromEntries,
-                ),
-                parentId: entity.parentId,
-                children: entity.children,
-                metadata: entityDef.metadata,
-              },
-              schema,
-            }),
+            R.toEntries(entity.attributes),
+            A.map((entry) =>
+              pipe(
+                entry,
+                ([attributeName, attributeValue]) =>
+                  [
+                    attributeName,
+                    {
+                      metadata: entityDef.attributes[attributeName]?.metadata,
+                      name: attributeName,
+                      value: attributeValue,
+                    },
+                  ] as const,
+              ),
+            ),
+            R.fromEntries,
+            (attributes) =>
+              entityDef.parse(entityValue, {
+                entity: {
+                  id: entityId,
+                  type: entity.type,
+                  attributes,
+                  parentId: entity.parentId,
+                  children: entity.children,
+                  metadata: entityDef.metadata,
+                },
+                schema,
+              }),
             (result) =>
               !result.success ? Ei.left(result.error) : Ei.right(result.value),
           ),
         ),
       ),
     ),
-    O.getOrElse(() => E.fail(new ReferencedEntityNotFoundError({ entityId }))),
+  );
+}
+
+export function computeUnprocessableEntities<TBuilder extends Builder>(
+  schema: ParsedSchema<TBuilder>,
+  builder: TBuilder,
+  entitiesValues: Record<string, unknown>,
+): E.Effect<UnprocessableEntities, ReferencedEntityNotFoundError> {
+  return pipe(
+    R.toEntries(schema.entities),
+    A.filterMap(([id, schemaEntity]) =>
+      pipe(
+        R.get(builder.entities, schemaEntity.type),
+        O.map((builderEntityDefinition) =>
+          pipe(
+            R.toEntries(schemaEntity.attributes),
+            A.map((entry) =>
+              pipe(
+                entry,
+                ([attributeName, attributeValue]) =>
+                  [
+                    attributeName,
+                    {
+                      metadata:
+                        builderEntityDefinition.attributes?.[attributeName]
+                          ?.metadata,
+                      name: attributeName,
+                      value: attributeValue,
+                    },
+                  ] as const,
+              ),
+            ),
+            R.fromEntries,
+            (attributes) =>
+              [
+                id,
+                {
+                  id,
+                  type: schemaEntity.type,
+                  attributes,
+                  parentId: schemaEntity.parentId,
+                  children: schemaEntity.children,
+                  metadata: builderEntityDefinition.metadata,
+                  value: entitiesValues[id],
+                },
+              ] as const,
+          ),
+        ),
+      ),
+    ),
+    R.fromEntries,
+    (entitiesRecord) =>
+      pipe(
+        R.toEntries(schema.entities),
+        E.reduce(
+          {
+            unprocessable: HM.empty<string, { sourceId: string }>(),
+            checked: HS.empty<string>(),
+          },
+          (acc, [entityId, entity]) =>
+            pipe(
+              E.if(HS.has(acc.checked, entityId), {
+                onTrue: () => E.succeed(acc),
+                onFalse: () =>
+                  pipe(
+                    getEntityDefinitionDangerously(entity.type, builder),
+                    (entityDef) =>
+                      pipe(
+                        O.fromNullable(
+                          builder.entityOverrides?.[entity.type]
+                            ?.shouldBeProcessed,
+                        ),
+                        O.map(
+                          (overrideFn) =>
+                            (ctx: EntityDefinitionRefineContext) =>
+                              overrideFn({
+                                ...ctx,
+                                shouldBeProcessed: () =>
+                                  entityDef.shouldBeProcessed(ctx),
+                              }),
+                        ),
+                        O.getOrElse(
+                          () => (ctx: EntityDefinitionRefineContext) =>
+                            entityDef.shouldBeProcessed(ctx),
+                        ),
+                        (shouldBeProcessedFn) =>
+                          shouldBeProcessedFn({
+                            entity: pipe(
+                              R.get(entitiesRecord, entityId),
+                              O.getOrThrow,
+                            ),
+                            schema,
+                            entities: entitiesRecord,
+                          }),
+                        (isProcessable) =>
+                          E.if(!isProcessable, {
+                            onTrue: () =>
+                              pipe(
+                                collectEntityDescendants(entityId, schema),
+                                E.map((descendants) =>
+                                  pipe(
+                                    descendants,
+                                    A.reduce(
+                                      {
+                                        unprocessable: HM.set(
+                                          acc.unprocessable,
+                                          entityId,
+                                          { sourceId: entityId },
+                                        ),
+                                        checked: HS.add(acc.checked, entityId),
+                                      },
+                                      (innerAcc, descendantId) => ({
+                                        unprocessable: HM.set(
+                                          innerAcc.unprocessable,
+                                          descendantId,
+                                          { sourceId: entityId },
+                                        ),
+                                        checked: HS.add(
+                                          innerAcc.checked,
+                                          descendantId,
+                                        ),
+                                      }),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            onFalse: () =>
+                              E.succeed({
+                                unprocessable: acc.unprocessable,
+                                checked: HS.add(acc.checked, entityId),
+                              }),
+                          }),
+                      ),
+                  ),
+              }),
+            ),
+        ),
+        E.map((result) => result.unprocessable),
+      ),
+  );
+}
+
+function validateEntityIdProcessable(
+  entityId: string,
+  entityType: string,
+  unprocessableEntities: UnprocessableEntities,
+  schema: ParsedSchema,
+): E.Effect<void, EntityUnprocessableError | ReferencedEntityNotFoundError> {
+  return pipe(
+    HM.get(unprocessableEntities, entityId),
+    O.map(({ sourceId }) =>
+      pipe(
+        getSchemaEntityById(sourceId, schema.entities),
+        E.flatMap((sourceEntity) =>
+          E.fail(
+            new EntityUnprocessableError({
+              entityRef: createEntityRef(entityType, entityId),
+              sourceEntityRef: createEntityRef(sourceEntity.type, sourceId),
+            }),
+          ),
+        ),
+      ),
+    ),
+    O.getOrElse(() => E.void),
   );
 }
 
@@ -191,36 +308,28 @@ export function parseAndPartitionEntitiesValues<TBuilder extends Builder>(
   entitiesValues: Record<string, unknown>,
   schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
+  options?: ParseEntitiesValuesOptions,
 ): E.Effect<
   {
     errors: EntitiesValuesParseErrors;
-    values: Record<
-      string,
-      InferEntityDefinitionParsedValue<
-        TBuilder["entities"][keyof TBuilder["entities"]]
-      >
-    >;
+    values: RawEntitiesValues<TBuilder>;
   },
-  ParseEntityValueError | ReferencedEntityNotFoundError
+  ParseEntityValueError<TBuilder>
 > {
   return pipe(
     R.keys(entitiesValues),
-    A.findFirst((entityId) => !R.has(schema.entities, entityId)),
-    O.map((entityId) =>
-      E.fail(
-        new ReferencedEntityNotFoundError({
-          entityId,
-        }),
-      ),
+    E.forEach((entityId) =>
+      validateSchemaEntityIdExists(entityId, schema.entities),
     ),
-    O.getOrElse(() =>
+    E.flatMap(() =>
       pipe(
         R.toEntries(schema.entities),
         A.filterMap(([entityId, entity]) =>
-          pipe(
-            R.get(entitiesValues, entityId),
-            O.map((value) => [entityId, entity, value] as const),
-          ),
+          R.has(entitiesValues, entityId) ||
+          (options?.parseMissingValues === true &&
+            getEntityDefinitionDangerously(entity.type, builder).valueAllowed)
+            ? O.some([entityId, entity, entitiesValues[entityId]] as const)
+            : O.none(),
         ),
         A.map(([entityId, entity, value]) =>
           pipe(
@@ -231,9 +340,7 @@ export function parseAndPartitionEntitiesValues<TBuilder extends Builder>(
                 entity.type,
                 value,
                 entityDefinition,
-                entitiesValues,
                 schema,
-                builder,
               ),
             E.map((either) => [entityId, either] as const),
           ),
@@ -257,24 +364,29 @@ export function parseAndPartitionEntitiesValues<TBuilder extends Builder>(
   );
 }
 
-type ParseEntitiesValuesError =
+type ParseEntitiesValuesError<TBuilder extends Builder> =
   | EntitiesValuesStructuralError
   | EntitiesValuesParseError
-  | ParseSchemaError
-  | ParseEntityValueError;
+  | ParseSchemaError<TBuilder>
+  | ParseEntityValueError<TBuilder>;
 
-export function parseEntitiesValuesEffectfully<TBuilder extends Builder>(
+type ParseEntitiesValuesOptions = {
+  parseMissingValues?: boolean;
+};
+
+export function parseEntitiesValuesWithOptions<
+  TBuilder extends Builder,
+  TOptions extends ParseEntitiesValuesOptions,
+>(
   entitiesValues: unknown,
   schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
+  options?: TOptions,
 ): E.Effect<
-  Record<
-    string,
-    InferEntityDefinitionParsedValue<
-      TBuilder["entities"][keyof TBuilder["entities"]]
-    >
-  >,
-  ParseEntitiesValuesError
+  TOptions["parseMissingValues"] extends true
+    ? EntitiesValues<TBuilder>
+    : DraftEntitiesValues<TBuilder>,
+  ParseEntitiesValuesError<TBuilder>
 > {
   return pipe(
     parseSchemaEffectfully(schema, builder),
@@ -293,16 +405,6 @@ export function parseEntitiesValuesEffectfully<TBuilder extends Builder>(
             errors: "all",
           },
         ),
-        E.flatMap((values) =>
-          parseAndPartitionEntitiesValues(values, parsedSchema, builder),
-        ),
-        E.flatMap(({ errors, values }) =>
-          pipe(
-            E.fail(new EntitiesValuesParseError({ errors })),
-            E.unless(() => R.isEmptyRecord(errors)),
-            E.map(() => values),
-          ),
-        ),
         E.catchTag(
           "ParseError",
           (error): E.Effect<never, EntitiesValuesStructuralError> =>
@@ -313,25 +415,91 @@ export function parseEntitiesValuesEffectfully<TBuilder extends Builder>(
               }),
             ),
         ),
+        E.flatMap((values) =>
+          parseAndPartitionEntitiesValues(
+            values,
+            parsedSchema,
+            builder,
+            options,
+          ),
+        ),
+        E.flatMap(({ errors, values }) =>
+          pipe(
+            E.fail(new EntitiesValuesParseError({ errors })),
+            E.unless(() => R.isEmptyRecord(errors)),
+            E.flatMap(() =>
+              computeUnprocessableEntities(parsedSchema, builder, values),
+            ),
+            E.map((unprocessableEntities) => ({
+              values,
+              unprocessableEntities,
+            })),
+          ),
+        ),
+        E.flatMap(({ values, unprocessableEntities }) =>
+          pipe(
+            R.keys(values),
+            E.forEach((entityId) =>
+              pipe(
+                getSchemaEntityById(entityId, parsedSchema.entities),
+                E.tap((entity) =>
+                  validateEntityIdProcessable(
+                    entityId,
+                    entity.type,
+                    unprocessableEntities,
+                    parsedSchema,
+                  ),
+                ),
+              ),
+            ),
+            E.as(
+              values as TOptions["parseMissingValues"] extends true
+                ? EntitiesValues<TBuilder>
+                : DraftEntitiesValues<TBuilder>,
+            ),
+          ),
+        ),
       ),
     ),
   );
+}
+
+export function parseEntitiesValuesEffectfully<TBuilder extends Builder>(
+  entitiesValues: unknown,
+  schema: ParsedSchema<TBuilder>,
+  builder: TBuilder,
+): E.Effect<EntitiesValues<TBuilder>, ParseEntitiesValuesError<TBuilder>> {
+  return parseEntitiesValuesWithOptions(entitiesValues, schema, builder, {
+    parseMissingValues: true,
+  });
 }
 
 export function parseEntitiesValues<TBuilder extends Builder>(
   entitiesValues: unknown,
   schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
-): Result<
-  Record<
-    string,
-    InferEntityDefinitionParsedValue<
-      TBuilder["entities"][keyof TBuilder["entities"]]
-    >
-  >,
-  ParseEntitiesValuesError
-> {
+): Result<EntitiesValues<TBuilder>, ParseEntitiesValuesError<TBuilder>> {
   return runSyncAsResult(
     parseEntitiesValuesEffectfully(entitiesValues, schema, builder),
+  );
+}
+
+export function parseDraftEntitiesValuesEffectfully<TBuilder extends Builder>(
+  entitiesValues: unknown,
+  schema: ParsedSchema<TBuilder>,
+  builder: TBuilder,
+): E.Effect<DraftEntitiesValues<TBuilder>, ParseEntitiesValuesError<TBuilder>> {
+  return parseEntitiesValuesWithOptions(entitiesValues, schema, builder, {
+    parseMissingValues: false,
+  });
+}
+
+export function parseDraftEntitiesValues<TBuilder extends Builder>(
+  entitiesValues: unknown,
+  schema: ParsedSchema<TBuilder>,
+  builder: TBuilder,
+): Result<DraftEntitiesValues<TBuilder>, ParseEntitiesValuesError<TBuilder>> {
+  return runSyncAsResult(
+    parseDraftEntitiesValuesEffectfully(entitiesValues, schema, builder),
   );
 }

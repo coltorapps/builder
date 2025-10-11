@@ -3,16 +3,16 @@ import * as O from "effect/Option";
 import * as R from "effect/Record";
 
 import {
-  AttributeDefinitionOverride,
-  AttributeDefinitionOverrideInput,
-  EntityDefinition,
-  EntityDefinitionRefineContext,
-  InferEntityDefinitionParsedValue,
-  InferEntityDefinitionRefineResult,
   normalizeAttributeOverrides,
+  type AttributeDefinitionOverride,
+  type AttributeDefinitionOverrideInput,
+  type EntityDefinition,
+  type EntityDefinitionRefineContext,
+  type InferEntityDefinitionParsedValue,
+  type InferEntityDefinitionRefineResult,
 } from "./entity-definition";
-import { ParsedSchema } from "./schema-parsing";
-import { KeyofStringIntersection, RefineResult } from "./utils";
+import { type ParsedSchema } from "./schema-parsing";
+import { type KeyofStringIntersection, type RefineResult } from "./utils";
 import { generateUuid, validateUuid } from "./uuid";
 
 interface BaseEntityDefinitionOverride {
@@ -68,32 +68,32 @@ interface EntityDefinitionOverrideInput<
   TEntity extends EntityDefinition,
   TType extends string,
 > extends BaseEntityDefinitionOverride {
-  childrenAllowed?:
+  readonly childrenAllowed?:
     | boolean
     | ReadonlyArray<KeyofStringIntersection<TBuilder["entities"]>>;
-  parentAllowed?:
+  readonly parentAllowed?:
     | boolean
     | ReadonlyArray<KeyofStringIntersection<TBuilder["entities"]>>;
-  refine?: (
+  readonly refine?: (
     value: InferEntityDefinitionParsedValue<TEntity>,
     context: EntityDefinitionRefineOverrideContext<TEntity, TType, TBuilder>,
   ) => InferEntityDefinitionRefineResult<TEntity>;
-  defaultValue?: (
+  readonly defaultValue?: (
     context: EntityDefinitionDefaultValueOverrideContext<
       TEntity,
       TType,
       TBuilder
     >,
   ) => InferEntityDefinitionParsedValue<TEntity>;
-  shouldBeProcessed?(
+  readonly shouldBeProcessed?: (
     context: EntityDefinitionShouldBeProcessedOverrideContext<
       TEntity,
       TType,
       TBuilder
     >,
-  ): boolean;
-  attributes?: {
-    [K in KeyofStringIntersection<
+  ) => boolean;
+  readonly attributes?: {
+    readonly [K in KeyofStringIntersection<
       TEntity["attributes"]
     >]?: AttributeDefinitionOverrideInput<
       TEntity["attributes"][K],
@@ -165,12 +165,12 @@ export function createBuilder<
   const TEntities extends Record<string, EntityDefinition>,
   TRefineError = never,
 >(options: {
-  entities: TEntities;
-  refineSchema?: Builder<TEntities, TRefineError>["refineSchema"];
-  generateEntityId?: Builder["generateEntityId"];
-  validateEntityId?: Builder["validateEntityId"];
-  entityOverrides?: {
-    [K in KeyofStringIntersection<TEntities>]?: EntityDefinitionOverrideInput<
+  readonly entities: TEntities;
+  readonly refineSchema?: Builder<TEntities, TRefineError>["refineSchema"];
+  readonly generateEntityId?: Builder["generateEntityId"];
+  readonly validateEntityId?: Builder["validateEntityId"];
+  readonly entityOverrides?: {
+    readonly [K in KeyofStringIntersection<TEntities>]?: EntityDefinitionOverrideInput<
       Builder<TEntities>,
       TEntities[K],
       K
@@ -188,9 +188,7 @@ export function createBuilder<
     refineSchema: options.refineSchema ?? fallbackRefineSchema,
     generateEntityId: options.generateEntityId ?? generateUuid,
     validateEntityId: options.validateEntityId ?? validateUuid,
-    entityOverrides: normalizeEntityOverrides(
-      options.entityOverrides ?? {},
-    ) as Builder["entityOverrides"],
+    entityOverrides: normalizeEntityOverrides(options.entityOverrides ?? {}),
   };
 }
 
@@ -208,3 +206,18 @@ export function getEntityDefinitionDangerously(
     ),
   );
 }
+
+declare const builderBrand: unique symbol;
+
+export type BuilderBrand<TBuilder extends Builder> = {
+  readonly [builderBrand]: {
+    _b: TBuilder;
+    _a: {
+      [K in KeyofStringIntersection<TBuilder["entities"]>]: {
+        [K2 in KeyofStringIntersection<
+          TBuilder["entities"][K]["attributes"]
+        >]: `${K}.${K2}`;
+      }[KeyofStringIntersection<TBuilder["entities"][K]["attributes"]>];
+    }[KeyofStringIntersection<TBuilder["entities"]>];
+  };
+};

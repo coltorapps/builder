@@ -1,19 +1,25 @@
+import * as B from "effect/Brand";
 import * as E from "effect/Effect";
 import { pipe } from "effect/Function";
 
+import { type Builder } from "./builder";
+
 export type SuccessResult<TValue = unknown> = {
-  success: true;
-  value: TValue;
-  error?: never;
+  readonly success: true;
+  readonly value: TValue;
+  readonly error?: never;
 };
 
 export type UnnormalizedSuccessResult<TValue = unknown> = {
-  success: true;
-  data: TValue;
-  error?: never;
+  readonly success: true;
+  readonly data: TValue;
+  readonly error?: never;
 };
 
-export type ErrorResult<TError = unknown> = { success: false; error: TError };
+export type ErrorResult<TError = unknown> = {
+  readonly success: false;
+  readonly error: TError;
+};
 
 export type Result<TValue = unknown, TError = unknown> =
   | SuccessResult<TValue>
@@ -82,4 +88,46 @@ export function normalizeResult<TData, TError>(
   input: UnnormalizedResult<TData, TError>,
 ): Result<TData, TError> {
   return "data" in input ? { success: true, value: input.data } : input;
+}
+
+export type EntityRef<
+  TBuilder extends Builder = Builder,
+  TEntityType extends KeyofStringIntersection<
+    TBuilder["entities"]
+  > = KeyofStringIntersection<TBuilder["entities"]>,
+> = { readonly id: string; readonly type: TEntityType } & B.Brand<"EntityRef">;
+
+export function createEntityRef<
+  TBuilder extends Builder,
+  TEntityType extends KeyofStringIntersection<TBuilder["entities"]>,
+>(entityType: TEntityType, entityId: string) {
+  return B.nominal<EntityRef<TBuilder, TEntityType>>()({
+    id: entityId,
+    type: entityType,
+  });
+}
+export type AttributeRef<
+  TBuilder extends Builder = Builder,
+  TEntityType extends KeyofStringIntersection<
+    TBuilder["entities"]
+  > = KeyofStringIntersection<TBuilder["entities"]>,
+  TAttributeName extends KeyofStringIntersection<
+    TBuilder["entities"][TEntityType]["attributes"]
+  > = KeyofStringIntersection<TBuilder["entities"][TEntityType]["attributes"]>,
+> = {
+  readonly name: TAttributeName;
+  readonly entityRef: EntityRef<TBuilder, TEntityType>;
+} & B.Brand<"AttributeRef">;
+
+export function createAttributeRef<
+  TBuilder extends Builder,
+  TEntityType extends KeyofStringIntersection<TBuilder["entities"]>,
+  TAttributeName extends KeyofStringIntersection<
+    TBuilder["entities"][TEntityType]["attributes"]
+  >,
+>(entityType: TEntityType, entityId: string, attributeName: TAttributeName) {
+  return B.nominal<AttributeRef<TBuilder, TEntityType, TAttributeName>>()({
+    name: attributeName,
+    entityRef: createEntityRef(entityType, entityId),
+  });
 }

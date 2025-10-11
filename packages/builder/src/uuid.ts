@@ -7,7 +7,7 @@ export function generateUuid(): string {
     "randomUUID" in cryptoLike &&
     typeof cryptoLike.randomUUID === "function"
   ) {
-    const result = cryptoLike.randomUUID();
+    const result: unknown = cryptoLike.randomUUID();
 
     if (typeof result === "string") {
       return result;

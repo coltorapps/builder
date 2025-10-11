@@ -10,76 +10,79 @@ import * as R from "effect/Record";
 import * as S from "effect/Struct";
 
 import {
-  InferAttributeDefinitionError,
-  InferAttributeDefinitionParsedValue,
+  type InferAttributeDefinitionError,
+  type InferAttributeDefinitionParsedValue,
 } from "./attribute-definition";
 import {
-  Builder,
   getEntityDefinitionDangerously,
-  InferBuilderSchemaRefineError,
+  type Builder,
+  type InferBuilderSchemaRefineError,
 } from "./builder";
 import {
-  AttributeRef,
-  createAttributeRef,
-  createEntityRef,
-  EffectMode,
-  EntityRef,
-  GenericStore,
   makeGenericStore,
-  ModeAsyncOutput,
-  ModeOutput,
-  ResultMode,
+  type EffectMode,
+  type GenericStore,
+  type ModeAsyncOutput,
+  type ModeOutput,
+  type ResultMode,
 } from "./generic-store";
 import {
-  ChildNotAllowedError,
+  collectEntityDescendants,
   computeEntityAttributesWithDefaults,
-  DraftSchema,
-  DraftSchemaEntity,
   EntityAttributeParseError,
   EntityAttributesParseError,
   getAttributeDefinition,
-  getSchemaEntity,
-  InvalidAttributeNameError,
-  InvalidEntityIdError,
-  InvalidEntityTypeError,
-  ParentNotAllowedError,
-  ParentRequiredError,
+  getSchemaEntityById,
+  getSchemaEntityByRef,
   parseDraftSchemaEffectfully,
-  ParsedSchema,
-  ParsedSchemaEntity,
   parseEntityAttribute,
   parseEntityAttributes,
-  ParseSchemaError,
-  ReferencedEntityNotFoundError,
   validateEntityAttributeName,
   validateEntityAttributeNames,
   validateEntityChildrenAllowed,
   validateEntityConstraints,
   validateEntityId,
-  validateEntityIdExists,
   validateEntityParentAllowed,
   validateParentRequired,
+  validateSchemaEntityRef,
+  type ChildNotAllowedError,
+  type DraftSchema,
+  type DraftSchemaEntity,
+  type EntityRefTypeMismatchError,
+  type InvalidAttributeNameError,
+  type InvalidEntityIdError,
+  type InvalidEntityTypeError,
+  type ParentNotAllowedError,
+  type ParentRequiredError,
+  type ParsedSchema,
+  type ParsedSchemaEntity,
+  type ParseSchemaError,
+  type ReferencedEntityNotFoundError,
 } from "./schema-parsing";
 import {
   cleanEntitiesAttributeErrors,
-  EntitiesAttributesErrors,
   EntitiesAttributesValidationError,
-  EntityAttributesErrors,
   EntityAttributesValidationError,
   EntityAttributeValidationError,
-  RawEntitiesAttributesErrors,
   refineSchema,
-  SchemaRefineError,
   validateEntitiesAttributes,
   validateEntityAttribute,
   validateEntityAttributes,
+  type EntitiesAttributesErrors,
+  type EntityAttributesErrors,
+  type RawEntitiesAttributesErrors,
+  type SchemaRefineError,
 } from "./schema-validation";
 import {
+  createAttributeRef,
+  createEntityRef,
   flatMapAsResult,
-  KeyofStringIntersection,
-  Result,
   runPromiseAsResult,
   runSyncAsResult,
+  type AttributeRef,
+  type EntityRef,
+  type KeyofStringIntersection,
+  type Result,
 } from "./utils";
 
 export interface BuilderStoreData<TBuilder extends Builder = Builder> {
@@ -90,9 +93,9 @@ export interface BuilderStoreData<TBuilder extends Builder = Builder> {
   };
 }
 
-interface PartialBuilderStoreData<TBuilder extends Builder = Builder>
+interface PartialBuilderStoreData<TBuilder extends Builder>
   extends Omit<Partial<BuilderStoreData<TBuilder>>, "errors"> {
-  errors?: Partial<BuilderStoreData["errors"]>;
+  errors?: Partial<BuilderStoreData<TBuilder>["errors"]>;
 }
 
 interface GenericBuilderStore<
@@ -120,15 +123,15 @@ interface GenericBuilderStore<
       readonly index: number;
     },
     | IndexOutOfBoundsError
-    | EntityIdAlreadyExistsError
-    | EntityAttributesParseError
+    | EntityIdAlreadyExistsError<TBuilder>
+    | EntityAttributesParseError<TBuilder>
     | InvalidEntityIdError
-    | InvalidEntityTypeError
-    | ParentRequiredError
-    | InvalidAttributeNameError
+    | InvalidEntityTypeError<TBuilder>
+    | ParentRequiredError<TBuilder>
+    | InvalidAttributeNameError<TBuilder, TType>
     | ReferencedEntityNotFoundError
-    | ChildNotAllowedError
-    | ParentNotAllowedError
+    | ChildNotAllowedError<TBuilder>
+    | ParentNotAllowedError<TBuilder>
   >;
   readonly getEntity: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -155,11 +158,15 @@ interface GenericBuilderStore<
       readonly parentId?: Readonly<string>;
       readonly children?: ReadonlyArray<string>;
     },
-    ReferencedEntityNotFoundError
+    ReferencedEntityNotFoundError | EntityRefTypeMismatchError
   >;
   readonly getEntityIndex: (
     entityRef: EntityRef<TBuilder>,
-  ) => ModeOutput<TResultMode, number, ReferencedEntityNotFoundError>;
+  ) => ModeOutput<
+    TResultMode,
+    number,
+    ReferencedEntityNotFoundError | EntityRefTypeMismatchError
+  >;
   readonly cloneEntity: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
   >(
@@ -173,9 +180,10 @@ interface GenericBuilderStore<
       index: number;
     },
     | IndexOutOfBoundsError
-    | EntityIdAlreadyExistsError
+    | EntityIdAlreadyExistsError<TBuilder>
     | InvalidEntityIdError
     | ReferencedEntityNotFoundError
+    | EntityRefTypeMismatchError
   >;
   readonly removeEntity: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -184,7 +192,7 @@ interface GenericBuilderStore<
   ) => ModeOutput<
     TResultMode,
     { readonly removedEntityRefs: ReadonlyArray<EntityRef<TBuilder>> },
-    ReferencedEntityNotFoundError
+    ReferencedEntityNotFoundError | EntityRefTypeMismatchError
   >;
   readonly setEntityIndex: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -194,7 +202,9 @@ interface GenericBuilderStore<
   ) => ModeOutput<
     TResultMode,
     { entityRef: EntityRef<TBuilder, TType>; index: number },
-    IndexOutOfBoundsError | ReferencedEntityNotFoundError
+    | IndexOutOfBoundsError
+    | ReferencedEntityNotFoundError
+    | EntityRefTypeMismatchError
   >;
   readonly setEntityParent: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -214,16 +224,17 @@ interface GenericBuilderStore<
     },
     | IndexOutOfBoundsError
     | ReferencedEntityNotFoundError
-    | ParentNotAllowedError
-    | ChildNotAllowedError
-    | ParentRequiredError
+    | EntityRefTypeMismatchError
+    | ParentNotAllowedError<TBuilder>
+    | ChildNotAllowedError<TBuilder>
+    | ParentRequiredError<TBuilder>
   >;
   readonly setData: (
     data: BuilderStoreData<TBuilder>,
   ) => ModeOutput<
     TResultMode,
     BuilderStoreData<TBuilder>,
-    ParseSchemaError | EntitiesAttributesErrorsParseError
+    ParseSchemaError<TBuilder> | EntitiesAttributesErrorsParseError<TBuilder>
   >;
   readonly setEntityAttributeValue: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -242,8 +253,9 @@ interface GenericBuilderStore<
       attributeValue: unknown;
     },
     | ReferencedEntityNotFoundError
-    | InvalidAttributeNameError
-    | EntityAttributeParseError
+    | EntityRefTypeMismatchError
+    | InvalidAttributeNameError<TBuilder, TType>
+    | EntityAttributeParseError<TBuilder, TType, TAttributeName>
   >;
   readonly clearEntityAttributeValue: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -257,7 +269,9 @@ interface GenericBuilderStore<
     {
       attributeRef: AttributeRef<TBuilder, TType, TAttributeName>;
     },
-    ReferencedEntityNotFoundError | InvalidAttributeNameError
+    | ReferencedEntityNotFoundError
+    | EntityRefTypeMismatchError
+    | InvalidAttributeNameError<TBuilder, TType>
   >;
   readonly clearEntityAttributesValues: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -268,7 +282,7 @@ interface GenericBuilderStore<
     {
       entityRef: EntityRef<TBuilder, TType>;
     },
-    ReferencedEntityNotFoundError
+    ReferencedEntityNotFoundError | EntityRefTypeMismatchError
   >;
   readonly resetEntityAttributeValue: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -281,13 +295,16 @@ interface GenericBuilderStore<
     TResultMode,
     {
       attributeRef: AttributeRef<TBuilder, TType, TAttributeName>;
-      attributeValue: InferAttributeDefinitionParsedValue<
-        TBuilder["entities"][TType]["attributes"][TAttributeName]
-      > | undefined;
+      attributeValue:
+        | InferAttributeDefinitionParsedValue<
+            TBuilder["entities"][TType]["attributes"][TAttributeName]
+          >
+        | undefined;
     },
     | ReferencedEntityNotFoundError
-    | InvalidAttributeNameError
-    | EntityAttributeParseError
+    | EntityRefTypeMismatchError
+    | InvalidAttributeNameError<TBuilder, TType>
+    | EntityAttributeParseError<TBuilder, TType, TAttributeName>
   >;
   readonly clearEntityAttributeError: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -301,7 +318,9 @@ interface GenericBuilderStore<
     {
       attributeRef: AttributeRef<TBuilder, TType, TAttributeName>;
     },
-    ReferencedEntityNotFoundError | InvalidAttributeNameError
+    | ReferencedEntityNotFoundError
+    | EntityRefTypeMismatchError
+    | InvalidAttributeNameError<TBuilder, TType>
   >;
   readonly clearEntityAttributesErrors: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -312,7 +331,7 @@ interface GenericBuilderStore<
     {
       entityRef: EntityRef<TBuilder, TType>;
     },
-    ReferencedEntityNotFoundError
+    ReferencedEntityNotFoundError | EntityRefTypeMismatchError
   >;
   readonly clearEntitiesAttributesErrors: () => ModeOutput<TResultMode>;
   readonly validateEntityAttribute: <
@@ -329,8 +348,9 @@ interface GenericBuilderStore<
       attributeValue: unknown;
     },
     | ReferencedEntityNotFoundError
-    | InvalidAttributeNameError
-    | EntityAttributeValidationError
+    | EntityRefTypeMismatchError
+    | InvalidAttributeNameError<TBuilder, TType>
+    | EntityAttributeValidationError<TBuilder>
   >;
   readonly validateEntityAttributes: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -342,14 +362,16 @@ interface GenericBuilderStore<
       entityRef: EntityRef<TBuilder, TType>;
       attributes: ParsedSchemaEntity<TBuilder, TType>["attributes"];
     },
-    ReferencedEntityNotFoundError | EntityAttributesValidationError
+    | ReferencedEntityNotFoundError
+    | EntityRefTypeMismatchError
+    | EntityAttributesValidationError<TBuilder>
   >;
   readonly validateEntitiesAttributes: () => ModeAsyncOutput<
     TResultMode,
     {
       schema: DraftSchema<TBuilder>;
     },
-    EntitiesAttributesValidationError
+    EntitiesAttributesValidationError<TBuilder>
   >;
   readonly setEntityAttributeError: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -368,7 +390,9 @@ interface GenericBuilderStore<
       attributeName: TAttributeName;
       attributeError: unknown;
     },
-    ReferencedEntityNotFoundError | InvalidAttributeNameError
+    | ReferencedEntityNotFoundError
+    | EntityRefTypeMismatchError
+    | InvalidAttributeNameError<TBuilder, TType>
   >;
   readonly setEntityAttributesErrors: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -381,16 +405,18 @@ interface GenericBuilderStore<
       entityRef: EntityRef<TBuilder, TType>;
       attributesErrors: EntityAttributesErrors;
     },
-    ReferencedEntityNotFoundError | InvalidAttributeNameError
+    | ReferencedEntityNotFoundError
+    | EntityRefTypeMismatchError
+    | InvalidAttributeNameError<TBuilder, TType>
   >;
   readonly setEntitiesAttributesErrors: (
-    attributesErrors: RawEntitiesAttributesErrors<TBuilder>,
+    attributesErrors: EntitiesAttributesErrors<TBuilder>,
   ) => ModeOutput<
     TResultMode,
     {
-      attributesErrors: RawEntitiesAttributesErrors;
+      attributesErrors: EntitiesAttributesErrors<TBuilder>;
     },
-    EntitiesAttributesErrorsParseError
+    EntitiesAttributesErrorsParseError<TBuilder>
   >;
   readonly setSchemaError: (
     schemaError: InferBuilderSchemaRefineError<TBuilder>,
@@ -404,7 +430,7 @@ interface GenericBuilderStore<
   readonly validateSchema: () => ModeAsyncOutput<
     TResultMode,
     { readonly schema: ParsedSchema<TBuilder> },
-    EntitiesAttributesValidationError | SchemaRefineError
+    EntitiesAttributesValidationError<TBuilder> | SchemaRefineError<TBuilder>
   >;
 }
 
@@ -416,24 +442,26 @@ export type BuilderStore<TBuilder extends Builder> = GenericBuilderStore<
   ResultMode
 >;
 
-type CreateBuilderStoreError =
-  | ParseSchemaError
-  | EntitiesAttributesErrorsParseError;
+type CreateBuilderStoreError<TBuilder extends Builder> =
+  | ParseSchemaError<TBuilder>
+  | EntitiesAttributesErrorsParseError<TBuilder>;
 
-interface CreateBuilderStoreOptions<TBuilder extends Builder = Builder> {
+interface CreateBuilderStoreOptions<TBuilder extends Builder> {
   initialData?: PartialBuilderStoreData<TBuilder>;
 }
 
-export class EntitiesAttributesErrorsParseError extends D.TaggedError(
-  "EntitiesAttributesErrorsParseError",
-)<{
-  readonly cause: ReferencedEntityNotFoundError | InvalidAttributeNameError;
+export class EntitiesAttributesErrorsParseError<
+  TBuilder extends Builder,
+> extends D.TaggedError("EntitiesAttributesErrorsParseError")<{
+  readonly cause:
+    | ReferencedEntityNotFoundError
+    | InvalidAttributeNameError<TBuilder>;
 }> {}
 
-export class EntityIdAlreadyExistsError extends D.TaggedError(
-  "EntityIdAlreadyExistsError",
-)<{
-  readonly entityId: string;
+export class EntityIdAlreadyExistsError<
+  TBuilder extends Builder = Builder,
+> extends D.TaggedError("EntityIdAlreadyExistsError")<{
+  readonly entityRef: EntityRef<TBuilder>;
 }> {}
 
 export class IndexOutOfBoundsError extends D.TaggedError(
@@ -443,57 +471,33 @@ export class IndexOutOfBoundsError extends D.TaggedError(
   readonly arrayLength: number;
 }> {}
 
-export function parseEntitiesAttributesErrors(
-  entitiesAttributesErrors: RawEntitiesAttributesErrors,
-  schema: DraftSchema,
-  builder: Builder,
-): E.Effect<RawEntitiesAttributesErrors, EntitiesAttributesErrorsParseError> {
+export function parseEntitiesAttributesErrors<TBuilder extends Builder>(
+  entitiesAttributesErrors: RawEntitiesAttributesErrors<TBuilder>,
+  schema: DraftSchema<TBuilder>,
+  builder: TBuilder,
+): E.Effect<
+  RawEntitiesAttributesErrors<TBuilder>,
+  EntitiesAttributesErrorsParseError<TBuilder>
+> {
   return pipe(
     E.forEach(
       R.toEntries(entitiesAttributesErrors),
       ([entityId, attributesErrors]) =>
         pipe(
-          getSchemaEntity(entityId, schema.entities),
+          getSchemaEntityById(entityId, schema.entities),
           E.flatMap((entity) =>
             validateEntityAttributeNames(
               entity.type,
-              R.keys(attributesErrors),
+              entityId,
+              R.keys(attributesErrors as RawEntitiesAttributesErrors<TBuilder>),
               builder,
             ),
           ),
         ),
     ),
-    E.as(entitiesAttributesErrors as RawEntitiesAttributesErrors),
+    E.as(entitiesAttributesErrors),
     E.mapError(
       (error) => new EntitiesAttributesErrorsParseError({ cause: error }),
-    ),
-  );
-}
-
-export function collectEntityDescendants(
-  entityId: string,
-  schema: DraftSchema,
-): E.Effect<ReadonlyArray<string>, ReferencedEntityNotFoundError> {
-  return pipe(
-    getSchemaEntity(entityId, schema.entities),
-    E.flatMap((entity) =>
-      pipe(
-        O.fromNullable(entity.children),
-        O.map((children) =>
-          pipe(
-            children,
-            A.map((childId) =>
-              pipe(
-                collectEntityDescendants(childId, schema),
-                E.map((descendants) => A.appendAll([childId], descendants)),
-              ),
-            ),
-            E.all,
-            E.map(A.flatten),
-          ),
-        ),
-        O.getOrElse(() => E.succeed([])),
-      ),
     ),
   );
 }
@@ -506,7 +510,7 @@ function makeRemoveEntity<TBuilder extends Builder>(
       E.Do,
       E.bind("currentSchema", () => E.sync(() => dataStore.state.schema)),
       E.bind("entity", ({ currentSchema }) =>
-        getSchemaEntity(entityRef.id, currentSchema.entities),
+        getSchemaEntityByRef(entityRef, currentSchema.entities),
       ),
       E.bind("idsToRemove", ({ currentSchema }) =>
         pipe(
@@ -527,7 +531,7 @@ function makeRemoveEntity<TBuilder extends Builder>(
           O.fromNullable(entity.parentId),
           O.map((parentId) =>
             pipe(
-              getSchemaEntity(parentId, filteredEntities),
+              getSchemaEntityById(parentId, filteredEntities),
               E.map((parentEntity) =>
                 R.modify(filteredEntities, parentId, (parent) => ({
                   ...parent,
@@ -575,7 +579,7 @@ export function makeGetEntityIndex<TBuilder extends Builder>(
       E.Do,
       E.bind("schema", () => E.sync(() => dataStore.state.schema)),
       E.bind("entity", ({ schema }) =>
-        getSchemaEntity(entityRef.id, schema.entities),
+        getSchemaEntityByRef(entityRef, schema.entities),
       ),
       E.flatMap(({ entity, schema }) =>
         pipe(
@@ -605,7 +609,7 @@ export function makeSetEntityIndex<TBuilder extends Builder>(
       E.Do,
       E.bind("currentSchema", () => E.sync(() => dataStore.state.schema)),
       E.bind("entity", ({ currentSchema }) =>
-        getSchemaEntity(entityRef.id, currentSchema.entities),
+        getSchemaEntityByRef(entityRef, currentSchema.entities),
       ),
       E.bind("newIndex", () =>
         pipe(
@@ -624,7 +628,7 @@ export function makeSetEntityIndex<TBuilder extends Builder>(
           O.fromNullable(entity.parentId),
           O.map((parentId) =>
             pipe(
-              getSchemaEntity(parentId, currentSchema.entities),
+              getSchemaEntityById(parentId, currentSchema.entities),
               E.map((parentEntity) =>
                 parentEntity.children
                   ? A.filter(parentEntity.children, (id) => id !== entityRef.id)
@@ -682,19 +686,24 @@ export function makeSetEntityParent<TBuilder extends Builder>(
       E.Do,
       E.bind("currentSchema", () => E.sync(() => dataStore.state.schema)),
       E.bind("entity", ({ currentSchema }) =>
-        getSchemaEntity(entityRef.id, currentSchema.entities),
+        getSchemaEntityByRef(entityRef, currentSchema.entities),
       ),
       E.tap(({ entity }) =>
-        validateParentRequired(entity.type, newParentRef?.id, builder),
+        validateParentRequired(
+          entity.type,
+          entityRef.id,
+          newParentRef?.id,
+          builder,
+        ),
       ),
       E.bind("maybeNewParent", ({ currentSchema }) =>
         pipe(
-          O.fromNullable(newParentRef?.id),
-          O.map((parentId) =>
+          O.fromNullable(newParentRef),
+          O.map((parentRef) =>
             pipe(
-              getSchemaEntity(parentId, currentSchema.entities),
+              getSchemaEntityByRef(parentRef, currentSchema.entities),
               E.map((parentEntity) => ({
-                id: parentId,
+                id: parentRef.id,
                 entity: parentEntity,
               })),
             ),
@@ -705,10 +714,20 @@ export function makeSetEntityParent<TBuilder extends Builder>(
       E.tap(({ entity, maybeNewParent }) =>
         pipe(
           O.fromNullable(maybeNewParent),
-          O.map(({ entity: parent }) =>
+          O.map(({ entity: parent, id: parentId }) =>
             E.all([
-              validateEntityParentAllowed(entity.type, parent.type, builder),
-              validateEntityChildrenAllowed(parent.type, entity.type, builder),
+              validateEntityParentAllowed(
+                entity.type,
+                entityRef.id,
+                parent.type,
+                builder,
+              ),
+              validateEntityChildrenAllowed(
+                parent.type,
+                parentId,
+                entity.type,
+                builder,
+              ),
             ]),
           ),
           O.getOrElse(() => E.void),
@@ -719,7 +738,7 @@ export function makeSetEntityParent<TBuilder extends Builder>(
           O.fromNullable(entity.parentId),
           O.map((parentId) =>
             pipe(
-              getSchemaEntity(parentId, currentSchema.entities),
+              getSchemaEntityById(parentId, currentSchema.entities),
               E.map((parentEntity) =>
                 R.modify(currentSchema.entities, parentId, (parent) => ({
                   ...parent,
@@ -748,7 +767,7 @@ export function makeSetEntityParent<TBuilder extends Builder>(
           O.fromNullable(maybeNewParent),
           O.map(({ id: parentId }) =>
             pipe(
-              getSchemaEntity(parentId, removed.entities),
+              getSchemaEntityById(parentId, removed.entities),
               E.flatMap((parentEntity) =>
                 insertAt(
                   parentEntity.children
@@ -838,8 +857,15 @@ function validateEntityIdUniqueness(
   entities: DraftSchema["entities"],
 ): E.Effect<void, EntityIdAlreadyExistsError> {
   return pipe(
-    E.fail(new EntityIdAlreadyExistsError({ entityId })),
-    E.when(() => R.has(entities, entityId)),
+    R.get(entities, entityId),
+    O.map((entity) =>
+      E.fail(
+        new EntityIdAlreadyExistsError({
+          entityRef: createEntityRef(entity.type, entityId),
+        }),
+      ),
+    ),
+    O.getOrElse(() => E.void),
   );
 }
 
@@ -860,7 +886,7 @@ function addRawEntity(
       O.fromNullable(newEntity.parentId),
       O.map((parentId) =>
         pipe(
-          getSchemaEntity(parentId, schema.entities),
+          getSchemaEntityById(parentId, schema.entities),
           E.flatMap((parentEntity) =>
             pipe(
               insertAt(parentEntity.children ?? [], entityId, index),
@@ -933,20 +959,19 @@ function makeAddEntity<TBuilder extends Builder>(
           O.getOrElse(() => generateEntityId(currentSchema.entities, builder)),
         ),
       ),
-      E.tap(({ currentSchema }) =>
+      E.tap(({ currentSchema, entityId }) =>
         E.all([
           validateEntityConstraints(
-            {
-              entityType: payload.type,
-              attributes: payload.attributes ?? {},
-              parentId: payload.parentId,
-              entities: currentSchema.entities,
-            },
+            payload.type,
+            entityId,
+            payload.attributes ?? {},
+            payload.parentId,
+            currentSchema.entities,
             builder,
           ),
         ]),
       ),
-      E.bind("parsedAttributes", () =>
+      E.bind("parsedAttributes", ({ entityId }) =>
         pipe(
           parseEntityAttributes(
             payload.type,
@@ -963,6 +988,7 @@ function makeAddEntity<TBuilder extends Builder>(
               onFalse: () =>
                 E.fail(
                   new EntityAttributesParseError({
+                    entityRef: createEntityRef(payload.type, entityId),
                     errors: result.errors,
                   }),
                 ),
@@ -1006,7 +1032,7 @@ function makeGetEntity<TBuilder extends Builder>(
   return (entityRef) =>
     pipe(
       E.sync(() => dataStore.state.schema.entities),
-      E.flatMap((entities) => getSchemaEntity(entityRef.id, entities)),
+      E.flatMap((entities) => getSchemaEntityByRef(entityRef, entities)),
       E.map((entity) =>
         pipe(
           getEntityDefinitionDangerously(entity.type, builder),
@@ -1046,7 +1072,7 @@ export function makeCloneEntity<TBuilder extends Builder>(
       E.Do,
       E.bind("currentSchema", () => E.sync(() => dataStore.state.schema)),
       E.bind("source", ({ currentSchema }) =>
-        getSchemaEntity(entityRef.id, currentSchema.entities),
+        getSchemaEntityByRef(entityRef, currentSchema.entities),
       ),
       E.bind("descendants", ({ currentSchema }) =>
         collectEntityDescendants(entityRef.id, currentSchema),
@@ -1060,7 +1086,7 @@ export function makeCloneEntity<TBuilder extends Builder>(
               O.fromNullable(source.parentId),
               O.map((parentId) =>
                 pipe(
-                  getSchemaEntity(parentId, currentSchema.entities),
+                  getSchemaEntityById(parentId, currentSchema.entities),
                   E.map((parent) =>
                     pipe(parent.children ?? [], (kids) =>
                       pipe(
@@ -1120,7 +1146,10 @@ export function makeCloneEntity<TBuilder extends Builder>(
                   generateEntityId(acc.schema.entities, builder),
                   E.flatMap((childCloneId) =>
                     pipe(
-                      getSchemaEntity(originalChildId, currentSchema.entities),
+                      getSchemaEntityById(
+                        originalChildId,
+                        currentSchema.entities,
+                      ),
                       E.map((origChild) =>
                         pipe(
                           {
@@ -1172,10 +1201,10 @@ export function makeCloneEntity<TBuilder extends Builder>(
 
 function parsePartialBuilderStoreData<TBuilder extends Builder>(
   builder: TBuilder,
-  partialData?: PartialBuilderStoreData,
+  partialData?: PartialBuilderStoreData<TBuilder>,
 ): E.Effect<
   BuilderStoreData<TBuilder>,
-  ParseSchemaError | EntitiesAttributesErrorsParseError
+  ParseSchemaError<TBuilder> | EntitiesAttributesErrorsParseError<TBuilder>
 > {
   return pipe(
     O.fromNullable(partialData?.schema),
@@ -1229,7 +1258,7 @@ function makeSetEntityAttributeValue<TBuilder extends Builder>(
       E.Do,
       E.bind("currentSchema", () => E.sync(() => dataStore.state.schema)),
       E.bind("entity", ({ currentSchema }) =>
-        getSchemaEntity(attributeRef.entityRef.id, currentSchema.entities),
+        getSchemaEntityByRef(attributeRef.entityRef, currentSchema.entities),
       ),
       E.bind("attributeDefinition", ({ entity }) =>
         pipe(
@@ -1237,6 +1266,7 @@ function makeSetEntityAttributeValue<TBuilder extends Builder>(
           (entityDefinition) =>
             getAttributeDefinition(
               entity.type,
+              attributeRef.entityRef.id,
               entityDefinition,
               attributeRef.name,
             ),
@@ -1251,14 +1281,12 @@ function makeSetEntityAttributeValue<TBuilder extends Builder>(
           ),
         ),
       ),
-      E.flatMap(({ valueParseResult, entity }) =>
+      E.flatMap(({ valueParseResult }) =>
         Ei.match(valueParseResult, {
           onLeft: (error) =>
             E.fail(
               new EntityAttributeParseError({
-                entityId: attributeRef.entityRef.id,
-                entityType: entity.type,
-                attributeName: attributeRef.name,
+                attributeRef,
                 cause: error,
               }),
             ),
@@ -1305,7 +1333,7 @@ function makeResetEntityAttributeValue<TBuilder extends Builder>(
       E.Do,
       E.bind("currentSchema", () => E.sync(() => dataStore.state.schema)),
       E.bind("entity", ({ currentSchema }) =>
-        getSchemaEntity(attributeRef.entityRef.id, currentSchema.entities),
+        getSchemaEntityByRef(attributeRef.entityRef, currentSchema.entities),
       ),
       E.bind("attributeDefinition", ({ entity }) =>
         pipe(
@@ -1313,6 +1341,7 @@ function makeResetEntityAttributeValue<TBuilder extends Builder>(
           (entityDefinition) =>
             getAttributeDefinition(
               entity.type,
+              attributeRef.entityRef.id,
               entityDefinition,
               attributeRef.name,
             ),
@@ -1356,10 +1385,15 @@ export function makeClearEntityAttributeValue<TBuilder extends Builder>(
     pipe(
       E.sync(() => dataStore.state.schema.entities),
       E.flatMap((entities) =>
-        getSchemaEntity(attributeRef.entityRef.id, entities),
+        getSchemaEntityByRef(attributeRef.entityRef, entities),
       ),
       E.tap((entity) =>
-        validateEntityAttributeName(entity.type, attributeRef.name, builder),
+        validateEntityAttributeName(
+          entity.type,
+          attributeRef.entityRef.id,
+          attributeRef.name,
+          builder,
+        ),
       ),
       E.tap((entity) =>
         E.sync(() =>
@@ -1394,7 +1428,7 @@ export function makeClearEntityAttributesValues<TBuilder extends Builder>(
   return (entityRef) =>
     pipe(
       E.sync(() => dataStore.state.schema.entities),
-      E.flatMap((entities) => getSchemaEntity(entityRef.id, entities)),
+      E.flatMap((entities) => getSchemaEntityByRef(entityRef, entities)),
       E.tap((entity) =>
         E.sync(() =>
           dataStore.setState((prevState) => ({
@@ -1421,10 +1455,15 @@ export function makeClearEntityAttributeError<TBuilder extends Builder>(
     pipe(
       E.sync(() => dataStore.state.schema.entities),
       E.flatMap((entities) =>
-        getSchemaEntity(attributeRef.entityRef.id, entities),
+        getSchemaEntityByRef(attributeRef.entityRef, entities),
       ),
       E.tap((entity) =>
-        validateEntityAttributeName(entity.type, attributeRef.name, builder),
+        validateEntityAttributeName(
+          entity.type,
+          attributeRef.entityRef.id,
+          attributeRef.name,
+          builder,
+        ),
       ),
       E.tap(() =>
         E.sync(() =>
@@ -1463,7 +1502,7 @@ export function makeClearEntityAttributesErrors<TBuilder extends Builder>(
   return (entityRef) =>
     pipe(
       E.sync(() => dataStore.state.schema.entities),
-      E.tap((entities) => validateEntityIdExists(entityRef.id, entities)),
+      E.tap((entities) => validateSchemaEntityRef(entityRef, entities)),
       E.tap(() =>
         E.sync(() =>
           dataStore.setState((prevState) => ({
@@ -1509,7 +1548,7 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
       E.Do,
       E.bind("currentSchema", () => E.sync(() => dataStore.state.schema)),
       E.bind("entity", ({ currentSchema }) =>
-        getSchemaEntity(attributeRef.entityRef.id, currentSchema.entities),
+        getSchemaEntityByRef(attributeRef.entityRef, currentSchema.entities),
       ),
       E.bind("attributeDefinition", ({ entity }) =>
         pipe(
@@ -1517,6 +1556,7 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
           (entityDefinition) =>
             getAttributeDefinition(
               entity.type,
+              attributeRef.entityRef.id,
               entityDefinition,
               attributeRef.name,
             ),
@@ -1535,7 +1575,7 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
             builder,
           ),
       ),
-      E.flatMap(({ validatedValueResult, entity }) =>
+      E.flatMap(({ validatedValueResult }) =>
         Ei.match(validatedValueResult, {
           onLeft: (error) =>
             pipe(
@@ -1567,9 +1607,7 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
               E.flatMap(() =>
                 E.fail(
                   new EntityAttributeValidationError({
-                    entityId: attributeRef.entityRef.id,
-                    entityType: entity.type,
-                    attributeName: attributeRef.name,
+                    attributeRef,
                     cause: error,
                   }),
                 ),
@@ -1637,7 +1675,7 @@ export function makeValidateEntityAttributes<
       E.Do,
       E.bind("currentSchema", () => E.sync(() => dataStore.state.schema)),
       E.bind("entity", ({ currentSchema }) =>
-        getSchemaEntity(entityRef.id, currentSchema.entities),
+        getSchemaEntityByRef(entityRef, currentSchema.entities),
       ),
       E.bind("validatedAttributes", ({ entity, currentSchema }) =>
         validateEntityAttributes(entityRef.id, entity, currentSchema, builder),
@@ -1680,6 +1718,7 @@ export function makeValidateEntityAttributes<
             pipe(
               E.fail(
                 new EntityAttributesValidationError({
+                  entityRef,
                   errors: validatedAttributes.errors,
                 }),
               ),
@@ -1723,7 +1762,7 @@ export function makeValidateEntitiesAttributes<
               errors: {
                 ...prevState.errors,
                 attributes: cleanEntitiesAttributeErrors(
-                  validationResult.attributeErrors as RawEntitiesAttributesErrors<TBuilder>,
+                  validationResult.attributeErrors,
                 ) as EntitiesAttributesErrors<TBuilder>,
               },
             })),
@@ -1794,10 +1833,15 @@ export function makeSetEntityAttributeError<TBuilder extends Builder = Builder>(
     pipe(
       E.sync(() => dataStore.state.schema.entities),
       E.flatMap((entities) =>
-        getSchemaEntity(attributeRef.entityRef.id, entities),
+        getSchemaEntityByRef(attributeRef.entityRef, entities),
       ),
       E.tap((entity) =>
-        validateEntityAttributeName(entity.type, attributeRef.name, builder),
+        validateEntityAttributeName(
+          entity.type,
+          attributeRef.entityRef.id,
+          attributeRef.name,
+          builder,
+        ),
       ),
       E.tap(() =>
         E.sync(() =>
@@ -1838,10 +1882,11 @@ export function makeSetEntityAttributesErrors<
   return (entityRef, attributesErrors) =>
     pipe(
       E.sync(() => dataStore.state.schema.entities),
-      E.flatMap((entities) => getSchemaEntity(entityRef.id, entities)),
+      E.flatMap((entities) => getSchemaEntityByRef(entityRef, entities)),
       E.tap((entity) =>
         validateEntityAttributeNames(
           entity.type,
+          entityRef.id,
           R.keys(attributesErrors as RawEntitiesAttributesErrors<TBuilder>),
           builder,
         ),
@@ -1932,8 +1977,11 @@ export function makeClearSchemaError<TBuilder extends Builder = Builder>(
 
 export function createEffectfulBuilderStore<TBuilder extends Builder>(
   builder: TBuilder,
-  options?: CreateBuilderStoreOptions<TBuilder>,
-): E.Effect<EffectfulBuilderStore<TBuilder>, CreateBuilderStoreError> {
+  options?: CreateBuilderStoreOptions<NoInfer<TBuilder>>,
+): E.Effect<
+  EffectfulBuilderStore<NoInfer<TBuilder>>,
+  CreateBuilderStoreError<TBuilder>
+> {
   return pipe(
     parsePartialBuilderStoreData(builder, options?.initialData),
     E.map((builderStoreData) =>
@@ -2010,8 +2058,8 @@ export function createEffectfulBuilderStore<TBuilder extends Builder>(
 
 export function createBuilderStore<TBuilder extends Builder>(
   builder: TBuilder,
-  options?: CreateBuilderStoreOptions<TBuilder>,
-): Result<BuilderStore<TBuilder>, CreateBuilderStoreError> {
+  options?: CreateBuilderStoreOptions<NoInfer<TBuilder>>,
+): Result<BuilderStore<NoInfer<TBuilder>>, CreateBuilderStoreError<TBuilder>> {
   return E.runSync(
     flatMapAsResult(
       pipe(

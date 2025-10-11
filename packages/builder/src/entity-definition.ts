@@ -3,25 +3,25 @@ import * as O from "effect/Option";
 import * as R from "effect/Record";
 
 import {
-  AttributeDefinition,
-  AttributeDefinitionRefineContext,
-  InferAttributeDefinitionParsedValue,
-  InferAttributeDefinitionRefineError,
-  InferAttributeDefinitionRefineResult,
+  type AttributeDefinition,
+  type AttributeDefinitionRefineContext,
+  type InferAttributeDefinitionParsedValue,
+  type InferAttributeDefinitionRefineError,
+  type InferAttributeDefinitionRefineResult,
 } from "./attribute-definition";
-import { Builder } from "./builder";
-import { DraftSchema } from "./schema-parsing";
+import { type Builder } from "./builder";
+import { type DraftSchema } from "./schema-parsing";
 import {
-  KeyofStringIntersection,
   normalizeResult,
-  ParseFunction,
-  RefineFunction,
-  RefineResult,
-  Result,
-  UnnormalizedParseFunction,
-  UnnormalizedRefineFunction,
-  UnnormalizedRefineResult,
-  UnnormalizedResult,
+  type KeyofStringIntersection,
+  type ParseFunction,
+  type RefineFunction,
+  type RefineResult,
+  type Result,
+  type UnnormalizedParseFunction,
+  type UnnormalizedRefineFunction,
+  type UnnormalizedRefineResult,
+  type UnnormalizedResult,
 } from "./utils";
 
 interface ContextEntityInstance<
@@ -211,7 +211,7 @@ type CreateEntityDefinitionOptions<
   TAttributes extends Record<string, AttributeDefinition>,
   TMetadata,
 > = {
-  attributeOverrides?: {
+  readonly attributeOverrides?: {
     [K in KeyofStringIntersection<TAttributes>]?: AttributeDefinitionOverrideInput<
       TAttributes[K],
       K,
@@ -224,11 +224,11 @@ type CreateEntityDefinitionOptions<
       >
     >;
   };
-  attributes?: TAttributes;
-  childrenAllowed?: boolean;
-  parentAllowed?: boolean;
-  parentRequired?: boolean;
-  shouldBeProcessed?(
+  readonly attributes?: TAttributes;
+  readonly childrenAllowed?: boolean;
+  readonly parentAllowed?: boolean;
+  readonly parentRequired?: boolean;
+  readonly shouldBeProcessed?: (
     context: EntityDefinitionRefineContext<
       EntityDefinition<
         TAttributes,
@@ -238,8 +238,8 @@ type CreateEntityDefinitionOptions<
         NoInfer<TMetadata>
       >
     >,
-  ): boolean;
-  metadata?: TMetadata;
+  ) => boolean;
+  readonly metadata?: TMetadata;
 };
 
 type CreateEntityDefinitionSecondOptions<
@@ -248,7 +248,7 @@ type CreateEntityDefinitionSecondOptions<
   TAttributes extends Record<string, AttributeDefinition>,
   TMetadata,
 > = {
-  refine?: UnnormalizedRefineFunction<
+  readonly refine?: UnnormalizedRefineFunction<
     TValue,
     UnnormalizedRefineResult<TValue, TRefineError>,
     EntityDefinitionRefineContext<
@@ -292,7 +292,7 @@ export function createEntityDefinition<
   TMetadata = never,
 >(
   options?: CreateEntityDefinitionOptions<TAttributes, TMetadata> & {
-    parse?: UnnormalizedParseFunction<
+    readonly parse?: UnnormalizedParseFunction<
       UnnormalizedResult<TValue, TParseError>,
       EntityDefinitionParseContext<
         EntityDefinition<
@@ -304,7 +304,7 @@ export function createEntityDefinition<
         >
       >
     >;
-    defaultValue?: (
+    readonly defaultValue?: (
       context: EntityDefinitionDefaultValueContext<
         EntityDefinition<TAttributes, unknown, unknown, unknown, TMetadata>
       >,
@@ -373,13 +373,7 @@ export function createEntityDefinition<
     ),
     parse,
     refine,
-    shouldBeProcessed: options?.shouldBeProcessed
-      ? options?.shouldBeProcessed.bind(options)
-      : () => true,
-    ...(options?.defaultValue
-      ? {
-          defaultValue: options.defaultValue.bind(options),
-        }
-      : {}),
+    shouldBeProcessed: options?.shouldBeProcessed ?? (() => true),
+    ...(options?.defaultValue ? { defaultValue: options.defaultValue } : {}),
   };
 }

@@ -7,19 +7,29 @@ import * as O from "effect/Option";
 import * as R from "effect/Record";
 
 import {
-  AttributeDefinition,
-  InferAttributeDefinitionError,
+  type AttributeDefinition,
+  type InferAttributeDefinitionError,
 } from "./attribute-definition";
-import { Builder, InferBuilderSchemaRefineError } from "./builder";
 import {
-  DraftSchema,
-  DraftSchemaEntity,
-  ParsedSchema,
+  type Builder,
+  type BuilderBrand,
+  type InferBuilderSchemaRefineError,
+} from "./builder";
+import {
   parseEntityAttribute,
-  ParseSchemaError,
   parseSchemaWithOptions,
+  type DraftSchema,
+  type DraftSchemaEntity,
+  type ParsedSchema,
+  type ParseSchemaError,
 } from "./schema-parsing";
-import { KeyofStringIntersection, Result, runPromiseAsResult } from "./utils";
+import {
+  runPromiseAsResult,
+  type AttributeRef,
+  type EntityRef,
+  type KeyofStringIntersection,
+  type Result,
+} from "./utils";
 
 export type EntityAttributesErrors<
   TBuilder extends Builder = Builder,
@@ -34,9 +44,7 @@ export type EntityAttributesErrors<
   >;
 };
 
-declare const entitiesAttributesErrorsBrand: unique symbol;
-
-export type RawEntitiesAttributesErrors<TBuilder extends Builder = Builder> =
+export type RawEntitiesAttributesErrors<TBuilder extends Builder> =
   R.ReadonlyRecord<
     string,
     {
@@ -46,30 +54,27 @@ export type RawEntitiesAttributesErrors<TBuilder extends Builder = Builder> =
     }[KeyofStringIntersection<TBuilder["entities"]>]
   >;
 
-export type EntitiesAttributesErrors<TBuilder extends Builder = Builder> =
-  RawEntitiesAttributesErrors<TBuilder> & {
-    [entitiesAttributesErrorsBrand]: TBuilder;
-  };
+export type EntitiesAttributesErrors<TBuilder extends Builder> =
+  RawEntitiesAttributesErrors<TBuilder> & BuilderBrand<TBuilder>;
 
-export class EntityAttributeValidationError extends D.TaggedError(
-  "EntityAttributeValidationError",
-)<{
-  readonly entityId: string;
-  readonly entityType: string;
-  readonly attributeName: string;
+export class EntityAttributeValidationError<
+  TBuilder extends Builder = Builder,
+> extends D.TaggedError("EntityAttributeValidationError")<{
+  readonly attributeRef: AttributeRef<TBuilder>;
   readonly cause: unknown;
 }> {}
 
-export class EntityAttributesValidationError extends D.TaggedError(
-  "EntityAttributesValidationError",
-)<{
+export class EntityAttributesValidationError<
+  TBuilder extends Builder = Builder,
+> extends D.TaggedError("EntityAttributesValidationError")<{
+  readonly entityRef: EntityRef<TBuilder>;
   readonly errors: EntityAttributesErrors;
 }> {}
 
-export class EntitiesAttributesValidationError extends D.TaggedError(
-  "EntitiesAttributesValidationError",
-)<{
-  readonly errors: RawEntitiesAttributesErrors;
+export class EntitiesAttributesValidationError<
+  TBuilder extends Builder,
+> extends D.TaggedError("EntitiesAttributesValidationError")<{
+  readonly errors: EntitiesAttributesErrors<TBuilder>;
 }> {}
 
 export class SchemaRefineError<
@@ -80,9 +85,9 @@ export class SchemaRefineError<
 
 type SchemaValidationResult<TBuilder extends Builder = Builder> = Result<
   ParsedSchema<TBuilder>,
-  | EntitiesAttributesValidationError
+  | EntitiesAttributesValidationError<TBuilder>
   | SchemaRefineError<TBuilder>
-  | ParseSchemaError
+  | ParseSchemaError<TBuilder>
 >;
 
 export function validateEntityAttribute(
@@ -135,11 +140,8 @@ export function validateEntityAttribute(
     (baseContext) =>
       pipe(
         O.fromNullable(
-          builder.entityOverrides?.[entity.type]?.attributes?.[
-            attributeName
-          ]?.refine?.bind(
-            builder.entityOverrides?.[entity.type]?.attributes?.[attributeName],
-          ),
+          builder.entityOverrides?.[entity.type]?.attributes?.[attributeName]
+            ?.refine,
         ),
         O.map(
           (bRefine) => (val: unknown) =>
@@ -150,11 +152,7 @@ export function validateEntityAttribute(
                   O.fromNullable(
                     builder.entities[entity.type]?.attributeOverrides?.[
                       attributeName
-                    ]?.refine?.bind(
-                      builder.entities[entity.type]?.attributeOverrides?.[
-                        attributeName
-                      ],
-                    ),
+                    ]?.refine,
                   ),
                   O.map((eRefine) =>
                     eRefine(innerVal, {
@@ -287,7 +285,7 @@ export function validateEntitiesAttributes<TBuilder extends Builder>(
   builder: TBuilder,
 ): E.Effect<{
   entities: DraftSchema["entities"];
-  attributeErrors: RawEntitiesAttributesErrors;
+  attributeErrors: EntitiesAttributesErrors<TBuilder>;
 }> {
   return pipe(
     R.toEntries(schema.entities),
@@ -317,7 +315,7 @@ export function validateEntitiesAttributes<TBuilder extends Builder>(
           ),
           R.fromEntries,
           cleanEntitiesAttributeErrors,
-        ),
+        ) as EntitiesAttributesErrors<TBuilder>,
       })),
     ),
   );
@@ -346,7 +344,9 @@ export function validateSchemaEffectfully<TBuilder extends Builder>(
   builder: TBuilder,
 ): E.Effect<
   ParsedSchema<TBuilder>,
-  ParseSchemaError | EntitiesAttributesValidationError | SchemaRefineError
+  | ParseSchemaError<TBuilder>
+  | EntitiesAttributesValidationError<TBuilder>
+  | SchemaRefineError<TBuilder>
 > {
   return pipe(
     parseSchemaWithOptions(input, builder, {

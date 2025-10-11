@@ -5,10 +5,10 @@ import { pipe } from "effect/Function";
 import type * as builder from "./builder";
 import type * as entityDefinition from "./entity-definition";
 import {
-  EffectMode,
-  GenericStore,
+  type EffectMode,
+  type GenericStore,
   makeGenericStore,
-  ResultMode,
+  type ResultMode,
 } from "./generic-store";
 import * as schemaParsing from "./schema-parsing";
 
@@ -30,10 +30,9 @@ interface InterpreterStoreData<
   unprocessableEntityIds: ReadonlyArray<string>;
 }
 
-interface GenericInterpreterStore<
+type GenericInterpreterStore<
   TBuilder extends builder.Builder = builder.Builder,
-  TResultMode = EffectMode,
-> extends GenericStore<TBuilder, InterpreterStoreData<TBuilder>> {}
+> = GenericStore<TBuilder, InterpreterStoreData<TBuilder>> 
 
 export type EffectfulInterpreterStore<TBuilder extends builder.Builder> =
   GenericInterpreterStore<TBuilder, EffectMode>;

@@ -7,6 +7,7 @@
     "type": "git",
     "url": "https://github.com/coltorapps/builder.git"
   },
+  "sideEffects": false,
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,6 +16,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./effect": {
+      "types": "./dist/effect.d.ts",
+      "import": "./dist/effect.js"
     },
     "./package.json": "./package.json"
   },
