@@ -12,8 +12,13 @@ import * as S from "effect/Schema";
 import {
   type AttributeDefinition,
   type InferAttributeDefinitionParsedValue,
+  type InferAttributeDefinitionParseError,
 } from "./attribute-definition";
-import { type Builder } from "./builder";
+import {
+  getEntityDefinitionDangerously,
+  type Builder,
+  type BuilderBrand,
+} from "./builder";
 import { type EntityDefinition } from "./entity-definition";
 import {
   createEntityRef,
@@ -77,7 +82,24 @@ export interface ParsedSchema<TBuilder extends Builder = Builder>
   >;
 }
 
-export type EntityAttributesParseErrors = R.ReadonlyRecord<string, unknown>;
+export type EntityAttributesParseErrors<
+  TBuilder extends Builder,
+  TType extends KeyofStringIntersection<
+    TBuilder["entities"]
+  > = KeyofStringIntersection<TBuilder["entities"]>,
+> = {
+  [K in KeyofStringIntersection<
+    TBuilder["entities"][TType]["attributes"]
+  >]: InferAttributeDefinitionParseError<
+    TBuilder["entities"][TType]["attributes"][K]
+  >;
+};
+
+export type EntitiesAttributesParseErrors<TBuilder extends Builder> = Record<
+  string,
+  EntityAttributesParseErrors<TBuilder>
+> &
+  BuilderBrand<TBuilder, "EntitiesAttributesParseErrors">;
 
 export class SchemaStructuralError extends D.TaggedError(
   "SchemaStructuralError",
@@ -95,7 +117,13 @@ export type ParseSchemaError<TBuilder extends Builder> =
   | ReferencedEntityNotFoundError
   | ChildNotAllowedError<TBuilder>
   | ParentNotAllowedError<TBuilder>
-  | EntitiesAttributesParseError;
+  | EntitiesAttributesParseError<TBuilder>;
+
+export class SchemaParseError<TBuilder extends Builder> extends D.TaggedError(
+  "SchemaParseError",
+)<{
+  readonly cause: ParseSchemaError<TBuilder>;
+}> {}
 
 interface SchemaParseOptions {
   parseMissingAttributes?: boolean;
@@ -111,10 +139,10 @@ export class InvalidEntityTypeError<
   >;
 }> {}
 
-export class EntitiesAttributesParseError extends D.TaggedError(
-  "EntitiesAttributesParseError",
-)<{
-  readonly errors: EntityAttributesParseErrors;
+export class EntitiesAttributesParseError<
+  TBuilder extends Builder,
+> extends D.TaggedError("EntitiesAttributesParseError")<{
+  readonly errors: EntitiesAttributesParseErrors<TBuilder>;
 }> {}
 
 export class ReferencedEntityNotFoundError extends D.TaggedError(
@@ -189,14 +217,17 @@ export class EntityAttributeParseError<
   > = KeyofStringIntersection<TBuilder["entities"][TType]["attributes"]>,
 > extends D.TaggedError("EntityAttributeParseError")<{
   readonly attributeRef: AttributeRef<TBuilder, TType, TAttributeName>;
-  readonly cause: unknown;
+  readonly cause: InferAttributeDefinitionParseError<
+    TBuilder["entities"][TType]["attributes"][TAttributeName]
+  >;
 }> {}
 
 export class EntityAttributesParseError<
-  TBuilder extends Builder = Builder,
+  TBuilder extends Builder,
+  TType extends KeyofStringIntersection<TBuilder["entities"]>,
 > extends D.TaggedError("EntityAttributesParseError")<{
-  readonly entityRef: EntityRef<TBuilder>;
-  readonly errors: EntityAttributesParseErrors;
+  readonly entityRef: EntityRef<TBuilder, TType>;
+  readonly errors: EntityAttributesParseErrors<TBuilder, TType>;
 }> {}
 
 export function validateEntityId(
@@ -510,10 +541,10 @@ export function computeEntityAttributesWithDefaults(
   builder: Builder,
 ): DraftSchemaEntity["attributes"] {
   return pipe(
-    O.fromNullable(builder.entities[entityType]?.attributes),
-    O.map((attributeDefinitions) =>
+    getEntityDefinitionDangerously(entityType, builder),
+    (entityDefinition) =>
       pipe(
-        R.toEntries(attributeDefinitions),
+        R.toEntries(entityDefinition.attributes),
         A.filterMap(([key, attributeDefinition]) =>
           !R.has(attributes, key)
             ? pipe(
@@ -536,55 +567,50 @@ export function computeEntityAttributesWithDefaults(
         R.fromEntries,
         (defaultValues) => ({ ...attributes, ...defaultValues }),
       ),
-    ),
-    O.getOrElse(() => attributes),
   );
 }
 
-export function parseEntityAttributes<TOptions extends SchemaParseOptions>(
-  entityType: string,
+export function parseEntityAttributes<
+  TOptions extends SchemaParseOptions,
+  TBuilder extends Builder,
+  TType extends KeyofStringIntersection<TBuilder["entities"]>,
+>(
+  entityType: TType,
   attributes: Record<string, unknown>,
-  builder: Builder,
+  builder: TBuilder,
   options?: TOptions,
 ): {
-  errors: EntityAttributesParseErrors;
+  errors: EntityAttributesParseErrors<TBuilder, TType>;
   values: TOptions["parseMissingAttributes"] extends true
     ? ParsedSchemaEntity["attributes"]
     : DraftSchemaEntity["attributes"];
 } {
   return pipe(
-    O.fromNullable(
-      computeEntityAttributesWithDefaults(attributes, entityType, builder),
-    ),
-    O.map((attrs) =>
+    getEntityDefinitionDangerously(entityType, builder),
+    (entityDefinition) =>
       pipe(
-        O.fromNullable(builder.entities[entityType]?.attributes),
-        O.map((attributeDefinitions) =>
+        R.toEntries(entityDefinition.attributes),
+        A.filter(
+          ([key]) =>
+            key in attributes || options?.parseMissingAttributes === true,
+        ),
+        A.partitionMap(([key, attributeDefinition]) =>
           pipe(
-            R.toEntries(attributeDefinitions),
-            A.filter(
-              ([key]) =>
-                key in attrs || options?.parseMissingAttributes === true,
-            ),
-            A.partitionMap(([key, attributeDefinition]) =>
-              pipe(
-                parseEntityAttribute(key, attrs[key], attributeDefinition),
-                Ei.match({
-                  onLeft: (error) => Ei.left([key, error] as const),
-                  onRight: (value) => Ei.right([key, value] as const),
-                }),
-              ),
-            ),
-            ([errors, successes]) => ({
-              errors: R.fromEntries(errors),
-              values: R.fromEntries(successes),
+            parseEntityAttribute(key, attributes[key], attributeDefinition),
+            Ei.match({
+              onLeft: (error) => Ei.left([key, error] as const),
+              onRight: (value) => Ei.right([key, value] as const),
             }),
           ),
         ),
-        O.getOrElse(() => ({ errors: {}, values: {} })),
+        ([errors, successes]) => ({
+          errors: R.fromEntries(errors) as EntityAttributesParseErrors<
+            TBuilder,
+            TType
+          >,
+          values: R.fromEntries(successes),
+        }),
       ),
-    ),
-    O.getOrElse(() => ({ errors: {}, values: {} })),
   );
 }
 
@@ -599,13 +625,22 @@ export function parseEntitiesAttributes<
   TOptions["parseMissingAttributes"] extends true
     ? ParsedSchema<TBuilder>
     : DraftSchema<TBuilder>,
-  EntitiesAttributesParseError
+  EntitiesAttributesParseError<TBuilder>
 > {
   return pipe(
     R.toEntries(schema.entities),
     A.map(([entityId, entity]) =>
       pipe(
-        parseEntityAttributes(entity.type, entity.attributes, builder, options),
+        parseEntityAttributes(
+          entity.type,
+          computeEntityAttributesWithDefaults(
+            entity.attributes,
+            entity.type,
+            builder,
+          ),
+          builder,
+          options,
+        ),
         ({ errors, values }) => ({
           entityId,
           errors,
@@ -637,7 +672,11 @@ export function parseEntitiesAttributes<
                     entities: updatedEntities,
                   }),
               )
-            : E.fail(new EntitiesAttributesParseError({ errors: allErrors })),
+            : E.fail(
+                new EntitiesAttributesParseError({
+                  errors: allErrors as EntitiesAttributesParseErrors<TBuilder>,
+                }),
+              ),
       ),
   );
 }

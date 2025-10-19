@@ -31,8 +31,8 @@ import {
   EntitiesAttributesValidationError,
   EntityAttributesValidationError,
   EntityAttributeValidationError,
-  type EntitiesAttributesErrors,
-  type RawEntitiesAttributesErrors,
+  type EntitiesAttributesValidationErrors,
+  type EntityAttributesValidationErrors,
 } from "../src/schema-validation";
 import {
   createAttributeRef,
@@ -136,7 +136,7 @@ describe("parseAttributeErrors", () => {
     it("should succeed when valid errors provided", () => {
       const errors = {
         entity1: { label: "error" },
-      };
+      } as unknown as EntitiesAttributesValidationErrors<typeof builder>;
 
       const result = Effect.runSync(
         parseEntitiesAttributesErrors(errors, schema, builder),
@@ -177,7 +177,9 @@ describe("parseAttributeErrors", () => {
     ])("should fail when $description", ({ errors, expectedError }) => {
       const result = runSyncAsResult(
         parseEntitiesAttributesErrors(
-          errors as RawEntitiesAttributesErrors<typeof builder>,
+          errors as unknown as EntitiesAttributesValidationErrors<
+            typeof builder
+          >,
           schema,
           builder,
         ),
@@ -223,7 +225,7 @@ describe("builder store", () => {
 
     const validAttributeErrors = {
       entity1: { label: "error" },
-    } as unknown as EntitiesAttributesErrors<typeof builder>;
+    } as unknown as EntitiesAttributesValidationErrors<typeof builder>;
 
     describe("success cases", () => {
       it.each([
@@ -278,7 +280,9 @@ describe("builder store", () => {
             errors: {
               attributes: {
                 entity1: { invalidAttr: "error" },
-              } as unknown as EntitiesAttributesErrors<typeof builder>,
+              } as unknown as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
           expectedError: {
@@ -1219,7 +1223,9 @@ describe("builder store", () => {
                   root: ["entity2"],
                 },
                 errors: {
-                  attributes: {} as EntitiesAttributesErrors<typeof builder>,
+                  attributes: {} as EntitiesAttributesValidationErrors<
+                    typeof builder
+                  >,
                 },
               }),
             data: {
@@ -1245,7 +1251,9 @@ describe("builder store", () => {
                 },
                 errors: {
                   schema: "error" as never,
-                  attributes: {} as EntitiesAttributesErrors<typeof builder>,
+                  attributes: {} as EntitiesAttributesValidationErrors<
+                    typeof builder
+                  >,
                 },
               }),
             data: {
@@ -1259,7 +1267,9 @@ describe("builder store", () => {
                 root: ["entity2"],
               },
               errors: {
-                attributes: {} as EntitiesAttributesErrors<typeof builder>,
+                attributes: {} as EntitiesAttributesValidationErrors<
+                  typeof builder
+                >,
                 schema: "error",
               },
             },
@@ -1293,7 +1303,9 @@ describe("builder store", () => {
               errors: {
                 attributes: {
                   invalidId: { invalidAttr: "error" },
-                } as unknown as EntitiesAttributesErrors<typeof builder>,
+                } as unknown as EntitiesAttributesValidationErrors<
+                  typeof builder
+                >,
               },
             }),
           expectedError: {
@@ -1317,7 +1329,9 @@ describe("builder store", () => {
               errors: {
                 attributes: {
                   entity1: { invalidAttr: "error" },
-                } as unknown as EntitiesAttributesErrors<typeof builder>,
+                } as unknown as EntitiesAttributesValidationErrors<
+                  typeof builder
+                >,
               },
             }),
           expectedError: {
@@ -1336,7 +1350,9 @@ describe("builder store", () => {
             builderStore.setData({
               schema: {} as never,
               errors: {
-                attributes: {} as EntitiesAttributesErrors<typeof builder>,
+                attributes: {} as EntitiesAttributesValidationErrors<
+                  typeof builder
+                >,
               },
             }),
           expectedError: {
@@ -2223,6 +2239,233 @@ describe("builder store", () => {
     });
   });
 
+  describe("setEntityAttributesValues", () => {
+    const builder = createBuilder({
+      entities: {
+        textField: createEntityDefinition({
+          attributes: {
+            label: createAttributeDefinition({
+              parse: (value) => {
+                if (typeof value === "string") {
+                  return {
+                    success: true,
+                    value: value + "-transformed",
+                  };
+                }
+
+                return {
+                  success: false,
+                  error: "Label must be a string",
+                };
+              },
+            }),
+            placeholder: createAttributeDefinition({
+              parse: (value) => {
+                if (typeof value === "string") {
+                  return {
+                    success: true,
+                    value: value + "-placeholder",
+                  };
+                }
+
+                return {
+                  success: false,
+                  error: "Placeholder must be a string",
+                };
+              },
+            }),
+          },
+        }),
+      },
+      validateEntityId: (id) => typeof id === "string",
+    });
+
+    function makeBuilderStore() {
+      const builderStoreResult = createBuilderStore(builder, {
+        initialData: {
+          schema: {
+            entities: {
+              entity1: {
+                type: "textField",
+                attributes: { label: "Label", placeholder: "Placeholder" },
+              },
+            },
+            root: ["entity1"],
+          },
+        },
+      });
+
+      assertSuccessResult(builderStoreResult);
+
+      return builderStoreResult.value;
+    }
+
+    describe("success cases", () => {
+      it.each([
+        {
+          description: "valid attributes provided",
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) => {
+            return builderStore.setEntityAttributesValues(
+              createEntityRef("textField", "entity1"),
+              {
+                label: "New Label",
+                placeholder: "New Placeholder",
+              },
+            );
+          },
+          expectedResult: {
+            entityRef: createEntityRef("textField", "entity1"),
+          },
+          expectedSchema: {
+            entities: {
+              entity1: {
+                type: "textField",
+                attributes: {
+                  label: "New Label-transformed",
+                  placeholder: "New Placeholder-placeholder",
+                },
+              },
+            },
+            root: ["entity1"],
+          },
+        },
+        {
+          description: "partial attributes provided",
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) => {
+            return builderStore.setEntityAttributesValues(
+              createEntityRef("textField", "entity1"),
+              {
+                label: "Only Label",
+              },
+            );
+          },
+          expectedResult: {
+            entityRef: createEntityRef("textField", "entity1"),
+          },
+          expectedSchema: {
+            entities: {
+              entity1: {
+                type: "textField",
+                attributes: {
+                  label: "Only Label-transformed",
+                },
+              },
+            },
+            root: ["entity1"],
+          },
+        },
+        {
+          description: "empty attributes provided",
+          action: (builderStore: ReturnType<typeof makeBuilderStore>) => {
+            return builderStore.setEntityAttributesValues(
+              createEntityRef("textField", "entity1"),
+              {},
+            );
+          },
+          expectedResult: {
+            entityRef: createEntityRef("textField", "entity1"),
+          },
+          expectedSchema: {
+            entities: {
+              entity1: {
+                type: "textField",
+                attributes: {},
+              },
+            },
+            root: ["entity1"],
+          },
+        },
+      ] as const)(
+        "should succeed when $description",
+        ({ action, expectedResult, expectedSchema }) => {
+          const store = makeBuilderStore();
+
+          const result = action(store);
+
+          assertSuccessResult(result);
+
+          expect(result.value).toStrictEqual(expectedResult);
+
+          expect(store.getData().schema).toStrictEqual(expectedSchema);
+        },
+      );
+    });
+
+    describe("failure cases", () => {
+      it.each([
+        {
+          description: "invalid entity ID provided",
+          entityId: "nonExistentEntity",
+          attributesValues: { label: "Some Value" },
+          expectedError: {
+            instance: ReferencedEntityNotFoundError,
+            properties: {
+              entityId: "nonExistentEntity",
+            },
+          },
+        },
+        {
+          description: "invalid attribute name provided",
+          entityId: "entity1",
+          attributesValues: { nonExistentAttribute: "Some Value" },
+          expectedError: {
+            instance: InvalidAttributeNameError,
+            properties: {
+              entityRef: createEntityRef("textField", "entity1"),
+              attributeName: "nonExistentAttribute",
+              validAttributeNames: ["label", "placeholder"],
+            },
+          },
+        },
+        {
+          description: "attribute parsing fails with wrong type",
+          entityId: "entity1",
+          attributesValues: { label: 123 },
+          expectedError: {
+            instance: EntityAttributesParseError,
+            properties: {
+              entityRef: createEntityRef("textField", "entity1"),
+              errors: {
+                label: "Label must be a string",
+              },
+            },
+          },
+        },
+        {
+          description: "multiple attributes parsing fail",
+          entityId: "entity1",
+          attributesValues: { label: 123, placeholder: 456 },
+          expectedError: {
+            instance: EntityAttributesParseError,
+            properties: {
+              entityRef: createEntityRef("textField", "entity1"),
+              errors: {
+                label: "Label must be a string",
+                placeholder: "Placeholder must be a string",
+              },
+            },
+          },
+        },
+      ] as const)(
+        "should fail when $description",
+        ({ entityId, attributesValues, expectedError }) => {
+          const builderStore = makeBuilderStore();
+
+          const result = builderStore.setEntityAttributesValues(
+            createEntityRef("textField", entityId),
+            attributesValues as never,
+          );
+
+          assertErrorResult(result);
+
+          expect(result.error).toBeInstanceOf(expectedError.instance);
+
+          expect(result.error).toMatchObject(expectedError.properties);
+        },
+      );
+    });
+  });
+
   describe("resetEntityAttributeValue", () => {
     const builder = createBuilder({
       entities: {
@@ -2736,7 +2979,7 @@ describe("builder store", () => {
           {
             label: "Error Label",
             required: "Error Required",
-          },
+          } as unknown as EntityAttributesValidationErrors<typeof builder>,
         );
 
         assertSuccessResult(result);
@@ -2795,7 +3038,9 @@ describe("builder store", () => {
 
           const result = builderStore.setEntityAttributesErrors(
             createEntityRef("textField", entityId),
-            attributesErrors,
+            attributesErrors as unknown as EntityAttributesValidationErrors<
+              typeof builder
+            >,
           );
 
           assertErrorResult(result);
@@ -2839,7 +3084,7 @@ describe("builder store", () => {
               entity1: {
                 label: "Error",
               },
-            } as unknown as EntitiesAttributesErrors<typeof builder>,
+            } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           },
         },
       });
@@ -2955,7 +3200,7 @@ describe("builder store", () => {
                 label: "Label Error",
                 required: "Required Error",
               },
-            } as unknown as EntitiesAttributesErrors<typeof builder>,
+            } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           },
         },
       });
@@ -3051,7 +3296,9 @@ describe("builder store", () => {
                   label: "Label Error",
                   required: "Required Error",
                 },
-              } as unknown as EntitiesAttributesErrors<typeof builder>,
+              } as unknown as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
         });
@@ -3121,7 +3368,9 @@ describe("builder store", () => {
             root: ["entity1", "entity2"],
           },
           errors: {
-            attributes: {} as EntitiesAttributesErrors<typeof builder>,
+            attributes: {} as EntitiesAttributesValidationErrors<
+              typeof builder
+            >,
           },
         },
       });
@@ -3143,7 +3392,7 @@ describe("builder store", () => {
             entity2: {
               title: "Title Error",
             },
-          } as unknown as EntitiesAttributesErrors<typeof builder>,
+          } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           expectedData: {
             entity1: {
               label: "Label Error",
@@ -3156,7 +3405,9 @@ describe("builder store", () => {
         },
         {
           description: "empty entities attribute errors provided",
-          attributesErrors: {} as EntitiesAttributesErrors<typeof builder>,
+          attributesErrors: {} as EntitiesAttributesValidationErrors<
+            typeof builder
+          >,
           expectedData: {},
         },
         {
@@ -3165,7 +3416,7 @@ describe("builder store", () => {
             entity1: {
               label: "Label Error",
             },
-          } as unknown as EntitiesAttributesErrors<typeof builder>,
+          } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           expectedData: {
             entity1: {
               label: "Label Error",
@@ -3198,7 +3449,7 @@ describe("builder store", () => {
             nonExistentEntity: {
               label: "Error",
             },
-          } as unknown as EntitiesAttributesErrors<typeof builder>,
+          } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: ReferencedEntityNotFoundError,
@@ -3213,7 +3464,7 @@ describe("builder store", () => {
             entity1: {
               nonExistentAttribute: "Error",
             },
-          } as unknown as EntitiesAttributesErrors<typeof builder>,
+          } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: InvalidAttributeNameError,
@@ -3233,7 +3484,7 @@ describe("builder store", () => {
             nonExistentEntity: {
               label: "Invalid Error",
             },
-          } as unknown as EntitiesAttributesErrors<typeof builder>,
+          } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: ReferencedEntityNotFoundError,
@@ -3249,7 +3500,7 @@ describe("builder store", () => {
               label: "Valid Error",
               nonExistentAttribute: "Invalid Error",
             },
-          } as unknown as EntitiesAttributesErrors<typeof builder>,
+          } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           expectedError: {
             instance: EntitiesAttributesErrorsParseError,
             causeInstance: InvalidAttributeNameError,
@@ -3386,7 +3637,9 @@ describe("builder store", () => {
                   parseAndRefine: "must be a string",
                   failedAttribute: "failure",
                 },
-              } as unknown as EntitiesAttributesErrors<typeof builder>,
+              } as unknown as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
           expectedResult: {
@@ -3438,7 +3691,9 @@ describe("builder store", () => {
                 entity1: {
                   failedAttribute: "failure",
                 },
-              } as unknown as EntitiesAttributesErrors<typeof builder>,
+              } as unknown as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
           expectedResult: {
@@ -3515,7 +3770,9 @@ describe("builder store", () => {
               root: [],
             },
             errors: {
-              attributes: {} as EntitiesAttributesErrors<typeof builder>,
+              attributes: {} as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
         },
@@ -3546,7 +3803,9 @@ describe("builder store", () => {
               root: ["entity1"],
             },
             errors: {
-              attributes: {} as EntitiesAttributesErrors<typeof builder>,
+              attributes: {} as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
         },
@@ -3576,7 +3835,9 @@ describe("builder store", () => {
                 entity1: {
                   parse: "must be a string",
                 },
-              } as unknown as EntitiesAttributesErrors<typeof builder>,
+              } as unknown as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
           expectedData: {
@@ -3594,7 +3855,9 @@ describe("builder store", () => {
                 entity1: {
                   parse: "must be a string",
                 },
-              } as unknown as EntitiesAttributesErrors<typeof builder>,
+              } as unknown as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
         },
@@ -3631,7 +3894,9 @@ describe("builder store", () => {
                 entity1: {
                   parseAndRefine: "Refine fail",
                 },
-              } as unknown as EntitiesAttributesErrors<typeof builder>,
+              } as unknown as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
           expectedData: {
@@ -3652,7 +3917,9 @@ describe("builder store", () => {
                 entity1: {
                   parseAndRefine: "Refine fail",
                 },
-              } as unknown as EntitiesAttributesErrors<typeof builder>,
+              } as unknown as EntitiesAttributesValidationErrors<
+                typeof builder
+              >,
             },
           },
         },
@@ -3776,7 +4043,7 @@ describe("builder store", () => {
                 label: "must be a string",
                 shouldFail: "must not be 'fail'",
               },
-            } as unknown as EntitiesAttributesErrors<typeof builder>,
+            } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           },
         },
       });
@@ -3943,7 +4210,7 @@ describe("builder store", () => {
               entity1: {
                 label: "must be a string",
               },
-            } as unknown as EntitiesAttributesErrors<typeof builder>,
+            } as unknown as EntitiesAttributesValidationErrors<typeof builder>,
           },
         },
       });

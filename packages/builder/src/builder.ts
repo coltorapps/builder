@@ -1,3 +1,4 @@
+import type * as B from "effect/Brand";
 import { pipe } from "effect/Function";
 import * as O from "effect/Option";
 import * as R from "effect/Record";
@@ -192,10 +193,10 @@ export function createBuilder<
   };
 }
 
-export function getEntityDefinitionDangerously(
-  entityType: string,
-  builder: Builder,
-): EntityDefinition {
+export function getEntityDefinitionDangerously<TBuilder extends Builder>(
+  entityType: KeyofStringIntersection<TBuilder["entities"]>,
+  builder: TBuilder,
+): TBuilder["entities"][KeyofStringIntersection<TBuilder["entities"]>] {
   return pipe(
     R.get(builder.entities, entityType),
     O.getOrThrowWith(
@@ -204,12 +205,15 @@ export function getEntityDefinitionDangerously(
           `Entity type "${entityType}" not found in the builder. This is likely a bug.`,
         ),
     ),
-  );
+  ) as TBuilder["entities"][KeyofStringIntersection<TBuilder["entities"]>];
 }
 
 declare const builderBrand: unique symbol;
 
-export type BuilderBrand<TBuilder extends Builder> = {
+export type BuilderBrand<
+  TBuilder extends Builder,
+  TKey extends string | symbol,
+> = {
   readonly [builderBrand]: {
     _b: TBuilder;
     _a: {
@@ -220,4 +224,4 @@ export type BuilderBrand<TBuilder extends Builder> = {
       }[KeyofStringIntersection<TBuilder["entities"][K]["attributes"]>];
     }[KeyofStringIntersection<TBuilder["entities"]>];
   };
-};
+} & B.Brand<TKey>;

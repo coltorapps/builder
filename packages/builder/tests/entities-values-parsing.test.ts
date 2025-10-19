@@ -10,8 +10,12 @@ import {
   parseEntitiesValues,
 } from "../src/entities-values-parsing";
 import { createEntityDefinition } from "../src/entity-definition";
+import {
+  ReferencedEntityNotFoundError,
+  SchemaParseError,
+  SchemaStructuralError,
+} from "../src/schema-parsing";
 import { createEntityRef } from "../src/utils";
-import { ReferencedEntityNotFoundError, SchemaStructuralError } from "../src/schema-parsing";
 
 const builder = createBuilder({
   entities: {
@@ -121,15 +125,18 @@ describe("parseEntitiesValues", () => {
         },
         values: {},
         expectedError: {
-          instance: SchemaStructuralError,
+          instance: SchemaParseError,
+          causeInstance: SchemaStructuralError,
           payload: {
-            issues: [
-              {
-                _tag: "Type",
-                path: ["root", 0],
-                message: "Invalid ID reference",
-              },
-            ],
+            cause: {
+              issues: [
+                {
+                  _tag: "Type",
+                  path: ["root", 0],
+                  message: "Invalid ID reference",
+                },
+              ],
+            },
           },
         },
       },
@@ -173,6 +180,10 @@ describe("parseEntitiesValues", () => {
       const result = parseEntitiesValues(values, schema, builder);
 
       expect(result.error).toBeInstanceOf(expectedError.instance);
+
+      if (expectedError.causeInstance) {
+        expect(result.error?.cause).toBeInstanceOf(expectedError.causeInstance);
+      }
 
       expect(result.error).toMatchObject(expectedError.payload);
     });

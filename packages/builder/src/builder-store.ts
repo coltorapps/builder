@@ -1,5 +1,6 @@
 import { Store as DataStore } from "@tanstack/store";
 import * as A from "effect/Array";
+import * as C from "effect/Cause";
 import * as D from "effect/Data";
 import * as E from "effect/Effect";
 import * as Ei from "effect/Either";
@@ -48,6 +49,7 @@ import {
   type ChildNotAllowedError,
   type DraftSchema,
   type DraftSchemaEntity,
+  type EntitiesAttributesParseErrors,
   type EntityRefTypeMismatchError,
   type InvalidAttributeNameError,
   type InvalidEntityIdError,
@@ -60,7 +62,6 @@ import {
   type ReferencedEntityNotFoundError,
 } from "./schema-parsing";
 import {
-  cleanEntitiesAttributeErrors,
   EntitiesAttributesValidationError,
   EntityAttributesValidationError,
   EntityAttributeValidationError,
@@ -68,14 +69,14 @@ import {
   validateEntitiesAttributes,
   validateEntityAttribute,
   validateEntityAttributes,
-  type EntitiesAttributesErrors,
-  type EntityAttributesErrors,
-  type RawEntitiesAttributesErrors,
+  type EntitiesAttributesValidationErrors,
+  type EntityAttributesValidationErrors,
   type SchemaRefineError,
 } from "./schema-validation";
 import {
   createAttributeRef,
   createEntityRef,
+  filterEmptyRecords,
   flatMapAsResult,
   runPromiseAsResult,
   runSyncAsResult,
@@ -89,13 +90,18 @@ export interface BuilderStoreData<TBuilder extends Builder = Builder> {
   readonly schema: DraftSchema<TBuilder>;
   readonly errors: {
     readonly schema?: InferBuilderSchemaRefineError<TBuilder>;
-    readonly attributes: EntitiesAttributesErrors<TBuilder>;
+    readonly attributes: EntitiesAttributesValidationErrors<TBuilder>;
   };
 }
 
 interface PartialBuilderStoreData<TBuilder extends Builder>
   extends Omit<Partial<BuilderStoreData<TBuilder>>, "errors"> {
-  errors?: Partial<BuilderStoreData<TBuilder>["errors"]>;
+  readonly errors?: {
+    readonly schema?: BuilderStoreData<TBuilder>["errors"]["schema"];
+    readonly attributes?:
+      | EntitiesAttributesValidationErrors<TBuilder>
+      | EntitiesAttributesParseErrors<TBuilder>;
+  };
 }
 
 interface GenericBuilderStore<
@@ -124,7 +130,7 @@ interface GenericBuilderStore<
     },
     | IndexOutOfBoundsError
     | EntityIdAlreadyExistsError<TBuilder>
-    | EntityAttributesParseError<TBuilder>
+    | EntityAttributesParseError<TBuilder, TType>
     | InvalidEntityIdError
     | InvalidEntityTypeError<TBuilder>
     | ParentRequiredError<TBuilder>
@@ -256,6 +262,21 @@ interface GenericBuilderStore<
     | EntityRefTypeMismatchError
     | InvalidAttributeNameError<TBuilder, TType>
     | EntityAttributeParseError<TBuilder, TType, TAttributeName>
+  >;
+  readonly setEntityAttributesValues: <
+    TType extends KeyofStringIntersection<TBuilder["entities"]>,
+  >(
+    entityRef: EntityRef<TBuilder, TType>,
+    attributesValues: DraftSchemaEntity<TBuilder, TType>["attributes"],
+  ) => ModeOutput<
+    TResultMode,
+    {
+      entityRef: EntityRef<TBuilder, TType>;
+    },
+    | ReferencedEntityNotFoundError
+    | EntityRefTypeMismatchError
+    | InvalidAttributeNameError<TBuilder, TType>
+    | EntityAttributesParseError<TBuilder, TType>
   >;
   readonly clearEntityAttributeValue: <
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
@@ -398,23 +419,25 @@ interface GenericBuilderStore<
     TType extends KeyofStringIntersection<TBuilder["entities"]>,
   >(
     entityRef: EntityRef<TBuilder, TType>,
-    attributesErrors: EntityAttributesErrors<TBuilder, TType>,
+    attributesErrors: EntityAttributesValidationErrors<TBuilder, TType>,
   ) => ModeOutput<
     TResultMode,
     {
       entityRef: EntityRef<TBuilder, TType>;
-      attributesErrors: EntityAttributesErrors;
+      attributesErrors: EntityAttributesValidationErrors<TBuilder, TType>;
     },
     | ReferencedEntityNotFoundError
     | EntityRefTypeMismatchError
     | InvalidAttributeNameError<TBuilder, TType>
   >;
   readonly setEntitiesAttributesErrors: (
-    attributesErrors: EntitiesAttributesErrors<TBuilder>,
+    attributesErrors:
+      | EntitiesAttributesValidationErrors<TBuilder>
+      | EntitiesAttributesParseErrors<TBuilder>,
   ) => ModeOutput<
     TResultMode,
     {
-      attributesErrors: EntitiesAttributesErrors<TBuilder>;
+      attributesErrors: EntitiesAttributesValidationErrors<TBuilder>;
     },
     EntitiesAttributesErrorsParseError<TBuilder>
   >;
@@ -472,32 +495,31 @@ export class IndexOutOfBoundsError extends D.TaggedError(
 }> {}
 
 export function parseEntitiesAttributesErrors<TBuilder extends Builder>(
-  entitiesAttributesErrors: RawEntitiesAttributesErrors<TBuilder>,
+  entitiesAttributesErrors: EntitiesAttributesValidationErrors<TBuilder>,
   schema: DraftSchema<TBuilder>,
   builder: TBuilder,
 ): E.Effect<
-  RawEntitiesAttributesErrors<TBuilder>,
+  EntitiesAttributesValidationErrors<TBuilder>,
   EntitiesAttributesErrorsParseError<TBuilder>
 > {
   return pipe(
-    E.forEach(
-      R.toEntries(entitiesAttributesErrors),
-      ([entityId, attributesErrors]) =>
-        pipe(
-          getSchemaEntityById(entityId, schema.entities),
-          E.flatMap((entity) =>
-            validateEntityAttributeNames(
-              entity.type,
-              entityId,
-              R.keys(attributesErrors as RawEntitiesAttributesErrors<TBuilder>),
-              builder,
-            ),
+    R.toEntries(entitiesAttributesErrors),
+    E.forEach(([entityId, attributesErrors]) =>
+      pipe(
+        getSchemaEntityById(entityId, schema.entities),
+        E.flatMap((entity) =>
+          validateEntityAttributeNames(
+            entity.type,
+            entityId,
+            R.keys(attributesErrors as EntityAttributesValidationErrors),
+            builder,
           ),
         ),
+      ),
     ),
     E.as(entitiesAttributesErrors),
-    E.mapError(
-      (error) => new EntitiesAttributesErrorsParseError({ cause: error }),
+    E.mapErrorCause(
+      C.map((e) => new EntitiesAttributesErrorsParseError({ cause: e })),
     ),
   );
 }
@@ -987,7 +1009,10 @@ function makeAddEntity<TBuilder extends Builder>(
               onTrue: () => E.succeed(result.values),
               onFalse: () =>
                 E.fail(
-                  new EntityAttributesParseError({
+                  new EntityAttributesParseError<
+                    typeof builder,
+                    typeof payload.type
+                  >({
                     entityRef: createEntityRef(payload.type, entityId),
                     errors: result.errors,
                   }),
@@ -1219,14 +1244,19 @@ function parsePartialBuilderStoreData<TBuilder extends Builder>(
       pipe(
         O.fromNullable(partialData?.errors?.attributes),
         O.map((attributeErrors) =>
-          parseEntitiesAttributesErrors(attributeErrors, parsedSchema, builder),
+          parseEntitiesAttributesErrors(
+            attributeErrors as EntitiesAttributesValidationErrors<TBuilder>,
+            parsedSchema,
+            builder,
+          ),
         ),
-        O.getOrElse(() => E.succeed({})),
+        O.getOrElse(() =>
+          E.succeed({} as EntitiesAttributesValidationErrors<TBuilder>),
+        ),
         E.map((entitiesAttributesErrors) => ({
           schema: parsedSchema,
           errors: {
-            attributes:
-              entitiesAttributesErrors as EntitiesAttributesErrors<TBuilder>,
+            attributes: entitiesAttributesErrors,
             ...(partialData?.errors?.schema
               ? { schema: partialData.errors.schema }
               : {}),
@@ -1319,6 +1349,59 @@ function makeSetEntityAttributeValue<TBuilder extends Builder>(
             ),
         }),
       ),
+    );
+}
+
+function makeSetEntityAttributesValues<TBuilder extends Builder>(
+  builder: TBuilder,
+  dataStore: DataStore<BuilderStoreData<TBuilder>>,
+): EffectfulBuilderStore<TBuilder>["setEntityAttributesValues"] {
+  return (entityRef, attributesValues) =>
+    pipe(
+      validateSchemaEntityRef(entityRef, dataStore.state.schema.entities),
+      E.flatMap(() =>
+        validateEntityAttributeNames(
+          entityRef.type,
+          entityRef.id,
+          R.keys(attributesValues),
+          builder,
+        ),
+      ),
+      E.map(() =>
+        parseEntityAttributes(entityRef.type, attributesValues, builder),
+      ),
+      E.flatMap((parseResult) =>
+        pipe(
+          E.fail(
+            new EntityAttributesParseError({
+              entityRef,
+              errors: parseResult.errors,
+            }),
+          ),
+          E.unless(() => R.isEmptyRecord(parseResult.errors)),
+          E.flatMap(() =>
+            E.sync(() =>
+              dataStore.setState((prevState) => ({
+                ...prevState,
+                schema: {
+                  ...prevState.schema,
+                  entities: R.modify(
+                    prevState.schema.entities,
+                    entityRef.id,
+                    (existingEntity) => ({
+                      ...existingEntity,
+                      attributes: { ...parseResult.values },
+                    }),
+                  ),
+                },
+              })),
+            ),
+          ),
+        ),
+      ),
+      E.as({
+        entityRef,
+      }),
     );
 }
 
@@ -1471,7 +1554,7 @@ export function makeClearEntityAttributeError<TBuilder extends Builder>(
             ...prevState,
             errors: {
               ...prevState.errors,
-              attributes: cleanEntitiesAttributeErrors(
+              attributes: filterEmptyRecords(
                 R.set(
                   prevState.errors.attributes,
                   attributeRef.entityRef.id,
@@ -1485,7 +1568,7 @@ export function makeClearEntityAttributeError<TBuilder extends Builder>(
                       ),
                   ),
                 ),
-              ) as EntitiesAttributesErrors<TBuilder>,
+              ) as EntitiesAttributesValidationErrors<TBuilder>,
             },
           })),
         ),
@@ -1509,9 +1592,9 @@ export function makeClearEntityAttributesErrors<TBuilder extends Builder>(
             ...prevState,
             errors: {
               ...prevState.errors,
-              attributes: cleanEntitiesAttributeErrors(
+              attributes: filterEmptyRecords(
                 R.remove(prevState.errors.attributes, entityRef.id),
-              ) as EntitiesAttributesErrors<TBuilder>,
+              ) as EntitiesAttributesValidationErrors<TBuilder>,
             },
           })),
         ),
@@ -1532,7 +1615,7 @@ export function makeClearEntitiesAttributesErrors<
           ...prevState,
           errors: {
             ...prevState.errors,
-            attributes: {} as EntitiesAttributesErrors<TBuilder>,
+            attributes: {} as EntitiesAttributesValidationErrors<TBuilder>,
           },
         })),
       ),
@@ -1584,7 +1667,7 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
                   ...prevState,
                   errors: {
                     ...prevState.errors,
-                    attributes: cleanEntitiesAttributeErrors(
+                    attributes: filterEmptyRecords(
                       R.set(
                         prevState.errors.attributes,
                         attributeRef.entityRef.id,
@@ -1593,14 +1676,10 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
                             attributeRef.entityRef.id
                           ] ?? {},
                           (entityErrors) =>
-                            R.set(
-                              entityErrors,
-                              attributeRef.name as keyof typeof entityErrors,
-                              error,
-                            ),
+                            R.set(entityErrors, attributeRef.name, error),
                         ),
                       ),
-                    ) as EntitiesAttributesErrors<TBuilder>,
+                    ) as EntitiesAttributesValidationErrors<TBuilder>,
                   },
                 })),
               ),
@@ -1635,7 +1714,7 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
                   },
                   errors: {
                     ...prevState.errors,
-                    attributes: cleanEntitiesAttributeErrors(
+                    attributes: filterEmptyRecords(
                       R.set(
                         prevState.errors.attributes,
                         attributeRef.entityRef.id,
@@ -1650,7 +1729,7 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
                             ),
                         ),
                       ),
-                    ) as EntitiesAttributesErrors<TBuilder>,
+                    ) as EntitiesAttributesValidationErrors<TBuilder>,
                   },
                 })),
               ),
@@ -1667,7 +1746,7 @@ export function makeValidateEntityAttribute<TBuilder extends Builder>(
 export function makeValidateEntityAttributes<
   TBuilder extends Builder = Builder,
 >(
-  builder: Builder,
+  builder: TBuilder,
   dataStore: DataStore<BuilderStoreData<TBuilder>>,
 ): EffectfulBuilderStore<TBuilder>["validateEntityAttributes"] {
   return (entityRef) =>
@@ -1703,13 +1782,13 @@ export function makeValidateEntityAttributes<
                 },
                 errors: {
                   ...prevState.errors,
-                  attributes: cleanEntitiesAttributeErrors(
+                  attributes: filterEmptyRecords(
                     R.set(
                       prevState.errors.attributes,
                       entityRef.id,
-                      validatedAttributes.errors as EntityAttributesErrors<TBuilder>,
+                      validatedAttributes.errors,
                     ),
-                  ) as EntitiesAttributesErrors<TBuilder>,
+                  ) as EntitiesAttributesValidationErrors<TBuilder>,
                 },
               })),
             ),
@@ -1722,7 +1801,11 @@ export function makeValidateEntityAttributes<
                   errors: validatedAttributes.errors,
                 }),
               ),
-              E.unless(() => R.isEmptyRecord(validatedAttributes.errors)),
+              E.unless(() =>
+                R.isEmptyRecord(
+                  validatedAttributes.errors as EntityAttributesValidationErrors,
+                ),
+              ),
               E.map(() => ({
                 entityRef,
                 attributes: attributes as ParsedSchemaEntity<
@@ -1761,9 +1844,9 @@ export function makeValidateEntitiesAttributes<
               },
               errors: {
                 ...prevState.errors,
-                attributes: cleanEntitiesAttributeErrors(
+                attributes: filterEmptyRecords(
                   validationResult.attributeErrors,
-                ) as EntitiesAttributesErrors<TBuilder>,
+                ),
               },
             })),
           ),
@@ -1849,7 +1932,7 @@ export function makeSetEntityAttributeError<TBuilder extends Builder = Builder>(
             ...prevState,
             errors: {
               ...prevState.errors,
-              attributes: cleanEntitiesAttributeErrors(
+              attributes: filterEmptyRecords(
                 R.set(
                   prevState.errors.attributes,
                   attributeRef.entityRef.id,
@@ -1859,8 +1942,8 @@ export function makeSetEntityAttributeError<TBuilder extends Builder = Builder>(
                     (entityErrors) =>
                       R.set(entityErrors, attributeRef.name, attributeError),
                   ),
-                ) as RawEntitiesAttributesErrors<TBuilder>,
-              ) as EntitiesAttributesErrors<TBuilder>,
+                ),
+              ) as EntitiesAttributesValidationErrors<TBuilder>,
             },
           })),
         ),
@@ -1887,7 +1970,7 @@ export function makeSetEntityAttributesErrors<
         validateEntityAttributeNames(
           entity.type,
           entityRef.id,
-          R.keys(attributesErrors as RawEntitiesAttributesErrors<TBuilder>),
+          R.keys(attributesErrors as EntityAttributesValidationErrors),
           builder,
         ),
       ),
@@ -1897,13 +1980,13 @@ export function makeSetEntityAttributesErrors<
             ...prevState,
             errors: {
               ...prevState.errors,
-              attributes: cleanEntitiesAttributeErrors(
+              attributes: filterEmptyRecords(
                 R.set(
                   prevState.errors.attributes,
                   entityRef.id,
                   attributesErrors,
                 ),
-              ) as EntitiesAttributesErrors<TBuilder>,
+              ) as EntitiesAttributesValidationErrors<TBuilder>,
             },
           })),
         ),
@@ -1923,25 +2006,23 @@ export function makeSetEntitiesAttributesErrors<
       E.sync(() => dataStore.state.schema),
       E.flatMap((schema) =>
         parseEntitiesAttributesErrors(
-          entitiesAttributesErrors,
+          entitiesAttributesErrors as EntitiesAttributesValidationErrors<TBuilder>,
           schema,
           builder,
         ),
       ),
-      E.tap(() =>
+      E.tap((errors) =>
         E.sync(() =>
           dataStore.setState((prevState) => ({
             ...prevState,
             errors: {
               ...prevState.errors,
-              attributes: cleanEntitiesAttributeErrors(
-                entitiesAttributesErrors,
-              ) as EntitiesAttributesErrors<TBuilder>,
+              attributes: filterEmptyRecords(errors),
             },
           })),
         ),
       ),
-      E.map(() => ({ attributesErrors: entitiesAttributesErrors })),
+      E.map((attributesErrors) => ({ attributesErrors })),
     );
 }
 
@@ -1999,6 +2080,10 @@ export function createEffectfulBuilderStore<TBuilder extends Builder>(
         ),
         setEntityParent: makeSetEntityParent(builder, dataStore),
         setEntityAttributeValue: makeSetEntityAttributeValue(
+          builder,
+          dataStore,
+        ),
+        setEntityAttributesValues: makeSetEntityAttributesValues(
           builder,
           dataStore,
         ),
@@ -2083,6 +2168,8 @@ export function createBuilderStore<TBuilder extends Builder>(
               runSyncAsResult(builderStore.setEntityParent(...args)),
             setEntityAttributeValue: (...args) =>
               runSyncAsResult(builderStore.setEntityAttributeValue(...args)),
+            setEntityAttributesValues: (...args) =>
+              runSyncAsResult(builderStore.setEntityAttributesValues(...args)),
             resetEntityAttributeValue: (...args) =>
               runSyncAsResult(builderStore.resetEntityAttributeValue(...args)),
             clearEntityAttributeValue: (...args) =>

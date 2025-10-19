@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createAttributeDefinition } from "../src/attribute-definition";
 import { createBuilder } from "../src/builder";
 import { createEntityDefinition } from "../src/entity-definition";
-import { SchemaStructuralError } from "../src/schema-parsing";
+import { SchemaParseError, SchemaStructuralError } from "../src/schema-parsing";
 import {
   EntitiesAttributesValidationError,
   SchemaRefineError,
@@ -212,7 +212,8 @@ describe("schema validation", () => {
         description: "invalid schema provided",
         schema: {},
         expectedError: {
-          instance: SchemaStructuralError,
+          instance: SchemaParseError,
+          causeInstance: SchemaStructuralError,
         },
       },
       {
@@ -330,6 +331,12 @@ describe("schema validation", () => {
         assertErrorResult(result);
 
         expect(result.error).toBeInstanceOf(expectedError.instance);
+
+        if (expectedError.causeInstance) {
+          expect(result.error.cause).toBeInstanceOf(
+            expectedError.causeInstance,
+          );
+        }
 
         if (expectedError.properties) {
           expect(result).toMatchObject({

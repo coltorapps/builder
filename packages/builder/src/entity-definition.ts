@@ -44,7 +44,7 @@ interface ContextEntityInstance<
   readonly metadata: TEntity["metadata"];
 }
 
-interface ContextEntityInstanceWithValue<
+export interface ContextEntityInstanceWithValue<
   TEntity extends EntityDefinition = EntityDefinition,
   TType extends string = string,
 > extends ContextEntityInstance<TEntity, TType> {
@@ -207,6 +207,10 @@ export type InferEntityDefinitionRefineError<TEntity extends EntityDefinition> =
     { success: false }
   >["error"];
 
+export type InferEntityDefinitionError<TEntity extends EntityDefinition> =
+  | InferEntityDefinitionParseError<TEntity>
+  | InferEntityDefinitionRefineError<TEntity>;
+
 type CreateEntityDefinitionOptions<
   TAttributes extends Record<string, AttributeDefinition>,
   TMetadata,
@@ -346,7 +350,7 @@ export function createEntityDefinition<
       pipe(
         O.fromNullable(secondOptions?.refine),
         O.map(
-          (refine) => async (args: Parameters<typeof refine>) =>
+          (refine) => async (...args: Parameters<typeof refine>) =>
             normalizeResult(await refine(...args)),
         ),
         O.getOrElse(() => (value: TValue) => ({ success: true, value })),

@@ -1,6 +1,7 @@
 import * as B from "effect/Brand";
 import * as E from "effect/Effect";
 import { pipe } from "effect/Function";
+import * as R from "effect/Record";
 
 import { type Builder } from "./builder";
 
@@ -130,4 +131,13 @@ export function createAttributeRef<
     name: attributeName,
     entityRef: createEntityRef(entityType, entityId),
   });
+}
+
+export function filterEmptyRecords<
+  T extends Record<string, Record<string, unknown>>,
+>(record: T): T {
+  return pipe(
+    R.filter(record, (value) => !R.isEmptyRecord(value)),
+    (result) => result as T,
+  );
 }

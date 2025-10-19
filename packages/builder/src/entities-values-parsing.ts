@@ -1,4 +1,5 @@
 import * as A from "effect/Array";
+import * as C from "effect/Cause";
 import * as D from "effect/Data";
 import * as E from "effect/Effect";
 import * as Ei from "effect/Either";
@@ -16,23 +17,24 @@ import {
   type BuilderBrand,
 } from "./builder";
 import {
-  type EntityDefinition,
   type EntityDefinitionRefineContext,
   type InferEntityDefinitionParsedValue,
+  type InferEntityDefinitionParseError,
 } from "./entity-definition";
 import {
   collectEntityDescendants,
   getSchemaEntityById,
   parseSchemaEffectfully,
+  SchemaParseError,
   validateSchemaEntityIdExists,
   type ParsedSchema,
-  type ParseSchemaError,
   type ReferencedEntityNotFoundError,
 } from "./schema-parsing";
 import {
   createEntityRef,
   runSyncAsResult,
   type EntityRef,
+  type KeyofStringIntersection,
   type Result,
 } from "./utils";
 
@@ -43,11 +45,11 @@ type RawEntitiesValues<TBuilder extends Builder> = Record<
   >
 >;
 
-type DraftEntitiesValues<TBuilder extends Builder> =
-  RawEntitiesValues<TBuilder> & BuilderBrand<TBuilder>;
+export type DraftEntitiesValues<TBuilder extends Builder> =
+  RawEntitiesValues<TBuilder> & BuilderBrand<TBuilder, "DraftEntitiesValues">;
 
-type EntitiesValues<TBuilder extends Builder> = RawEntitiesValues<TBuilder> &
-  BuilderBrand<TBuilder>;
+export type ParsedEntitiesValues<TBuilder extends Builder> =
+  RawEntitiesValues<TBuilder> & BuilderBrand<TBuilder, "ParsedEntitiesValues">;
 
 export class EntityValueNotAllowedError<
   TBuilder extends Builder = Builder,
@@ -69,28 +71,46 @@ export class EntitiesValuesStructuralError extends D.TaggedError(
   readonly cause: P.ParseError;
 }> {}
 
-export type EntitiesValuesParseErrors = Record<string, unknown>;
+export type EntitiesValuesParseErrors<TBuilder extends Builder> = Record<
+  string,
+  InferEntityDefinitionParseError<
+    TBuilder["entities"][KeyofStringIntersection<TBuilder["entities"]>]
+  >
+> &
+  BuilderBrand<TBuilder, "EntitiesValuesParseErrors">;
 
-export class EntitiesValuesParseError extends D.TaggedError(
-  "EntitiesValuesParseError",
-)<{
-  readonly errors: EntitiesValuesParseErrors;
+export class EntityValueParseError<
+  TBuilder extends Builder = Builder,
+  TType extends KeyofStringIntersection<
+    TBuilder["entities"]
+  > = KeyofStringIntersection<TBuilder["entities"]>,
+> extends D.TaggedError("EntityValueParseError")<{
+  readonly entityRef: EntityRef<TBuilder>;
+  readonly cause: InferEntityDefinitionParseError<TBuilder["entities"][TType]>;
+}> {}
+
+export class EntitiesValuesParseError<
+  TBuilder extends Builder,
+> extends D.TaggedError("EntitiesValuesParseError")<{
+  readonly errors: EntitiesValuesParseErrors<TBuilder>;
 }> {}
 
 export type UnprocessableEntities = HM.HashMap<string, { sourceId: string }>;
 
-type ParseEntityValueError<TBuilder extends Builder = Builder> =
+export type ParseEntityValueError<TBuilder extends Builder = Builder> =
   | EntityValueNotAllowedError<TBuilder>
   | ReferencedEntityNotFoundError
   | EntityUnprocessableError<TBuilder>;
 
-function parseEntityValue(
+function parseEntityValue<TBuilder extends Builder>(
   entityId: string,
   entityType: string,
   entityValue: unknown,
-  entityDef: EntityDefinition,
-  schema: ParsedSchema,
-): E.Effect<Ei.Either<unknown, unknown>, ParseEntityValueError> {
+  entityDef: TBuilder["entities"][KeyofStringIntersection<
+    TBuilder["entities"]
+  >],
+  schema: ParsedSchema<TBuilder>,
+): E.Effect<Ei.Either<unknown, unknown>, ParseEntityValueError<TBuilder>> {
   return pipe(
     getSchemaEntityById(entityId, schema.entities),
     E.flatMap((entity) =>
@@ -304,15 +324,20 @@ function validateEntityIdProcessable(
   );
 }
 
-export function parseAndPartitionEntitiesValues<TBuilder extends Builder>(
+export function parseAndPartitionEntitiesValues<
+  TBuilder extends Builder,
+  TOptions extends ParseEntitiesValuesOptions,
+>(
   entitiesValues: Record<string, unknown>,
   schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
-  options?: ParseEntitiesValuesOptions,
+  options?: TOptions,
 ): E.Effect<
   {
-    errors: EntitiesValuesParseErrors;
-    values: RawEntitiesValues<TBuilder>;
+    errors: EntitiesValuesParseErrors<TBuilder>;
+    values: TOptions["parseMissingValues"] extends true
+      ? ParsedEntitiesValues<TBuilder>
+      : DraftEntitiesValues<TBuilder>;
   },
   ParseEntityValueError<TBuilder>
 > {
@@ -354,8 +379,14 @@ export function parseAndPartitionEntitiesValues<TBuilder extends Builder>(
                 : Ei.right([entityId, either.right] as const),
             ),
             ([errors, successes]) => ({
-              errors: R.fromEntries(errors),
-              values: R.fromEntries(successes),
+              errors: R.fromEntries(
+                errors,
+              ) as EntitiesValuesParseErrors<TBuilder>,
+              values: R.fromEntries(
+                successes,
+              ) as TOptions["parseMissingValues"] extends true
+                ? ParsedEntitiesValues<TBuilder>
+                : DraftEntitiesValues<TBuilder>,
             }),
           ),
         ),
@@ -364,10 +395,10 @@ export function parseAndPartitionEntitiesValues<TBuilder extends Builder>(
   );
 }
 
-type ParseEntitiesValuesError<TBuilder extends Builder> =
+export type ParseEntitiesValuesError<TBuilder extends Builder> =
   | EntitiesValuesStructuralError
-  | EntitiesValuesParseError
-  | ParseSchemaError<TBuilder>
+  | EntitiesValuesParseError<TBuilder>
+  | SchemaParseError<TBuilder>
   | ParseEntityValueError<TBuilder>;
 
 type ParseEntitiesValuesOptions = {
@@ -384,12 +415,13 @@ export function parseEntitiesValuesWithOptions<
   options?: TOptions,
 ): E.Effect<
   TOptions["parseMissingValues"] extends true
-    ? EntitiesValues<TBuilder>
+    ? ParsedEntitiesValues<TBuilder>
     : DraftEntitiesValues<TBuilder>,
   ParseEntitiesValuesError<TBuilder>
 > {
   return pipe(
     parseSchemaEffectfully(schema, builder),
+    E.mapErrorCause(C.map((e) => new SchemaParseError({ cause: e }))),
     E.flatMap((parsedSchema) =>
       pipe(
         entitiesValues,
@@ -454,7 +486,7 @@ export function parseEntitiesValuesWithOptions<
             ),
             E.as(
               values as TOptions["parseMissingValues"] extends true
-                ? EntitiesValues<TBuilder>
+                ? ParsedEntitiesValues<TBuilder>
                 : DraftEntitiesValues<TBuilder>,
             ),
           ),
@@ -468,7 +500,10 @@ export function parseEntitiesValuesEffectfully<TBuilder extends Builder>(
   entitiesValues: unknown,
   schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
-): E.Effect<EntitiesValues<TBuilder>, ParseEntitiesValuesError<TBuilder>> {
+): E.Effect<
+  ParsedEntitiesValues<TBuilder>,
+  ParseEntitiesValuesError<TBuilder>
+> {
   return parseEntitiesValuesWithOptions(entitiesValues, schema, builder, {
     parseMissingValues: true,
   });
@@ -478,7 +513,7 @@ export function parseEntitiesValues<TBuilder extends Builder>(
   entitiesValues: unknown,
   schema: ParsedSchema<TBuilder>,
   builder: TBuilder,
-): Result<EntitiesValues<TBuilder>, ParseEntitiesValuesError<TBuilder>> {
+): Result<ParsedEntitiesValues<TBuilder>, ParseEntitiesValuesError<TBuilder>> {
   return runSyncAsResult(
     parseEntitiesValuesEffectfully(entitiesValues, schema, builder),
   );
